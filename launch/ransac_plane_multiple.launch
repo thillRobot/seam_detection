@@ -1,0 +1,39 @@
+<launch>
+
+  <!-- --> 
+
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
+
+  <!-- read value of arg -->
+  <param name="param" value="$(arg file_name)"/>
+
+  <node                     
+    pkg="scan2cloud"          
+    name="setup_tf"   
+    type="setup_tf"
+    output="screen"    
+  />                        
+  
+  <node                     
+    pkg="pcl_ros"          
+    name="pcd_to_pointcloud"   
+    type="pcd_to_pointcloud"
+    output="screen"
+    args="$(find scan2cloud)/images/$(arg file_name)">   
+  </node>	 
+  
+  <node name="rviz" 
+        pkg="rviz" 
+        type="rviz" 
+        args="-d $(find scan2cloud)/scan2cloud.rviz">
+  </node>
+
+  <node                     
+    pkg="scan2cloud"          
+    name="ransac_plane"   
+    type="ransac_plane"
+    output="screen"
+    args="-f $(arg file_name)"    
+  />
+
+</launch>
