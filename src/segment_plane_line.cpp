@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 
     // This path must be changed when I switch workstations - TWH
     //std::string test_path = std::string("/home/bender/Dropbox/t410_ros/src/seam_detection/images/")+in_file;
-    std::string test_path = std::string("/home/thill/Dropbox/t1600_ros/src/seam_detection/images/")+in_file;
+    std::string test_path = in_file;
 
     // load the cloud from file
     if (pcl::io::loadPCDFile<pcl::PointXYZ> (test_path, *cloud_in) == -1)
