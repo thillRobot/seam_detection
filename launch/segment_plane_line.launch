@@ -9,7 +9,7 @@
   <param name="param" value="$(arg thresh)"/>
 
   <node
-    pkg="scan_cloud"          
+    pkg="seam_detection"
     name="setup_tf"
     type="setup_tf"
     output="screen"
@@ -34,7 +34,7 @@
     name="segment_plane_line"
     type="segment_plane_line"
     output="screen"
-    args="-f $(arg in_file) $(arg thresh)"
+    args="-f $(find seam_detection)/images/$(arg in_file) $(arg thresh)"
   />
 
 </launch>

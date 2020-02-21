@@ -9,7 +9,7 @@
   <param name="param" value="$(arg thresh2)"/>
 
   <node                     
-    pkg="scan2cloud"          
+    pkg="seam_detection"          
     name="setup_tf"   
     type="setup_tf"
     output="screen"    
