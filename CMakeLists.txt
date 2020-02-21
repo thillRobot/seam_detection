@@ -243,3 +243,6 @@ target_link_libraries(plane_filter_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
 target_link_libraries(seam_detection_ICP ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+add_executable(setup_tf src/setup_tf.cpp)
+target_link_libraries(setup_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
