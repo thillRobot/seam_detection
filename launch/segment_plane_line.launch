@@ -20,7 +20,7 @@
     name="pcd_to_pointcloud"
     type="pcd_to_pointcloud"
     output="screen"
-    args="$(find seam_detection)/images/$(arg in_file)">
+    args="$(find seam_detection)/pcd_images/$(arg in_file)">
   </node>
 
   <node name="rviz"
@@ -34,7 +34,7 @@
     name="segment_plane_line"
     type="segment_plane_line"
     output="screen"
-    args="-f $(find seam_detection)/images/$(arg in_file) $(arg thresh)"
+    args="-f $(find seam_detection)/pcd_images/$(arg in_file) $(arg thresh)"
   />
 
 </launch>
