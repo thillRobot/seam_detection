@@ -6,15 +6,15 @@
 
 ##### These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
 
-##### Process the pointcloud using PCL-SEGMENTATION
+#### PCL - RANSAC - SEGMENTATION
 
-`$ roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
+`roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
 
 ##### try this one pcd_to_pointcloud - THIS WORKS (02/04/2020)
 
-`$ roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01`
+`roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01`
 
-##### Iterative Closest Point (ICP)
+#### PCL - Iterative Closest Point (ICP)
 
 ##### Import a cloud from a CAD model. Currently it works like this - from Solidworks(.stl)-->meshlab(.ply)-->cad2cloud(.pcd)-->ROS(pointcloud!)
 
@@ -24,7 +24,7 @@
 
 ##### Step 3) Convert the '.ply' to a '.pcd' file using cad_cloud (this is a package I wrote that uses PCL). run the following commands.
 
-`this should be a code block right?`
+`cd seam_detection`
 
 `rosrun seam_detection cad_cloud ply_images/input.ply output.pcd -n_samples 100000 -leaf_size 0.001 -write_normals 1 -no_vis_results 0`
 
