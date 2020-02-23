@@ -1,13 +1,14 @@
 # seam_detection
+
 This is a ROS package for weld seam detection using pointcloud data.
 
 Here are some example uses of the package.
 
-Random Sample Consensus (RANSAC) + Segmentation
 
-Step 1) Record a pointcloud with a 3D Lidar, or skip step 1 and use prerecorded scans.
+##### These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
 
-Step 2) Process the pointcloud using PCL
+
+##### Process the pointcloud using PCL-SEGMENTATION
 
     `$ roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
 
@@ -16,7 +17,7 @@ Step 2) Process the pointcloud using PCL
     `$ roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01`
 
 
-Iterative Closest Point (ICP)
+##### Iterative Closest Point (ICP)
 
 Import a cloud from a CAD model. Currently it works like this - from Solidworks(.stl)-->meshlab(.ply)-->cad2cloud(.pcd)-->ROS(pointcloud!)
 
