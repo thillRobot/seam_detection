@@ -56,4 +56,8 @@
 ##### use RANSAC + ICP for weld seam detection. For now it is just locating the origin of the part.
 `roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001`
 
+`roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder_rotated.pcd" cad_file:="cylinder.pcd" thresh:=0.0001`
+
+`roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001`
+
 ##### Ok, well if that works I dont see why we cant do 2 parts...
