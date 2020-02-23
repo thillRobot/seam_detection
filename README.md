@@ -9,11 +9,11 @@ Step 1) Record a pointcloud with a 3D Lidar, or skip step 1 and use prerecorded 
 
 Step 2) Process the pointcloud using PCL
 
-    `roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
+    ``roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01``
 
     try this one pcd_to_pointcloud - THIS WORKS (02/04/2020)
 
-    `roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01`
+    ``roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01``
 
 
 Iterative Closest Point (ICP)
