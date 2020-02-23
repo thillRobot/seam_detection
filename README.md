@@ -28,6 +28,8 @@ Step 2) Convert the '.stl' to a '.ply' file using meshlab. Open the '.stl' using
 
 Step 3) Convert the '.ply' to a '.pcd' file using cad_cloud (this is a package I wrote that uses PCL). run the following commands.
 
+    `this should be a code block`
+
     `rosrun seam_detection cad_cloud ply_images/input.ply output.pcd -n_samples 100000 -leaf_size 0.001 -write_normals 1 -no_vis_results 0`
 
     `pcl_viewer -multiview 1 output.pcd`
