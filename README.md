@@ -6,20 +6,21 @@
 
 ##### These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
 
-#### PCL - RANSAC - SEGMENTATION
+#### PCL - RANSAC and SEGMENTATION
 
-`roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
 
 <!-- ##### try this one pcd_to_pointcloud - THIS WORKS (02/04/2020)-->
 <!--`roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01`-->
 
-##### try this too, is this different than above?
-
+##### Use the RANSAC algorithm to fit a models to a pointcloud. The library supports planes, cylinders, spheres and more.
 `roslaunch seam_detection ransac_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
 
-##### try this too, is this different than above?
+##### Use RANSAC models to segment, or separate, pointclouds.
+`roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
 
+##### use RANSAC for weld seam detection. For now it is just locating the origin of the part.
 `roslaunch seam_detection seam_detection_RANSAC.launch in_file:="lidar_scene1.pcd" out_file:="scene1.txt" thresh1:=0.01 thresh2:=0.001`
+
 
 #### PCL - Iterative Closest Point (ICP)
 
@@ -47,16 +48,12 @@
 
 `roslaunch seam_detection seam_detection_ICP.launch lidar_file:="lidar_scene3.pcd" cad_file:="cad_scene4.pcd"  thresh:=0.003`
 
-##### Ok, well if that works I dont see why we cant do 2 parts...
 
-
-`roslaunch seam_detection seam_detection_ICP.launch lidar_file:="cylinder.pcd" cad_file:="plate_cylinder.pcd"  thresh:=0.003`
-##### The process converges, we get a good score (if low is good, .00032)
-
-##### Try this!
-
+##### use ICP for weld seam detection. For now it is just locating the origin of the part.
 `roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.pcd" cad_file:="cylinder.pcd"  thresh:=0.0001`
 
-#### NEW RANSAC + ICP SEAM DETECTION ! - NEEDS CLEANUP
-
+#### NEW! PCL - RANSAC + ICP SEAM DETECTION ! - NEEDS CLEANUP
+##### use RANSAC + ICP for weld seam detection. For now it is just locating the origin of the part.
 `roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001`
+
+##### Ok, well if that works I dont see why we cant do 2 parts...
