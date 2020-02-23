@@ -10,11 +10,15 @@ Here are some example uses of the package.
 
 ##### Process the pointcloud using PCL-SEGMENTATION
 
-    `$ roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
+    ```
+    $ roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01
+    ```
 
     try this one pcd_to_pointcloud - THIS WORKS (02/04/2020)
 
-    `$ roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01`
+    ```
+    $ roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01
+    ```
 
 
 ##### Iterative Closest Point (ICP)
