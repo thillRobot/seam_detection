@@ -57,3 +57,7 @@
 ##### Try this!
 
 `roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.pcd" cad_file:="cylinder.pcd"  thresh:=0.0001`
+
+#### NEW RANSAC + ICP SEAM DETECTION ! - NEEDS CLEANUP
+
+`roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001`
