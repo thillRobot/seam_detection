@@ -15,7 +15,7 @@ Robotics Research Group - Mechanical Engineering
 
 // make an improved plane filter - 'thick-thin plane filter'
 
-// add a tf broadcaster to show the results of the ICP registration
+// add a tf broadcaster to show the results of the ICP registration - Done
 
 #include <iostream>
 #include <string>
@@ -51,12 +51,10 @@ Robotics Research Group - Mechanical Engineering
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
-
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 int main (int argc, char** argv)
 {
-
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr lidar_cloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_cloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -74,17 +72,12 @@ int main (int argc, char** argv)
     static tf::TransformBroadcaster br_result;
     tf::Transform tf_result;
 
-
-
-
     // read the command line arguments to pick the data file and some other details
     std::string lidar_file = argv[2]; // source cloud
     std::string cad_file = argv[3];   // reference cloud
     double thresh = atof(argv[4]);
-    // This path must be changed when I switch workstations - TWH
-    //std::string test_path = std::string("/home/bender/Dropbox/t410_ros/src/seam_detection/images/")+in_file;
-    //std::string lidar_cloud_path = std::string("/home/thill/Dropbox/m73_ros/src/seam_detection/images/")+lidar_file;
-    //std::string cad_cloud_path = std::string("/home/thill/Dropbox/m73_ros/src/seam_detection/images/")+cad_file;
+
+    // paths come from command line args
     std::string lidar_cloud_path = lidar_file;
     std::string cad_cloud_path = cad_file;
 
@@ -162,51 +155,33 @@ int main (int argc, char** argv)
 
     // perform ICP on the lidar and cad clouds
     pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+    pcl::PointCloud<pcl::PointXYZ> Final;
+
     icp.setInputCloud(filtered_cloud);
     icp.setInputTarget(cad_cloud);
-    pcl::PointCloud<pcl::PointXYZ> Final;
     icp.align(Final);
 
     Eigen::MatrixXf T_result;
-    //Eigen::Matrix3f R_result;
-
-
-
-
-
     T_result=icp.getFinalTransformation();
-    /*
-    R_result<<T_result(0,0),T_result(0,1),T_result(0,2),
-              T_result(1,0),T_result(1,1),T_result(1,2),
-              T_result(2,0),T_result(2,1),T_result(2,2);
-    */
-
 
     std::cout << "has converged:" << icp.hasConverged() << " score: " <<
         icp.getFitnessScore() << std::endl;
-    std::cout << icp.getFinalTransformation() << std::endl;
+    std::cout << T_result << std::endl;
 
-    std::cout << "Last Column of T: "<< T_result(0,3)<< std::endl;
-    std::cout << "                  "<< T_result(0,3)<< std::endl;
-    std::cout << "                  "<< T_result(0,3)<< std::endl;
-    std::cout << "                  "<< T_result(0,3)<< std::endl;
-
-    //std::cout << "Just the rotation R: "<< R_result<< std::endl;
-
-
-
+    // instantiate a quaternion to copy Transformation to
+    // this quaternion will be used to set markers rotation in RVIZ
     tf::Quaternion q_result;
-    //q_result.setRPY(0,0,0);
 
+    // use last collum of Transformation as center of marker
     tf_result.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
 
-    //tf::transformEigenToTF(icp.getFinalTransformation(),tf_result); // this does not compile
+    // instantiate a 3x3 rotation matrix from the transformation matrix
     tf::Matrix3x3 R_result(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
+
+    // copy tf::quaternion to q_result
     R_result.getRotation(q_result);
 
-    // we need to come back to rotation, lets skip it for now.
-
-
+    // set set rotation of the frame for the marker
     tf_result.setRotation(q_result);
 
     // broadcast the transform to show the result

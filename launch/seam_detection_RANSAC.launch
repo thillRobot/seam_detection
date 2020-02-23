@@ -34,7 +34,7 @@
     name="seam_detection_RANSAC"
     type="seam_detection_RANSAC"
     output="screen"
-    args="-f $(arg in_file) $(arg out_file) $(arg thresh1) $(arg thresh2)"
+    args="-f $(find seam_detection)/pcd_images/$(arg in_file) $(arg out_file) $(arg thresh1) $(arg thresh2)"
   />
 
 </launch>
