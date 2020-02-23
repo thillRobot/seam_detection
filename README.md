@@ -26,7 +26,7 @@
 
 `cd seam_detection`
 
-`rosrun seam_detection cad_cloud ply_images/input.ply output.pcd -n_samples 100000 -leaf_size 0.001 -write_normals 1 -no_vis_results 0`
+`rosrun seam_detection cad_cloud ply_images/cylinder.ply output.pcd -n_samples 100000 -leaf_size 0.001 -write_normals 1 -no_vis_results 0`
 
 `pcl_viewer -multiview 1 output.pcd`
 
