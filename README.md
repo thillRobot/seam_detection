@@ -27,7 +27,7 @@ Step 2) Convert the '.stl' to a '.ply' file using meshlab. Open the '.stl' using
 
 Step 3) Convert the '.ply' to a '.pcd' file using cad_cloud (this is a package I wrote that uses PCL). run the following commands.
 
-    `rosrun seam_detection cad_cloud ply_images/cylinder.ply output.pcd -n_samples 100000 -leaf_size 0.001 -write_normals 1 -no_vis_results 0`
+    `rosrun seam_detection cad_cloud ply_images/input.ply output.pcd -n_samples 100000 -leaf_size 0.001 -write_normals 1 -no_vis_results 0`
 
     `pcl_viewer -multiview 1 output.pcd`
 
@@ -35,6 +35,7 @@ Step 4) Use ICP to compare the CAD/reference image to the LIDAR/source image. Th
 
     SCENE1:
     `roslaunch seam_detection seam_detection_ICP.launch lidar_file:="lidar_scene1.pcd" cad_file:="cad_scene1.pcd"  thresh:=0.003`
+
     SCENE2:
     `roslaunch seam_detection seam_detection_ICP.launch lidar_file:="lidar_scene2.pcd" cad_file:="cad_scene2.pcd"  thresh:=0.003`
 
