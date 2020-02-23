@@ -217,11 +217,11 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(random_sample_consensus src/random_sample_consensus.cpp)
-target_link_libraries(random_sample_consensus ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(random_sample_consensus src/random_sample_consensus.cpp)
+# target_link_libraries(random_sample_consensus ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-add_executable(ransac_plane src/ransac_plane.cpp)
-target_link_libraries(ransac_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(ransac_plane src/ransac_plane.cpp)
+# target_link_libraries(ransac_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 add_executable(segment_plane src/segment_plane.cpp)
 target_link_libraries(segment_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
@@ -229,20 +229,23 @@ target_link_libraries(segment_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(segment_plane_line src/segment_plane_line.cpp)
 target_link_libraries(segment_plane_line ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-add_executable(ransac_plane_multiple src/ransac_plane_multiple.cpp)
-target_link_libraries(ransac_plane_multiple ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(ransac_plane_multiple src/ransac_plane_multiple.cpp)
+# target_link_libraries(ransac_plane_multiple ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-add_executable(filter_cloud src/filter_cloud.cpp)
-target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(filter_cloud src/filter_cloud.cpp)
+# target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
 target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-add_executable(plane_filter_RANSAC src/plane_filter_RANSAC.cpp)
-target_link_libraries(plane_filter_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(plane_filter_RANSAC src/plane_filter_RANSAC.cpp)
+# target_link_libraries(plane_filter_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
 target_link_libraries(seam_detection_ICP ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 add_executable(setup_tf src/setup_tf.cpp)
 target_link_libraries(setup_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+add_executable(cad_cloud src/cad_cloud.cpp)
+target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
