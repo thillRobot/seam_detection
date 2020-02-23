@@ -1,28 +1,25 @@
 # seam_detection
 
-##### This is a ROS package for weld seam detection using pointcloud data that use PCL, the Point Cloud Library
+##### This is a ROS package for weld seam detection using pointcloud data.
 
 ##### Here are some example uses of the package.
 
 ##### These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
 
-#### PCL - RANSAC and SEGMENTATION
-
-
-##### use RANSAC to fit models to cloud - Planes, Spheres, Cylinders
-
-`roslaunch seam_detection ransac_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
-
-##### use models from RANSAC to segment clouds - separate them into points in model and not in model
+#### PCL - RANSAC - SEGMENTATION
 
 `roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
 
-<!-- `roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01` -->
+<!-- ##### try this one pcd_to_pointcloud - THIS WORKS (02/04/2020)-->
+<!--`roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01`-->
 
-##### use these to locate the intersection three planes and the line that is the intersection of 2 planes(the seam)
+##### try this too, is this different than above?
+
+`roslaunch seam_detection ransac_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01`
+
+##### try this too, is this different than above?
 
 `roslaunch seam_detection seam_detection_RANSAC.launch in_file:="lidar_scene1.pcd" out_file:="scene1.txt" thresh1:=0.01 thresh2:=0.001`
-
 
 #### PCL - Iterative Closest Point (ICP)
 
