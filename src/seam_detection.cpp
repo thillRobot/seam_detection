@@ -70,7 +70,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, PointClo
   pass.setInputCloud(cloud);
 
   pass.setFilterFieldName ("x");
-  pass.setFilterLimits(-0.5,0.5);
+  pass.setFilterLimits(-1.0,1.0);
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("y");
@@ -78,7 +78,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, PointClo
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("z");
-  pass.setFilterLimits(-0.5,0.5);
+  pass.setFilterLimits(-1.0,1.0);
   pass.filter (*cloud);
 
   std::cout<<"After pre-filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
