@@ -8,11 +8,10 @@ Updated - 02/17/2018
 
 Revisited 02/22/2020
 
-Added 'cylinder segmentation'
+Added 'cylinder segmentation' - Boom!
 
 Robotics Research Group - Mechanical Engineering
 */
-
 
 #include <iostream>
 #include <string>

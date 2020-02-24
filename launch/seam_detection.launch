@@ -1,6 +1,6 @@
 <launch>
 
-  <!-- -->
+  <!-- This is the main launch file for the SEAM_DETECTION node and package -->
 
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
@@ -11,8 +11,8 @@
 
   <node
     pkg="seam_detection"
-    name="setup_tf"
-    type="setup_tf"
+    name="seam_detection_tf"
+    type="seam_detection_tf"
     output="screen"
   />
 
@@ -27,7 +27,7 @@
   <node name="rviz"
         pkg="rviz"
         type="rviz"
-        args="-d $(find seam_detection)/rviz/segment_cloud.rviz">
+        args="-d $(find seam_detection)/rviz/seam_detection.rviz">
   </node>
 
   <node
