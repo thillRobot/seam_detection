@@ -9,8 +9,8 @@
 
   <node
     pkg="seam_detection"
-    name="setup_tf"
-    type="setup_tf"
+    name="seam_detection_tf"
+    type="seam_detection_tf"
     output="screen"
   />
 
@@ -19,7 +19,7 @@
     name="pcd_to_pointcloud"
     type="pcd_to_pointcloud"
     output="screen"
-    args="$(find seam_detection)/pcd_images/$(arg in_file)">   
+    args="$(find seam_detection)/pcd_images/$(arg in_file)">
   </node>
 
   <node name="rviz"

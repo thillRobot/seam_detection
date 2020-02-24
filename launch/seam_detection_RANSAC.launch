@@ -8,8 +8,8 @@
 
   <node
     pkg="seam_detection"
-    name="setup_tf"
-    type="setup_tf"
+    name="seam_detection_tf"
+    type="seam_detection_tf"
     output="screen"
   />
 
