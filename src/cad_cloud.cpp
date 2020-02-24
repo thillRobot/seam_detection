@@ -36,6 +36,7 @@
  */
 
 // Importing simple CAD parts into .pcd files with PCL
+// modifed by Tristan Hill
 
 
 #include <pcl/visualization/pcl_visualizer.h>
@@ -206,6 +207,7 @@ main (int argc, char **argv)
   }
   std::vector<int> ply_file_indices = parse_file_extension_argument (argc, argv, ".ply");
   std::vector<int> obj_file_indices = parse_file_extension_argument (argc, argv, ".obj");
+
   if (ply_file_indices.size () != 1 && obj_file_indices.size () != 1)
   {
     print_error ("Need a single input PLY/OBJ file to continue.\n");
@@ -290,8 +292,11 @@ main (int argc, char **argv)
 
   std::cout<<"TH - BUGS!... "<<std::endl;
 
-  std::cout<<"TH - Writing PCD output file... "<<std::endl;
-  savePCDFileASCII ("output.pcd", *voxel_cloud);
+
+  //argv[obj_file_indices[0]]
+  std::string file_out = argv[2];
+  savePCDFileASCII (file_out, *voxel_cloud);
+  std::cout<<"TH - Writing PCD output file: "<<file_out<<std::endl;
   std::cout<<"TH - Finsished writing PCD file. "<<std::endl;
 
   /* For some reason there is a crash (even seg fault on some inputs)  in this section - TH 03/05/2018 (late night) - This needs to be fixed!

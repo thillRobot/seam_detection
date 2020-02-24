@@ -10,6 +10,9 @@ Revisited 02/22/2020
 
 Added 'cylinder segmentation' - Boom!
 
+Next we want to add a 'second pass' to refine the results
+Before doing this I would like to add a marker in rviz of search spaces (boxes), maybe later...
+
 Robotics Research Group - Mechanical Engineering
 */
 
@@ -54,60 +57,63 @@ Robotics Research Group - Mechanical Engineering
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
+// make a function to organize the workflow, it is getting pretty strung out
+//void register_cloud(PointCloud &cloud)
+//{
+
+
+//}
+
+
 int main(int argc, char** argv)
 {
-  //PointCloud::Ptr cloud_in (new PointCloud);    //save a copy of the original
+
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy
-  //PointCloud::Ptr cloud_out1 (new PointCloud);  //these are the clouds for the planes
-  //PointCloud::Ptr cloud_out2 (new PointCloud);
 
-  pcl::PointCloud<pcl::PointXYZ>::Ptr lidar_cloud (new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cad_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // source cloud
+  PointCloud::Ptr cloud_cad (new pcl::PointCloud<pcl::PointXYZ>);  // reference cloud
 
-  ros::init(argc,argv,"seam_detection_RANSAC_ICP");
+  ros::init(argc,argv,"seam_detection");
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
-  ros::Publisher pub_lidar = node.advertise<PointCloud> ("/lidar_cloud", 1) ;
-  ros::Publisher pub_cad = node.advertise<PointCloud> ("/cad_cloud", 1) ;
+  ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
+  ros::Publisher pub_cad = node.advertise<PointCloud> ("/cloud_cad", 1) ;
   ros::Publisher pub_cylinder = node.advertise<PointCloud> ("/cloud_cylinder", 1) ;
   ros::Publisher pub_plane = node.advertise<PointCloud> ("/cloud_plane", 1) ;
-  //ros::Publisher pub2 = node.advertise<PointCloud> ("/cloud_out1", 1) ;
-  //ros::Publisher pub3 = node.advertise<PointCloud> ("/cloud_out2", 1) ;
 
-  // setup a tf for a fram for the result so we we can see it in RVIZ
+  // setup a tf for a frame for the result so we we can see it in RVIZ
   static tf::TransformBroadcaster br_result;
   tf::Transform tf_result;
 
+  // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
+  static tf::TransformBroadcaster br_searchbox;
+  tf::Transform tf_searchbox;
+
   // read the command line arguments to pick the data file and some other details
-  std::string lidar_file = argv[2]; // source cloud
-  std::string cad_file = argv[3];   // reference cloud
+  std::string file_lidar = argv[2]; // source cloud
+  std::string file_cad = argv[3];   // reference cloud
   double thresh = atof(argv[4]);
 
-  // paths come from command line args
-  std::string lidar_cloud_path = lidar_file;
-  std::string cad_cloud_path = cad_file;
-
   // load the cloud from lidar file
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (lidar_cloud_path, *lidar_cloud) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (file_lidar, *cloud_lidar) == -1)
   {
-      std::cout<<"Couldn't read image file:"<<lidar_cloud_path;
+      std::cout<<"Couldn't read image file:"<<file_lidar;
       return (-1);
   }
-  std::cout << "Loaded image file: "<< lidar_cloud_path <<std::endl<<
-      lidar_cloud->width * lidar_cloud->height << " Data points from "<< lidar_file << std::endl;
+  std::cout << "Loaded image file: "<< file_lidar <<std::endl<<
+      cloud_lidar->width * cloud_lidar->height << " Data points from "<< file_lidar << std::endl;
 
   // load the cloud from CAD file
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (cad_cloud_path, *cad_cloud) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (file_cad, *cloud_cad) == -1)
   {
-      std::cout<<"Couldn't read image file:"<<cad_cloud_path;
+      std::cout<<"Couldn't read image file:"<<file_cad;
       return (-1);
   }
-  std::cout << "Loaded image file: "<< cad_cloud_path <<std::endl<<
-      cad_cloud->width * cad_cloud->height << " Data points from "<< cad_file << std::endl;
+  std::cout << "Loaded image file: "<< file_cad <<std::endl<<
+      cloud_cad->width * cloud_cad->height << " Data points from "<< file_cad << std::endl;
 
-
-    pcl::copyPointCloud(*lidar_cloud,*cloud);
+    pcl::copyPointCloud(*cloud_lidar,*cloud);
     // Filter cloud before segementation
     pcl::PassThrough<pcl::PointXYZ> pass;
     pass.setInputCloud(cloud);
@@ -224,7 +230,7 @@ int main(int argc, char** argv)
     pcl::PointCloud<pcl::PointXYZ> Final;
 
     icp.setInputCloud(cloud_cylinder);
-    icp.setInputTarget(cad_cloud);
+    icp.setInputTarget(cloud_cad);
     icp.align(Final);
 
     Eigen::MatrixXf T_result;
@@ -248,22 +254,18 @@ int main(int argc, char** argv)
     // broadcast the transform to show the result
     br_result.sendTransform(tf::StampedTransform(tf_result,ros::Time::now(),"result","map"));
 
-    //pcl::copyPointCloud(*cloud_cylinder,*cloud_out1);
-    //pcl::copyPointCloud(*cloud_plane,*cloud_out2);
-
-    lidar_cloud->header.frame_id = "map";
-    cad_cloud->header.frame_id = "map";
+    cloud_lidar->header.frame_id = "map";
+    cloud_cad->header.frame_id = "map";
     cloud_cylinder->header.frame_id = "map";
     cloud_plane->header.frame_id = "map";
 
     //publish forever
     while(ros::ok())
     {
-        pub_lidar.publish(lidar_cloud);
-        pub_cad.publish(cad_cloud);
+        pub_lidar.publish(cloud_lidar);
+        pub_cad.publish(cloud_cad);
         pub_cylinder.publish(cloud_cylinder);
         pub_plane.publish(cloud_plane);
-
 
         ros::spinOnce();
         loop_rate.sleep();
