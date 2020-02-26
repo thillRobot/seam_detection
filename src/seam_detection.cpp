@@ -42,6 +42,7 @@ Robotics Research Group - Mechanical Engineering
 #include <geometry_msgs/PointStamped.h>
 #include <visualization_msgs/Marker.h>
 #include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 
 #include <tf/LinearMath/Matrix3x3.h>
 
@@ -52,38 +53,36 @@ Robotics Research Group - Mechanical Engineering
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
+#include <pcl_ros/transforms.h>
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
-
-// make a function to organize the workflow, it is getting pretty strung out
-void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, PointCloud &cloud_A, PointCloud &cloud_B, tf::Transform &result)
+void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2)
 {
-
   // make a copy of the lidar cloud called 'cloud'
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
-  pcl::copyPointCloud(cloud_target,*cloud);
+  pcl::copyPointCloud(cloud_input,*cloud);
 
   // XYZ Box Filter cloud before segementation
   pcl::PassThrough<pcl::PointXYZ> pass;
   pass.setInputCloud(cloud);
 
   pass.setFilterFieldName ("x");
-  pass.setFilterLimits(-0.5,0.5);
+  pass.setFilterLimits(-0.0,0.5);
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("y");
-  pass.setFilterLimits(-1.0,1.0);
+  pass.setFilterLimits(-0.0,0.5);
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("z");
-  pass.setFilterLimits(-0.5,0.5);
+  pass.setFilterLimits(-0.0,0.5);
   pass.filter (*cloud);
 
   std::cout<<"After pre-filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
 
-  pcl::copyPointCloud(*cloud,cloud_A); // save input to RANSAC algorithm
+  //pcl::copyPointCloud(*cloud,cloud_A); // save input to RANSAC algorithm
   // Perform RANSAC Segmentation to find cylinder
   // instantiate all objects needed
   pcl::PCDReader reader;
@@ -178,18 +177,53 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, PointClo
     std::cerr << "PointCloud representing the cylindrical component: " << cloud_cylinder->points.size () << " data points." << std::endl;
     writer.write ("table_scene_mug_stereo_textured_cylinder.pcd", *cloud_cylinder, false);
   }
-  std::cerr << "RANSAC SEGEMENTATION COMPLETED" << std::endl;
+
+  pcl::copyPointCloud(*cloud_cylinder,cloud_output1);
+  pcl::copyPointCloud(*cloud_plane,cloud_output2);
+  std::cerr << "END OF SEGMENT_CLOUD FUNCTION" << std::endl;
+
+}
+
+
+// This function REGISTER_CLOUD finds the transform between two pointclouds
+void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Transform &result)
+{
+
+  // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
+  PointCloud::Ptr cloud_A (new PointCloud);       //use this as the working copy of the target cloud
+  pcl::copyPointCloud(cloud_target,*cloud_A);
+  // make a copy of the lidar cloud called 'cloud'
+  PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
+  pcl::copyPointCloud(cloud_source,*cloud_B);
+
+  // XYZ Box Filter cloud before segementation
+  pcl::PassThrough<pcl::PointXYZ> pass;
+  pass.setInputCloud(cloud_A);
+
+  pass.setFilterFieldName ("x");
+  pass.setFilterLimits(-0.0,0.5);
+  pass.filter (*cloud_A);
+
+  pass.setFilterFieldName ("y");
+  pass.setFilterLimits(-0.0,0.5);
+  pass.filter (*cloud_A);
+
+  pass.setFilterFieldName ("z");
+  pass.setFilterLimits(-0.0,0.5);
+  pass.filter (*cloud_A);
+
+  std::cout<<"After pre-filtering there are "<<cloud_A->width * cloud_A->height << " data points in the lidar cloud. "<< std::endl;
 
   std::cerr << "BEGINNING ICP" << std::endl;
   // perform ICP on the lidar and cad clouds
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
   pcl::PointCloud<pcl::PointXYZ> Final;
 
-  pcl::copyPointCloud(cloud_source,*cloud);
-  pcl::copyPointCloud(*cloud_cylinder,cloud_B); // save input to ICP algorithm
+  //pcl::copyPointCloud(cloud_source,*cloud);
 
-  icp.setInputCloud(cloud_cylinder);
-  icp.setInputTarget(cloud);
+  icp.setInputTarget(cloud_A); // target (fixed) cloud
+  icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
+
   icp.align(Final);
 
   Eigen::MatrixXf T_result;
@@ -239,9 +273,13 @@ int main(int argc, char** argv)
   // instantiate some clouds
 
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud
-  PointCloud::Ptr cloud_cad (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
-  PointCloud::Ptr cloud_ransac (new pcl::PointCloud<pcl::PointXYZ>);  // input to ransac
-  PointCloud::Ptr cloud_icp (new pcl::PointCloud<pcl::PointXYZ>); // input to ICP
+
+  PointCloud::Ptr cloud_cad1 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
+  PointCloud::Ptr cloud_cad2 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
+  PointCloud::Ptr cloud_cad3 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
+
+  PointCloud::Ptr cloud_part1 (new pcl::PointCloud<pcl::PointXYZ>);  // input to ransac
+  PointCloud::Ptr cloud_part2 (new pcl::PointCloud<pcl::PointXYZ>); // input to ICP
 
 
   // load the clouds from file (.pcd)
@@ -254,43 +292,88 @@ int main(int argc, char** argv)
       cloud_lidar->width * cloud_lidar->height << " Data points from "<< file_lidar << std::endl;
 
   // load the cloud from CAD file
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (file_cad, *cloud_cad) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (file_cad, *cloud_cad1) == -1)
   {
       std::cout<<"Couldn't read image file:"<<file_cad;
       return (-1);
   }
   std::cout << "Loaded image file: "<< file_cad <<std::endl<<
-      cloud_cad->width * cloud_cad->height << " Data points from "<< file_cad << std::endl;
+      cloud_cad1->width * cloud_cad1->height << " Data points from "<< file_cad << std::endl;
 
   // setup a tf for a frame for the result so we we can see it in RVIZ
-  static tf::TransformBroadcaster br_result;
+  static tf::TransformBroadcaster br_T1; // first pass
+  static tf::TransformBroadcaster br_T1_inv; // first pass
+  static tf::TransformBroadcaster br_T2; // first pass
+  static tf::TransformBroadcaster br_T2_inv; // first pass
+  static tf::TransformBroadcaster br_T3; // first pass
+  //tf::Transform *tf_result; first pass
+  tf::Transform *T1 (new tf::Transform);
+  tf::Transform *T1_inv (new tf::Transform);
+  tf::Transform *T2 (new tf::Transform);
+  tf::Transform *T2_inv (new tf::Transform);
+  tf::Transform *T3 (new tf::Transform);
 
-  //tf::Transform *tf_result;
-  tf::Transform *tf_result (new tf::Transform);
+  //static tf::TransformBroadcaster br_result2; //second pass
+  //tf::Transform *tf_result; second pass
+  //tf::Transform *tf_result2 (new tf::Transform);
 
-  // performs RANSAC Segmentation + ICP Cloud Registration - results is a TF
-  register_cloud(*cloud_lidar, *cloud_cad, *cloud_ransac, *cloud_icp, *tf_result);
+  // RANSAC Segmentation to separate clouds
+  segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2);
+  // perform ICP Cloud Registration - results is a TF
+  register_cloud(*cloud_cad1, *cloud_part1, *T1);
+
+  *T1_inv=T1->inverse(); // invert the transform
+
+
+  br_T1_inv.sendTransform(tf::StampedTransform(*T1_inv,ros::Time::now(),"T1_inv","map"));
+
+  // now move the CAD part to the newly located frame
+  pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T1_inv);
+
+  // repeat registration
+  register_cloud(*cloud_cad2, *cloud_part1, *T2);
+
+  *T2_inv=T2->inverse(); // invert the transform
+
+  br_T2_inv.sendTransform(tf::StampedTransform(*T2_inv,ros::Time::now(),"T2_inv","map"));
+
+  pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T2_inv);
+  //br_part1_inv.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T1_inv","map"));
+
+  // compute the final frame
+  *T3=(*T1)*(*T2); // multiply the two transforms
+
+  br_T3.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
 
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
-  ros::Publisher pub_cad = node.advertise<PointCloud> ("/cloud_cad", 1) ;
-  ros::Publisher pub_ransac = node.advertise<PointCloud> ("/cloud_ransac", 1) ;
-  ros::Publisher pub_icp = node.advertise<PointCloud> ("/cloud_icp", 1) ;
+  ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
+  ros::Publisher pub_cad2 = node.advertise<PointCloud> ("/cloud_cad2", 1) ;
+  ros::Publisher pub_cad3 = node.advertise<PointCloud> ("/cloud_cad3", 1) ;
+  ros::Publisher pub_part1 = node.advertise<PointCloud> ("/cloud_part1", 1) ;
+  ros::Publisher pub_part2 = node.advertise<PointCloud> ("/cloud_part2", 1) ;
 
-  // broadcast the transform to show the result*cloud_lidar,*cloud_cad
-  br_result.sendTransform(tf::StampedTransform(*tf_result,ros::Time::now(),"result","map"));
+
 
   cloud_lidar->header.frame_id = "map";
-  cloud_cad->header.frame_id = "map";
-  cloud_ransac->header.frame_id = "map";
-  cloud_icp->header.frame_id = "map";
+  cloud_cad1->header.frame_id = "map";
+  cloud_cad2->header.frame_id = "map";
+  cloud_cad3->header.frame_id = "map";
+  cloud_part1->header.frame_id = "map";
+  cloud_part2->header.frame_id = "map";
 
   //publish forever
   while(ros::ok())
   {
+      //br_T1.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
+      //br_T2.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
+      //br_T3.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
+
       pub_lidar.publish(cloud_lidar);
-      pub_cad.publish(cloud_cad);
-      pub_ransac.publish(cloud_ransac);
-      pub_icp.publish(cloud_icp);
+      pub_cad1.publish(cloud_cad1);
+      pub_cad2.publish(cloud_cad2);
+      pub_cad2.publish(cloud_cad3);
+      pub_part1.publish(cloud_part1);
+      pub_part2.publish(cloud_part2);
 
       ros::spinOnce();
       loop_rate.sleep();
