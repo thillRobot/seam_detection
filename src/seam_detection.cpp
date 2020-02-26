@@ -305,30 +305,32 @@ int main(int argc, char** argv)
 
   // RANSAC Segmentation to separate clouds
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2);
+
+
   // perform ICP Cloud Registration - results is a TF
   register_cloud(*cloud_cad1, *cloud_part1, *T1);
+  br_T1.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
 
   *T1_inv=T1->inverse(); // invert the transform
-
-
   br_T1_inv.sendTransform(tf::StampedTransform(*T1_inv,ros::Time::now(),"T1_inv","map"));
+
 
   // now move the CAD part to the newly located frame
   pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T1_inv);
 
   // repeat registration
   register_cloud(*cloud_cad2, *cloud_part1, *T2);
+  br_T2.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
 
   *T2_inv=T2->inverse(); // invert the transform
-
   br_T2_inv.sendTransform(tf::StampedTransform(*T2_inv,ros::Time::now(),"T2_inv","map"));
 
+  // now move the CAD part again to the newly located frame
   pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T2_inv);
   //br_part1_inv.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T1_inv","map"));
 
   // compute the final frame
   *T3=(*T1)*(*T2); // multiply the two transforms
-
   br_T3.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
 
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
