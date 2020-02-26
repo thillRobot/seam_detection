@@ -35,6 +35,7 @@ Robotics Research Group - Mechanical Engineering
 #include <pcl/filters/passthrough.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/registration/icp.h>
+#include <pcl_ros/transforms.h>
 
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
@@ -43,17 +44,11 @@ Robotics Research Group - Mechanical Engineering
 #include <visualization_msgs/Marker.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
-
 #include <tf/LinearMath/Matrix3x3.h>
-
-//#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-
 #include <tf_conversions/tf_eigen.h>
-
 #include <Eigen/Dense>
 #include <Eigen/Core>
-
-#include <pcl_ros/transforms.h>
+//#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -184,7 +179,6 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
 }
 
-
 // This function REGISTER_CLOUD finds the transform between two pointclouds
 void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Transform &result)
 {
@@ -219,8 +213,6 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Tran
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
   pcl::PointCloud<pcl::PointXYZ> Final;
 
-  //pcl::copyPointCloud(cloud_source,*cloud);
-
   icp.setInputTarget(cloud_A); // target (fixed) cloud
   icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
 
@@ -247,9 +239,6 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Tran
   // set set rotation of the frame for the marker
   result.setRotation(q_result);
 
-
-  //pcl::copyPointCloud(cloud_source,*cloudB);
-
   std::cerr << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
 }
 
@@ -271,15 +260,12 @@ int main(int argc, char** argv)
   double thresh = atof(argv[4]);
 
   // instantiate some clouds
-
-  PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud
-
+  PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
   PointCloud::Ptr cloud_cad1 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
-  PointCloud::Ptr cloud_cad2 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
-  PointCloud::Ptr cloud_cad3 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
-
-  PointCloud::Ptr cloud_part1 (new pcl::PointCloud<pcl::PointXYZ>);  // input to ransac
-  PointCloud::Ptr cloud_part2 (new pcl::PointCloud<pcl::PointXYZ>); // input to ICP
+  PointCloud::Ptr cloud_cad2 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud intermediate
+  PointCloud::Ptr cloud_cad3 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud final
+  PointCloud::Ptr cloud_part1 (new pcl::PointCloud<pcl::PointXYZ>); // cylinder cloud // input to ICP
+  PointCloud::Ptr cloud_part2 (new pcl::PointCloud<pcl::PointXYZ>); // plane cloud
 
 
   // load the clouds from file (.pcd)
@@ -351,8 +337,6 @@ int main(int argc, char** argv)
   ros::Publisher pub_cad3 = node.advertise<PointCloud> ("/cloud_cad3", 1) ;
   ros::Publisher pub_part1 = node.advertise<PointCloud> ("/cloud_part1", 1) ;
   ros::Publisher pub_part2 = node.advertise<PointCloud> ("/cloud_part2", 1) ;
-
-
 
   cloud_lidar->header.frame_id = "map";
   cloud_cad1->header.frame_id = "map";
