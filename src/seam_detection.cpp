@@ -300,12 +300,12 @@ int main(int argc, char** argv)
   std::cout << "Loaded image file: "<< file_cad <<std::endl<<
       cloud_cad1->width * cloud_cad1->height << " Data points from "<< file_cad << std::endl;
 
-  // setup a tf for a frame for the result so we we can see it in RVIZ
-  static tf::TransformBroadcaster br_T1; // first pass
-  static tf::TransformBroadcaster br_T1_inv; // first pass
-  static tf::TransformBroadcaster br_T2; // first pass
-  static tf::TransformBroadcaster br_T2_inv; // first pass
-  static tf::TransformBroadcaster br_T3; // first pass
+  // setup a tf for a frame for the result so we we can see it in RVI
+  static tf::TransformBroadcaster T_br; // first pass
+  //static tf::TransformBroadcaster br_T1_inv; // first pass
+  //static tf::TransformBroadcaster br_T2; // first pass
+  //static tf::TransformBroadcaster br_T2_inv; // first pass
+  //static tf::TransformBroadcaster br_T3; // first pass
   //tf::Transform *tf_result; first pass
   tf::Transform *T1 (new tf::Transform);
   tf::Transform *T1_inv (new tf::Transform);
@@ -325,7 +325,7 @@ int main(int argc, char** argv)
   *T1_inv=T1->inverse(); // invert the transform
 
 
-  br_T1_inv.sendTransform(tf::StampedTransform(*T1_inv,ros::Time::now(),"T1_inv","map"));
+  T_br.sendTransform(tf::StampedTransform(*T1_inv,ros::Time::now(),"T1_inv","map"));
 
   // now move the CAD part to the newly located frame
   pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T1_inv);
@@ -335,7 +335,7 @@ int main(int argc, char** argv)
 
   *T2_inv=T2->inverse(); // invert the transform
 
-  br_T2_inv.sendTransform(tf::StampedTransform(*T2_inv,ros::Time::now(),"T2_inv","map"));
+  T_br.sendTransform(tf::StampedTransform(*T2_inv,ros::Time::now(),"T2_inv","map"));
 
   pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T2_inv);
   //br_part1_inv.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T1_inv","map"));
@@ -343,7 +343,7 @@ int main(int argc, char** argv)
   // compute the final frame
   *T3=(*T1)*(*T2); // multiply the two transforms
 
-  br_T3.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
+  T_br.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
 
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
   ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
@@ -351,8 +351,6 @@ int main(int argc, char** argv)
   ros::Publisher pub_cad3 = node.advertise<PointCloud> ("/cloud_cad3", 1) ;
   ros::Publisher pub_part1 = node.advertise<PointCloud> ("/cloud_part1", 1) ;
   ros::Publisher pub_part2 = node.advertise<PointCloud> ("/cloud_part2", 1) ;
-
-
 
   cloud_lidar->header.frame_id = "map";
   cloud_cad1->header.frame_id = "map";
@@ -364,7 +362,9 @@ int main(int argc, char** argv)
   //publish forever
   while(ros::ok())
   {
-      //br_T1.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
+      T_br.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
+      T_br.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
+      T_br.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
       //br_T2.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
       //br_T3.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
 
