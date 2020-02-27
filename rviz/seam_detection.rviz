@@ -12,6 +12,7 @@ Panels:
         - /PointCloud22
         - /PointCloud23
         - /PointCloud24
+        - /PointCloud25
       Splitter Ratio: 0.5
     Tree Height: 728
   - Class: rviz/Selection
@@ -91,7 +92,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 47
@@ -108,7 +109,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -135,6 +136,36 @@ Visualization Manager:
       Size (m): 0.009999999776482582
       Style: Points
       Topic: /cloud_cad1
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 173; 127; 168
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0020000000949949026
+      Style: Points
+      Topic: /cloud_cad3
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -181,7 +212,7 @@ Visualization Manager:
       Color: 255; 0; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -198,7 +229,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -227,25 +258,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.5880881547927856
+      Distance: 0.24318906664848328
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.09698864817619324
-        Y: 0.21368452906608582
-        Z: 0.04205048084259033
+        X: 0.09323548525571823
+        Y: 0.20312662422657013
+        Z: 0.046584080904722214
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.19979643821716309
+      Pitch: 0.02479630336165428
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.279928684234619
+      Yaw: 6.044931888580322
     Saved: ~
 Window Geometry:
   Displays:
