@@ -45,10 +45,14 @@ Robotics Research Group - Mechanical Engineering
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
 #include <tf/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 #include <tf_conversions/tf_eigen.h>
 #include <Eigen/Dense>
 #include <Eigen/Core>
 //#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+#include <tf2_ros/static_transform_broadcaster.h>
+
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -180,7 +184,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 }
 
 // This function REGISTER_CLOUD finds the transform between two pointclouds
-void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Transform &result)
+void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Transform &result,geometry_msgs::TransformStamped &result2)
 {
 
   // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
@@ -219,7 +223,11 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Tran
   icp.align(Final);
 
   Eigen::MatrixXf T_result;
+  Eigen::MatrixXf T_inverse;
+
   T_result=icp.getFinalTransformation();
+
+  //T_inverse=T_result.inverse();
 
   std::cout << "has converged:" << icp.hasConverged() << " score: " <<
       icp.getFitnessScore() << std::endl;
@@ -227,17 +235,38 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Tran
 
   std::cerr << "ICP COMPLETED" << std::endl;
 
+  //result2.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+
   // instantiate a quaternion to copy Transformation to
   // this quaternion will be used to set markers rotation in RVIZ
   tf::Quaternion q_result;
+  tf2::Quaternion *q_result2 (new tf2::Quaternion);
   // use last collum of Transformation as center of marker
   result.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
   // instantiate a 3x3 rotation matrix from the transformation matrix
   tf::Matrix3x3 R_result(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
+  tf2::Matrix3x3 R_result2(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
   // copy tf::quaternion to q_result
   R_result.getRotation(q_result);
+  R_result2.getRotation(*q_result2);
   // set set rotation of the frame for the marker
   result.setRotation(q_result);
+  //result2.setRotation(q_result);
+
+  result2.header.stamp = ros::Time::now();
+  result2.header.frame_id = "map";
+  result2.child_frame_id = "T";
+
+  result2.transform.translation.x = T_result(0,3);
+  result2.transform.translation.y = T_result(1,3);
+  result2.transform.translation.z = T_result(2,3);
+
+  //quat.setRPY(atof(argv[5]), atof(argv[6]), atof(argv[7]));
+  result2.transform.rotation.x = q_result2->x();
+  result2.transform.rotation.y = q_result2->y();
+  result2.transform.rotation.z = q_result2->z();
+  result2.transform.rotation.w = q_result2->w();
+
 
   std::cerr << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
 }
@@ -299,6 +328,11 @@ int main(int argc, char** argv)
   tf::Transform *T2_inv (new tf::Transform);
   tf::Transform *T3 (new tf::Transform);
 
+  static tf2_ros::StaticTransformBroadcaster static_broadcaster;
+  geometry_msgs::TransformStamped *T_01 (new geometry_msgs::TransformStamped);
+  geometry_msgs::TransformStamped *T_12 (new geometry_msgs::TransformStamped);
+
+
   //static tf::TransformBroadcaster br_result2; //second pass
   //tf::Transform *tf_result; second pass
   //tf::Transform *tf_result2 (new tf::Transform);
@@ -306,24 +340,31 @@ int main(int argc, char** argv)
   // RANSAC Segmentation to separate clouds
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2);
 
-
   // perform ICP Cloud Registration - results is a TF
-  register_cloud(*cloud_cad1, *cloud_part1, *T1);
+  register_cloud(*cloud_cad1, *cloud_part1,*T1, *T_01);
+  T_01->header.frame_id = "T_01";
   T_br.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
+
+  static_broadcaster.sendTransform(*T_01);
+
 
   *T1_inv=T1->inverse(); // invert the transform
   T_br.sendTransform(tf::StampedTransform(*T1_inv,ros::Time::now(),"T1_inv","map"));
 
-
   // now move the CAD part to the newly located frame
   pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T1_inv);
 
+  // now move the CAD part to the newly located frame
+  //pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T1_inv);
+
   // repeat registration
-  register_cloud(*cloud_cad2, *cloud_part1, *T2);
+  register_cloud(*cloud_cad2, *cloud_part1, *T2,*T_12);
+  T_12->header.frame_id = "T_12";
   T_br.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
 
-  *T2_inv=T2->inverse(); // invert the transform
+  static_broadcaster.sendTransform(*T_12);
 
+  *T2_inv=T2->inverse(); // invert the transform
   T_br.sendTransform(tf::StampedTransform(*T2_inv,ros::Time::now(),"T2_inv","map"));
 
   // now move the CAD part again to the newly located frame
