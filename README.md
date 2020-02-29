@@ -61,3 +61,5 @@
 `roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001`
 
 ##### Ok, well if that works I dont see why we cant do 2 parts...
+
+###### I am migrating the code to 'TF2'. I hope this is a good idea. It has already fixed the 'static publisher issue'
