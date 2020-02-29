@@ -9,12 +9,14 @@
   <param name="param" value="$(arg cad_file)"/>
   <param name="param" value="$(arg thresh)"/>
 
+  
   <node
     pkg="seam_detection"
     name="seam_detection_tf"
     type="seam_detection_tf"
     output="screen"
   />
+
 
   <node
     pkg="pcl_ros"

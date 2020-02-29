@@ -46,13 +46,18 @@ Robotics Research Group - Mechanical Engineering
 #include <tf/transform_listener.h>
 #include <tf/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Transform.h>
+
 #include <tf_conversions/tf_eigen.h>
 #include <Eigen/Dense>
 #include <Eigen/Core>
-//#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/static_transform_broadcaster.h>
-
+#include <tf2_ros/transform_listener.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/Twist.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <tf2/convert.h>
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -184,7 +189,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 }
 
 // This function REGISTER_CLOUD finds the transform between two pointclouds
-void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Transform &result,geometry_msgs::TransformStamped &result2)
+void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Transform &tf_out, tf2::Transform &tf2_out, geometry_msgs::TransformStamped &msg_out)
 {
 
   // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
@@ -235,37 +240,41 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Tran
 
   std::cerr << "ICP COMPLETED" << std::endl;
 
-  //result2.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+  //msg.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
 
   // instantiate a quaternion to copy Transformation to
   // this quaternion will be used to set markers rotation in RVIZ
-  tf::Quaternion q_result;
-  tf2::Quaternion *q_result2 (new tf2::Quaternion);
+
+
   // use last collum of Transformation as center of marker
-  result.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+  tf::Quaternion q_result;
+  tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
   // instantiate a 3x3 rotation matrix from the transformation matrix
   tf::Matrix3x3 R_result(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
-  tf2::Matrix3x3 R_result2(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
+  tf2::Matrix3x3 R_result_tf2(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
   // copy tf::quaternion to q_result
+
   R_result.getRotation(q_result);
-  R_result2.getRotation(*q_result2);
+  R_result_tf2.getRotation(*q_result_tf2);
   // set set rotation of the frame for the marker
-  result.setRotation(q_result);
-  //result2.setRotation(q_result);
 
-  result2.header.stamp = ros::Time::now();
-  result2.header.frame_id = "map";
-  result2.child_frame_id = "T";
+  tf_out.setRotation(q_result);
+  tf_out.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
 
-  result2.transform.translation.x = T_result(0,3);
-  result2.transform.translation.y = T_result(1,3);
-  result2.transform.translation.z = T_result(2,3);
+  tf2_out.setRotation(*q_result_tf2);  // not used
+  tf2_out.setOrigin(tf2::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
 
-  //quat.setRPY(atof(argv[5]), atof(argv[6]), atof(argv[7]));
-  result2.transform.rotation.x = q_result2->x();
-  result2.transform.rotation.y = q_result2->y();
-  result2.transform.rotation.z = q_result2->z();
-  result2.transform.rotation.w = q_result2->w();
+  msg_out.header.stamp = ros::Time::now();
+  msg_out.header.frame_id = "base_link";
+
+  msg_out.transform.translation.x = T_result(0,3);
+  msg_out.transform.translation.y = T_result(1,3);
+  msg_out.transform.translation.z = T_result(2,3);
+
+  msg_out.transform.rotation.x = q_result_tf2->x();
+  msg_out.transform.rotation.y = q_result_tf2->y();
+  msg_out.transform.rotation.z = q_result_tf2->z();
+  msg_out.transform.rotation.w = q_result_tf2->w();
 
 
   std::cerr << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
@@ -322,56 +331,65 @@ int main(int argc, char** argv)
   //static tf::TransformBroadcaster br_T2_inv; // first pass
   //static tf::TransformBroadcaster br_T3; // first pass
   //tf::Transform *tf_result; first pass
-  tf::Transform *T1 (new tf::Transform);
-  tf::Transform *T1_inv (new tf::Transform);
-  tf::Transform *T2 (new tf::Transform);
-  tf::Transform *T2_inv (new tf::Transform);
-  tf::Transform *T3 (new tf::Transform);
+  tf::Transform *T_01 (new tf::Transform);    // seems like I still need these
+  tf::Transform *T_10 (new tf::Transform);
+  tf::Transform *T_12 (new tf::Transform);
+  tf::Transform *T_21 (new tf::Transform);
+  tf::Transform *T_30 (new tf::Transform);
+
+  tf2::Transform *T_01_tf2 (new tf2::Transform); // I am not sure if these new tf2 ojects are worth anythings
+  tf2::Transform *T_12_tf2 (new tf2::Transform); // I am sure I wasted hours messing with it though, dum
+  tf2::Transform *T_10_tf2 (new tf2::Transform);
+  tf2::Transform *T_21_tf2 (new tf2::Transform);
 
   static tf2_ros::StaticTransformBroadcaster static_broadcaster;
-  geometry_msgs::TransformStamped *T_01 (new geometry_msgs::TransformStamped);
-  geometry_msgs::TransformStamped *T_12 (new geometry_msgs::TransformStamped);
+  geometry_msgs::TransformStamped *T_01_msg (new geometry_msgs::TransformStamped);
+  geometry_msgs::TransformStamped *T_12_msg (new geometry_msgs::TransformStamped);
+  geometry_msgs::TransformStamped *T_23_msg (new geometry_msgs::TransformStamped);
 
-
-  //static tf::TransformBroadcaster br_result2; //second pass
+  //static tf::TransformBroadcaster br_msg; //second pass
   //tf::Transform *tf_result; second pass
-  //tf::Transform *tf_result2 (new tf::Transform);
+  //tf::Transform *tf_msg (new tf::Transform);
 
   // RANSAC Segmentation to separate clouds
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2);
-
   // perform ICP Cloud Registration - results is a TF
-  register_cloud(*cloud_cad1, *cloud_part1,*T1, *T_01);
-  T_01->header.frame_id = "T_01";
-  T_br.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
+  register_cloud(*cloud_cad1, *cloud_part1,*T_01, *T_01_tf2, *T_01_msg);
 
-  static_broadcaster.sendTransform(*T_01);
+  //T_br.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
+  T_01_msg->header.stamp = ros::Time::now();
+  T_01_msg->header.frame_id = "base_link";
+  T_01_msg->child_frame_id = "T_01";
+  static_broadcaster.sendTransform(*T_01_msg);
 
-
-  *T1_inv=T1->inverse(); // invert the transform
-  T_br.sendTransform(tf::StampedTransform(*T1_inv,ros::Time::now(),"T1_inv","map"));
-
-  // now move the CAD part to the newly located frame
-  pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T1_inv);
+  *T_10=T_01->inverse();
 
   // now move the CAD part to the newly located frame
+  pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_10);
+
+  //pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_10);
+
+  //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg);
+
+  // move the CAD part to the newly located frame
   //pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T1_inv);
 
   // repeat registration
-  register_cloud(*cloud_cad2, *cloud_part1, *T2,*T_12);
-  T_12->header.frame_id = "T_12";
-  T_br.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
+  register_cloud(*cloud_cad2, *cloud_part1, *T_12, *T_12_tf2, *T_12_msg);
 
-  static_broadcaster.sendTransform(*T_12);
+  T_12_msg->header.stamp = ros::Time::now();
+  T_12_msg->header.frame_id = "base_link";
+  T_12_msg->child_frame_id = "T_12";
+  static_broadcaster.sendTransform(*T_12_msg);
 
-  *T2_inv=T2->inverse(); // invert the transform
-  T_br.sendTransform(tf::StampedTransform(*T2_inv,ros::Time::now(),"T2_inv","map"));
+  *T_21=T_12->inverse();
 
   // now move the CAD part again to the newly located frame
-  pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T2_inv);
+  pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_21);
   //br_part1_inv.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T1_inv","map"T_br/ compute the final frame
-  *T3=(*T1)*(*T2); // multiply the two transforms
-  T_br.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
+  //*T_30=(*T1)*(*T2); // multiply the two transforms
+
+
 
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
   ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
@@ -380,26 +398,35 @@ int main(int argc, char** argv)
   ros::Publisher pub_part1 = node.advertise<PointCloud> ("/cloud_part1", 1) ;
   ros::Publisher pub_part2 = node.advertise<PointCloud> ("/cloud_part2", 1) ;
 
-  cloud_lidar->header.frame_id = "map";
-  cloud_cad1->header.frame_id = "map";
-  cloud_cad2->header.frame_id = "map";
-  cloud_cad3->header.frame_id = "map";
-  cloud_part1->header.frame_id = "map";
-  cloud_part2->header.frame_id = "map";
+  cloud_lidar->header.frame_id = "base_link";
+  cloud_cad1->header.frame_id = "base_link";
+  cloud_cad2->header.frame_id = "base_link";
+  cloud_cad3->header.frame_id = "base_link";
+  cloud_part1->header.frame_id = "base_link";
+  cloud_part2->header.frame_id = "base_link";
 
   //publish forever
   while(ros::ok())
   {
-      T_br.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
-      T_br.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
-      T_br.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
-      T_br.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
-      T_br.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
+      //T_br.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
+      //T_br.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
+      //T_br.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
+      //T_br.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
+      //T_br.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
 
-      pub_lidar.publish(cloud_lidar);
+
+      T_01_msg->header.stamp = ros::Time::now();
+      static_broadcaster.sendTransform(*T_01_msg);
+
+      T_12_msg->header.stamp = ros::Time::now();
+      static_broadcaster.sendTransform(*T_12_msg);
+
+      //T_21_msg->header.stamp = ros::Time::now();
+      //static_broadcaster.sendTransform(*T_21_msg);
+
       pub_cad1.publish(cloud_cad1);
       pub_cad2.publish(cloud_cad2);
-      pub_cad2.publish(cloud_cad3);
+      pub_cad3.publish(cloud_cad3);
       pub_part1.publish(cloud_part1);
       pub_part2.publish(cloud_part2);
 
