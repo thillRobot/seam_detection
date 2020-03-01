@@ -189,7 +189,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 }
 
 // This function REGISTER_CLOUD finds the transform between two pointclouds
-void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Transform &tf_out, tf2::Transform &tf2_out, geometry_msgs::TransformStamped &msg_out)
+void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Transform &tf_AB, tf::Transform &tf_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA)
 {
 
   // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
@@ -229,55 +229,121 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Tran
   icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
   icp.align(Final);
 
-  T_result=icp.getFinalTransformation();
+  T_result=icp.getFinalTransformation(); // get the resutls of ICP
+  T_inverse=T_result.inverse();
 
-  //T_inverse=T_result.inverse();
-
+  std::cerr << "ICP COMPLETED" << std::endl;
   std::cout << "has converged:" << icp.hasConverged() << " score: " <<
       icp.getFitnessScore() << std::endl;
   std::cout << T_result << std::endl;
 
-  std::cerr << "ICP COMPLETED" << std::endl;
-
-  //msg.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
-
-  // instantiate a quaternion to copy Transformation to
-  // this quaternion will be used to set markers rotation in RVIZ
-
-
+  // this part seems very over bloated !!!
   // use last collum of Transformation as center of marker
   tf::Quaternion q_result;
   tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
+
+  tf::Quaternion q_inverse;
+  tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
   // instantiate a 3x3 rotation matrix from the transformation matrix
   tf::Matrix3x3 R_result(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
   tf2::Matrix3x3 R_result_tf2(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
-  // copy tf::quaternion to q_result
 
+  tf::Matrix3x3 R_inverse(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
+  tf2::Matrix3x3 R_inverse_tf2(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
+
+  // copy tf::quaternion from R_result to q_result
   R_result.getRotation(q_result);
   R_result_tf2.getRotation(*q_result_tf2);
-  // set set rotation of the frame for the marker
 
-  tf_out.setRotation(q_result);
-  tf_out.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+  // copy tf::quaternion from R_result to q_result
+  R_inverse.getRotation(q_inverse);
+  R_inverse_tf2.getRotation(*q_inverse_tf2);
 
-  tf2_out.setRotation(*q_result_tf2);  // not used
-  tf2_out.setOrigin(tf2::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+  // set set rotation and origin of a quaternion for the tf transform object
+  tf_AB.setRotation(q_result);
+  tf_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+  // new 'TF2' style tf transform object
+  q_result_tf2->normalize(); // normalize the Quaternion
+  //tf2_out.setRotation(*q_result_tf2);
+  //tf2_out.setOrigin(tf2::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
 
-  msg_out.header.stamp = ros::Time::now();
-  msg_out.header.frame_id = "base_link";
+  // set set rotation and origin of a quaternion for the tf transform object
+  // the message also needs header info, a name and parent
+  //msg_out.header.stamp = ros::Time::now();
+  //msg_AB.header.frame_id = "base_link";
+  msg_AB.transform.translation.x = T_result(0,3);
+  msg_AB.transform.translation.y = T_result(1,3);
+  msg_AB.transform.translation.z = T_result(2,3);
+  //  TF2 is  used for the tf message
 
-  msg_out.transform.translation.x = T_result(0,3);
-  msg_out.transform.translation.y = T_result(1,3);
-  msg_out.transform.translation.z = T_result(2,3);
+  msg_AB.transform.rotation.x = q_result_tf2->x();
+  msg_AB.transform.rotation.y = q_result_tf2->y();
+  msg_AB.transform.rotation.z = q_result_tf2->z();
+  msg_AB.transform.rotation.w = q_result_tf2->w();
 
-  msg_out.transform.rotation.x = q_result_tf2->x();
-  msg_out.transform.rotation.y = q_result_tf2->y();
-  msg_out.transform.rotation.z = q_result_tf2->z();
-  msg_out.transform.rotation.w = q_result_tf2->w();
+  // set set rotation and origin of a quaternion for the tf transform object
+  tf_BA.setRotation(q_inverse);
+  tf_BA.setOrigin(tf::Vector3(T_inverse(0,3),T_inverse(1,3),T_inverse(2,3)));
+  // new 'TF2' style tf transform object
+  q_inverse_tf2->normalize(); // normalize the Quaternion
 
+  //msg_BA.header.frame_id = "base_link";
+  msg_BA.transform.translation.x = T_inverse(0,3);
+  msg_BA.transform.translation.y = T_inverse(1,3);
+  msg_BA.transform.translation.z = T_inverse(2,3);
+  //  TF2 is  used for the tf message
 
+  msg_BA.transform.rotation.x = q_inverse_tf2->x();
+  msg_BA.transform.rotation.y = q_inverse_tf2->y();
+  msg_BA.transform.rotation.z = q_inverse_tf2->z();
+  msg_BA.transform.rotation.w = q_inverse_tf2->w();
+  
+  /* // this part causes normaize errors
+  msg_out.transform.rotation.x = tf2_out.getRotation().normalized().getAxis().getX();
+  msg_out.transform.rotation.y = tf2_out.getRotation().normalized().getAxis().getY();
+  msg_out.transform.rotation.z = tf2_out.getRotation().normalized().getAxis().getZ();
+  msg_out.transform.rotation.w = tf2_out.getRotation().normalized().getW();
+  */
+
+  //  TF is coud be used for the tf message
+  /*
+  msg_out.transform.rotation.x = q_result.x();
+  msg_out.transform.rotation.y = q_result.y();
+  msg_out.transform.rotation.z = q_result.z();
+  msg_out.transform.rotation.w = q_result.w();
+  */
   std::cerr << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
 }
+
+// this function prints the info in a TF to the console
+void print_tf(tf::Transform &tf_in)
+{
+
+  std::cout<<"Printing Transformation"<<std::endl;
+  std::cout<<"Quaternion"<<std::endl;
+  std::cout<<"Origin"<<std::endl;
+  std::cout<<"X:"<<tf_in.getOrigin().getX()<<std::endl;
+  std::cout<<"Y:"<<tf_in.getOrigin().getY()<<std::endl;
+  std::cout<<"Z:"<<tf_in.getOrigin().getY()<<std::endl;
+  std::cout<<"Axis"<<std::endl;
+  std::cout<<"X:"<<tf_in.getRotation().getAxis().getX()<<std::endl;
+  std::cout<<"Y:"<<tf_in.getRotation().getAxis().getY()<<std::endl;
+  std::cout<<"Z:"<<tf_in.getRotation().getAxis().getZ()<<std::endl;
+  std::cout<<"W:"<<tf_in.getRotation().getW()<<std::endl;
+
+}
+
+/*
+void print4x4Matrix (const Eigen::Matrix4d & matrix)
+{
+  printf ("Rotation matrix :\n");
+  printf ("    | %6.3f %6.3f %6.3f | \n", matrix (0, 0), matrix (0, 1), matrix (0, 2));
+  printf ("R = | %6.3f %6.3f %6.3f | \n", matrix (1, 0), matrix (1, 1), matrix (1, 2));
+  printf ("    | %6.3f %6.3f %6.3f | \n", matrix (2, 0), matrix (2, 1), matrix (2, 2));
+  printf ("Translation vector :\n");
+  printf ("t = < %6.3f, %6.3f, %6.3f >\n\n", matrix (0, 3), matrix (1, 3), matrix (2, 3));
+}
+*/
 
 
 int main(int argc, char** argv)
@@ -304,7 +370,6 @@ int main(int argc, char** argv)
   PointCloud::Ptr cloud_part1 (new pcl::PointCloud<pcl::PointXYZ>); // cylinder cloud // input to ICP
   PointCloud::Ptr cloud_part2 (new pcl::PointCloud<pcl::PointXYZ>); // plane cloud
 
-
   // load the clouds from file (.pcd)
   if (pcl::io::loadPCDFile<pcl::PointXYZ> (file_lidar, *cloud_lidar) == -1)
   {
@@ -323,72 +388,76 @@ int main(int argc, char** argv)
   std::cout << "Loaded image file: "<< file_cad <<std::endl<<
       cloud_cad1->width * cloud_cad1->height << " Data points from "<< file_cad << std::endl;
 
-  // setup a tf for a frame for the result so we we can see it in RVI
-  static tf::TransformBroadcaster T_br; // first pass
-  //static tf::TransformBroadcaster br_T1_inv; // first pass
-  //static tf::TransformBroadcaster br_T2; // first pass
-  //static tf::TransformBroadcaster br_T2_inv; // first pass
-  //static tf::TransformBroadcaster br_T3; // first pass
-  //tf::Transform *tf_result; first pass
-  tf::Transform *T_01 (new tf::Transform);    // seems like I still need these
-  tf::Transform *T_10 (new tf::Transform);
+  // for now each tf has three objects associated with it
+  // 1) 'name' (tf::transform)      // needed for transforms with pcl_ros
+  // 2) 'name_tf2' (tf2::transform) // not used
+  // 3) 'name_msg' (geometry_msgs)  // needed for bradcasting frames
+
+  tf::Transform *T_01 (new tf::Transform);    // these are from the old 'TF'
+  tf::Transform *T_10 (new tf::Transform);    // they are stil used for pcl_ros::transformPointCloud
+
   tf::Transform *T_12 (new tf::Transform);
   tf::Transform *T_21 (new tf::Transform);
-  tf::Transform *T_30 (new tf::Transform);
 
-  tf2::Transform *T_01_tf2 (new tf2::Transform); // I am not sure if these new tf2 ojects are worth anythings
-  tf2::Transform *T_12_tf2 (new tf2::Transform); // I am sure I wasted hours messing with it though, dum
-  tf2::Transform *T_10_tf2 (new tf2::Transform);
-  tf2::Transform *T_21_tf2 (new tf2::Transform);
+  tf::Transform *T_02 (new tf::Transform);
+  tf::Transform *T_20 (new tf::Transform);
 
-  static tf2_ros::StaticTransformBroadcaster static_broadcaster;
+  //tf2::Transform *T_01_tf2 (new tf2::Transform); // I am not sure if these new tf2 ojects are worth anythings
+  //tf2::Transform *T_12_tf2 (new tf2::Transform); // I am sure I wasted hours messing with it though, dum...
+  //tf2::Transform *T_10_tf2 (new tf2::Transform);
+  //tf2::Transform *T_21_tf2 (new tf2::Transform);
+
+  static tf2_ros::StaticTransformBroadcaster static_broadcaster; // this is the new 'TF2' way to broadcast tfs
   geometry_msgs::TransformStamped *T_01_msg (new geometry_msgs::TransformStamped);
-  geometry_msgs::TransformStamped *T_12_msg (new geometry_msgs::TransformStamped);
-  geometry_msgs::TransformStamped *T_23_msg (new geometry_msgs::TransformStamped);
+  T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01";
 
-  //static tf::TransformBroadcaster br_msg; //second pass
-  //tf::Transform *tf_result; second pass
-  //tf::Transform *tf_msg (new tf::Transform);
+  geometry_msgs::TransformStamped *T_10_msg (new geometry_msgs::TransformStamped);
+  T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
+
+  geometry_msgs::TransformStamped *T_12_msg (new geometry_msgs::TransformStamped);
+  T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
+
+  geometry_msgs::TransformStamped *T_21_msg (new geometry_msgs::TransformStamped);
+  T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
+
+  geometry_msgs::TransformStamped *T_02_msg (new geometry_msgs::TransformStamped);
+  T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
+
+  geometry_msgs::TransformStamped *T_20_msg (new geometry_msgs::TransformStamped);
+  T_20_msg->header.frame_id = "base_link2"; T_20_msg->child_frame_id = "T_20";
 
   // RANSAC Segmentation to separate clouds
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2);
+
   // perform ICP Cloud Registration - results is a TF
-  register_cloud(*cloud_cad1, *cloud_part1,*T_01, *T_01_tf2, *T_01_msg);
+  register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg);
 
-  //T_br.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
-  T_01_msg->header.stamp = ros::Time::now();
-  T_01_msg->header.frame_id = "base_link";
-  T_01_msg->child_frame_id = "T_01";
-  static_broadcaster.sendTransform(*T_01_msg);
-
-  *T_10=T_01->inverse();
+  std::cout<<"Computing Matrix Inverse"<<std::endl;
 
   // now move the CAD part to the newly located frame
-  pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_10);
+  pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+  std::cerr << "Cloud transformed." << std::endl;
+  //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
 
-  //pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_10);
-
-  //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg);
-
-  // move the CAD part to the newly located frame
-  //pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T1_inv);
-
-  // repeat registration
-  register_cloud(*cloud_cad2, *cloud_part1, *T_12, *T_12_tf2, *T_12_msg);
-
-  T_12_msg->header.stamp = ros::Time::now();
-  T_12_msg->header.frame_id = "base_link";
-  T_12_msg->child_frame_id = "T_12";
-  static_broadcaster.sendTransform(*T_12_msg);
-
-  *T_21=T_12->inverse();
+  // repeat registration on moved cad model
+  register_cloud(*cloud_cad2, *cloud_part1, *T_21, *T_12, *T_21_msg, *T_12_msg);
 
   // now move the CAD part again to the newly located frame
-  pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_21);
-  //br_part1_inv.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T1_inv","map"T_br/ compute the final frame
-  //*T_30=(*T1)*(*T2); // multiply the two transforms
+  pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_12);
+  std::cerr << "Cloud transformed again." << std::endl;
 
 
+  *T_02=(*T_01)*(*T_12); // multiply the two transforms to get final tf
+  *T_20=T_02->inverse(); // get the inverse of the tf
+
+  std::cerr << "Final transformation computed." << std::endl;
+
+  //print_tf(*T_01); // print the info in the TFs for debugging
+  //print_tf(*T_10);
+  //print_tf(*T_12);
+  //print_tf(*T_21);
+  //print_tf(*T_02);
+  //print_tf(*T_20);
 
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
   ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
@@ -407,21 +476,20 @@ int main(int argc, char** argv)
   //publish forever
   while(ros::ok())
   {
+      // this is the old 'TF' way, it doesnt work so I dont know why I am leaving it here
       //T_br.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
-      //T_br.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
-      //T_br.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
-      //T_br.sendTransform(tf::StampedTransform(*T2,ros::Time::now(),"T2","map"));
-      //T_br.sendTransform(tf::StampedTransform(*T3,ros::Time::now(),"T3","map"));
 
+      // this is the new 'TF2' way of broadcasting tfs
+      T_01_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_msg);
+      T_10_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_msg);
 
-      T_01_msg->header.stamp = ros::Time::now();
-      static_broadcaster.sendTransform(*T_01_msg);
+      T_12_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_12_msg);
+      T_21_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_21_msg);
 
-      T_12_msg->header.stamp = ros::Time::now();
-      static_broadcaster.sendTransform(*T_12_msg);
-
-      //T_21_msg->header.stamp = ros::Time::now();
-      //static_broadcaster.sendTransform(*T_21_msg);
+      //T_02_msg->header.stamp = ros::Time::now();
+      //static_broadcaster.sendTransform(*T_02_msg);
+      //T_20_msg->header.stamp = ros::Time::now();
+      //static_broadcaster.sendTransform(*T_20_msg);
 
       pub_cad1.publish(cloud_cad1);
       pub_cad2.publish(cloud_cad2);
