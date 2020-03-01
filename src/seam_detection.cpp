@@ -222,13 +222,12 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Tran
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
   pcl::PointCloud<pcl::PointXYZ> Final;
 
-  icp.setInputTarget(cloud_A); // target (fixed) cloud
-  icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
-
-  icp.align(Final);
-
   Eigen::MatrixXf T_result;
   Eigen::MatrixXf T_inverse;
+
+  icp.setInputTarget(cloud_A); // target (fixed) cloud
+  icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
+  icp.align(Final);
 
   T_result=icp.getFinalTransformation();
 
