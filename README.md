@@ -63,3 +63,5 @@
 ##### Ok, well if that works I dont see why we cant do 2 parts...
 
 ###### I am migrating the code to 'TF2'. I hope this is a good idea. It has already fixed the 'static publisher issue'
+
+###### The migration has been stopped short. Apparently I still need tf::transform , seems wrong though
