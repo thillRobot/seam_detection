@@ -60,8 +60,16 @@
 
 `roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001`
 
-##### Ok, well if that works I dont see why we cant do 2 parts...
-
+##### THINGS TO DO
+#####
 ###### I am migrating the code to 'TF2'. I hope this is a good idea. It has already fixed the 'static publisher issue'
 
 ###### The migration has been stopped short. Apparently I still need tf::transform , seems wrong though
+
+###### It seems that I still need 'TF' for some things. tf::transform is still used for pcl_ros::transformPointCloud
+###### there is proably another way but I havent figured it out yet
+######
+###### Also, in my REGISTER_CLOUD function I think I could go straight from ICP to TF and not pul out the value like it is done, but I guess it works like ###### that now
+######
+###### Multiple parts needs to be developed
+#####
