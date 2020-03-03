@@ -297,7 +297,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Tran
   msg_BA.transform.rotation.y = q_inverse_tf2->y();
   msg_BA.transform.rotation.z = q_inverse_tf2->z();
   msg_BA.transform.rotation.w = q_inverse_tf2->w();
-  
+
   /* // this part causes normaize errors
   msg_out.transform.rotation.x = tf2_out.getRotation().normalized().getAxis().getX();
   msg_out.transform.rotation.y = tf2_out.getRotation().normalized().getAxis().getY();
@@ -313,6 +313,15 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Tran
   msg_out.transform.rotation.w = q_result.w();
   */
   std::cerr << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
+}
+
+void combine_transformation(tf::Transform &tf_AB, tf::Transform &tf_BC, tf::Transform &tf_AC, tf::Transform &tf_CA, geometry_msgs::TransformStamped &msg_AC,geometry_msgs::TransformStamped &msg_CA){
+
+  tf_AC=tf_AB*tf_BC;
+  tf_CA=tf_AC.inverse();
+
+  //tf::transformStampedTFToMsg();
+
 }
 
 // this function prints the info in a TF to the console
@@ -402,6 +411,9 @@ int main(int argc, char** argv)
   tf::Transform *T_02 (new tf::Transform);
   tf::Transform *T_20 (new tf::Transform);
 
+  tf::StampedTransform *T_01_s (new tf::StampedTransform);
+  //*T_01_s=*T_01;
+
   //tf2::Transform *T_01_tf2 (new tf2::Transform); // I am not sure if these new tf2 ojects are worth anythings
   //tf2::Transform *T_12_tf2 (new tf2::Transform); // I am sure I wasted hours messing with it though, dum...
   //tf2::Transform *T_10_tf2 (new tf2::Transform);
@@ -447,10 +459,14 @@ int main(int argc, char** argv)
   std::cerr << "Cloud transformed again." << std::endl;
 
 
-  *T_02=(*T_01)*(*T_12); // multiply the two transforms to get final tf
-  *T_20=T_02->inverse(); // get the inverse of the tf
+  //*T_02=(*T_01)*(*T_12); // multiply the two transforms to get final tf
+  //*T_20=T_02->inverse(); // get the inverse of the tf
+
+  combine_transformation(*T_01,*T_12,*T_20,*T_02,*T_20_msg,*T_02_msg);
 
   std::cerr << "Final transformation computed." << std::endl;
+
+  print_tf(*T_02);
 
   //print_tf(*T_01); // print the info in the TFs for debugging
   //print_tf(*T_10);
