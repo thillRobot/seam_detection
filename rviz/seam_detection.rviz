@@ -11,6 +11,8 @@ Panels:
         - /PointCloud22
         - /PointCloud23
         - /PointCloud24
+        - /TF1
+        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 728
   - Class: rviz/Selection
@@ -227,7 +229,11 @@ Visualization Manager:
         All Enabled: true
         T_01:
           Value: true
+        T_10:
+          Value: true
         T_12:
+          Value: true
+        T_21:
           Value: true
         base_link:
           Value: true
@@ -243,7 +249,11 @@ Visualization Manager:
           base_link:
             T_01:
               {}
+            T_10:
+              {}
             T_12:
+              {}
+            T_21:
               {}
       Update Interval: 0
       Value: true
@@ -275,7 +285,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.5333806276321411
+      Distance: 0.31107285618782043
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -290,10 +300,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.15479786694049835
+      Pitch: -0.1252019852399826
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.5672032833099365
+      Yaw: 6.145386695861816
     Saved: ~
 Window Geometry:
   Displays:
