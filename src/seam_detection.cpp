@@ -234,7 +234,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   T_inverse=T_result.inverse();
 
   //Eigen::MatrixXf *T_eig (new Eigen::MatrixXf);
-  //T_result=icp.getFinalTransformation(); // get the resutls of ICP
+  T_result=icp.getFinalTransformation(); // get the resutls of ICP
 
 
   std::cerr << "ICP COMPLETED" << std::endl;
