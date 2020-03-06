@@ -141,7 +141,7 @@ int main(int argc, char** argv)
     std::cout<<"Finished creating data file."<<std::endl;
 
     bool is_new=1;
-    if(is_new)
+    if(is_new) // what is this? TH
     {
         myfile<<"A1i"<<","<<"B1i"<<","<<"C1i"<<","<<"A2i"<<","<<"B2i"<<","<<"C2i"<<","<<"A3i"<<","<<"B3i"<<","<<"C3i"<<std::endl;
     }
@@ -415,18 +415,18 @@ int main(int argc, char** argv)
         std::cout << "Yaw: "<< yaw << std::endl;
 
         // convert from RPY to Quaternions - (from wikipedia)
-	    double cr = cos(roll * 0.5);
-	    double sr = sin(roll * 0.5);
-	    double cp = cos(pitch * 0.5);
-	    double sp = sin(pitch * 0.5);
+  	    double cr = cos(roll * 0.5);
+  	    double sr = sin(roll * 0.5);
+  	    double cp = cos(pitch * 0.5);
+  	    double sp = sin(pitch * 0.5);
         double cy = cos(yaw * 0.5);
-	    double sy = sin(yaw * 0.5);
+  	    double sy = sin(yaw * 0.5);
 
         double qx,qy,qz,qw;
         qw = cy * cr * cp + sy * sr * sp;
-	    qx = cy * sr * cp - sy * cr * sp;
-	    qy = cy * cr * sp + sy * sr * cp;
-	    qz = sy * cr * cp - cy * sr * sp;
+  	    qx = cy * sr * cp - sy * cr * sp;
+  	    qy = cy * cr * sp + sy * sr * cp;
+  	    qz = sy * cr * cp - cy * sr * sp;
 
         // add a 'visualization marker' for the planes - should decrease msg passing load
         float marker_alpha=0.5;

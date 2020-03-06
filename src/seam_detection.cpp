@@ -63,7 +63,7 @@ Robotics Research Group - Mechanical Engineering
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
-void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2)
+void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, pcl::ModelCoefficients &C_plane, pcl::ModelCoefficients &C_cylinder)
 {
   // make a copy of the lidar cloud called 'cloud'
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
@@ -226,6 +226,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   Eigen::MatrixXf T_result;
   Eigen::MatrixXf T_inverse;
 
+  icp.setMaximumIterations(20);
   icp.setInputTarget(cloud_A); // target (fixed) cloud
   icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
   icp.align(Final);
@@ -238,8 +239,8 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
 
 
   std::cerr << "ICP COMPLETED" << std::endl;
-  std::cout << "has converged:" << icp.hasConverged() << " score: " <<
-      icp.getFitnessScore() << std::endl;
+  std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
+  std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
   std::cout << T_result << std::endl;
 
   //tf::Transform *T (new tf::Transform);
@@ -474,8 +475,12 @@ int main(int argc, char** argv)
 
   geometry_msgs::TransformStamped *T_20_msg (new geometry_msgs::TransformStamped);
 
+
+  pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients);
+  pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
+
   // RANSAC Segmentation to separate clouds
-  segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2);
+  segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,*coeffs_plane,*coeffs_cylinder);
 
   // perform ICP Cloud Registration - results is a TF
   register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg);
@@ -509,6 +514,71 @@ int main(int argc, char** argv)
   T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
 
   std::cerr << "Final transformation computed and converted to message." << std::endl;
+
+  // publish 'markers' to to show the plane and cylinder found with RANSAC
+  //pubs for the plane marker
+  ros::Publisher pub_plane = node.advertise<visualization_msgs::Marker>("/marker_plane", 1);
+  visualization_msgs::Marker marker_plane; // notice the markers are not pointers
+  // Set the namespace and id for this marker.  This serves to create a unique ID
+  // Any marker sent with the same namespace and id will overwrite the old one
+  marker_plane.ns = "basic_shapes";
+  marker_plane.id = 1;
+  marker_plane.type = visualization_msgs::Marker::CUBE;
+  // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
+  marker_plane.action = visualization_msgs::Marker::ADD;
+
+  marker_plane.pose.position.x = 0; // set origin
+  marker_plane.pose.position.y = 0;
+  marker_plane.pose.position.z = 0;
+  marker_plane.pose.orientation.x = 0;  // set rotation
+  marker_plane.pose.orientation.y = 0;
+  marker_plane.pose.orientation.z = 0;
+  marker_plane.pose.orientation.w = 1;
+  // Set the scale of the marker -- 1x1x1 here means 1m on a side
+  marker_plane.scale.x = .001*300;
+  marker_plane.scale.y = .001*300;
+  marker_plane.scale.z = .001;
+  // Set the color -- be sure to set alpha to something non-zero!
+  marker_plane.color.r = 1.0f;
+  marker_plane.color.g = 0.0f;
+  marker_plane.color.b = 0.0f;
+  marker_plane.color.a = 0.5;
+  // set the header info
+  marker_plane.lifetime = ros::Duration();
+  marker_plane.header.frame_id = "base_link";
+  marker_plane.header.stamp = ros::Time::now();
+
+  //pubs for the cylinder marker
+  ros::Publisher pub_cylinder = node.advertise<visualization_msgs::Marker>("/marker_cylinder", 1);
+  visualization_msgs::Marker marker_cylinder; // notice the markers are not pointers
+  // Set the namespace and id for this marker.  This serves to create a unique ID
+  // Any marker sent with the same namespace and id will overwrite the old one
+  marker_cylinder.ns = "basic_shapes";
+  marker_cylinder.id = 1;
+  marker_cylinder.type = visualization_msgs::Marker::CYLINDER;
+  // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
+  marker_cylinder.action = visualization_msgs::Marker::ADD;
+
+  marker_cylinder.pose.position.x = 0; // set origin
+  marker_cylinder.pose.position.y = 0;
+  marker_cylinder.pose.position.z = 0;
+  marker_cylinder.pose.orientation.x = 0;  // set rotation
+  marker_cylinder.pose.orientation.y = 0;
+  marker_cylinder.pose.orientation.z = 0;
+  marker_cylinder.pose.orientation.w = 1;
+  // Set the scale of the marker -- 1x1x1 here means 1m on a side
+  marker_cylinder.scale.x = .05;
+  marker_cylinder.scale.y = .05;
+  marker_cylinder.scale.z = .1;
+  // Set the color -- be sure to set alpha to something non-zero!
+  marker_cylinder.color.r = 1.0f;
+  marker_cylinder.color.g = 0.0f;
+  marker_cylinder.color.b = 0.0f;
+  marker_cylinder.color.a = 0.5;
+  // set the header info
+  marker_cylinder.lifetime = ros::Duration();
+  marker_cylinder.header.frame_id = "base_link";
+  marker_cylinder.header.stamp = ros::Time::now();
 
   //print_tf(*T_02);
 
@@ -554,6 +624,10 @@ int main(int argc, char** argv)
       pub_cad3.publish(cloud_cad3);
       pub_part1.publish(cloud_part1);
       pub_part2.publish(cloud_part2);
+
+      pub_plane.publish(marker_plane);
+      pub_cylinder.publish(marker_cylinder);
+
 
       ros::spinOnce();
       loop_rate.sleep();
