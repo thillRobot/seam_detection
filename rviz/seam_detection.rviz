@@ -211,7 +211,7 @@ Visualization Manager:
       Size (Pixels): 2
       Size (m): 0.0020000000949949026
       Style: Points
-      Topic: /cloud_part1
+      Topic: /cloud_part2
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -310,7 +310,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.47391489148139954
+      Distance: 0.41704511642456055
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -325,10 +325,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4197980463504791
+      Pitch: 0.2497979998588562
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.700395107269287
+      Yaw: 5.160398483276367
     Saved: ~
 Window Geometry:
   Displays:

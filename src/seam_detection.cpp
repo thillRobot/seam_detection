@@ -63,7 +63,7 @@ Robotics Research Group - Mechanical Engineering
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
-void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, pcl::ModelCoefficients &C_plane, pcl::ModelCoefficients &C_cylinder)
+void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
 {
   // make a copy of the lidar cloud called 'cloud'
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
@@ -134,6 +134,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   seg.setInputNormals (cloud_normals);
   // Obtain the plane inliers and coefficients
   seg.segment (*inliers_plane, *coefficients_plane);
+  *C_plane=*coefficients_plane;
   std::cerr << "Plane coefficients: " << *coefficients_plane << std::endl;
 
   // Extract the planar inliers from the input cloud
@@ -167,6 +168,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   // Obtain the cylinder inliers and coefficients
   seg.segment (*inliers_cylinder, *coefficients_cylinder);
+  *C_cylinder=*coefficients_cylinder;
   std::cerr << "Cylinder coefficients: " << *coefficients_cylinder << std::endl;
 
   // Write the cylinder inliers to disk
@@ -360,7 +362,7 @@ void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_
 
 }
 
-/*
+
 // this function prints the info in a TF to the console
 void print_tf(tf::Transform &tf_in)
 {
@@ -376,11 +378,8 @@ void print_tf(tf::Transform &tf_in)
   std::cout<<"Y:"<<tf_in.getRotation().getAxis().getY()<<std::endl;
   std::cout<<"Z:"<<tf_in.getRotation().getAxis().getZ()<<std::endl;
   std::cout<<"W:"<<tf_in.getRotation().getW()<<std::endl;
-
 }
-*/
 
-/*
 void print4x4Matrix (const Eigen::Matrix4d & matrix)
 {
   printf ("Rotation matrix :\n");
@@ -390,8 +389,6 @@ void print4x4Matrix (const Eigen::Matrix4d & matrix)
   printf ("Translation vector :\n");
   printf ("t = < %6.3f, %6.3f, %6.3f >\n\n", matrix (0, 3), matrix (1, 3), matrix (2, 3));
 }
-*/
-
 
 int main(int argc, char** argv)
 {
@@ -449,7 +446,7 @@ int main(int argc, char** argv)
   tf::StampedTransform *T_02 (new tf::StampedTransform);
   tf::StampedTransform *T_20 (new tf::StampedTransform);
 
-  //tf::StampedTransform *T_01_s (new tf::StampedTransform);
+  //tf::StampedTransform *T_01_s (new tf::StampedTransform);coeffs_plane
   //*T_01_s=*T_01;
 
   //tf2::Transform *T_01_tf2 (new tf2::Transform); // I am not sure if these new tf2 ojects are worth anythings
@@ -480,7 +477,7 @@ int main(int argc, char** argv)
   pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
 
   // RANSAC Segmentation to separate clouds
-  segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,*coeffs_plane,*coeffs_cylinder);
+  segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,coeffs_plane,coeffs_cylinder);
 
   // perform ICP Cloud Registration - results is a TF
   register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg);
@@ -515,6 +512,9 @@ int main(int argc, char** argv)
 
   std::cerr << "Final transformation computed and converted to message." << std::endl;
 
+
+  std::cerr << "Plane Coefficients" << *coeffs_plane << std::endl;
+
   // publish 'markers' to to show the plane and cylinder found with RANSAC
   //pubs for the plane marker
   ros::Publisher pub_plane = node.advertise<visualization_msgs::Marker>("/marker_plane", 1);
@@ -530,7 +530,8 @@ int main(int argc, char** argv)
   marker_plane.pose.position.x = 0; // set origin
   marker_plane.pose.position.y = 0;
   marker_plane.pose.position.z = 0;
-  marker_plane.pose.orientation.x = 0;  // set rotation
+  marker_plane.pose.position.z = -coeffs_plane->values[3];
+  //marker_plane.pose.orientation.x = 0;  // set rotation
   marker_plane.pose.orientation.y = 0;
   marker_plane.pose.orientation.z = 0;
   marker_plane.pose.orientation.w = 1;
