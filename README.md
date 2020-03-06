@@ -72,4 +72,5 @@
 ###### Also, in my REGISTER_CLOUD function I think I could go straight from ICP to TF and not pul out the value like it is done, but I guess it works like ###### that now
 ######
 ###### Multiple parts needs to be developed
-#####
+######
+###### I am currently adding 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
