@@ -121,7 +121,7 @@ Visualization Manager:
       Size (Pixels): 1
       Size (m): 0.0020000000949949026
       Style: Points
-      Topic: /cloud_cad1
+      Topic: /cloud_lidar
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -151,7 +151,7 @@ Visualization Manager:
       Size (Pixels): 1
       Size (m): 0.0020000000949949026
       Style: Points
-      Topic: /cloud_cad2
+      Topic: /cloud_filtrd
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -310,7 +310,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.41704511642456055
+      Distance: 0.2921663820743561
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -325,10 +325,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2497979998588562
+      Pitch: 0.26979801058769226
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.160398483276367
+      Yaw: 5.210400104522705
     Saved: ~
 Window Geometry:
   Displays:
