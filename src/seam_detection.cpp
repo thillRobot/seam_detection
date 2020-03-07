@@ -68,7 +68,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output)
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(cloud_input,*cloud);
-
+  std::cerr << "BEGINNING CLOUD FILTERING" << std::endl;
   std::cout<<"Before pre-filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
 
   // XYZ Box Filter cloud before segementation
@@ -123,6 +123,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   // make a copy of the lidar cloud called 'cloud_filtered'
   pcl::copyPointCloud(cloud_input,*cloud_filtered);
+
+  std::cerr << "BEGINNING RANSAC SEGMENTATION" << std::endl;
   // Build a passthrough filter to remove spurious NaNs
   // i removed this and put it in a separate function 'filter_cloud'
   //pass.setInputCloud (cloud);
@@ -216,7 +218,8 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(cloud_source,*cloud_B);
 
-  // XYZ Box Filter cloud before segementation
+  // XYZ Box Filter cloud before segementation // removed an put into separate function
+  /*
   pcl::PassThrough<pcl::PointXYZ> pass;
   pass.setInputCloud(cloud_A);
 
@@ -231,10 +234,10 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   pass.setFilterFieldName ("z");
   pass.setFilterLimits(-0.0,0.5);
   pass.filter (*cloud_A);
+  */
+  //std::cout<<"After pre-filtering there are "<<cloud_A->width * cloud_A->height << " data points in the lidar cloud. "<< std::endl;
 
-  std::cout<<"After pre-filtering there are "<<cloud_A->width * cloud_A->height << " data points in the lidar cloud. "<< std::endl;
-
-  std::cerr << "BEGINNING ICP" << std::endl;
+  std::cerr << "BEGINNING ICP REGISTRATION" << std::endl;
   // perform ICP on the lidar and cad clouds
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
   pcl::PointCloud<pcl::PointXYZ> Final;
@@ -252,6 +255,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
 
   //Eigen::MatrixXf *T_eig (new Eigen::MatrixXf);
   T_result=icp.getFinalTransformation(); // get the resutls of ICP
+
 
   std::cerr << "ICP COMPLETED" << std::endl;
   std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
@@ -301,14 +305,16 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   // new 'TF2' style tf transform object
   q_inverse_tf2->normalize(); // normalize the Quaternion
 
+
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
+
 
   std::cerr << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
 }
 
-void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_BC, tf::StampedTransform &T_AC, tf::StampedTransform &T_CA, geometry_msgs::TransformStamped &msg_AC,geometry_msgs::TransformStamped &msg_CA){
 
+void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_BC, tf::StampedTransform &T_AC, tf::StampedTransform &T_CA, geometry_msgs::TransformStamped &msg_AC,geometry_msgs::TransformStamped &msg_CA){
 
   tf::Transform T;
   tf::Transform T_inv;
