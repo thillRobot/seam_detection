@@ -63,14 +63,16 @@ Robotics Research Group - Mechanical Engineering
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
-void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
+void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output)
 {
-  // make a copy of the lidar cloud called 'cloud'
+
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(cloud_input,*cloud);
 
+  std::cout<<"Before pre-filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+
   // XYZ Box Filter cloud before segementation
-  pcl::PassThrough<pcl::PointXYZ> pass;
+  pcl::PassThrough<pcl::PointXYZ> pass;cloud_input,
   pass.setInputCloud(cloud);
 
   pass.setFilterFieldName ("x");
@@ -82,11 +84,20 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("z");
-  pass.setFilterLimits(-0.0,0.5);
+  pass.setFilterLimits(0.01,0.5);
   pass.filter (*cloud);
 
   std::cout<<"After pre-filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+  pcl::copyPointCloud(*cloud,cloud_output);
 
+
+}
+
+
+void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
+{
+
+  // PointCloud::Ptr cloud_filtered (new PointCloud);       //use this as the working copy of the target cloud
   //pcl::copyPointCloud(*cloud,cloud_A); // save input to RANSAC algorithm
   // Perform RANSAC Segmentation to find cylinder
   // instantiate all objects needed
@@ -110,12 +121,15 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   pcl::PointCloud<PointT>::Ptr cloud_cylinder (new pcl::PointCloud<PointT> ());
   pcl::PointCloud<PointT>::Ptr cloud_plane (new pcl::PointCloud<PointT> ());
 
+  // make a copy of the lidar cloud called 'cloud_filtered'
+  pcl::copyPointCloud(cloud_input,*cloud_filtered);
   // Build a passthrough filter to remove spurious NaNs
-  pass.setInputCloud (cloud);
-  pass.setFilterFieldName ("z");
-  pass.setFilterLimits (0, 1.5);
-  pass.filter (*cloud_filtered);
-  std::cerr << "PointCloud after filtering has: " << cloud_filtered->points.size () << " data points." << std::endl;
+  // i removed this and put it in a separate function 'filter_cloud'
+  //pass.setInputCloud (cloud);
+  //pass.setFilterFieldName ("z");
+  //pass.setFilterLimits (0, 1.5);
+  //pass.filter (*cloud_filtered);
+  //std::cerr << "PointCloud after filtering has: " << cloud_filtered->points.size () << " data points." << std::endl;
 
   // Estimate point normals
   ne.setSearchMethod (tree);
@@ -239,7 +253,6 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   //Eigen::MatrixXf *T_eig (new Eigen::MatrixXf);
   T_result=icp.getFinalTransformation(); // get the resutls of ICP
 
-
   std::cerr << "ICP COMPLETED" << std::endl;
   std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
   std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
@@ -277,27 +290,10 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   //T_AB.setRotation(R_result.getRotation());
   //T_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
 
-
   // new 'TF2' style tf transform object
   q_result_tf2->normalize(); // normalize the Quaternion
   //tf2_out.setRotation(*q_result_tf2);
   //tf2_out.setOrigin(tf2::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
-
-  // set set rotation and origin of a quaternion for the tf transform object
-  // the message also needs header info, a name and parent
-  /*
-  //msg_out.header.stamp = ros::Time::now();
-  //msg_AB.header.frame_id = "base_link";
-  msg_AB.transform.translation.x = T_result(0,3);
-  msg_AB.transform.translation.y = T_result(1,3);
-  msg_AB.transform.translation.z = T_result(2,3);
-  //  TF2 is  used for the tf message
-
-  msg_AB.transform.rotation.x = q_result_tf2->x();
-  msg_AB.transform.rotation.y = q_result_tf2->y();
-  msg_AB.transform.rotation.z = q_result_tf2->z();
-  msg_AB.transform.rotation.w = q_result_tf2->w();
-  */
 
   // set set rotation and origin tfof a quaternion for the tf transform object
   T_BA.setRotation(q_inverse);
@@ -305,41 +301,14 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   // new 'TF2' style tf transform object
   q_inverse_tf2->normalize(); // normalize the Quaternion
 
-  /*
-  //msg_BA.header.frame_id = "base_link";
-  msg_BA.transform.translation.x = T_inverse(0,3);
-  msg_BA.transform.translation.y = T_inverse(1,3);
-  msg_BA.transform.translation.z = T_inverse(2,3);
-  //  TF2 is  used for the tf message
-
-  msg_BA.transform.rotation.x = q_inverse_tf2->x();
-  msg_BA.transform.rotation.y = q_inverse_tf2->y();
-  msg_BA.transform.rotation.z = q_inverse_tf2->z();
-  msg_BA.transform.rotation.w = q_inverse_tf2->w();
-  */
-
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  /* // this part causes normaize errors
-  msg_out.transform.rotation.x = tf2_out.getRotation().normalized().getAxis().getX();
-  msg_out.transform.rotation.y = tf2_out.getRotation().normalized().getAxis().getY();
-  msg_out.transform.rotation.z = tf2_out.getRotation().normalized().getAxis().getZ();
-  msg_out.transform.rotation.w = tf2_out.getRotation().normalized().getW();
-  */
-
-  //  TF is coud be used for the tf message
-  /*
-  msg_out.transform.rotation.x = q_result.x();
-  msg_out.transform.rotation.y = q_result.y();
-  msg_out.transform.rotation.z = q_result.z();
-  msg_out.transform.rotation.w = q_result.w();
-  */
   std::cerr << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
 }
 
-
 void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_BC, tf::StampedTransform &T_AC, tf::StampedTransform &T_CA, geometry_msgs::TransformStamped &msg_AC,geometry_msgs::TransformStamped &msg_CA){
+
 
   tf::Transform T;
   tf::Transform T_inv;
@@ -408,6 +377,7 @@ int main(int argc, char** argv)
 
   // instantiate some clouds
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
+  PointCloud::Ptr cloud_filtrd (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
   PointCloud::Ptr cloud_cad1 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
   PointCloud::Ptr cloud_cad2 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud intermediate
   PointCloud::Ptr cloud_cad3 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud final
@@ -475,9 +445,11 @@ int main(int argc, char** argv)
 
   pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients);
   pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
+  // RANSAC Segmentation to separate clouds
+  filter_cloud(*cloud_lidar,*cloud_filtrd);
 
   // RANSAC Segmentation to separate clouds
-  segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,coeffs_plane,coeffs_cylinder);
+  segment_cloud(*cloud_filtrd,*cloud_part1,*cloud_part2,coeffs_plane,coeffs_cylinder);
 
   // perform ICP Cloud Registration - results is a TF
   register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg);
@@ -591,6 +563,7 @@ int main(int argc, char** argv)
   //print_tf(*T_20);
 
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
+  ros::Publisher pub_filtrd = node.advertise<PointCloud> ("/cloud_filtrd", 1) ;
   ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
   ros::Publisher pub_cad2 = node.advertise<PointCloud> ("/cloud_cad2", 1) ;
   ros::Publisher pub_cad3 = node.advertise<PointCloud> ("/cloud_cad3", 1) ;
@@ -598,6 +571,7 @@ int main(int argc, char** argv)
   ros::Publisher pub_part2 = node.advertise<PointCloud> ("/cloud_part2", 1) ;
 
   cloud_lidar->header.frame_id = "base_link";
+  cloud_filtrd->header.frame_id = "base_link";
   cloud_cad1->header.frame_id = "base_link";
   cloud_cad2->header.frame_id = "base_link";
   cloud_cad3->header.frame_id = "base_link";
@@ -620,6 +594,8 @@ int main(int argc, char** argv)
       T_02_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_02_msg);
       T_20_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_20_msg);
 
+      pub_lidar.publish(cloud_lidar);
+      pub_filtrd.publish(cloud_filtrd);
       pub_cad1.publish(cloud_cad1);
       pub_cad2.publish(cloud_cad2);
       pub_cad3.publish(cloud_cad3);
