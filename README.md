@@ -74,3 +74,11 @@
 ###### Multiple parts needs to be developed
 ######
 ###### I am currently adding 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
+
+##### NEW THINGS TO DO
+###### First - all of the things not done in the list above. :)
+###### Next (or maybe first) - get demo ready for Friday robotics meeting
+###### Also Next (or first) - create branch called 'stable' to store the working code
+###### Then - begin migration to Fossa/Noetic
+
+
