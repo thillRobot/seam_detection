@@ -231,23 +231,23 @@ target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # These are nodes that I once used while working on SEAM_DETECTION
 # They are commented out to save time (??? wait...)
 
-# add_executable(filter_cloud src/filter_cloud.cpp)
-# target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(filter_cloud src/filter_cloud.cpp)
+target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# add_executable(plane_filter_RANSAC src/plane_filter_RANSAC.cpp)
-# target_link_libraries(plane_filter_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(plane_filter_RANSAC src/plane_filter_RANSAC.cpp)
+target_link_libraries(plane_filter_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-#add_executable(ransac_plane src/ransac_plane.cpp)
-#target_link_libraries(ransac_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(ransac_plane src/ransac_plane.cpp)
+target_link_libraries(ransac_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-#add_executable(segment_plane src/segment_plane.cpp)
-#target_link_libraries(segment_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(segment_plane src/segment_plane.cpp)
+target_link_libraries(segment_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-#add_executable(segment_cylinder src/segment_cylinder.cpp)
-#target_link_libraries(segment_cylinder ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(segment_cylinder src/segment_cylinder.cpp)
+target_link_libraries(segment_cylinder ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-#add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
-#target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
+target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-#add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
-#target_link_libraries(seam_detection_ICP ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
+target_link_libraries(seam_detection_ICP ${catkin_LIBRARIES} ${PCL_LIBRARIES})

@@ -79,6 +79,5 @@
 ###### First - all of the things not done in the list above. :)
 ###### Next (or maybe first) - get demo ready for Friday robotics meeting
 ###### Also Next (or first) - create branch called 'stable' to store the working code
+####### to do this we need to check that it is stable, it seems like it is, fresh clone builds! woop!
 ###### Then - begin migration to Fossa/Noetic
-
-
