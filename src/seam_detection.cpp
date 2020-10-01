@@ -245,7 +245,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   Eigen::MatrixXf T_result;
   Eigen::MatrixXf T_inverse;
 
-  icp.setMaximumIterations(20);// the default is 10
+  icp.setMaximumIterations(1000);// the default is 10
   icp.setInputTarget(cloud_A); // target (fixed) cloud
   icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
   icp.align(Final);
