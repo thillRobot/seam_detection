@@ -64,20 +64,23 @@
 #####
 ###### I am migrating the code to 'TF2'. I hope this is a good idea. It has already fixed the 'static publisher issue'
 
-###### The migration has been stopped short. Apparently I still need tf::transform , seems wrong though
+###### The migration has been stopped short. Apparently I still need tf::transform , seems wrong though, in the end I am using both ways
 
 ###### It seems that I still need 'TF' for some things. tf::transform is still used for pcl_ros::transformPointCloud
 ###### there is proably another way but I havent figured it out yet
 ######
-###### Also, in my REGISTER_CLOUD function I think I could go straight from ICP to TF and not pul out the value like it is done, but I guess it works like ###### that now
+###### Also, in my REGISTER_CLOUD function I think I could go straight from ICP to TF and not pull out the value like it is done, but I guess it works like ###### that now
 ######
-###### Multiple parts needs to be developed
+###### Multiple parts needs to be developed , cylinder and plate seem to work now
 ######
 ###### I am currently adding 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
 
 ##### NEW THINGS TO DO
 ###### First - all of the things not done in the list above. :)
-###### Next (or maybe first) - get demo ready for Friday robotics meeting
+###### Next (or maybe first) - get demo ready for Friday robotics meeting - semi done! demo with NUC
 ###### Also Next (or first) - create branch called 'stable' to store the working code
 ####### to do this we need to check that it is stable, it seems like it is, fresh clone builds! woop!
-###### Then - begin migration to Fossa/Noetic
+###### Then - begin migration to Fossa/Noetic - everything compiles  and returns
+####### I did run into a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for
+####### the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched
+####### to the 'nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue
