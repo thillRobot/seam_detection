@@ -67,7 +67,7 @@
 ###### The migration has been stopped short. Apparently I still need tf::transform , seems wrong though, in the end I am using both ways
 
 ###### It seems that I still need 'TF' for some things. tf::transform is still used for pcl_ros::transformPointCloud
-###### there is proably another way but I havent figured it out yet
+###### there is probably another way but I have not figured it out yet
 ######
 ###### Also, in my REGISTER_CLOUD function I think I could go straight from ICP to TF and not pull out the value like it is done, but I guess it works like ###### that now
 ######
@@ -83,4 +83,6 @@
 ###### Then - begin migration to Fossa/Noetic - everything compiles  and returns
 ####### I did run into a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for
 ####### the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched
-####### to the 'nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue
+####### to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue
+####### after that everything runs but the ICP does not work. Actually it converges but the score is too high
+####### and the results do not make any sense. It works in Melodic but not in Noetic. This is a issue.
