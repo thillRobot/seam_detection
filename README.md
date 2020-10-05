@@ -79,10 +79,10 @@
 ###### First - all of the things not done in the list above. :)
 ###### Next (or maybe first) - get demo ready for Friday robotics meeting - semi done! demo with NUC
 ###### Also Next (or first) - create branch called 'stable' to store the working code
-####### to do this we need to check that it is stable, it seems like it is, fresh clone builds! woop!
+###### to do this we need to check that it is stable, it seems like it is, fresh clone builds! woop!
 ###### Then - begin migration to Fossa/Noetic - everything compiles  and returns
-####### I did run into a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for
-####### the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched
-####### to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue
-####### after that everything runs but the ICP does not work. Actually it converges but the score is too high
-####### and the results do not make any sense. It works in Melodic but not in Noetic. This is a issue.
+###### I did run into a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for
+###### the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched
+###### to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue
+###### after that everything runs but the ICP does not work. Actually it converges but the score is too high
+###### and the results do not make any sense. It works in Melodic but not in Noetic. This is a issue.
