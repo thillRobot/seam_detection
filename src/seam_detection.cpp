@@ -22,6 +22,7 @@ Robotics Research Group - Mechanical Engineering
 
 #include <pcl/console/parse.h>
 #include <pcl/filters/extract_indices.h>
+#include <pcl/filters/voxel_grid.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
@@ -82,13 +83,20 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output)
   pass.setFilterFieldName ("y");
   pass.setFilterLimits(0.0,0.5);
   pass.filter (*cloud);
-
   pass.setFilterFieldName ("z");
   pass.setFilterLimits(0.01,0.5);
   pass.filter (*cloud);
 
+  // Voxel Filter the Cloud
+  pcl::VoxelGrid<pcl::PointXYZ> vox;
+  vox.setInputCloud (cloud);
+  vox.setLeafSize (0.001f, 0.001f, 0.001f);
+  vox.filter (*cloud);
+
   std::cout<<"After pre-filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
   pcl::copyPointCloud(*cloud,cloud_output);
+
+
 
 
 }
@@ -245,7 +253,17 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   Eigen::MatrixXf T_result;
   Eigen::MatrixXf T_inverse;
 
-  icp.setMaximumIterations(20);// the default is 10
+  //icp.setMaximumIterations(20);// the default is 10
+
+  // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
+  icp.setMaxCorrespondenceDistance (1.0);
+  // Set the maximum number of iterations (criterion 1)
+  icp.setMaximumIterations (1000);
+  // Set the transformation epsilon (criterion 2)
+  icp.setTransformationEpsilon (1e-10);
+  // Set the euclidean distance difference epsilon (criterion 3)
+  icp.setEuclideanFitnessEpsilon (10);
+
   icp.setInputTarget(cloud_A); // target (fixed) cloud
   icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
   icp.align(Final);

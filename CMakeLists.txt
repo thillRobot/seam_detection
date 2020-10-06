@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 2.8.3)
+#cmake_minimum_required(VERSION 2.8.3)
+#cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(seam_detection)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -211,7 +213,7 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-find_package(PCL 1.2 REQUIRED)
+find_package(PCL 1.7 REQUIRED)
 
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
