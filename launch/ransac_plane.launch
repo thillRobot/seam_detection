@@ -25,7 +25,7 @@
   <node name="rviz"
         pkg="rviz"
         type="rviz"
-        args="-d $(find seam_detection)/rviz/seam_detection.rviz">
+        args="-d $(find seam_detection)/rviz/ransac_plane.rviz">
   </node>
 
   <node
