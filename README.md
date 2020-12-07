@@ -60,7 +60,38 @@
 
 `roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001`
 
-##### THINGS TO DO
+
+### Installation Instructions for seam_detection 
+
+#### Requirements:
+##### Operating System: 
+- Ubuntu 18.04 - tested and working best
+- Ubuntu 20.04 - testing now, working but not converging
+##### ROS Version (linked to OS):
+- ROS Melodic
+- ROS Noetic
+##### Hardware 
+- not identified
+
+
+#### Step 1 - Setup ROS workspace
+If you want to use a catkin workspace that is already setup, then you can skip **Step 1**. If you do not, then you need to create and build a catkin workspace now. Choose a location and insert a name for your workpace. Typically this is somewhere in `~/`.
+
+```
+mkdir -p ~/<workspace-name>/src
+cd ~/<workspace-name>
+catkin_make
+```
+
+This will build your workspace for the first time. You now should have a `CMakeLists.txt` file and a `<workspace-name>/devel/` directory.
+
+#### Step 2 - Download SEAM_DETECTION Package
+
+```
+git clone https://github.com/thillRobot/seam_detection.git
+```
+
+### THINGS TO DO
 #####
 ###### I am migrating the code to 'TF2'. I hope this is a good idea. It has already fixed the 'static publisher issue'
 
@@ -68,11 +99,11 @@
 
 ###### It seems that I still need 'TF' for some things. tf::transform is still used for pcl_ros::transformPointCloud
 ###### there is probably another way but I have not figured it out yet
-######
+
 ###### Also, in my REGISTER_CLOUD function I think I could go straight from ICP to TF and not pull out the value like it is done, but I guess it works like ###### that now
-######
+
 ###### Multiple parts needs to be developed , cylinder and plate seem to work now
-######
+
 ###### I am currently adding 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
 
 ##### NEW THINGS TO DO
