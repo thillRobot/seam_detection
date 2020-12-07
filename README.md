@@ -73,9 +73,8 @@
 ##### Hardware 
 - not identified
 
-
 #### Step 1 - Setup ROS workspace
-If you want to use a catkin workspace that is already setup, then you can skip **Step 1**. If you do not, then you need to create and build a catkin workspace now. Choose a location and insert a name for your workpace. Typically this is somewhere in `~/`.
+If you want to use a catkin workspace that is already setup, then you can skip **Step 1** (you workspace must compile). If you do not, then create and build a catkin workspace before proceeding. Choose a location and insert a name for the workpace. Typically this is somewhere in `~/`.
 
 ```
 mkdir -p ~/<workspace-name>/src
@@ -83,37 +82,38 @@ cd ~/<workspace-name>
 catkin_make
 ```
 
-This will build your workspace for the first time. You now should have a `CMakeLists.txt` file and a `<workspace-name>/devel/` directory.
+This will build your workspace for the first time. There should now be a `CMakeLists.txt` file and a few new directories in the workspace.
 
 #### Step 2 - Download SEAM_DETECTION Package
+Change to the source directory of the workapce and pull the package using git.
 
 ```
+cd ~/<workspace-name>/src
 git clone https://github.com/thillRobot/seam_detection.git
 ```
 
 ### THINGS TO DO
-#####
-###### I am migrating the code to 'TF2'. I hope this is a good idea. It has already fixed the 'static publisher issue'
 
-###### The migration has been stopped short. Apparently I still need tf::transform , seems wrong though, in the end I am using both ways
+- I am migrating the code to 'TF2'. I hope this is a good idea. It has already fixed the 'static publisher issue'
 
-###### It seems that I still need 'TF' for some things. tf::transform is still used for pcl_ros::transformPointCloud
-###### there is probably another way but I have not figured it out yet
+- The migration has been stopped short. Apparently I still need tf::transform , seems wrong though, in the end I am using both ways
 
-###### Also, in my REGISTER_CLOUD function I think I could go straight from ICP to TF and not pull out the value like it is done, but I guess it works like ###### that now
+- It seems that I still need 'TF' for some things. tf::transform is still used for pcl_ros::transformPointCloud
+   there is probably another way but I have not figured it out yet
+- Also, in my REGISTER_CLOUD function I think I could go straight from ICP to TF and not pull out the value like it is done, but I guess it works like ###### that now
 
-###### Multiple parts needs to be developed , cylinder and plate seem to work now
+- Multiple parts needs to be developed , cylinder and plate seem to work now
 
-###### I am currently adding 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
+I am currently adding 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
 
-##### NEW THINGS TO DO
-###### First - all of the things not done in the list above. :)
-###### Next (or maybe first) - get demo ready for Friday robotics meeting - semi done! demo with NUC
-###### Also Next (or first) - create branch called 'stable' to store the working code
-###### to do this we need to check that it is stable, it seems like it is, fresh clone builds! woop!
-###### Then - begin migration to Fossa/Noetic - everything compiles  and returns
-###### I did run into a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for
-###### the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched
-###### to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue
-###### after that everything runs but the ICP does not work. Actually it converges but the score is too high
-###### and the results do not make any sense. It works in Melodic but not in Noetic. This is a issue.
+- NEW THINGS TO DO
+- First - all of the things not done in the list above. :)
+- Next (or maybe first) - get demo ready for Friday robotics meeting - semi done! demo with NUC
+- Also Next (or first) - create branch called 'stable' to store the working code
+- to do this we need to check that it is stable, it seems like it is, fresh clone builds! woop!
+- Then - begin migration to Fossa/Noetic - everything compiles  and returns
+- I did run into a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for
+- the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched
+- to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue
+- after that everything runs but the ICP does not work. Actually it converges but the score is too high
+- and the results do not make any sense. It works in Melodic but not in Noetic. This is a issue.
