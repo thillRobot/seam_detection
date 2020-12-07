@@ -2,64 +2,65 @@
 RANSAC/Segementation based multiple plane detection using PCL
 
 Tristan Hill - Weld Seam Detection - Tennessee Technological University
+Robotics Research Group - Mechanical Engineering
 
 Taken from PCL sample code - 02/14/2018
 Updated - 02/17/2018
-
 Revisited 02/22/2020
+v1.0 - 12/07/2020 this officially became seam_detection_v1.0
+This is my first time using `tags` to keep track of versions.
 
-Added 'cylinder segmentation' - Boom!
-
-Next we want to add a 'second pass' to refine the results
-Before doing this I would like to add a marker in rviz of search spaces (boxes), maybe later...
-
-Robotics Research Group - Mechanical Engineering
+- Added 'cylinder segmentation' - Boom!
+- Next we want to add a 'second pass' to refine the results
+- Before doing this I would like to add a marker in rviz of search spaces (boxes), maybe later...
+- this code needs cleaning up, there is a ton of dea code
 */
 
 #include <iostream>
 #include <string>
 #include <boost/thread/thread.hpp>
+#include <Eigen/Dense>
+#include <Eigen/Core>
 
 #include <pcl/console/parse.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
-#include <pcl_ros/point_cloud.h>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/sample_consensus/sac_model_sphere.h>
 #include <pcl/visualization/pcl_visualizer.h>
-#include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/registration/icp.h>
+
+#include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
+#include <pcl_ros/point_cloud.h>
 
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/PointStamped.h>
 #include <visualization_msgs/Marker.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/Twist.h>
+
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
 #include <tf/LinearMath/Matrix3x3.h>
+#include <tf_conversions/tf_eigen.h>
+
+#include <tf2/convert.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Transform.h>
-//#include <tf/TransformStamped.h>
-
-#include <tf_conversions/tf_eigen.h>
-#include <Eigen/Dense>
-#include <Eigen/Core>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <geometry_msgs/Twist.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <tf2/convert.h>
+//#include <tf/TransformStamped.h>
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -96,16 +97,13 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output)
   std::cout<<"After pre-filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
   pcl::copyPointCloud(*cloud,cloud_output);
 
-
-
-
 }
 
 
 void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
 {
 
-  // PointCloud::Ptr cloud_filtered (new PointCloud);       //use this as the working copy of the target cloud
+  // PointCloud::Ptr cloud_filtered (new PointCloud);  //use this as the working copy of the target cloud
   //pcl::copyPointCloud(*cloud,cloud_A); // save input to RANSAC algorithm
   // Perform RANSAC Segmentation to find cylinder
   // instantiate all objects needed
@@ -133,13 +131,6 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   pcl::copyPointCloud(cloud_input,*cloud_filtered);
 
   std::cerr << "BEGINNING RANSAC SEGMENTATION" << std::endl;
-  // Build a passthrough filter to remove spurious NaNs
-  // i removed this and put it in a separate function 'filter_cloud'
-  //pass.setInputCloud (cloud);
-  //pass.setFilterFieldName ("z");
-  //pass.setFilterLimits (0, 1.5);
-  //pass.filter (*cloud_filtered);
-  //std::cerr << "PointCloud after filtering has: " << cloud_filtered->points.size () << " data points." << std::endl;
 
   // Estimate point normals
   ne.setSearchMethod (tree);
@@ -179,12 +170,12 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   extract_normals.setIndices (inliers_plane);
   extract_normals.filter (*cloud_normals2);
 
-  // Create the segmentation object for cylinder segmentation and set all the parameters
+  // Create the segmentation object for cylinder segmentation and set the parameters
   seg.setOptimizeCoefficients (true);
   seg.setModelType (pcl::SACMODEL_CYLINDER);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setNormalDistanceWeight (0.1);
-  seg.setMaxIterations (10000);
+  seg.setMaxIterations (100);
   seg.setDistanceThreshold (0.05);
   seg.setRadiusLimits (0, 0.1);
   seg.setInputCloud (cloud_filtered2);
@@ -226,25 +217,6 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(cloud_source,*cloud_B);
 
-  // XYZ Box Filter cloud before segementation // removed an put into separate function
-  /*
-  pcl::PassThrough<pcl::PointXYZ> pass;
-  pass.setInputCloud(cloud_A);
-
-  pass.setFilterFieldName ("x");
-  pass.setFilterLimits(-0.0,0.5);
-  pass.filter (*cloud_A);
-
-  pass.setFilterFieldName ("y");
-  pass.setFilterLimits(-0.0,0.5);
-  pass.filter (*cloud_A);
-
-  pass.setFilterFieldName ("z");
-  pass.setFilterLimits(-0.0,0.5);
-  pass.filter (*cloud_A);
-  */
-  //std::cout<<"After pre-filtering there are "<<cloud_A->width * cloud_A->height << " data points in the lidar cloud. "<< std::endl;
-
   std::cerr << "BEGINNING ICP REGISTRATION" << std::endl;
   // perform ICP on the lidar and cad clouds
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
@@ -253,16 +225,14 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   Eigen::MatrixXf T_result;
   Eigen::MatrixXf T_inverse;
 
-  //icp.setMaximumIterations(20);// the default is 10
-
   // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
   icp.setMaxCorrespondenceDistance (1.0);
   // Set the maximum number of iterations (criterion 1)
   icp.setMaximumIterations (1000);
   // Set the transformation epsilon (criterion 2)
-  icp.setTransformationEpsilon (1e-10);
+  icp.setTransformationEpsilon (1e-8);
   // Set the euclidean distance difference epsilon (criterion 3)
-  icp.setEuclideanFitnessEpsilon (10);
+  icp.setEuclideanFitnessEpsilon (1e-5);
 
   icp.setInputTarget(cloud_A); // target (fixed) cloud
   icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
@@ -272,8 +242,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   T_inverse=T_result.inverse();
 
   //Eigen::MatrixXf *T_eig (new Eigen::MatrixXf);
-  T_result=icp.getFinalTransformation(); // get the resutls of ICP
-
+  //T_result=icp.getFinalTransformation(); // get the resutls of ICP
 
   std::cerr << "ICP COMPLETED" << std::endl;
   std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
@@ -283,14 +252,15 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   //tf::Transform *T (new tf::Transform);
   //tf::transformEigenToTF(T_result,*T);
 
-  // this part seems very over bloated !!!
+  // this part seems very over bloated !!! I feel like this is done in a method somewhere
+  // I spent forever on this part and it seems like it needs to be overhauled, i guess it works for now
   // use last collum of Transformation as center of marker
   tf::Quaternion q_result;
   tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
 
   tf::Quaternion q_inverse;
   tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
-  // instantiate a 3x3 rotation matrix from the transformation matrix
+  // instantiate a 3x3 rotation matrix from the transformation matrix // I feel like this is done in a method somewhere
   tf::Matrix3x3 R_result(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
   tf2::Matrix3x3 R_result_tf2(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
 
@@ -323,10 +293,8 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   // new 'TF2' style tf transform object
   q_inverse_tf2->normalize(); // normalize the Quaternion
 
-
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
-
 
   std::cerr << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
 }
@@ -346,15 +314,10 @@ void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_
   T_CA.setOrigin(T_inv.getOrigin());
   T_CA.setRotation(T_inv.getRotation());
 
-  //geometry_msgs::TransformStamped msg;
-
-  //geometry_msgs::TransformStamped *msg (new geometry_msgs::TransformStamped);
-
   tf::transformStampedTFToMsg(T_AC,msg_AC);
   tf::transformStampedTFToMsg(T_CA,msg_CA);
 
 }
-
 
 // this function prints the info in a TF to the console
 void print_tf(tf::Transform &tf_in)
@@ -469,6 +432,7 @@ int main(int argc, char** argv)
 
   pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients);
   pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
+
   // RANSAC Segmentation to separate clouds
   filter_cloud(*cloud_lidar,*cloud_filtrd);
 
@@ -492,7 +456,6 @@ int main(int argc, char** argv)
   pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_12);
   std::cerr << "Cloud transformed again." << std::endl;
 
-
   //*T_02=(*T_01)*(*T_12); // multiply the two transforms to get final tf
   //*T_20=T_02->inverse(); // get the inverse of the tf
 
@@ -508,11 +471,10 @@ int main(int argc, char** argv)
 
   std::cerr << "Final transformation computed and converted to message." << std::endl;
 
-
   std::cerr << "Plane Coefficients" << *coeffs_plane << std::endl;
 
   // publish 'markers' to to show the plane and cylinder found with RANSAC
-  //pubs for the plane marker
+  // instantiate pubs for the plane marker
   ros::Publisher pub_plane = node.advertise<visualization_msgs::Marker>("/marker_plane", 1);
   visualization_msgs::Marker marker_plane; // notice the markers are not pointers
   // Set the namespace and id for this marker.  This serves to create a unique ID
@@ -545,7 +507,7 @@ int main(int argc, char** argv)
   marker_plane.header.frame_id = "base_link";
   marker_plane.header.stamp = ros::Time::now();
 
-  //pubs for the cylinder marker
+  //instantiate pubs for the cylinder marker
   ros::Publisher pub_cylinder = node.advertise<visualization_msgs::Marker>("/marker_cylinder", 1);
   visualization_msgs::Marker marker_cylinder; // notice the markers are not pointers
   // Set the namespace and id for this marker.  This serves to create a unique ID
@@ -578,7 +540,6 @@ int main(int argc, char** argv)
   marker_cylinder.header.stamp = ros::Time::now();
 
   //print_tf(*T_02);
-
   //print_tf(*T_01); // print the info in the TFs for debugging
   //print_tf(*T_10);
   //print_tf(*T_12);
@@ -628,7 +589,6 @@ int main(int argc, char** argv)
 
       pub_plane.publish(marker_plane);
       pub_cylinder.publish(marker_cylinder);
-
 
       ros::spinOnce();
       loop_rate.sleep();
