@@ -1,11 +1,42 @@
 # seam_detection
+## This is a ROS package for weld seam detection using pointcloud data.
 
-##### This is a ROS package for weld seam detection using pointcloud data.
+### Installation Instructions for seam_detection 
 
-##### Here are some example uses of the package.
+#### Requirements:
+##### Operating System: 
+- Ubuntu 18.04 - tested and working best
+- Ubuntu 20.04 - testing now, working but not converging
+##### ROS Version (linked to OS):
+- ROS Melodic
+- ROS Noetic
+##### Hardware 
+- not identified
 
-##### These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
+#### Step 1 - Setup ROS workspace
+If you want to use a catkin workspace that is already setup, then you can skip **Step 1** (you workspace must compile). If you do not, then create and build a catkin workspace before proceeding. Choose a location and insert a name for the workpace. Typically this is somewhere in `~/`.
 
+```
+mkdir -p ~/<workspace-name>/src
+cd ~/<workspace-name>
+catkin_make
+```
+
+This will build your workspace for the first time. There should now be a `CMakeLists.txt` file and a few new directories in the workspace.
+
+#### Step 2 - Download SEAM_DETECTION Package
+Change to the source directory of the workapce and pull the package using git.
+
+```
+cd ~/<workspace-name>/src
+git clone https://github.com/thillRobot/seam_detection.git
+```
+
+
+### Using SEAM_DETECTION v1.0
+
+
+These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
 #### PCL - RANSAC and SEGMENTATION
 
 
@@ -61,36 +92,7 @@
 `roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001`
 
 
-### Installation Instructions for seam_detection 
 
-#### Requirements:
-##### Operating System: 
-- Ubuntu 18.04 - tested and working best
-- Ubuntu 20.04 - testing now, working but not converging
-##### ROS Version (linked to OS):
-- ROS Melodic
-- ROS Noetic
-##### Hardware 
-- not identified
-
-#### Step 1 - Setup ROS workspace
-If you want to use a catkin workspace that is already setup, then you can skip **Step 1** (you workspace must compile). If you do not, then create and build a catkin workspace before proceeding. Choose a location and insert a name for the workpace. Typically this is somewhere in `~/`.
-
-```
-mkdir -p ~/<workspace-name>/src
-cd ~/<workspace-name>
-catkin_make
-```
-
-This will build your workspace for the first time. There should now be a `CMakeLists.txt` file and a few new directories in the workspace.
-
-#### Step 2 - Download SEAM_DETECTION Package
-Change to the source directory of the workapce and pull the package using git.
-
-```
-cd ~/<workspace-name>/src
-git clone https://github.com/thillRobot/seam_detection.git
-```
 
 ### THINGS TO DO
 
