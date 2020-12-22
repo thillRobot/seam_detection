@@ -100,8 +100,26 @@ roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder.pcd" 
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder_rotated.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
 ```
+
+The example has a plane that represents the table that the parts are sitting on. This is not working. RANSAC fails.
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
+```
+
+```
+BEGINNING RANSAC SEGMENTATION
+Plane coefficients: header: 
+seq: 0 stamp: 0 frame_id: 
+values[]
+  values[0]:   9.70263e-06
+  values[1]:   9.7027e-06
+  values[2]:   1
+  values[3]:   -0.0250056
+
+PointCloud representing the planar component: 2993 data points.
+[pcl::SampleConsensusModel::getSamples] Can not select 0 unique points out of 0!
+[pcl::RandomSampleConsensus::computeModel] No samples could be selected!
+[pcl::SACSegmentationFromNormals::segment] Error segmenting the model! No solution found.
 ```
 
 
@@ -109,13 +127,15 @@ roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder
 
 #### Prepare for IDETC2021
 - [x] create branch called 'stable' to store the working code 
-- [ ] create tag called v1.0 and document how to use and pull with tag - makes a snapshot of code
+- [ ] create tag called v1.0 and document how to use and pull with tag - makes a snap[pcl::SampleConsensusModel::getSamples] Can not select 0 unique points out of 0!
+[pcl::RandomSampleConsensus::computeModel] No samples could be selected!
+shot of code
 - [ ] design and test new scenes with v1.0
 
    ##### current test scenes
    - [x] fillet weld: cylinder to plate -  (cylinder has angled top feature) - tested and works 
    - [ ] fillet weld: square tube to plate - RS is designing - test soon
-   - [ ] fillet weld: cylinder to plate sitting on table - does not work - segmentation fails
+   - [ ] fillet weld: cylinder to plate sitting on table - does not work - RANSAC segmentation fails
 
 
 - [ ] calculate a *measure of accuracy* 
