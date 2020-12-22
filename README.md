@@ -94,16 +94,34 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.p
 #### RANSAC + ICP SEAM DETECTION - In Development
 ##### use RANSAC + ICP for weld seam detection. For now it is just locating the origin of the part.
 
+These two examples have the cylinder and the plate only. These work well, but there is a discrepancy along the length of the cylinder. All other dimensions match very well. 
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
 ```
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder_rotated.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
 ```
+
+This example has a second plane that represents the table that the parts are sitting on. This is not working. RANSAC fails.
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
 ```
 
+```
+BEGINNING RANSAC SEGMENTATION
+Plane coefficients: header: 
+seq: 0 stamp: 0 frame_id: 
+values[]
+  values[0]:   9.70263e-06
+  values[1]:   9.7027e-06
+  values[2]:   1
+  values[3]:   -0.0250056
+
+PointCloud representing the planar component: 2993 data points.
+[pcl::SampleConsensusModel::getSamples] Can not select 0 unique points out of 0!
+[pcl::RandomSampleConsensus::computeModel] No samples could be selected!
+[pcl::SACSegmentationFromNormals::segment] Error segmenting the model! No solution found.
+```
 
 ### THINGS TO DO
 
@@ -111,15 +129,16 @@ roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder
 - [x] create branch called 'stable' to store the working code 
 - [ ] create tag called v1.0 and document how to use and pull with tag - makes a snapshot of code
 - [ ] design and test new scenes with v1.0
+- [ ] fix RANSAC segmentation of the table and plate
+- [ ] decide to include table or not inlcude table. It will be in the scan so I think the code needs to be able to handle table. 
 
-   ##### current scenes tested
-   - [x] cylinder plate
-   - [ ] cylinder plate table
+   ##### current test scenes
+   - [x] fillet weld: cylinder to plate -  (cylinder has angled top feature) - tested and works 
+   - [ ] fillet weld: square tube to plate - RS is designing - test soon
+   - [ ] fillet weld: cylinder to plate sitting on table - does not work - RANSAC segmentation fails
 
 - [ ] calculate a *measure of accuracy* 
 - [ ] determine or register key points on key parts (?)
-
-
 
 #### Continue Development of `seam detection.cpp` which is implemenation of RANSAC + ICP SEAM DETECTION mentioned above.
    - [x] migration from 'TF'  to 'TF2'. It has already fixed the 'static publisher issue'
