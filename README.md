@@ -141,7 +141,8 @@ PointCloud representing the planar component: 2993 data points.
 - [ ] calculate a *measure of accuracy* 
 - [ ] determine or register key points on key parts (?)
 
-***The plan is to wait until after IDETC 2011 submission to work on the developement issues below.***
+
+***The plan is to wait until after IDETC 2021 submission to work on the developement issues below.***
 #### Development of `seam detection.cpp` which is implemenation of RANSAC + ICP SEAM DETECTION
    - [x] migration from 'TF'  to 'TF2'. It has already fixed the 'static publisher issue'
    - [ ] The migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
