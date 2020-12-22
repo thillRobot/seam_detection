@@ -91,7 +91,7 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="lidar_scene1.pcd
 roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.pcd" cad_file:="cylinder.pcd"  thresh:=0.0001
 ```
 
-#### NEW! PCL - RANSAC + ICP SEAM DETECTION ! - NEEDS CLEANUP
+#### RANSAC + ICP SEAM DETECTION - In Development
 ##### use RANSAC + ICP for weld seam detection. For now it is just locating the origin of the part.
 
 ```
@@ -105,29 +105,35 @@ roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder
 ```
 
 
-
 ### THINGS TO DO
 
-- I am migrating the code to 'TF2'. I hope this is a good idea. It has already fixed the 'static publisher issue'
+#### Prepare for IDETC2021
 
-- The migration has been stopped short. Apparently I still need tf::transform , seems wrong though, in the end I am using both ways
+   - [ ] create branch called 'stable' to store the working code 
+   - [ ] create tag called v1.0 and document how to use and pull with tag - makes a snapshot of code
+   - [ ] design and test new scenes with v1.0
 
-- It seems that I still need 'TF' for some things. tf::transform is still used for pcl_ros::transformPointCloud
-   there is probably another way but I have not figured it out yet
-- Also, in my REGISTER_CLOUD function I think I could go straight from ICP to TF and not pull out the value like it is done, but I guess it works like ###### that now
+   ##### current scenes tested
+      - [x] cylinder plate
+      - [ ] cylinder plate table
 
-- Multiple parts needs to be developed , cylinder and plate seem to work now
+   - [ ] calculate a *measure of accuracy* 
+   - [ ] determine or register key points on key parts (?)
 
-I am currently adding 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
 
-- NEW THINGS TO DO
-- First - all of the things not done in the list above. :)
-- Next (or maybe first) - get demo ready for Friday robotics meeting - semi done! demo with NUC
-- Also Next (or first) - create branch called 'stable' to store the working code
-- to do this we need to check that it is stable, it seems like it is, fresh clone builds! woop!
-- Then - begin migration to Fossa/Noetic - everything compiles  and returns
-- I did run into a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for
-- the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched
-- to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue
-- after that everything runs but the ICP does not work. Actually it converges but the score is too high
-- and the results do not make any sense. It works in Melodic but not in Noetic. This is a issue.
+
+#### Continue Development of `seam detection.cpp` which is implemenation of RANSAC + ICP SEAM DETECTION mentioned above.
+   - [x] migration from 'TF'  to 'TF2'. It has already fixed the 'static publisher issue'
+   - [ ] The migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
+   - [ ] In REGISTER_CLOUD function in `seam_detection.cpp` I think I could go straight from `ICP` to `TF` and not pull out the values like it is done currently, but it works like that for now.
+   - [ ] Multiple parts needs to be developed , cylinder and plate seem to work now
+   - [ ] add 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
+   - [ ] begin migration to Fossa/Noetic - everything compiles  and returns
+   - [ ] I did run into a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for
+   - [ ] the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched
+to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue
+after that everything runs
+   - [] the ICP stage does not work. It does converges but the score is too high, and the results do not make any sense. It works in Melodic but not in Noetic. **This is a issue**.
+
+
+
