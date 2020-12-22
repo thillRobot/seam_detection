@@ -108,17 +108,16 @@ roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder
 ### THINGS TO DO
 
 #### Prepare for IDETC2021
-
-   - [ ] create branch called 'stable' to store the working code 
-   - [ ] create tag called v1.0 and document how to use and pull with tag - makes a snapshot of code
-   - [ ] design and test new scenes with v1.0
+- [x] create branch called 'stable' to store the working code 
+- [ ] create tag called v1.0 and document how to use and pull with tag - makes a snapshot of code
+- [ ] design and test new scenes with v1.0
 
    ##### current scenes tested
-      - [x] cylinder plate
-      - [ ] cylinder plate table
+   - [x] cylinder plate
+   - [ ] cylinder plate table
 
-   - [ ] calculate a *measure of accuracy* 
-   - [ ] determine or register key points on key parts (?)
+- [ ] calculate a *measure of accuracy* 
+- [ ] determine or register key points on key parts (?)
 
 
 
