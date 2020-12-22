@@ -4,16 +4,14 @@ RANSAC/Segementation based multiple plane detection using PCL
 Tristan Hill - Weld Seam Detection - Tennessee Technological University
 Robotics Research Group - Mechanical Engineering
 
-Taken from PCL sample code - 02/14/2018
+began with PCL sample code - 02/14/2018 see https://pointclouds.org/ for offical documentation
 Updated - 02/17/2018
 Revisited 02/22/2020
 v1.0 - 12/07/2020 this officially became seam_detection_v1.0
 This is my first time using `tags` to keep track of versions.
 
-- Added 'cylinder segmentation' - Boom!
-- Next we want to add a 'second pass' to refine the results
-- Before doing this I would like to add a marker in rviz of search spaces (boxes), maybe later...
-- this code needs cleaning up, there is a ton of dea code
+see README.md or https://github.com/thillRobot/seam_detection for documentation
+
 */
 
 #include <iostream>
