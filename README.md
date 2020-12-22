@@ -127,9 +127,7 @@ PointCloud representing the planar component: 2993 data points.
 
 #### Prepare for IDETC2021
 - [x] create branch called 'stable' to store the working code 
-- [ ] create tag called v1.0 and document how to use and pull with tag - makes a snap[pcl::SampleConsensusModel::getSamples] Can not select 0 unique points out of 0!
-[pcl::RandomSampleConsensus::computeModel] No samples could be selected!
-shot of code
+- [ ] create tag called v1.0 and document how to use and pull with tag - makes a snapshot of code
 - [ ] design and test new scenes with v1.0
 - [ ] fix RANSAC segmentation of the table and plate
 - [ ] decide to include table or not inlcude table. It will be in the scan so I think the code needs to be able to handle table. 
