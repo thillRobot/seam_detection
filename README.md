@@ -94,6 +94,7 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.p
 #### RANSAC + ICP SEAM DETECTION - In Development
 ##### use RANSAC + ICP for weld seam detection. For now it is just locating the origin of the part.
 
+These two examples have the cylinder and the plate only.
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
 ```
@@ -101,7 +102,7 @@ roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder.pcd" 
 roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder_rotated.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
 ```
 
-The example has a plane that represents the table that the parts are sitting on. This is not working. RANSAC fails.
+This example has a second plane that represents the table that the parts are sitting on. This is not working. RANSAC fails.
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
 ```
@@ -122,7 +123,6 @@ PointCloud representing the planar component: 2993 data points.
 [pcl::SACSegmentationFromNormals::segment] Error segmenting the model! No solution found.
 ```
 
-
 ### THINGS TO DO
 
 #### Prepare for IDETC2021
@@ -131,17 +131,16 @@ PointCloud representing the planar component: 2993 data points.
 [pcl::RandomSampleConsensus::computeModel] No samples could be selected!
 shot of code
 - [ ] design and test new scenes with v1.0
+- [ ] fix RANSAC segmentation of the table and plate
+- [ ] decide to include table or not inlcude table. It will be in the scan so I think the code needs to be able to handle table. 
 
    ##### current test scenes
    - [x] fillet weld: cylinder to plate -  (cylinder has angled top feature) - tested and works 
    - [ ] fillet weld: square tube to plate - RS is designing - test soon
    - [ ] fillet weld: cylinder to plate sitting on table - does not work - RANSAC segmentation fails
 
-
 - [ ] calculate a *measure of accuracy* 
 - [ ] determine or register key points on key parts (?)
-
-
 
 #### Continue Development of `seam detection.cpp` which is implemenation of RANSAC + ICP SEAM DETECTION mentioned above.
    - [x] migration from 'TF'  to 'TF2'. It has already fixed the 'static publisher issue'
