@@ -94,7 +94,7 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.p
 #### RANSAC + ICP SEAM DETECTION - In Development
 ##### use RANSAC + ICP for weld seam detection. For now it is just locating the origin of the part.
 
-These two examples have the cylinder and the plate only.
+These two examples have the cylinder and the plate only. These work well, but there is a discrepancy along the length of the cylinder. All other dimensions match very well. 
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
 ```
