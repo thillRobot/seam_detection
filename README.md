@@ -128,11 +128,9 @@ roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder
    - [ ] Multiple parts needs to be developed , cylinder and plate seem to work now
    - [ ] add 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
    - [ ] begin migration to Fossa/Noetic - everything compiles  and returns
-   - [ ] I did run into a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for
-   - [ ] the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched
-to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue
-after that everything runs
-   - [] the ICP stage does not work. It does converges but the score is too high, and the results do not make any sense. It works in Melodic but not in Noetic. **This is a issue**.
+   - [ ] there was a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issueafter that everything runs.
+   - [ ] we are running the modern drivers (nvidia455) on the  T1600+GTX1650 GPU, what are we running now on the NUC+ Kaby Lake embedded graphics
+   - [ ] the ICP stage does not work. It does converges but the score is too high, and the results do not make any sense. It works in Melodic but not in Noetic. **This is a issue**.
 
 
 
