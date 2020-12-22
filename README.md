@@ -112,9 +112,11 @@ roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder
 - [ ] create tag called v1.0 and document how to use and pull with tag - makes a snapshot of code
 - [ ] design and test new scenes with v1.0
 
-   ##### current scenes tested
-   - [x] cylinder plate
-   - [ ] cylinder plate table
+   ##### current test scenes
+   - [x] fillet weld: cylinder to plate -  (cylinder has angled top feature) - tested and works 
+   - [ ] fillet weld: square tube to plate - RS is designing - test soon
+   - [ ] fillet weld: cylinder to plate sitting on table - does not work - segmentation fails
+
 
 - [ ] calculate a *measure of accuracy* 
 - [ ] determine or register key points on key parts (?)
