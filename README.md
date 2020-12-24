@@ -11,7 +11,7 @@
 - ROS Melodic
 - ROS Noetic
 ##### Hardware 
-- not identified
+- no hardware requirements identified currently
 
 #### Step 1 - Setup ROS workspace
 If you want to use a catkin workspace that is already setup, then you can skip **Step 1** (you workspace must compile). If you do not, then create and build a catkin workspace before proceeding. Choose a location and insert a name for the workpace. Typically this is somewhere in `~/`.
@@ -135,7 +135,8 @@ PointCloud representing the planar component: 2993 data points.
 
    ##### current test scenes
    - [x] fillet weld: cylinder to plate -  (cylinder has angled top feature) - tested and works 
-   - [ ] fillet weld: square tube to plate - RS is designing - test soon
+   - [ ] fillet weld: square tube to plate - designed by RS - initial tests now
+   - [ ] fillet weld: round tube to plate - designed by RS - initial tests now
    - [ ] fillet weld: cylinder to plate sitting on table - does not work - RANSAC segmentation fails
 
 - [ ] calculate a *measure of accuracy* 
