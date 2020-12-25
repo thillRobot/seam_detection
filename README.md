@@ -1,5 +1,5 @@
 # seam_detection
-## This is a ROS package for weld seam detection using pointcloud data primarily based upon PCL.
+This is a ROS package for weld seam detection using pointcloud data based on the point cloud library (PCL).
 
 ### Installation Instructions for seam_detection 
 
