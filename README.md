@@ -3,6 +3,8 @@ This is a ROS package for weld seam detection using pointcloud data based on the
 
 ![seam_deterection](ply_images/rviz_screenshot_2020_12_25.png)
 
+<img src="ply_images/rviz_screenshot_2020_12_25.png" width="300" />
+
 ### Installation Instructions for seam_detection 
 
 #### Requirements:
