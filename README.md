@@ -1,5 +1,5 @@
 # seam_detection
-## This is a ROS package for weld seam detection using pointcloud data.
+## This is a ROS package for weld seam detection using pointcloud data primarily based upon PCL.
 
 ### Installation Instructions for seam_detection 
 
@@ -44,10 +44,8 @@ The workspace and package should compile without errors.
 
 ### Using SEAM_DETECTION v1.0
 
-
 These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
-This code is based on **PCL - RANSAC and SEGMENTATION***
-
+This code is based on **PCL - Sample Consensus and RANSAC (SEGMENTATION)**
 
 <!-- ##### try this one pcd_to_pointcloud - THIS WORKS (02/04/2020)-->
 <!--`roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01`-->
