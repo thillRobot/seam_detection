@@ -31,6 +31,15 @@ Change to the source directory of the workapce and pull the package using git.
 cd ~/<workspace-name>/src
 git clone https://github.com/thillRobot/seam_detection.git
 ```
+#### Step 3 - Compile SEAM_DETECTION in catkin workspace
+Change to top of workspace and compile.
+
+```
+cd ..
+catkin_make
+```
+
+The workspace and package should compile without errors.
 
 
 ### Using SEAM_DETECTION v1.0
