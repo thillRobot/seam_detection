@@ -141,6 +141,7 @@ PointCloud representing the planar component: 2993 data points.
 - [ ] fix RANSAC segmentation of the table and plate
 - [ ] decide to include table or not inlcude table. It will be in the scan so I think the code needs to be able to handle table
 - [ ] dust off and test workflow for designing new scene and converting to the proper filetypes, this has not been tested recently 
+- [ ] figure out square tube RANSAC
 
    ##### current test scenes
    - [x] fillet weld: cylinder to plate -  (cylinder has angled top feature) - tested and works 
