@@ -1,5 +1,5 @@
 # seam_detection
-## This is a ROS package for weld seam detection using pointcloud data.
+This is a ROS package for weld seam detection using pointcloud data based on the point cloud library (PCL).
 
 ### Installation Instructions for seam_detection 
 
@@ -44,10 +44,9 @@ The workspace and package should compile without errors.
 
 ### Using SEAM_DETECTION v1.0
 
-
 These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
-This code is based on **PCL - RANSAC and SEGMENTATION***
-
+This code is based on **PCL - Sample Consensus and RANSAC (SEGMENTATION)**
+Note: **.pcd** files are currently in the **.gitignore** so you have to generate them locally which is explained below.
 
 <!-- ##### try this one pcd_to_pointcloud - THIS WORKS (02/04/2020)-->
 <!--`roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01`-->
@@ -136,12 +135,15 @@ PointCloud representing the planar component: 2993 data points.
 
 #### Prepare for IDETC2021
 - [x] create branch called 'stable' to store the working code 
-- [ ] create tag called v1.0 and document how to use and pull with tag - makes a snapshot of code
-- [ ] design and test new scenes with v1.0
+- [x] create tag called v1.0 and document how to use and pull with tag
+- [x] design and test new scenes with v1.0 - scenes need edits
 - [ ] fix RANSAC segmentation of the table and plate
 - [ ] decide to include table or not inlcude table. It will be in the scan so I think the code needs to be able to handle table
+
 - [ ] dust off and test workflow for designing new scene and converting to the proper filetypes, this has not been tested recently 
-- [ ] figure out square tube RANSAC
+- [ ] improve `cad_cloud` to process multiple .ply files at once - convert entire directory
+
+- [ ] figure out square tube RANSAC - working on that now
 
    ##### current test scenes
    - [x] fillet weld: cylinder to plate -  (cylinder has angled top feature) - tested and works 
@@ -151,6 +153,7 @@ PointCloud representing the planar component: 2993 data points.
 
 - [ ] calculate a *measure of accuracy* 
 - [ ] determine or register key points on key parts (?)
+- [ ] include **.pcd** and/or **.ply** in this **.gitignore** ? 
 
 
 ***The plan is to wait until after IDETC 2021 submission to work on the developement issues below.***
@@ -161,7 +164,7 @@ PointCloud representing the planar component: 2993 data points.
    - [ ] Multiple parts needs to be developed , cylinder and plate seem to work now
    - [ ] add 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
    - [ ] begin migration to Fossa/Noetic - everything compiles  and returns
-   - [ ] there was a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issueafter that everything runs.
+   - [ ] there was a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue after that everything runs.
    - [ ] we are running the modern drivers (nvidia455) on the  T1600+GTX1650 GPU, what are we running now on the NUC+ Kaby Lake embedded graphics
    - [ ] the ICP stage does not work. It does converges but the score is too high, and the results do not make any sense. It works in Melodic but not in Noetic. **This is a issue**.
 
