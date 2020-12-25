@@ -145,17 +145,19 @@ PointCloud representing the planar component: 2993 data points.
 - [ ] fix RANSAC segmentation of the table and plate
 - [ ] decide to include table or not inlcude table. It will be in the scan so I think the code needs to be able to handle table
 
-- [ ] dust off and test workflow for designing new scene and converting to the proper filetypes, this has not been tested recently 
+- [x] dust off and test workflow for designing new scene and converting to the proper filetypes, this has not been tested recently 
+- [x] scaling issue with pcd export in solidworks - use options in save as diaolag 
+- [ ] document test scene creation and conversion process
 - [ ] improve `cad_cloud` to process multiple .ply files at once - convert entire directory
 
-- [ ] figure out square tube RANSAC - working on that now
+- [x] figure out square tube RANSAC - working on that now - seems to work fine without cylinder model
 
    ##### current test scenes
    - [x] fillet weld: `plate_cylinder` -  (cylinder has angled top feature) - tested and works 
    - [ ] fillet weld: `table_plate_cylinder`- does not work - RANSAC segmentation fails
-   - [ ] fillet weld: `plate_square_tube_01`- does not work - over scaling issue - i remember having this before
-   - [ ] fillet weld: `plate_square_tube_02`- does not work - over scaling issue - should be easy fix
-   - [ ] fillet weld: `plate_square_tube_03`- does not work - over scaling issue - should be easy fix
+   - [ ] fillet weld: `plate_square_tube_01`- tested and works
+   - [ ] fillet weld: `plate_square_tube_02`- tested and works
+   - [ ] fillet weld: `plate_square_tube_03`- tested and works
 
    - [ ] fillet weld: `square tube to plate` - designed by RS - initial tests now
    - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests 
