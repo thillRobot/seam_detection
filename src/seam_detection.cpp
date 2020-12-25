@@ -70,7 +70,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output)
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(cloud_input,*cloud);
-  std::cerr << "BEGINNING CLOUD FILTERING" << std::endl;
+  std::cout << "BEGINNING CLOUD FILTERING" << std::endl;
   std::cout<<"Before pre-filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
 
   // XYZ Box Filter cloud before segementation
@@ -103,6 +103,10 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output)
 void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
 {
 
+
+  std::string part2_type;
+  part2_type="round-tube"; // choose "round-tube" or "square-tube"
+
   // PointCloud::Ptr cloud_filtered (new PointCloud);  //use this as the working copy of the target cloud
   //pcl::copyPointCloud(*cloud,cloud_A); // save input to RANSAC algorithm
   // Perform RANSAC Segmentation to find cylinder
@@ -130,7 +134,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   // make a copy of the lidar cloud called 'cloud_filtered'
   pcl::copyPointCloud(cloud_input,*cloud_filtered);
 
-  std::cerr << "BEGINNING RANSAC SEGMENTATION" << std::endl;
+  std::cout << "BEGINNING RANSAC SEGMENTATION" << std::endl;
 
   // Estimate point normals
   ne.setSearchMethod (tree);
@@ -147,10 +151,11 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   seg.setDistanceThreshold (0.03);
   seg.setInputCloud (cloud_filtered);
   seg.setInputNormals (cloud_normals);
+
   // Obtain the plane inliers and coefficients
   seg.segment (*inliers_plane, *coefficients_plane);
   *C_plane=*coefficients_plane;
-  std::cerr << "Plane coefficients: " << *coefficients_plane << std::endl;
+  std::cout << "Plane coefficients: " << *coefficients_plane << std::endl;
 
   // Extract the planar inliers from the input cloud
   extract.setInputCloud (cloud_filtered);
@@ -159,8 +164,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   // Write the planar inliers to disk
   extract.filter (*cloud_plane);
-  std::cerr << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
-  writer.write ("table_scene_mug_stereo_textured_plane.pcd", *cloud_plane, false);
+  std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
+  //writer.write ("table_scene_mug_stereo_textured_plane.pcd", *cloud_plane, false); // I do not know what this is
 
   // Remove the planar inliers, extract the rest
   extract.setNegative (true);
@@ -170,34 +175,70 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   extract_normals.setIndices (inliers_plane);
   extract_normals.filter (*cloud_normals2);
 
-  // Create the segmentation object for cylinder segmentation and set the parameters
-  seg.setOptimizeCoefficients (true);
-  seg.setModelType (pcl::SACMODEL_CYLINDER);
-  seg.setMethodType (pcl::SAC_RANSAC);
-  seg.setNormalDistanceWeight (0.1);
-  seg.setMaxIterations (100);
-  seg.setDistanceThreshold (0.05);
-  seg.setRadiusLimits (0, 0.1);
-  seg.setInputCloud (cloud_filtered2);
-  seg.setInputNormals (cloud_normals2);
-
-  // Obtain the cylinder inliers and coefficients
-  seg.segment (*inliers_cylinder, *coefficients_cylinder);
-  *C_cylinder=*coefficients_cylinder;
-  std::cerr << "Cylinder coefficients: " << *coefficients_cylinder << std::endl;
-
-  // Write the cylinder inliers to disk
-  extract.setInputCloud (cloud_filtered2);
-  extract.setIndices (inliers_cylinder);
-  extract.setNegative (false);
-
-  extract.filter (*cloud_cylinder);
-  if (cloud_cylinder->points.empty ())
-    std::cerr << "Can't find the cylindrical component." << std::endl;
-  else
+  if (part2_type=="round-tube") //part two is a cylinder
   {
-    std::cerr << "PointCloud representing the cylindrical component: " << cloud_cylinder->points.size () << " data points." << std::endl;
-    writer.write ("table_scene_mug_stereo_textured_cylinder.pcd", *cloud_cylinder, false);
+    std::cout<<"Searching for round-tube as a cylinder with RANSAC";
+    // Create the segmentation object for cylinder segmentation and set the parameters
+    seg.setOptimizeCoefficients (true);
+    seg.setModelType (pcl::SACMODEL_CYLINDER);
+    seg.setMethodType (pcl::SAC_RANSAC);
+    seg.setNormalDistanceWeight (0.1);
+    seg.setMaxIterations (100);
+    seg.setDistanceThreshold (0.05);
+    seg.setRadiusLimits (0, 0.1);
+    seg.setInputCloud (cloud_filtered2);
+    seg.setInputNormals (cloud_normals2);
+
+    // Obtain the cylinder inliers and coefficients
+    seg.segment (*inliers_cylinder, *coefficients_cylinder);
+    *C_cylinder=*coefficients_cylinder;
+    std::cout << "Cylinder coefficients: " << *coefficients_cylinder << std::endl;
+
+    // Write the cylinder inliers to disk
+    extract.setInputCloud (cloud_filtered2);
+    extract.setIndices (inliers_cylinder);
+    extract.setNegative (false);
+
+    extract.filter (*cloud_cylinder);
+    if (cloud_cylinder->points.empty ())
+      std::cout << "Cannot find a cylindrical component in cloud" << std::endl;
+    else
+    {
+      std::cout << "PointCloud representing the cylindrical component contains: " << cloud_cylinder->points.size () << " data points." << std::endl;
+      //writer.write ("table_scene_mug_stereo_textured_cylinder.pcd", *cloud_cylinder, false);
+    }
+  }else if (part2_type=="square-tube")
+  {
+    std::cout<<"Searching for square-tube as a collection of orthanogonal planes";
+    // Create the segmentation object for ??? segmentation and set the parameters
+    seg.setOptimizeCoefficients (true);
+    seg.setModelType (pcl::SACMODEL_CYLINDER);
+    seg.setMethodType (pcl::SAC_RANSAC);
+    seg.setNormalDistanceWeight (0.1);
+    seg.setMaxIterations (100);
+    seg.setDistanceThreshold (0.05);
+    seg.setRadiusLimits (0, 0.1);
+    seg.setInputCloud (cloud_filtered2);
+    seg.setInputNormals (cloud_normals2);
+
+    // Obtain the cylinder inliers and coefficients
+    seg.segment (*inliers_cylinder, *coefficients_cylinder);
+    *C_cylinder=*coefficients_cylinder;
+    std::cout << "Cylinder coefficients: " << *coefficients_cylinder << std::endl;
+
+    // Write the cylinder inliers to disk
+    extract.setInputCloud (cloud_filtered2);
+    extract.setIndices (inliers_cylinder);
+    extract.setNegative (false);
+
+    extract.filter (*cloud_cylinder);
+    if (cloud_cylinder->points.empty ())
+      std::cout << "Can't find the cylindrical component." << std::endl;
+    else
+    {
+      std::cout << "PointCloud representing the cylindrical component: " << cloud_cylinder->points.size () << " data points." << std::endl;
+      //writer.write ("table_scene_mug_stereo_textured_cylinder.pcd", *cloud_cylinder, false);
+    }
   }
 
   pcl::copyPointCloud(*cloud_cylinder,cloud_output1);
@@ -217,7 +258,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(cloud_source,*cloud_B);
 
-  std::cerr << "BEGINNING ICP REGISTRATION" << std::endl;
+  std::cout << "BEGINNING ICP REGISTRATION" << std::endl;
   // perform ICP on the lidar and cad clouds
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
   pcl::PointCloud<pcl::PointXYZ> Final;
@@ -244,7 +285,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   //Eigen::MatrixXf *T_eig (new Eigen::MatrixXf);
   //T_result=icp.getFinalTransformation(); // get the resutls of ICP
 
-  std::cerr << "ICP COMPLETED" << std::endl;
+  std::cout << "ICP COMPLETED" << std::endl;
   std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
   std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
   std::cout << T_result << std::endl;
@@ -296,7 +337,7 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  std::cerr << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
+  std::cout << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
 }
 
 
@@ -354,7 +395,7 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(2);
 
   std::cout<<endl<<"*************************************************************"<<endl;
-  std::cout<<"******************** Seam Detection v1.0 ********************"<<endl;
+  std::cout<<"******************** Seam Detection v1.1 - (development) ********************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
@@ -449,7 +490,7 @@ int main(int argc, char** argv)
 
   // now move the CAD part to the newly located frame
   pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
-  std::cerr << "Cloud transformed." << std::endl;
+  std::cout << "Cloud transformed." << std::endl;
   //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
 
   // repeat registration on moved cad model
@@ -457,7 +498,7 @@ int main(int argc, char** argv)
 
   // now move the CAD part again to the newly located frame
   pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_12);
-  std::cerr << "Cloud transformed again." << std::endl;
+  std::cout << "Cloud transformed again." << std::endl;
 
   //*T_02=(*T_01)*(*T_12); // multiply the two transforms to get final tf
   //*T_20=T_02->inverse(); // get the inverse of the tf
@@ -472,9 +513,9 @@ int main(int argc, char** argv)
   T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
   T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
 
-  std::cerr << "Final transformation computed and converted to message." << std::endl;
+  std::cout << "Final transformation computed and converted to message." << std::endl;
 
-  std::cerr << "Plane Coefficients" << *coeffs_plane << std::endl;
+  std::cout << "Plane Coefficients" << *coeffs_plane << std::endl;
 
   // publish 'markers' to to show the plane and cylinder found with RANSAC
   // instantiate pubs for the plane marker
