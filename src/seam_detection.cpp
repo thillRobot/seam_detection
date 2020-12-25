@@ -351,6 +351,9 @@ int main(int argc, char** argv)
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
+  std::cout<<endl<<"*************************************************************"<<endl;
+  std::cout<<"******************** Seam Detection v1.0 ********************"<<endl;
+  std::cout<<"*************************************************************"<<endl<<endl;
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
   // tf::Transform tf_searchbox;
