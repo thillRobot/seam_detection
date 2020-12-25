@@ -37,7 +37,7 @@
 
 // Importing simple CAD parts into .pcd files with PCL
 // modifed by Tristan Hill
-
+// revisited 12/25/2020
 
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/io/pcd_io.h>
@@ -53,6 +53,7 @@
 #include <pcl/console/print.h>
 #include <pcl/console/parse.h>
 
+// WHY ARE THESE FUNCTIONS 'INLINE' ?
 inline double
 uniform_deviate (int seed)
 {
@@ -61,8 +62,7 @@ uniform_deviate (int seed)
 }
 
 inline void
-randomPointTriangle (float a1, float a2, float a3, float b1, float b2, float b3, float c1, float c2, float c3,
-                     Eigen::Vector4f& p)
+randomPointTriangle (float a1, float a2, float a3, float b1, float b2, float b3, float c1, float c2, float c3, Eigen::Vector4f& p)
 {
   float r1 = static_cast<float> (uniform_deviate (rand ()));
   float r2 = static_cast<float> (uniform_deviate (rand ()));
@@ -189,7 +189,6 @@ main (int argc, char **argv)
     return (-1);
   }
 
-
   // Parse command line arguments
   int SAMPLE_POINTS_ = default_number_samples;
   parse_argument (argc, argv, "-n_samples", SAMPLE_POINTS_);
@@ -241,7 +240,6 @@ main (int argc, char **argv)
   std::cout<<"TH debug - voxel leaf size: "<< leaf_size <<std::endl;
   //std::cout<<"TH debug - files: "<< pcd_file_indices.size() <<std::endl; // seg fault with this line...
 
-
   //make sure that the polygons are triangles!
   vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New ();
 #if VTK_MAJOR_VERSION < 6
@@ -289,9 +287,7 @@ main (int argc, char **argv)
   std::cout<<std::endl;
   std::cout<<"TH debug - vis result: "<< vis_result <<std::endl;
   std::cout<<"TH debug - write normals: "<< write_normals <<std::endl;
-
   std::cout<<"TH - BUGS!... "<<std::endl;
-
 
   //argv[obj_file_indices[0]]
   std::string file_out = argv[2];
@@ -327,4 +323,5 @@ main (int argc, char **argv)
 
   }
   */
+
 }
