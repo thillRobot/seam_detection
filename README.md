@@ -155,9 +155,9 @@ PointCloud representing the planar component: 2993 data points.
    ##### current test scenes
    - [x] fillet weld: `plate_cylinder` -  (cylinder has angled top feature) - tested and works 
    - [ ] fillet weld: `table_plate_cylinder`- does not work - RANSAC segmentation fails
-   - [ ] fillet weld: `plate_square_tube_01`- tested and works
-   - [ ] fillet weld: `plate_square_tube_02`- tested and works
-   - [ ] fillet weld: `plate_square_tube_03`- tested and works
+   - [ ] fillet weld: lidarfile= `plate_square_tube_01.ply(.pcd)`, cadfile=`square_tube_01.ply(.pcd)` tested and working
+   - [ ] fillet weld: lidarfile= `plate_square_tube_02.ply(.pcd)`, cadfile=`square_tube_02.ply(.pcd)` tested and working
+   - [ ] fillet weld: lidarfile= `plate_square_tube_03.ply(.pcd)`, cadfile=`square_tube_03.ply(.pcd)` tested and working
 
    - [ ] fillet weld: `square tube to plate` - designed by RS - initial tests now
    - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests 
