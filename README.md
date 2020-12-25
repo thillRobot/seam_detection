@@ -139,7 +139,10 @@ PointCloud representing the planar component: 2993 data points.
 - [x] design and test new scenes with v1.0 - scenes need edits
 - [ ] fix RANSAC segmentation of the table and plate
 - [ ] decide to include table or not inlcude table. It will be in the scan so I think the code needs to be able to handle table
+
 - [ ] dust off and test workflow for designing new scene and converting to the proper filetypes, this has not been tested recently 
+- [ ] improve `cad_cloud` to process multiple .ply files at once - convert entire directory
+
 - [ ] figure out square tube RANSAC - working on that now
 
    ##### current test scenes
