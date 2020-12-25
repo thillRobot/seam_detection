@@ -131,7 +131,10 @@ PointCloud representing the planar component: 2993 data points.
 [pcl::SACSegmentationFromNormals::segment] Error segmenting the model! No solution found.
 ```
 
-### THINGS TO DO
+### Changelog
+#### Versions
+- v1.0 (stable - tagged tagged v1.0)
+- v1.1 (development - master/devel)
 
 #### Prepare for IDETC2021
 - [x] create branch called 'stable' to store the working code 
@@ -146,11 +149,16 @@ PointCloud representing the planar component: 2993 data points.
 - [ ] figure out square tube RANSAC - working on that now
 
    ##### current test scenes
-   - [x] fillet weld: cylinder to plate -  (cylinder has angled top feature) - tested and works 
-   - [ ] fillet weld: square tube to plate - designed by RS - initial tests now
-   - [ ] fillet weld: round tube to plate - designed by RS - initial tests now
-   - [ ] fillet weld: cylinder to plate sitting on table - does not work - RANSAC segmentation fails
+   - [x] fillet weld: `plate_cylinder` -  (cylinder has angled top feature) - tested and works 
+   - [ ] fillet weld: `table_plate_cylinder`- does not work - RANSAC segmentation fails
+   - [ ] fillet weld: `plate_square_tube_01`- does not work - over scaling issue - i remember having this before
+   - [ ] fillet weld: `plate_square_tube_02`- does not work - over scaling issue - should be easy fix
+   - [ ] fillet weld: `plate_square_tube_03`- does not work - over scaling issue - should be easy fix
 
+   - [ ] fillet weld: `square tube to plate` - designed by RS - initial tests now
+   - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests 
+   
+   
 - [ ] calculate a *measure of accuracy* 
 - [ ] determine or register key points on key parts (?)
 - [ ] include **.pcd** and/or **.ply** in this **.gitignore** ? 
