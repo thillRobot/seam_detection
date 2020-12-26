@@ -97,7 +97,6 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
   {
     pcl::VoxelGrid<pcl::PointXYZ> vox;
     vox.setInputCloud (cloud);
-    //vox.setLeafSize (voxel_leaf, voxel_leaf, voxel_leaf);
     vox.setLeafSize (leaf_size, leaf_size, leaf_size);
     vox.filter (*cloud);
   }
@@ -441,15 +440,20 @@ int main(int argc, char** argv)
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
-  std::cout<<endl;
+  std::cout<<std::endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"******************** Seam Detection v1.1 ********************"<<endl;
   std::cout<<"*************************************************************"<<endl;
-  std::cout <<"Using PCL version:"<< PCL_VERSION_PRETTY << std::endl<< std::endl;
+  std::cout <<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
+  std::cout<<std::endl;
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
   // tf::Transform tf_searchbox;
-
+  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"******************* Perparing Pointcloud Data ***************"<<endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<std::endl;
   // read the command line arguments to pick the data file and some other details
   std::string file_lidar = argv[2]; // source cloud
   std::string file_cad = argv[3];   // reference cloud
@@ -526,7 +530,11 @@ int main(int argc, char** argv)
   pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients);
   pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
 
-
+  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"*************** Beginning Processing Pointclouds ************"<<endl;
+  std::cout<<"*************************************************************"<<endl;
+    std::cout<<std::endl;
   // RANSAC Segmentation to separate clouds
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,coeffs_plane,coeffs_cylinder);
 
@@ -560,9 +568,21 @@ int main(int argc, char** argv)
   T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
   T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
 
-  std::cout << "Final transformation computed and converted to message." << std::endl;
 
-  std::cout << "Plane Coefficients" << *coeffs_plane << std::endl;
+  std::cout << "Final transformation computed and converted to message." <<endl;
+  std::cout << "Plane Coefficients" << *coeffs_plane <<endl;
+
+  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"*************** Processing Pointclouds Complete *************"<<endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<std::endl;
+
+  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"*************** Preparing Visualization *********************"<<endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<std::endl;
 
   // publish 'markers' to to show the plane and cylinder found with RANSAC
   // instantiate pubs for the plane marker
@@ -654,9 +674,15 @@ int main(int argc, char** argv)
   cloud_part1->header.frame_id = "base_link";
   cloud_part2->header.frame_id = "base_link";
 
+  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"****************** seam_detection Complete ******************"<<endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<std::endl;
   //publish forever
   while(ros::ok())
   {
+
       // this is the old 'TF' way, it doesnt work so I dont know why I am leaving it here
       //T_br.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
 
