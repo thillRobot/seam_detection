@@ -165,11 +165,14 @@ PointCloud representing the planar component: 2993 data points.
 - [x] figure out square tube RANSAC - working on that now - seems to work fine without cylinder model
 
    ##### current test scenes
-   - [x] fillet weld: `plate_cylinder` -  (cylinder has angled top feature) - tested and works 
-   - [ ] fillet weld: `table_plate_cylinder`- does not work - RANSAC segmentation fails
+   - [x] fillet weld: lidarfile= `plate_round_tube_01.ply(.pcd)`, cadfile=`round_tube_01.ply(.pcd)` tested and working
+   - [x] fillet weld: lidarfile= `plate_round_tube_02.ply(.pcd)`, cadfile=`round_tube_02.ply(.pcd)` tested and working 
+   
    - [x] fillet weld: lidarfile= `plate_square_tube_01.ply(.pcd)`, cadfile=`square_tube_01.ply(.pcd)` tested and working
    - [x] fillet weld: lidarfile= `plate_square_tube_02.ply(.pcd)`, cadfile=`square_tube_02.ply(.pcd)` tested and working
    - [x] fillet weld: lidarfile= `plate_square_tube_03.ply(.pcd)`, cadfile=`square_tube_03.ply(.pcd)` tested and working
+
+   - [ ] fillet weld: `table_plate_cylinder`- does not work - RANSAC segmentation fails
 
    - [ ] fillet weld: `square tube to plate` - designed by RS - initial tests now
    - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests 
