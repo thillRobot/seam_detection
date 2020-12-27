@@ -102,7 +102,7 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.p
 #### RANSAC + ICP SEAM DETECTION - In Development
 ##### use RANSAC + ICP for weld seam detection. For now it is just locating the origin of the part.
 
-These two examples have the cylinder and the plate only. These work well, but there is a discrepancy along the length of the cylinder. All other dimensions match very well.
+These examples have the `round_tube` or a `square_tube` and the `plate`. There can be variations in part1 one but you must choose `round_tube` or a `square_tube`for the segmentation to work properly. These work well, but there is some discrepancy along the length of the cylinder. All other dimensions match very well. This seems to be related to the amount of data that is avaialanble about this dimension.
 
 **plate_round_tube_01, round_tube_01** 
 ```
