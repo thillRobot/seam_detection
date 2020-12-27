@@ -7,9 +7,9 @@
   <!-- read value of arg -->
   <param name="param" value="$(arg lidar_file)"/>
   <param name="param" value="$(arg cad_file)"/>
-  <param name="param" value="$(arg thresh)"/>
+  <param name="param" value="$(arg part1_type)"/>
 
-  
+
   <node
     pkg="seam_detection"
     name="seam_detection_tf"
@@ -37,7 +37,7 @@
     name="seam_detection"
     type="seam_detection"
     output="screen"
-    args="-f $(find seam_detection)/pcd_images/$(arg lidar_file) $(find seam_detection)/pcd_images/$(arg cad_file) $(arg thresh)"
+    args="-f $(find seam_detection)/pcd_images/$(arg lidar_file) $(find seam_detection)/pcd_images/$(arg cad_file) $(arg part1_type)"
   />
 
 </launch>
