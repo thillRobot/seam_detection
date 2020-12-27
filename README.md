@@ -137,8 +137,12 @@ PointCloud representing the planar component: 2993 data points.
 
 ### Changelog
 #### Versions
-- v1.0 (stable - tagged tagged v1.0)
-- v1.1 (development - master/devel)
+- v1.0 (stable - tagged 12/07/2020)
+- v1.1 (stable - tagged 12/26/2020)
+  - added `round_tube` or `square_tube` segmentation option for part1 
+  - added `part1_type` to `seam_detection.launch` args
+  - removed `thresh` from `seam_detection.launch` args
+- v1.2 (development - master/devel)
 
 #### Prepare for IDETC2021
 - [x] create branch called 'stable' to store the working code 
