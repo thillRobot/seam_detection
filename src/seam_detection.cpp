@@ -11,7 +11,6 @@ v1.0 - 12/07/2020 this officially became seam_detection_v1.0
 This is my first time using `tags` to keep track of versions.
 
 see README.md or https://github.com/thillRobot/seam_detection for documentation
-
 */
 
 #include <iostream>
@@ -107,12 +106,12 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
 }
 
 
-void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
+void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, const std::string& part1_type, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
 {
 
 
-  std::string part1_type;
-  part1_type="square-tube"; // choose "round-tube" or "square-tube"
+  //std::string part1_type;
+//  part1_type="square-tube"; // choose "round-tube" or "square-tube"
 
   // PointCloud::Ptr cloud_filtered (new PointCloud);  //use this as the working copy of the target cloud
   //pcl::copyPointCloud(*cloud,cloud_A); // save input to RANSAC algorithm
@@ -200,7 +199,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   // using the z value of the plane
   filter_cloud(*cloud_filtered2,*cloud_filtered3, 0.0, 0.5, 0.0, 0.5, 0.03, 0.5, 0.0);
 
-  if (part1_type=="round-tube") //part two is a cylinder
+  if (part1_type=="round_tube") //part two is a cylinder
   {
 
     std::cout<<"Searching for round-tube as a cylinder with RANSAC";
@@ -244,7 +243,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     //pcl::copyPointCloud(*cloud_filtered2,cloud_output1); // ignore second segmentation
     pcl::copyPointCloud(*cloud_cylinder,cloud_output1);    // use second segmentation
 
-  }else if (part1_type=="square-tube")
+  }else if (part1_type=="square_tube")
   {
 
     std::cout<<"Searching for square-tube as a single plane";
@@ -440,6 +439,11 @@ int main(int argc, char** argv)
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
+  // read the command line arguments to pick the data file and some other details
+  std::string file_lidar = argv[2];  // source cloud
+  std::string file_cad = argv[3];    // reference cloud
+  std::string part1_type = argv[4]; // part1 is the part to be welded to plate
+
   std::cout<<std::endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"******************** Seam Detection v1.1 ********************"<<endl;
@@ -454,10 +458,6 @@ int main(int argc, char** argv)
   std::cout<<"******************* Perparing Pointcloud Data ***************"<<endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<std::endl;
-  // read the command line arguments to pick the data file and some other details
-  std::string file_lidar = argv[2]; // source cloud
-  std::string file_cad = argv[3];   // reference cloud
-  double thresh = atof(argv[4]);
 
   // instantiate some clouds
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
@@ -534,9 +534,9 @@ int main(int argc, char** argv)
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"*************** Beginning Processing Pointclouds ************"<<endl;
   std::cout<<"*************************************************************"<<endl;
-    std::cout<<std::endl;
+  std::cout<<std::endl;
   // RANSAC Segmentation to separate clouds
-  segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,coeffs_plane,coeffs_cylinder);
+  segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,part1_type,coeffs_plane,coeffs_cylinder);
 
   // perform ICP Cloud Registration - results is a TF
   register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg);
