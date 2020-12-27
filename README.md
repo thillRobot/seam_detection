@@ -102,18 +102,21 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.p
 #### RANSAC + ICP SEAM DETECTION - In Development
 ##### use RANSAC + ICP for weld seam detection. For now it is just locating the origin of the part.
 
-These two examples have the cylinder and the plate only. These work well, but there is a discrepancy along the length of the cylinder. All other dimensions match very well. 
+These two examples have the cylinder and the plate only. These work well, but there is a discrepancy along the length of the cylinder. All other dimensions match very well.
+
 **plate_round_tube_01, round_tube_01** 
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="plate_round_tube_01.pcd" cad_file:="round_tube_01.pcd" part1_type:="round_tube"
 ```
+
 **plate_square_tube_01, square_tube_01**
 ```
-roslauncroslaunch seam_detection seam_detection.launch lidar_file:="plate_square_tube_01.pcd" cad_file:="square_tube_01.pcd" part1_type:="square_tube"
+roslaunch seam_detection seam_detection.launch lidar_file:="plate_square_tube_01.pcd" cad_file:="square_tube_01.pcd" part1_type:="square_tube"
 ```
+
 **plate_square_tube_03, square_tube_03** 
 ```
-roslauncroslaunch seam_detection seam_detection.launch lidar_file:="plate_square_tube_03.pcd" cad_file:="square_tube_03.pcd" part1_type:="square_tube"
+roslaunch seam_detection seam_detection.launch lidar_file:="plate_square_tube_03.pcd" cad_file:="square_tube_03.pcd" part1_type:="square_tube"
 ```
 
 ##### add second plane that represents the table that the parts are sitting on. 
