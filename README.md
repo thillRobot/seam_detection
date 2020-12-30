@@ -12,6 +12,10 @@ This is a ROS package for weld seam detection using pointcloud data based on the
 - ROS Noetic
 ##### Hardware 
 - no hardware requirements identified currently
+##### Graphics
+- intel embededded graphics `Kady Lake` and others
+- `nvidia-455` working currently
+- `nvidia-340` was not supported but older card worked with `Nouveau`
 
 #### Step 1 - Setup ROS workspace
 If you want to use a catkin workspace that is already setup, then you can skip **Step 1** (you workspace must compile). If you do not, then create and build a catkin workspace before proceeding. Choose a location and insert a name for the workpace. Typically this is somewhere in `~/`.
@@ -41,8 +45,7 @@ catkin_make
 
 The workspace and package should compile without errors.
 
-
-### Using SEAM_DETECTION v1.0
+### Using SEAM_DETECTION
 
 These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
 This code is based on **PCL - Sample Consensus and RANSAC (SEGMENTATION)**
@@ -150,7 +153,7 @@ PointCloud representing the planar component: 2993 data points.
   - removed `thresh` from `seam_detection.launch` args
 - v1.2 (development - master/devel)
 
-#### Prepare for IDETC2021
+#### To Prepare for IDETC2021
 - [x] create branch called 'stable' to store the working code 
 - [x] create tag called v1.0 and document how to use and pull with tag
 - [x] design and test new scenes with v1.0 - scenes need edits
@@ -177,23 +180,16 @@ PointCloud representing the planar component: 2993 data points.
    - [ ] fillet weld: `square tube to plate` - designed by RS - initial tests now
    - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests 
    
-   
 - [ ] calculate a *measure of accuracy* 
 - [ ] determine or register key points on key parts (?)
 - [ ] include **.pcd** and/or **.ply** in this **.gitignore** ? 
-
 
 ***The plan is to wait until after IDETC 2021 submission to work on the developement issues below.***
 #### Development of `seam detection.cpp` which is implemenation of RANSAC + ICP SEAM DETECTION
    - [x] migration from 'TF'  to 'TF2'. It has already fixed the 'static publisher issue'
    - [ ] The migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
    - [ ] In REGISTER_CLOUD function in `seam_detection.cpp` I think I could go straight from `ICP` to `TF` and not pull out the values like it is done currently, but it works like that for now.
-   - [ ] Multiple parts needs to be developed , cylinder and plate seem to work now
+   - [ ] develope processing multiple parts, two parts work now
    - [ ] add 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
-   - [ ] begin migration to Fossa/Noetic - everything compiles  and returns
-   - [ ] there was a driver issue running the T1600 in Ubuntu 20.04 and Noetic, the driver for the old video card called 'nvidia-340' was not supported for the graphics libraries so I switched to the 'Nouveau' driver and this fixed the 'libgl error no matching fbconfigs or visuals found' issue after that everything runs.
-   - [ ] we are running the modern drivers (nvidia455) on the  T1600+GTX1650 GPU, what are we running now on the NUC+ Kaby Lake embedded graphics
+   - [ ] migration to Fossa/Noetic - everything compiles  and returns
    - [ ] the ICP stage does not work. It does converges but the score is too high, and the results do not make any sense. It works in Melodic but not in Noetic. **This is a issue**.
-
-
-
