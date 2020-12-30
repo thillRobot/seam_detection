@@ -167,6 +167,13 @@ PointCloud representing the planar component: 2993 data points.
 
 - [x] figure out square tube RANSAC - working on that now - seems to work fine without cylinder model
 
+- [ ] investigate segmentation models - can we set the width of the `SACMODEL_PLANE` ?
+
+- [ ] develope description of the weld seam in the workflow - one idea is a `user defined element` in the ply files 
+
+- [ ] finish the manuscript
+
+
    ##### current test scenes
    - [x] fillet weld: lidarfile= `plate_round_tube_01.ply(.pcd)`, cadfile=`round_tube_01.ply(.pcd)` tested and working
    - [x] fillet weld: lidarfile= `plate_round_tube_02.ply(.pcd)`, cadfile=`round_tube_02.ply(.pcd)` tested and working 
