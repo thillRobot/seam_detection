@@ -16,6 +16,7 @@
     output="screen"
   />
 
+  <!-- What does this even do? -->
   <node
     pkg="pcl_ros"
     name="pcd_to_pointcloud"
@@ -30,10 +31,6 @@
         args="-d $(find seam_detection)/rviz/seam_detection.rviz">
   </node>
 
-
-  <!-- <include file="$(find seam_detection)/config/import_seam.yaml" /> -->
-
-  <!-- this node contains primary processing of lidar data for seam detection -->
   <node
     pkg="seam_detection"
     name="seam_detection"
@@ -41,16 +38,5 @@
     output="screen"
     args="-f $(find seam_detection)/pcd_images/$(arg lidar_file) $(find seam_detection)/pcd_images/$(arg cad_file) $(arg part1_type)"
   />
-
-  <!-- this node imports data about the seam and the welding scene - also I am testing some things here -->
-  <!--
-  <node
-    pkg="seam_detection"
-    name="import_seam"
-    type="import_seam"
-    output="screen"
-    args="$(find seam_detection)/pcd_images/$(arg cad_file) $(find seam_detection)/pcd_images/$(arg seam_file)"
-  />
-  -->
 
 </launch>

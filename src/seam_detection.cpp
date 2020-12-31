@@ -8,7 +8,7 @@ began with PCL sample code - 02/14/2018 see https://pointclouds.org/ for offical
 Updated - 02/17/2018
 Revisited 02/22/2020
 v1.0 - 12/07/2020 this officially became seam_detection_v1.0
-This is my first time using `tags` to keep track of versions.
+v1.1 - 12/26/2020
 
 see README.md or https://github.com/thillRobot/seam_detection for documentation
 */
@@ -109,19 +109,12 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
 void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, const std::string& part1_type, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
 {
 
-
-  //std::string part1_type;
-//  part1_type="square-tube"; // choose "round-tube" or "square-tube"
-
-  // PointCloud::Ptr cloud_filtered (new PointCloud);  //use this as the working copy of the target cloud
-  //pcl::copyPointCloud(*cloud,cloud_A); // save input to RANSAC algorithm
-  // Perform RANSAC Segmentation to find cylinder
-  // instantiate all objects needed
-  pcl::PCDReader reader;
+  // instantiate all objects needed for segment_cloud function
+  //pcl::PCDReader reader;
   //pcl::PassThrough<PointT> pass;
   pcl::NormalEstimation<PointT, pcl::Normal> ne;
   pcl::SACSegmentationFromNormals<PointT, pcl::Normal> seg;
-  pcl::PCDWriter writer;
+  //pcl::PCDWriter writer;
   pcl::ExtractIndices<PointT> extract;
   pcl::ExtractIndices<pcl::Normal> extract_normals;
   pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT> ());
@@ -141,13 +134,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   pcl::PointCloud<PointT>::Ptr cloud_squaretube (new pcl::PointCloud<PointT> ());
   pcl::PointCloud<PointT>::Ptr cloud_plane (new pcl::PointCloud<PointT> ());
 
-  // make a copy of the lidar cloud called 'cloud_filtered'
-  //pcl::copyPointCloud(cloud_input,*cloud_filtered);
-
-  // apply voxel filter before performing second segmentation again
-  // zmin=~0.3 here should be automatically set by first segementation
-  // using the z value of the plane
-  //pcl::copyPointCloud(cloud_input,*cloud_filtered);
+  // Apply Box and Voxel filters before performing segmentation
+  // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
   filter_cloud(cloud_input,*cloud_filtered, 0.0, 0.5, 0.0, 0.5, 0.01, 0.5, 0.0005);
 
   std::cout << "BEGINNING RANSAC SEGMENTATION" << std::endl;
@@ -158,7 +146,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   ne.setKSearch (50);
   ne.compute (*cloud_normals);
 
-  // Create the segmentation object for the planar model and set all the parameters
+  // Perform RANSAC Segmentation to find plane first
+  // Instantiate segmentation object for the planar model and set all the parameters
   seg.setOptimizeCoefficients (true);
   seg.setModelType (pcl::SACMODEL_NORMAL_PLANE);
   seg.setNormalDistanceWeight (0.1);
@@ -177,11 +166,9 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   extract.setInputCloud (cloud_filtered);
   extract.setIndices (inliers_plane);
   extract.setNegative (false);
-
-  // Write the planar inliers to disk
   extract.filter (*cloud_plane);
-  std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
-  //writer.write ("table_scene_mug_stereo_textured_plane.pcd", *cloud_plane, false); // I do not know what this is
+
+  std::cout << "The PointCloud representing the planar component contains: " << cloud_plane->points.size () << " data points." << std::endl;
 
   // Remove the planar inliers, extract the rest
   extract.setNegative (true);
@@ -191,15 +178,14 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   extract_normals.setIndices (inliers_plane);
   extract_normals.filter (*cloud_normals2);
 
-  // copy the plane inliers as cloud for part 2 (plate - base)
+  // Copy the plane inliers as cloud for part 2 (plate - base)
   pcl::copyPointCloud(*cloud_plane,cloud_output2);
 
-  // apply voxel filter before performing second segmentation again
-  // zmin=~0.3 here should be automatically set by first segementation
-  // using the z value of the plane
+  // Apply Box and Voxel filters before performing second segmentation
+  // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
   filter_cloud(*cloud_filtered2,*cloud_filtered3, 0.0, 0.5, 0.0, 0.5, 0.03, 0.5, 0.0);
 
-  if (part1_type=="round_tube") //part two is a cylinder
+  if (part1_type=="round_tube") //part two is a cylinder - this variable is set by command lines args
   {
 
     std::cout<<"Searching for round-tube as a cylinder with RANSAC";
@@ -210,7 +196,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     ne.setKSearch (50);
     ne.compute (*cloud_normals3);
 
-    // Create the segmentation object for cylinder segmentation and set the parameters
+    // Create segmentation object for cylinder segmentation and set parameters
     seg.setOptimizeCoefficients (true);
     seg.setModelType (pcl::SACMODEL_CYLINDER);
     seg.setMethodType (pcl::SAC_RANSAC);
@@ -236,8 +222,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
       std::cout << "Cannot find a cylindrical component in cloud" << std::endl;
     else
     {
-      std::cout << "PointCloud representing the cylindrical component contains: " << cloud_cylinder->points.size () << " data points." << std::endl;
-      //writer.write ("table_scene_mug_stereo_textured_cylinder.pcd", *cloud_cylinder, false);
+      std::cout << "The PointCloud representing the cylindrical component contains: " << cloud_cylinder->points.size () << " data points." << std::endl;
     }
 
     //pcl::copyPointCloud(*cloud_filtered2,cloud_output1); // ignore second segmentation
@@ -246,7 +231,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   }else if (part1_type=="square_tube")
   {
 
-    std::cout<<"Searching for square-tube as a single plane";
+    std::cout<<"Searching for square-tube as a single plane"; // can
     // Estimate point normals
     ne.setSearchMethod (tree);
     ne.setInputCloud (cloud_filtered3);
@@ -286,7 +271,6 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     pcl::copyPointCloud(*cloud_squaretube,cloud_output1);  // use second segmentation
 
   }
-
 
   std::cerr << "END OF SEGMENT_CLOUD FUNCTION" << std::endl;
 
@@ -385,7 +369,6 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   std::cout << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
 }
 
-
 void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_BC, tf::StampedTransform &T_AC, tf::StampedTransform &T_CA, geometry_msgs::TransformStamped &msg_AC,geometry_msgs::TransformStamped &msg_CA){
 
   tf::Transform T;
@@ -446,9 +429,9 @@ int main(int argc, char** argv)
 
   std::cout<<std::endl;
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"******************** Seam Detection v1.1 ********************"<<endl;
+  std::cout<<"******************** Seam Detection v1.2 ********************"<<endl;
   std::cout<<"*************************************************************"<<endl;
-  std::cout <<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
+  std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
   std::cout<<std::endl;
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
@@ -526,7 +509,6 @@ int main(int argc, char** argv)
 
   geometry_msgs::TransformStamped *T_20_msg (new geometry_msgs::TransformStamped);
 
-
   pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients);
   pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
 
@@ -567,7 +549,6 @@ int main(int argc, char** argv)
 
   T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
   T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
-
 
   std::cout << "Final transformation computed and converted to message." <<endl;
   std::cout << "Plane Coefficients" << *coeffs_plane <<endl;
@@ -682,9 +663,6 @@ int main(int argc, char** argv)
   //publish forever
   while(ros::ok())
   {
-
-      // this is the old 'TF' way, it doesnt work so I dont know why I am leaving it here
-      //T_br.sendTransform(tf::StampedTransform(*T1,ros::Time::now(),"T1","map"));
 
       // this is the new 'TF2' way of broadcasting tfs
       T_01_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_msg);
