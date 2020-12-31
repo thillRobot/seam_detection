@@ -1,0 +1,11 @@
+---
+scene_name: "plate_round_tube_01"
+part1_name: "round_tube_01"
+part1_type: "hollow cylinder"
+part2_name: "plate"
+part2_type: "plate with notch"
+seam1_length: 10.5
+seam1_points:
+  - 0.15
+  - 0.2
+  - 0.37

@@ -213,7 +213,7 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-find_package(PCL 1.7 REQUIRED)
+find_package(PCL 1.8 REQUIRED) # I do not think this is needed...
 
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
@@ -253,3 +253,6 @@ target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES}
 
 add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
 target_link_libraries(seam_detection_ICP ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+add_executable(import_seam src/import_seam.cpp)
+target_link_libraries(import_seam ${catkin_LIBRARIES} ${PCL_LIBRARIES})
