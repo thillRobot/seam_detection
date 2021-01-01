@@ -30,9 +30,6 @@
         args="-d $(find seam_detection)/rviz/seam_detection.rviz">
   </node>
 
-
-  <!-- <include file="$(find seam_detection)/config/import_seam.yaml" /> -->
-
   <!-- this node contains primary processing of lidar data for seam detection -->
   <node
     pkg="seam_detection"
@@ -42,6 +39,7 @@
     args="-f $(find seam_detection)/pcd_images/$(arg lidar_file) $(find seam_detection)/pcd_images/$(arg cad_file) $(arg part1_type)"
   />
 
+  <!-- <include file="$(find seam_detection)/config/import_seam.yaml" /> -->
   <!-- this node imports data about the seam and the welding scene - also I am testing some things here -->
   <!--
   <node

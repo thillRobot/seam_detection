@@ -200,21 +200,15 @@ main (int argc, char **argv)
 
   // Parse the command line arguments for .ply and PCD files
   std::vector<int> pcd_file_indices = parse_file_extension_argument (argc, argv, ".pcd");
-  if (pcd_file_indices.size () != 1)
+  if (pcd_file_indices.size () != 2)
   {
-    print_error ("Need a PCD file of weld scene to continue.\n");
-    return (-1);
-  }
-  std::vector<int> ply_file_indices = parse_file_extension_argument (argc, argv, ".ply");
-  std::vector<int> obj_file_indices = parse_file_extension_argument (argc, argv, ".obj");
-
-  if (ply_file_indices.size () != 1 && obj_file_indices.size () != 1)
-  {
-    print_error ("Need a PCD file of weld seam to continue.\n");
+    print_error ("Need two PCD files of weld scene to continue.\n");
     return (-1);
   }
 
+  // what is going on here?
   vtkSmartPointer<vtkPolyData> polydata1 = vtkSmartPointer<vtkPolyData>::New ();
+  /*
   if (ply_file_indices.size () == 1)
   {
     pcl::PolygonMesh mesh;
@@ -228,7 +222,7 @@ main (int argc, char **argv)
     readerQuery->Update ();
     polydata1 = readerQuery->GetOutput ();
   }
-
+  */
   // Debug print stuff after args have been parsed - TH - 03/05/2018
   int i;
   std::printf("%d\n",argc);
@@ -236,6 +230,9 @@ main (int argc, char **argv)
   {
       std::printf("%s \n",argv[i]);
   }
+
+  std::cout<<std::endl;
+  std::cout<<"File 1 and File 2 have been loaded."<<std::endl;1t
   std::cout<<std::endl;
   std::cout<<"TH debug - number of samples: "<< SAMPLE_POINTS_ <<std::endl;
   std::cout<<"TH debug - voxel leaf size: "<< leaf_size <<std::endl;
