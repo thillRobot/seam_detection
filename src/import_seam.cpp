@@ -232,7 +232,7 @@ main (int argc, char **argv)
   }
 
   std::cout<<std::endl;
-  std::cout<<"File 1 and File 2 have been loaded."<<std::endl;1t
+  std::cout<<"File 1 and File 2 have been loaded."<<std::endl;
   std::cout<<std::endl;
   std::cout<<"TH debug - number of samples: "<< SAMPLE_POINTS_ <<std::endl;
   std::cout<<"TH debug - voxel leaf size: "<< leaf_size <<std::endl;
