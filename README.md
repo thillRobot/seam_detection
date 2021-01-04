@@ -76,9 +76,9 @@ These demos require two points clouds to be saved as `.pcd` files. Use the defau
 
 ###### Step 1) Make a part in your CAD program of choice. This part will become the 'reference cloud'. Save the file as a '.stl' file. If your CAD program can create a '.ply' or '.pcd' file you can skip steps 2 or 3 respectively.
 
-###### Step 2) Convert the '.stl' to a '.ply' file using meshlab. Open the '.stl' using 'import mesh' and save it as a '.ply' file. Step2 can be done in solidworks. This combines step and step 2. Nice
+###### Step 2) Convert the '.stl' to a '.ply' file using meshlab. Open the '.stl' using 'import mesh' and save it as a '.ply' file. Step2 can be done in solidworks. This could combine Step 1 and Step 2.
 
-###### Step 3) Convert the '.ply' to a '.pcd' file using cad_cloud (this is a package I wrote that uses PCL). run the following commands.
+###### Step 3 - Option 1) Convert a single '.ply' file to a '.pcd' file using `cad_cloud.cpp`. This is a I wrote based on sample code from PCL. The input arguments determine the resolution of the resulting files, and you must pass in the input and output file names. 
 
 ```
 cd seam_detection
@@ -87,7 +87,7 @@ rosrun seam_detection cad_cloud ply_images/input.ply pcd_images/output.pcd -n_sa
 
 pcl_viewer -multiview 1 output.pcd
 ```
-###### Step 3 - NEW!) Alternatively, you can use `cad_cloud_bulk.cpp` for converting an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL, but it iterates through the input directory with `boost`. The arguments are the same, but you must include the input and output directories. 
+###### Step 3 - Option 2) Alternatively, you can use `cad_cloud_bulk.cpp` to convert an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL, but it iterates through the input directory with `boost`. The arguments are the same, but you must include the input and output directories. 
 
 ```
 rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .0001 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
