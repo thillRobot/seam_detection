@@ -87,7 +87,7 @@ rosrun seam_detection cad_cloud ply_images/input.ply pcd_images/output.pcd -n_sa
 
 pcl_viewer -multiview 1 output.pcd
 ```
-Alternatively you can use the the new `cad_cloud_bulk` node for converting an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL,but I added code to iterate through the directory with `boost`. The arguments are the same, but you must include the input and output directories. 
+###### Step 3 - NEW!) Alternatively, you can use `cad_cloud_bulk.cpp` for converting an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL, but it iterates through the input directory with `boost`. The arguments are the same, but you must include the input and output directories. 
 
 ```
 rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .0001 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
