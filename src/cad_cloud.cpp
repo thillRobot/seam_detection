@@ -183,7 +183,7 @@ main (int argc, char **argv)
   print_info ("Convert a CAD model to a point cloud using uniform sampling. For more information, use: %s -h\n",
               argv[0]);
 
-  if (argc < 3)
+  if (argc < 2)
   {
     printHelp (argc, argv);
     return (-1);
@@ -194,7 +194,7 @@ main (int argc, char **argv)
   parse_argument (argc, argv, "-n_samples", SAMPLE_POINTS_);
   float leaf_size = default_leaf_size;
   parse_argument (argc, argv, "-leaf_size", leaf_size);
-  bool vis_result = ! find_switch (argc, argv, "-no_vis_result");
+  //bool vis_result = ! find_switch (argc, argv, "-no_vis_result");
   const bool write_normals = find_switch (argc, argv, "-write_normals");
 
   // Parse the command line arguments for .ply and PCD files
@@ -284,13 +284,15 @@ main (int argc, char **argv)
   pcl::PointCloud<pcl::PointNormal>::Ptr voxel_cloud (new pcl::PointCloud<pcl::PointNormal>);
   grid_.filter (*voxel_cloud);
 
+  /*
   std::cout<<std::endl;
   std::cout<<"TH debug - vis result: "<< vis_result <<std::endl;
   std::cout<<"TH debug - write normals: "<< write_normals <<std::endl;
   std::cout<<"TH - BUGS!... "<<std::endl;
+  */
 
   //argv[obj_file_indices[0]]
-  std::string file_out = argv[2];
+  std::string file_out = argv[pcd_file_indices[0]];
   savePCDFileASCII (file_out, *voxel_cloud);
   std::cout<<"TH - Writing PCD output file: "<<file_out<<std::endl;
   std::cout<<"TH - Finsished writing PCD file. "<<std::endl;
