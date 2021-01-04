@@ -87,6 +87,11 @@ rosrun seam_detection cad_cloud ply_images/input.ply pcd_images/output.pcd -n_sa
 
 pcl_viewer -multiview 1 output.pcd
 ```
+Alternatively you can use the the new `cad_cloud_bulk` node for converting an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL,but I added code to iterate through the directory with `boost`. The arguments are the same, but you must include the input and output directories. 
+
+```
+rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .0001 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
+```
 
 ###### Step 4) Use ICP to compare the CAD/reference image to the LIDAR/source image. 
 The LIDAR '.pcd' file must also be in the image directory. There are four numbered scenes choose from.
@@ -163,7 +168,7 @@ PointCloud representing the planar component: 2993 data points.
 - [x] dust off and test workflow for designing new scene and converting to the proper filetypes, this has not been tested recently 
 - [x] scaling issue with pcd export in solidworks - use options in save as diaolag 
 - [ ] document test scene creation and conversion process
-- [ ] improve `cad_cloud` to process multiple .ply files at once - convert entire directory
+- [x] improve `cad_cloud` to process multiple .ply files at once - convert entire directory with `cad_cloud_bulk.cpp`
 
 - [x] figure out square tube RANSAC - working on that now - seems to work fine without cylinder model
 
