@@ -230,6 +230,9 @@ target_link_libraries(seam_detection_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(cad_cloud src/cad_cloud.cpp)
 target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
+target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 # These are nodes that I once used while working on SEAM_DETECTION
 # They are commented out to save time (??? wait...)
 
