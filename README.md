@@ -83,14 +83,14 @@ These demos require two points clouds to be saved as `.pcd` files. Use the defau
 ```
 cd seam_detection
 
-rosrun seam_detection cad_cloud ply_images/input.ply pcd_images/output.pcd -n_samples 100000 -leaf_size 0.001 -write_normals 1 -no_vis_results 0
+rosrun seam_detection cad_cloud -n_samples 100000 -leaf_size 0.001 -write_normals 1 ply_images/input.ply pcd_images/output.pcd 
 
 pcl_viewer -multiview 1 output.pcd
 ```
 ###### Step 3 - Option 2) Alternatively, you can use `cad_cloud_bulk.cpp` to convert an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL, but it iterates through the input directory with `boost`. The arguments are the same, but you must include the input and output directories. 
 
 ```
-rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .0001 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
+rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .001 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
 ```
 
 ###### Step 4) Use ICP to compare the CAD/reference image to the LIDAR/source image. 
