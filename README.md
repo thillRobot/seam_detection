@@ -159,8 +159,7 @@ PointCloud representing the planar component: 2993 data points.
 - v1.2 (development - master/devel)
 
 #### To Prepare for IDETC2021
-- [x] create branch called 'stable' to store the working code 
-- [x] create tag called v1.0 and document how to use and pull with tag
+
 - [x] design and test new scenes with v1.0 - scenes need edits
 - [ ] fix RANSAC segmentation of the table and plate
 - [ ] decide to include table or not inlcude table. It will be in the scan so I think the code needs to be able to handle table
@@ -176,7 +175,9 @@ PointCloud representing the planar component: 2993 data points.
 
 - [ ] develope description of the weld seam in the workflow - one idea is a `user defined element` in the ply files 
 
-- [ ] finish the manuscript
+- [ ] add description of the seam to the model - i have begun by creating seam *.pcd* files
+
+- [ ] finish the manuscript !
 
 
    ##### current test scenes
