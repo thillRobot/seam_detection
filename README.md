@@ -205,4 +205,4 @@ PointCloud representing the planar component: 2993 data points.
    - [ ] develope processing multiple parts, two parts work now
    - [ ] add 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
    - [ ] migration to Fossa/Noetic - everything compiles  and returns
-   - [ ] the ICP stage does not work. It does converges but the score is too high, and the results do not make any sense. It works in Melodic but not in Noetic. **This is a issue**.
+   - [ ] the ICP stage does not work. It does converges but the score is too high, and the results do not make any sense. It works in Melodic but not in Noetic. **This is an issue**.
