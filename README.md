@@ -117,19 +117,38 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.p
 
 These examples have the `round_tube` or a `square_tube` and the `plate`. There can be variations in part1 one but you must choose `round_tube` or a `square_tube`for the segmentation to work properly. These work well, but there is some discrepancy along the length of the cylinder. All other dimensions match very well. This seems to be related to the amount of data that is avaialanble about this dimension.
 
-**plate_round_tube_01, round_tube_01**
+Now you define all the file names and other parameters in a <scene>.yaml file. The .yaml files are saved in `config/`
 ```
-roslaunch seam_detection seam_detection.launch lidar_file:="plate_round_tube_01.pcd" cad_file:="round_tube_01.pcd" part1_type:="round_tube"
+---
+scene_name: "plate_round_tube_01"
+scene_file: "/home/researcher/nuc_ros/src/seam_detection/pcd_images/plate_round_tube_01.pcd"
+part1_name: "round_tube_01"
+part1_file: "/home/researcher/nuc_ros/src/seam_detection/pcd_images/round_tube_01.pcd"
+part1_type: "round_tube"
+part2_name: "plate"
+part2_type: "plate with notch"
+seam1_length: 1.0
+seam1_points:
+  - 0.1
+  - 0.2
+  - 0.3
 ```
 
-**plate_square_tube_01, square_tube_01**
+Pass the name of scene when using seam_detection as shown below. This is much convenient and allows for all nodes in the system access to parameters.  
+
+**plate_round_tube_01**
 ```
-roslaunch seam_detection seam_detection.launch lidar_file:="plate_square_tube_01.pcd" cad_file:="square_tube_01.pcd" part1_type:="square_tube"
+roslaunch seam_detection seam_detection.launch scene:="plate_round_tube_01"
 ```
 
-**plate_square_tube_03, square_tube_03**
+**plate_square_tube_01**
 ```
-roslaunch seam_detection seam_detection.launch lidar_file:="plate_square_tube_03.pcd" cad_file:="square_tube_03.pcd" part1_type:="square_tube"
+roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_0"
+```
+
+**plate_square_tube_02**
+```
+roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_02"
 ```
 
 ##### add second plane that represents the table that the parts are sitting on.
