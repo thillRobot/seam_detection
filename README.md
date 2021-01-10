@@ -74,11 +74,14 @@ roslaunch seam_detection seam_detection_RANSAC.launch in_file:="lidar_scene1.pcd
 These demos require two points clouds to be saved as `.pcd` files. Use the default images or make you own with the following procedure.
 ##### Import a cloud from a CAD model: Solidworks(.stl)-->meshlab(.ply)-->cad2cloud(.pcd)-->ROS(pointcloud)
 
-###### Step 1) Make a part in your CAD program of choice. This part will become the 'reference cloud'. Save the file as a '.stl' file. If your CAD program can create a '.ply' or '.pcd' file you can skip steps 2 or 3 respectively. Use units of meters for the part and stl export.
+###### Step 1)
+Make a part in your CAD program of choice. This part will become the 'reference cloud'. Save the file as a '.stl' file. If your CAD program can create a '.ply' or '.pcd' file you can skip steps 2 or 3 respectively. Use units of meters for the part and stl export.
 
-###### Step 2) Convert the '.stl' to a '.ply' file using meshlab. Open the '.stl' using 'import mesh' and save it as a '.ply' file. Step2 can be done in solidworks. This could combine Step 1 and Step 2.
+###### Step 2)
+Convert the '.stl' to a '.ply' file using meshlab. Open the '.stl' using 'import mesh' and save it as a '.ply' file. Step2 can be done in solidworks. This could combine Step 1 and Step 2.
 
-###### Step 3 - Option 1) Convert a single '.ply' file to a '.pcd' file using `cad_cloud.cpp`. This is a I wrote based on sample code from PCL. The input arguments determine the resolution of the resulting files, and you must pass in the input and output file names.
+###### Step 3 - Option 1)
+Convert a single '.ply' file to a '.pcd' file using `cad_cloud.cpp`. This is a I wrote based on sample code from PCL. The input arguments determine the resolution of the resulting files, and you must pass in the input and output file names.
 
 ```
 cd seam_detection
@@ -87,13 +90,15 @@ rosrun seam_detection cad_cloud -n_samples 100000 -leaf_size 0.001 -write_normal
 
 pcl_viewer -multiview 1 output.pcd
 ```
-###### Step 3 - Option 2) Alternatively, you can use `cad_cloud_bulk.cpp` to convert an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL, but it iterates through the input directory with `boost`. The conversion parameter arguments are the same, but you must include the input and output directories instead of the file names.
+###### Step 3 - Option 2)
+Alternatively, you can use `cad_cloud_bulk.cpp` to convert an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL, but it iterates through the input directory with `boost`. The conversion parameter arguments are the same, but you must include the input and output directories instead of the file names.
 
 ```
 rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .001 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
 ```
 
-###### Step 4) Use ICP to compare the CAD/reference image to the LIDAR/source image.
+###### Step 4)
+Use ICP to compare the CAD/reference image to the LIDAR/source image.
 The LIDAR '.pcd' file must also be in the image directory. There are four numbered scenes choose from.
 
 ```
