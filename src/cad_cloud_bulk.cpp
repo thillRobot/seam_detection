@@ -37,36 +37,34 @@
 
 // Importing simple CAD parts into .pcd files with PCL
 // modifed by Tristan Hill
-// revisited 12/25/2020
+// revisited 12/25/2020 - 01/03/2020
 
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/common/transforms.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/console/print.h>
+#include <pcl/console/parse.h>
+
 #include <vtkVersion.h>
 #include <vtkPLYReader.h>
 #include <vtkOBJReader.h>
 #include <vtkTriangle.h>
 #include <vtkTriangleFilter.h>
 #include <vtkPolyDataMapper.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/console/print.h>
-#include <pcl/console/parse.h>
 
-// #include <experimental/filesystem>
-// namespace fs = experimental/filesystem;
-#include <ros/ros.h>
-#include "boost/filesystem.hpp"   // includes all needed Boost.Filesystem declarations
+#include "boost/filesystem.hpp"
 #include <boost/algorithm/string.hpp>
-#include <iostream>               // for std::cout
 
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
 
-//using boost::filesystem;          // for ease of tutorial presentation;
-                                  //  a namespace alias is preferred practice in real code
-namespace bf = boost::filesystem;
+#include <ros/ros.h>
 
+
+namespace bf = boost::filesystem;
 
 inline double
 uniform_deviate (int seed)
@@ -176,8 +174,10 @@ const float default_leaf_size = 0.01f;
 void
 printHelp (int, char **argv)
 {
-  print_error ("Syntax is: %s input.{ply,obj} output.pcd <options>\n", argv[0]);
+  print_error ("Syntax is: <options>\n", argv[0]);
   print_info ("  where options are:\n");
+  print_info ("                     -input_dir        = directory containing .ply files to be converted ");
+  print_info ("                     -input_dir        = directory to save converted .pcd files ");
   print_info ("                     -n_samples X      = number of samples (default: ");
   print_value ("%d", default_number_samples);
   print_info (")\n");
@@ -272,11 +272,11 @@ main (int argc, char **argv)
           pcl::io::mesh2vtk (mesh, polydata1);
           //make sure that the polygons are triangles!
           vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New ();
-        #if VTK_MAJOR_VERSION < 6
-          triangleFilter->SetInput (polydata1);
-        #else
-          triangleFilter->SetInputData (polydata1);
-        #endif
+          #if VTK_MAJOR_VERSION < 6
+            triangleFilter->SetInput (polydata1);
+          #else
+            triangleFilter->SetInputData (polydata1);
+          #endif
           triangleFilter->Update ();
 
           vtkSmartPointer<vtkPolyDataMapper> triangleMapper = vtkSmartPointer<vtkPolyDataMapper>::New ();
@@ -284,6 +284,7 @@ main (int argc, char **argv)
           triangleMapper->Update ();
           polydata1 = triangleMapper->GetInput ();
 
+          /*
           bool INTER_VIS = false; // I do not know what this is
 
           if (INTER_VIS)
@@ -293,10 +294,12 @@ main (int argc, char **argv)
             vis.setRepresentationToSurfaceForAllActors ();
             vis.spin ();
           }
+          */
 
           pcl::PointCloud<pcl::PointNormal>::Ptr cloud_1 (new pcl::PointCloud<pcl::PointNormal>);
           uniform_sampling (polydata1, SAMPLE_POINTS_, write_normals, *cloud_1);
 
+          /*
           if (INTER_VIS)
           {
             visualization::PCLVisualizer vis_sampled;
@@ -305,6 +308,7 @@ main (int argc, char **argv)
               vis_sampled.addPointCloudNormals<pcl::PointNormal> (cloud_1, 1, 0.02f, "cloud_normals");
             vis_sampled.spin ();
           }
+          */
 
           // Voxelgrid
           VoxelGrid<PointNormal> grid_;
@@ -335,41 +339,8 @@ main (int argc, char **argv)
     cout << ex.what() << '\n';
   }
 
-  /*
-  // Parse the command line arguments for .ply and PCD files
-  std::vector<int> pcd_file_indices = parse_file_extension_argument (argc, argv, ".pcd");
-  if (pcd_file_indices.size () != 1)
-  {
-    print_error ("Need a single output directory for PCD files to continue.\n");
-    return (-1);
-  }
-  std::vector<int> ply_file_indices = parse_file_extension_argument (argc, argv, ".ply");
-  std::vector<int> obj_file_indices = parse_file_extension_argument (argc, argv, ".obj");
-
-  if (ply_file_indices.size () != 1 && obj_file_indices.size () != 1)
-  {
-    print_error ("Need a single input directory for PLY/OBJ file to continue.\n");
-    return (-1);
-  }
-  */
-
-
   std::cout<<"Scanning Directory. "<<std::endl;
-  /*
-  const fs::path pathToShow{ argc >= 2 ? argv[1] : fs::current_path() };
 
-  for (const auto& entry : fs::directory_iterator(pathToShow)) {
-      const auto filenameStr = entry.path().filename().string();
-      if (entry.is_directory()) {
-          std::cout << "dir:  " << filenameStr << '\n';
-      }
-      else if (entry.is_regular_file()) {
-          std::cout << "file: " << filenameStr << '\n';
-      }
-      else
-          std::cout << "??    " << filenameStr << '\n';
-  }
-  */
 
   std::cout<<"Finsished Scanning Directory. "<<std::endl;
 

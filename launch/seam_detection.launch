@@ -9,6 +9,7 @@
   <param name="param" value="$(arg cad_file)"/>
   <param name="param" value="$(arg part1_type)"/>
 
+  <!-- setup the transformations and frames for the system-->
   <node
     pkg="seam_detection"
     name="seam_detection_tf"
@@ -16,6 +17,7 @@
     output="screen"
   />
 
+  <!-- convert the file(s) to a point cloud - IS THIS NEEDED ? WHAT DOES THIS DO -->
   <node
     pkg="pcl_ros"
     name="pcd_to_pointcloud"
@@ -24,13 +26,7 @@
     args="$(find seam_detection)/pcd_images/$(arg lidar_file)">
   </node>
 
-  <node name="rviz"
-        pkg="rviz"
-        type="rviz"
-        args="-d $(find seam_detection)/rviz/seam_detection.rviz">
-  </node>
-
-  <!-- this node contains primary processing of lidar data for seam detection -->
+  <!-- this node contains the primary processing of lidar data for seam detection -->
   <node
     pkg="seam_detection"
     name="seam_detection"
@@ -40,7 +36,7 @@
   />
 
   <!-- <include file="$(find seam_detection)/config/import_seam.yaml" /> -->
-  <!-- this node imports data about the seam and the welding scene - also I am testing some things here -->
+  <!-- process the descriotion of the seam and the welding scene - also I am testing some things here -->
   <!--
   <node
     pkg="seam_detection"
@@ -50,5 +46,11 @@
     args="$(find seam_detection)/pcd_images/$(arg cad_file) $(find seam_detection)/pcd_images/$(arg seam_file)"
   />
   -->
+
+  <node name="rviz"
+        pkg="rviz"
+        type="rviz"
+        args="-d $(find seam_detection)/rviz/seam_detection.rviz">
+  </node>
 
 </launch>

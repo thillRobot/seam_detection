@@ -172,8 +172,7 @@ printHelp (int, char **argv)
   print_value ("%f", default_leaf_size);
   print_info (" m)\n");
   print_info ("                     -write_normals = flag to write normals to the output pcd\n");
-  print_info (
-              "                     -no_vis_result = flag to stop visualizing the generated pcd\n");
+
 }
 
 /* ---[ */

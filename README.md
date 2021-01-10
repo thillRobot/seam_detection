@@ -1,16 +1,16 @@
 # seam_detection
 This is a ROS package for weld seam detection using pointcloud data based on the point cloud library [PCL](https://pointclouds.org/).
 
-### Installing seam_detection 
+### Installing seam_detection
 
 #### Requirements:
-##### Operating System: 
+##### Operating System:
 - Ubuntu 18.04 - tested and working best
 - Ubuntu 20.04 - testing now, working but not converging
 ##### ROS Version (linked to OS):
 - ROS Melodic
 - ROS Noetic
-##### Hardware 
+##### Hardware
 - no hardware requirements identified currently
 ##### Graphics
 - intel embededded graphics `Kady Lake` and others
@@ -54,7 +54,7 @@ Note: **.pcd** files are currently in the **.gitignore** so you have to generate
 <!-- ##### try this one pcd_to_pointcloud - THIS WORKS (02/04/2020)-->
 <!--`roslaunch seam_detection segment_plane_line.launch in_file:="test_cloud11.pcd" thresh:=0.01`-->
 #### Random Sample Consensus - RANSAC
-##### Use RANSAC to fit a models to a pointcloud. 
+##### Use RANSAC to fit a models to a pointcloud.
 The library supports planes, cylinders, spheres and more.
 ```
 roslaunch seam_detection ransac_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01
@@ -78,22 +78,22 @@ These demos require two points clouds to be saved as `.pcd` files. Use the defau
 
 ###### Step 2) Convert the '.stl' to a '.ply' file using meshlab. Open the '.stl' using 'import mesh' and save it as a '.ply' file. Step2 can be done in solidworks. This could combine Step 1 and Step 2.
 
-###### Step 3 - Option 1) Convert a single '.ply' file to a '.pcd' file using `cad_cloud.cpp`. This is a I wrote based on sample code from PCL. The input arguments determine the resolution of the resulting files, and you must pass in the input and output file names. 
+###### Step 3 - Option 1) Convert a single '.ply' file to a '.pcd' file using `cad_cloud.cpp`. This is a I wrote based on sample code from PCL. The input arguments determine the resolution of the resulting files, and you must pass in the input and output file names.
 
 ```
 cd seam_detection
 
-rosrun seam_detection cad_cloud -n_samples 100000 -leaf_size 0.001 -write_normals 1 ply_images/input.ply pcd_images/output.pcd 
+rosrun seam_detection cad_cloud -n_samples 100000 -leaf_size 0.001 -write_normals 1 ply_images/input.ply pcd_images/output.pcd
 
 pcl_viewer -multiview 1 output.pcd
 ```
-###### Step 3 - Option 2) Alternatively, you can use `cad_cloud_bulk.cpp` to convert an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL, but it iterates through the input directory with `boost`. The conversion parameter arguments are the same, but you must include the input and output directories instead of the file names. 
+###### Step 3 - Option 2) Alternatively, you can use `cad_cloud_bulk.cpp` to convert an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL, but it iterates through the input directory with `boost`. The conversion parameter arguments are the same, but you must include the input and output directories instead of the file names.
 
 ```
 rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .001 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
 ```
 
-###### Step 4) Use ICP to compare the CAD/reference image to the LIDAR/source image. 
+###### Step 4) Use ICP to compare the CAD/reference image to the LIDAR/source image.
 The LIDAR '.pcd' file must also be in the image directory. There are four numbered scenes choose from.
 
 ```
@@ -112,7 +112,7 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.p
 
 These examples have the `round_tube` or a `square_tube` and the `plate`. There can be variations in part1 one but you must choose `round_tube` or a `square_tube`for the segmentation to work properly. These work well, but there is some discrepancy along the length of the cylinder. All other dimensions match very well. This seems to be related to the amount of data that is avaialanble about this dimension.
 
-**plate_round_tube_01, round_tube_01** 
+**plate_round_tube_01, round_tube_01**
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="plate_round_tube_01.pcd" cad_file:="round_tube_01.pcd" part1_type:="round_tube"
 ```
@@ -122,12 +122,12 @@ roslaunch seam_detection seam_detection.launch lidar_file:="plate_round_tube_01.
 roslaunch seam_detection seam_detection.launch lidar_file:="plate_square_tube_01.pcd" cad_file:="square_tube_01.pcd" part1_type:="square_tube"
 ```
 
-**plate_square_tube_03, square_tube_03** 
+**plate_square_tube_03, square_tube_03**
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="plate_square_tube_03.pcd" cad_file:="square_tube_03.pcd" part1_type:="square_tube"
 ```
 
-##### add second plane that represents the table that the parts are sitting on. 
+##### add second plane that represents the table that the parts are sitting on.
 This is not working. RANSAC fails.
 ```
 roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
@@ -135,8 +135,8 @@ roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder
 
 ```
 BEGINNING RANSAC SEGMENTATION
-Plane coefficients: header: 
-seq: 0 stamp: 0 frame_id: 
+Plane coefficients: header:
+seq: 0 stamp: 0 frame_id:
 values[]
   values[0]:   9.70263e-06
   values[1]:   9.7027e-06
@@ -153,7 +153,7 @@ PointCloud representing the planar component: 2993 data points.
 #### Versions
 - v1.0 (stable - tagged 12/07/2020)
 - v1.1 (stable - tagged 12/26/2020)
-  - added `round_tube` or `square_tube` segmentation option for part1 
+  - added `round_tube` or `square_tube` segmentation option for part1
   - added `part1_type` to `seam_detection.launch` args
   - removed `thresh` from `seam_detection.launch` args
 - v1.2 (development - master/devel)
@@ -164,8 +164,8 @@ PointCloud representing the planar component: 2993 data points.
 - [ ] fix RANSAC segmentation of the table and plate
 - [ ] decide to include table or not inlcude table. It will be in the scan so I think the code needs to be able to handle table
 
-- [x] dust off and test workflow for designing new scene and converting to the proper filetypes, this has not been tested recently 
-- [x] scaling issue with pcd export in solidworks - use options in save as diaolag 
+- [x] dust off and test workflow for designing new scene and converting to the proper filetypes, this has not been tested recently
+- [x] scaling issue with pcd export in solidworks - use options in save as diaolag
 - [ ] document test scene creation and conversion process
 - [x] improve `cad_cloud` to process multiple .ply files at once - convert entire directory with `cad_cloud_bulk.cpp`
 
@@ -173,7 +173,8 @@ PointCloud representing the planar component: 2993 data points.
 
 - [ ] investigate segmentation models - can we set the width of the `SACMODEL_PLANE` ?
 
-- [ ] develope description of the weld seam in the workflow - one idea is a `user defined element` in the ply files 
+- [ ] develop description of the weld seam in the workflow - one idea is a `user defined element` in the ply files
+      I think a better idea is to start with yaml files as config files, see `seam_detection/config/`
 
 - [ ] add description of the seam to the model - i have begun by creating seam *.pcd* files
 
@@ -182,8 +183,8 @@ PointCloud representing the planar component: 2993 data points.
 
    ##### current test scenes
    - [x] fillet weld: lidarfile= `plate_round_tube_01.ply(.pcd)`, cadfile=`round_tube_01.ply(.pcd)` tested and working
-   - [x] fillet weld: lidarfile= `plate_round_tube_02.ply(.pcd)`, cadfile=`round_tube_02.ply(.pcd)` tested and working 
-   
+   - [x] fillet weld: lidarfile= `plate_round_tube_02.ply(.pcd)`, cadfile=`round_tube_02.ply(.pcd)` tested and working
+
    - [x] fillet weld: lidarfile= `plate_square_tube_01.ply(.pcd)`, cadfile=`square_tube_01.ply(.pcd)` tested and working
    - [x] fillet weld: lidarfile= `plate_square_tube_02.ply(.pcd)`, cadfile=`square_tube_02.ply(.pcd)` tested and working
    - [x] fillet weld: lidarfile= `plate_square_tube_03.ply(.pcd)`, cadfile=`square_tube_03.ply(.pcd)` tested and working
@@ -191,11 +192,11 @@ PointCloud representing the planar component: 2993 data points.
    - [ ] fillet weld: `table_plate_cylinder`- does not work - RANSAC segmentation fails
 
    - [ ] fillet weld: `square tube to plate` - designed by RS - initial tests now
-   - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests 
-   
-- [ ] calculate a *measure of accuracy* 
+   - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests
+
+- [ ] calculate a *measure of accuracy*
 - [ ] determine or register key points on key parts (?)
-- [ ] include **.pcd** and/or **.ply** in this **.gitignore** ? 
+- [ ] include **.pcd** and/or **.ply** in this **.gitignore** ?
 
 ***The plan is to wait until after IDETC 2021 submission to work on the developement issues below.***
 #### Development of `seam detection.cpp` which is implemenation of RANSAC + ICP SEAM DETECTION
