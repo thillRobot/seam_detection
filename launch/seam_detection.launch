@@ -1,13 +1,10 @@
 <launch>
-
   <!-- This is the main launch file for the SEAM_DETECTION node and package -->
-
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
   <!-- read value of arg -->
-  <param name="param" value="$(arg lidar_file)"/>
-  <param name="param" value="$(arg cad_file)"/>
-  <param name="param" value="$(arg part1_type)"/>
+  <param name="param" value="$(arg scene)"/> 
+
 
   <!-- setup the transformations and frames for the system-->
   <node
@@ -18,6 +15,7 @@
   />
 
   <!-- convert the file(s) to a point cloud - IS THIS NEEDED ? WHAT DOES THIS DO -->
+  <!--
   <node
     pkg="pcl_ros"
     name="pcd_to_pointcloud"
@@ -25,6 +23,10 @@
     output="screen"
     args="$(find seam_detection)/pcd_images/$(arg lidar_file)">
   </node>
+  -->
+  <rosparam file="$(find seam_detection)/config/$(arg scene).yaml" />
+  <!-- <include file="$(find seam_detection)/config/$(arg scene).yaml" /> -->
+  <!-- process the description of the seam and the welding scene - also I am testing some things here -->
 
   <!-- this node contains the primary processing of lidar data for seam detection -->
   <node
@@ -32,20 +34,18 @@
     name="seam_detection"
     type="seam_detection"
     output="screen"
-    args="-f $(find seam_detection)/pcd_images/$(arg lidar_file) $(find seam_detection)/pcd_images/$(arg cad_file) $(arg part1_type)"
   />
 
-  <!-- <include file="$(find seam_detection)/config/import_seam.yaml" /> -->
-  <!-- process the descriotion of the seam and the welding scene - also I am testing some things here -->
+  <!-- args="-f $(find seam_detection)/pcd_images/$(arg lidar_file) $(find seam_detection)/pcd_images/$(arg cad_file) $(arg part1_type)" -->
   <!--
   <node
     pkg="seam_detection"
     name="import_seam"
     type="import_seam"
     output="screen"
-    args="$(find seam_detection)/pcd_images/$(arg cad_file) $(find seam_detection)/pcd_images/$(arg seam_file)"
   />
   -->
+  <!-- args="$(find seam_detection)/pcd_images/$(arg cad_file) $(find seam_detection)/pcd_images/$(arg seam_file)" -->
 
   <node name="rviz"
         pkg="rviz"

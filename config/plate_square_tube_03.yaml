@@ -1,0 +1,13 @@
+---
+scene_name: "plate_square_tube_03"
+scene_file: "/home/researcher/nuc_ros/src/seam_detection/pcd_images/plate_square_tube_03.pcd"
+part1_name: "square_tube_03"
+part1_file: "/home/researcher/nuc_ros/src/seam_detection/pcd_images/square_tube_03.pcd"
+part1_type: "square_tube"
+part2_name: "plate"
+part2_type: "plate with notch"
+seam1_length: 1.0
+seam1_points:
+  - 0.1
+  - 0.2
+  - 0.3

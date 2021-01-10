@@ -423,9 +423,29 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(2);
 
   // read the command line arguments to pick the data file and some other details
+/*
   std::string file_lidar = argv[2];  // source cloud
   std::string file_cad = argv[3];    // reference cloud
   std::string part1_type = argv[4]; // part1 is the part to be welded to plate
+*/
+  // replace command line args with params from .yaml
+
+  std::string file_lidar; // source cloud
+  std::string file_cad;// reference cloud
+  std::string part1_type; // part1 is the part to be welded to plate
+
+  std::string param1;
+  node.getParam("scene_file", param1);
+  file_lidar=param1;
+
+  std::string param2;
+  node.getParam("part1_file", param2);
+  file_cad=param2;
+
+  std::string param3;
+  node.getParam("part1_type", param3);
+  part1_type=param3;
+
 
   std::cout<<std::endl;
   std::cout<<"*************************************************************"<<endl;
