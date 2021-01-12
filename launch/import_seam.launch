@@ -2,12 +2,19 @@
 
   <!-- This is the main launch file for the SEAM_DETECTION node and package -->
 
-  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/> <!-- why ? I think this is outdated-->
 
   <!-- read value of arg -->
+  <param name="param" value="$(arg scene)"/>
+
+  <!-- read value of arg -->
+  <!--
   <param name="param" value="$(arg lidar_file)"/>
   <param name="param" value="$(arg cad_file)"/>
   <param name="param" value="$(arg part1_type)"/>
+  -->
+
+  <rosparam file="$(find seam_detection)/config/$(arg scene).yaml" />
 
   <node
     pkg="seam_detection"
@@ -16,27 +23,10 @@
     output="screen"
   />
 
-  <!-- What does this even do? -->
-  <node
-    pkg="pcl_ros"
-    name="pcd_to_pointcloud"
-    type="pcd_to_pointcloud"
-    output="screen"
-    args="$(find seam_detection)/pcd_images/$(arg lidar_file)">
-  </node>
-
   <node name="rviz"
-        pkg="rviz"
-        type="rviz"
-        args="-d $(find seam_detection)/rviz/seam_detection.rviz">
+    pkg="rviz"
+    type="rviz"
+    args="-d $(find seam_detection)/rviz/seam_detection.rviz">
   </node>
-
-  <node
-    pkg="seam_detection"
-    name="seam_detection"
-    type="seam_detection"
-    output="screen"
-    args="-f $(find seam_detection)/pcd_images/$(arg lidar_file) $(find seam_detection)/pcd_images/$(arg cad_file) $(arg part1_type)"
-  />
 
 </launch>

@@ -219,7 +219,9 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-### nodes to be compiled with catkin_make ###
+###########################################
+## nodes to be compiled with catkin_make ##
+###########################################
 
 ## primary nodes for the SEAM_DETECTION package
 

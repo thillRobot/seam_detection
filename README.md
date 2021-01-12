@@ -28,14 +28,14 @@ catkin_make
 
 This will build your workspace for the first time. There should now be a `CMakeLists.txt` file and a few new directories in the workspace.
 
-#### Step 2 - Download SEAM_DETECTION Package
+#### Step 2 - Download seam_detection Package
 Change to the source directory of the workapce and pull the package using git.
 
 ```
 cd ~/<workspace-name>/src
 git clone https://github.com/thillRobot/seam_detection.git
 ```
-#### Step 3 - Compile SEAM_DETECTION in catkin workspace
+#### Step 3 - Compile seam_detection in catkin workspace
 Change to top of workspace and compile.
 
 ```
@@ -45,7 +45,7 @@ catkin_make
 
 The workspace and package should compile without errors.
 
-### Using SEAM_DETECTION
+### Using seam_detection
 
 These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
 This code is based on **PCL - Sample Consensus and RANSAC (SEGMENTATION)**
