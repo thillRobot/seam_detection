@@ -1,6 +1,6 @@
-#cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.3)
 #cmake_minimum_required(VERSION 3.0.2)
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+#cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(seam_detection)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -219,43 +219,59 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-# This is the primary node for the SEAM_DETECTION package
+### nodes to be compiled with catkin_make ###
+
+## primary nodes for the SEAM_DETECTION package
+
+# seam_detection
 add_executable(seam_detection src/seam_detection.cpp)
 target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# These are supporting nodes for the SEAM_DETECTION package
-add_executable(seam_detection_tf src/seam_detection_tf.cpp)
-target_link_libraries(seam_detection_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(cad_cloud src/cad_cloud.cpp)
-target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
-target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-# These are nodes that I once used while working on SEAM_DETECTION
-# They are commented out to save time (??? wait...)
-
-add_executable(filter_cloud src/filter_cloud.cpp)
-target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(plane_filter_RANSAC src/plane_filter_RANSAC.cpp)
-target_link_libraries(plane_filter_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(ransac_plane src/ransac_plane.cpp)
-target_link_libraries(ransac_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(segment_plane src/segment_plane.cpp)
-target_link_libraries(segment_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(segment_cylinder src/segment_cylinder.cpp)
-target_link_libraries(segment_cylinder ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
-target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
+# seam_detection_ICP
 add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
 target_link_libraries(seam_detection_ICP ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+# seam_detection_RANSAC
+add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
+target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+## Supporting nodes for the SEAM_DETECTION package
+
+# seam_detection_tf
+add_executable(seam_detection_tf src/seam_detection_tf.cpp)
+target_link_libraries(seam_detection_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# cad_cloud
+add_executable(cad_cloud src/cad_cloud.cpp)
+target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# cad_cloud_bulk
+add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
+target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# import_seam
 add_executable(import_seam src/import_seam.cpp)
 target_link_libraries(import_seam ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+## Archived nodes previously but no longer used with SEAM_DETECTION package
+# un-comment if you need to compile archived nodes
+
+# filter_cloud
+#add_executable(filter_cloud src/filter_cloud.cpp)
+#target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# plane_filter
+#add_executable(plane_filter_RANSAC src/plane_filter_RANSAC.cpp)
+#target_link_libraries(plane_filter_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# ransac_plane
+#add_executable(ransac_plane src/ransac_plane.cpp)
+#target_link_libraries(ransac_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# segment_plane
+#add_executable(segment_plane src/segment_plane.cpp)
+#target_link_libraries(segment_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# segment_cylinder
+#add_executable(segment_cylinder src/segment_cylinder.cpp)
+#target_link_libraries(segment_cylinder ${catkin_LIBRARIES} ${PCL_LIBRARIES})
