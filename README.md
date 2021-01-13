@@ -134,7 +134,7 @@ seam1_points:
   - 0.3
 ```
 
-Pass the name of scene when using seam_detection as shown below. This is much convenient and allows for all nodes in the system access to parameters.  
+Pass the name of scene when using seam_detection as shown below. This is much more convenient and allows for all nodes in the system access to parameters.  
 
 **plate_round_tube_01**
 ```
