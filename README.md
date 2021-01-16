@@ -77,11 +77,13 @@ These demos require two points clouds to be saved as `.pcd` files. Use the defau
 ###### Step 1)
 Make a part in your CAD program of choice. This part will become the 'reference cloud'. Save the file as a '.stl' file. If your CAD program can create a '.ply' or '.pcd' file you can skip steps 2 or 3 respectively. Use units of meters for the part and stl export.
 
+Note: In Solidworks: Save As -> select .ply then click Option and set the output units to meters.   
+
 ###### Step 2)
 Convert the '.stl' to a '.ply' file using meshlab. Open the '.stl' using 'import mesh' and save it as a '.ply' file. Step2 can be done in solidworks. This could combine Step 1 and Step 2.
 
 ###### Step 3 - Option 1)
-Convert a single '.ply' file to a '.pcd' file using `cad_cloud.cpp`. This is a I wrote based on sample code from PCL. The input arguments determine the resolution of the resulting files, and you must pass in the input and output file names.
+Convert a single '.ply' file to a '.pcd' file using `cad_cloud.cpp`. This is a I wrote based on sample code from PCL. The input arguments determine the resolution of the resulting files, and you must pass in the input and output file names. The parameters `-n_samples` and `-leaf_size` determine the resolution of the conversion.
 
 ```
 cd seam_detection
@@ -104,7 +106,6 @@ The LIDAR '.pcd' file must also be in the image directory. There are four number
 ```
 roslaunch seam_detection seam_detection_ICP.launch lidar_file:="lidar_scene1.pcd" cad_file:="cad_scene1.pcd"  thresh:=0.003
 ```
-
 
 ##### use ICP for weld seam detection. For now it is just locating the origin of the part.
 
@@ -181,26 +182,31 @@ PointCloud representing the planar component: 2993 data points.
   - added `part1_type` to `seam_detection.launch` args
   - removed `thresh` from `seam_detection.launch` args
 - v1.2 (development - master/devel)
+ - yaml files as config files, see `seam_detection/config/`
+ - added `cad_cloud_bulk.cpp`  to process multiple .ply files at once
+
 
 #### To Prepare for IDETC2021
 
-- [x] design and test new scenes with v1.0 - scenes need edits
-- [ ] fix RANSAC segmentation of the table and plate
-- [ ] decide to include table or not inlcude table. It will be in the scan so I think the code needs to be able to handle table
+- [ ] design and test new scenes with v1.2 - Choose scenes for paper - choose units
+
+- [?] develop segmentation of the table and plate. Decide to include table or not include table. It will be in the scan so the code should be able to handle table
 
 - [x] dust off and test workflow for designing new scene and converting to the proper filetypes, this has not been tested recently
-- [x] scaling issue with pcd export in solidworks - use options in save as diaolag
-- [ ] document test scene creation and conversion process
-- [x] improve `cad_cloud` to process multiple .ply files at once - convert entire directory with `cad_cloud_bulk.cpp`
 
-- [x] figure out square tube RANSAC - working on that now - seems to work fine without cylinder model
+- [?] document scene creation and conversion process - the steps are shown above
+
+- [x] figure out square tube RANSAC - currently not used - is it needed?
 
 - [ ] investigate segmentation models - can we set the width of the `SACMODEL_PLANE` ?
 
-- [ ] develop description of the weld seam in the workflow - one idea is a `user defined element` in the ply files
-      I think a better idea is to start with yaml files as config files, see `seam_detection/config/`
+- [ ] develop description of the weld seam - draw weld seam in CAD and export as PCD file.
 
 - [ ] add description of the seam to the model - i have begun by creating seam *.pcd* files
+
+- [ ] determine or register control points on key parts from description of the seam
+
+- [ ] calculate a *measure of accuracy*
 
 - [ ] finish the manuscript !
 
@@ -218,8 +224,7 @@ PointCloud representing the planar component: 2993 data points.
    - [ ] fillet weld: `square tube to plate` - designed by RS - initial tests now
    - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests
 
-- [ ] calculate a *measure of accuracy*
-- [ ] determine or register key points on key parts (?)
+
 - [ ] include **.pcd** and/or **.ply** in this **.gitignore** ?
 
 ***The plan is to wait until after IDETC 2021 submission to work on the developement issues below.***
