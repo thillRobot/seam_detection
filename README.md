@@ -122,9 +122,9 @@ Now you define all the file names and other parameters in a <scene>.yaml file. T
 ```
 ---
 scene_name: "plate_round_tube_01"
-scene_file: "/home/researcher/nuc_ros/src/seam_detection/pcd_images/plate_round_tube_01.pcd"
+scene_file: "pcd_images/plate_round_tube_01.pcd"
 part1_name: "round_tube_01"
-part1_file: "/home/researcher/nuc_ros/src/seam_detection/pcd_images/round_tube_01.pcd"
+part1_file: "pcd_images/round_tube_01.pcd"
 part1_type: "round_tube"
 part2_name: "plate"
 part2_type: "plate with notch"
