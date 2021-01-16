@@ -181,10 +181,11 @@ PointCloud representing the planar component: 2993 data points.
   - added `round_tube` or `square_tube` segmentation option for part1
   - added `part1_type` to `seam_detection.launch` args
   - removed `thresh` from `seam_detection.launch` args
-- v1.2 (development - master/devel)
- - yaml files as config files, see `seam_detection/config/`
- - added `cad_cloud_bulk.cpp`  to process multiple .ply files at once
-
+- v1.2 (stable - tagged 01/15/2021) 
+  - added yaml files as config files for parameters, see `seam_detection/config/`
+  - added `cad_cloud_bulk.cpp`  to process multiple .ply files at once
+- v1.3 (development - master/devel)
+  
 
 #### To Prepare for IDETC2021
 
