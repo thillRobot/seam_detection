@@ -13,9 +13,11 @@ This is a ROS package for weld seam detection using pointcloud data based on the
 ##### Hardware
 - no hardware requirements identified currently
 ##### Graphics
-- intel embededded graphics `Kaby Lake` and others
+- `nvidia-460`
 - `nvidia-455` working currently
 - `nvidia-340` was not supported but older card worked with `Nouveau`
+- intel embededded graphics `Kaby Lake` and others
+ 
 
 #### Step 1 - Setup ROS workspace
 If you want to use a catkin workspace that is already setup, then you can skip **Step 1** (you workspace must compile). If you do not, then create and build a catkin workspace before proceeding. Choose a location and insert a name for the workpace. Typically this is somewhere in `~/`.
