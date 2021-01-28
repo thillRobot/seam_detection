@@ -13,7 +13,7 @@ This is a ROS package for weld seam detection using pointcloud data based on the
 ##### Hardware
 - no hardware requirements identified currently
 ##### Graphics
-- intel embededded graphics `Kady Lake` and others
+- intel embededded graphics `Kaby Lake` and others
 - `nvidia-455` working currently
 - `nvidia-340` was not supported but older card worked with `Nouveau`
 
