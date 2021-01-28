@@ -90,7 +90,7 @@ Convert a single '.ply' file to a '.pcd' file using `cad_cloud.cpp`. This is a I
 ```
 cd seam_detection
 
-rosrun seam_detection cad_cloud -n_samples 100000 -leaf_size 0.001 -write_normals 1 ply_images/input.ply pcd_images/output.pcd
+rosrun seam_detection cad_cloud -n_samples 100000 -leaf_size 0.00025 -write_normals 1 ply_images/input.ply pcd_images/output.pcd
 
 pcl_viewer -multiview 1 output.pcd
 ```
@@ -98,7 +98,7 @@ pcl_viewer -multiview 1 output.pcd
 Alternatively, you can use `cad_cloud_bulk.cpp` to convert an entire directory of **.ply** files to **.pcd** files. This is based on the same sample code from PCL, but it iterates through the input directory with `boost`. The conversion parameter arguments are the same, but you must include the input and output directories instead of the file names.
 
 ```
-rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .001 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
+rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .00025 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
 ```
 
 ###### Step 4)
@@ -146,7 +146,7 @@ roslaunch seam_detection seam_detection.launch scene:="plate_round_tube_01"
 
 **plate_square_tube_01**
 ```
-roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_0"
+roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_01"
 ```
 
 **plate_square_tube_02**
