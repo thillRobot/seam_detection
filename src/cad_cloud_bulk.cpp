@@ -341,7 +341,6 @@ main (int argc, char **argv)
 
   std::cout<<"Scanning Directory. "<<std::endl;
 
-
   std::cout<<"Finsished Scanning Directory. "<<std::endl;
 
 }
