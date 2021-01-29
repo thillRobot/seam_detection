@@ -424,6 +424,13 @@ int main(int argc, char** argv)
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
+  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"******************** Seam Detection v1.2 ********************"<<endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
+  std::cout<<std::endl;
+
   // read the command line arguments to pick the data file and some other details
 /*
   std::string file_lidar = argv[2];  // source cloud
@@ -433,6 +440,12 @@ int main(int argc, char** argv)
   // replace command line args with params from .yaml
 
   // find the path to the seam_detection package (this package)
+
+  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"**************** Loading Configuratiuon File ****************"<<endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<std::endl;
 
   std::string packagepath = ros::package::getPath("seam_detection");
 
@@ -452,14 +465,24 @@ int main(int argc, char** argv)
   node.getParam("part1_type", param3);
   part1_type=param3;
 
+  std::vector<double> xs;
+  std::vector<double> ys;
+  std::vector<double> zs;
+  //double points;
+  node.getParam("seam1_xs",xs);
+  node.getParam("seam1_ys",ys);
+  node.getParam("seam1_zs",zs);
+  for(unsigned i=0; i < xs.size(); i++) {
+    std::cout<<xs[i]<<ys[i]<<zs[i]<<std::endl;
+  }
+
+  //std::cout<<points<<std::endl;
 
 
-  std::cout<<std::endl;
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"******************** Seam Detection v1.2 ********************"<<endl;
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
-  std::cout<<std::endl;
+  //double sum = 0;
+  //nh.getParam("my_double_list", my_double_list);
+
+
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
   // tf::Transform tf_searchbox;
