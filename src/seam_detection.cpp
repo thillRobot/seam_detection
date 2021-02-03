@@ -65,7 +65,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
-void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin, double xmax, double ymin,double ymax, double zmin, double zmax,double leaf_size)
+void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin, double xmax, double ymin,double ymax, double zmin, double zmax, double leaf_size)
 {
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
@@ -138,7 +138,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   // Apply Box and Voxel filters before performing segmentation
   // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
-  filter_cloud(cloud_input,*cloud_filtered, 0.0, 0.5, 0.0, 0.5, 0.01, 0.5, 0.0005);
+  filter_cloud(cloud_input,*cloud_filtered, -0.5, 0.5, -0.5, 0.5, 0.01, 0.5, 0.0005);
 
   std::cout << "BEGINNING RANSAC SEGMENTATION" << std::endl;
 
@@ -185,7 +185,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   // Apply Box and Voxel filters before performing second segmentation
   // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
-  filter_cloud(*cloud_filtered2,*cloud_filtered3, 0.0, 0.5, 0.0, 0.5, 0.03, 0.5, 0.0);
+  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.5, 0.5, -0.5, 0.5, 0.03, 0.5, 0.0);
 
   if (part1_type=="round_tube") //part two is a cylinder - this variable is set by command lines args
   {
