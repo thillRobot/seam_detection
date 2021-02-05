@@ -1,8 +1,8 @@
 ---
 scene_name: "plate_square_tube_c0"
-scene_file: "pcd_images/plate_square_tube_c0.pcd"
+scene_file: "pcd_images/plate_square_tube/plate_square_tube_c0.pcd"
 part1_name: "square_tube_01"
-part1_file: "pcd_images/square_tube_01.pcd"
+part1_file: "pcd_images/plate_square_tube/square_tube_01.pcd"
 part1_type: "square_tube"
 part2_name: "plate_02"
 part2_type: "plate with notch"
