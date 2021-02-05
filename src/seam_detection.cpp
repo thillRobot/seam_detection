@@ -92,8 +92,14 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
   //pass.setFilterLimits(0.01,0.5);
   pass.filter (*cloud);
 
+  std::cout<<"Box/XYZ Filter Limits: [" <<xmin<<","<<xmax<<","<<ymin<<","<<ymax<<","<<zmin<<","<<zmax<<"]"<< std::endl;
+  std::cout<<"After Box/XYZ filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+
+
   // Apply Voxel Filter the Cloud
   // use "001f","001f","0001f" or "none" to set voxel leaf size
+
+
   if (leaf_size>0)
   {
     pcl::VoxelGrid<pcl::PointXYZ> vox;
@@ -102,7 +108,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
     vox.filter (*cloud);
   }
 
-  std::cout<<"After filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+  std::cout<<"After Voxel filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
   pcl::copyPointCloud(*cloud,cloud_output);
 
 }
@@ -138,7 +144,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   // Apply Box and Voxel filters before performing segmentation
   // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
-  filter_cloud(cloud_input,*cloud_filtered, -0.5, 0.5, -0.5, 0.5, 0.01, 0.5, 0.0005);
+  filter_cloud(cloud_input,*cloud_filtered, -0.25, 0.25, -0.25, 0.25, -0.30, 0.50, 0.0005);
 
   std::cout << "BEGINNING RANSAC SEGMENTATION" << std::endl;
 
@@ -185,7 +191,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   // Apply Box and Voxel filters before performing second segmentation
   // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
-  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.5, 0.5, -0.5, 0.5, 0.03, 0.5, 0.0);
+  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.5, 0.5, -0.5, 0.5, 0.03, 0.5, -1);
 
   if (part1_type=="round_tube") //part two is a cylinder - this variable is set by command lines args
   {
