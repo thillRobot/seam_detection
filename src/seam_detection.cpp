@@ -93,7 +93,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
   pass.filter (*cloud);
 
   std::cout<<"Box/XYZ Filter Limits: [" <<xmin<<","<<xmax<<","<<ymin<<","<<ymax<<","<<zmin<<","<<zmax<<"]"<< std::endl;
-  std::cout<<"After Box/XYZ filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+  std::cout<<"After box/XYZ filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
 
 
   // Apply Voxel Filter the Cloud
@@ -106,9 +106,13 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
     vox.setInputCloud (cloud);
     vox.setLeafSize (leaf_size, leaf_size, leaf_size);
     vox.filter (*cloud);
+    std::cout<<"After voxel filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+  }else
+  {
+    std::cout<<"No voxel filtering"<< std::endl;
   }
 
-  std::cout<<"After Voxel filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+
   pcl::copyPointCloud(*cloud,cloud_output);
 
 }
@@ -144,7 +148,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   // Apply Box and Voxel filters before performing segmentation
   // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
-  filter_cloud(cloud_input,*cloud_filtered, -0.25, 0.25, -0.25, 0.25, -0.30, 0.50, 0.0005);
+  filter_cloud(cloud_input,*cloud_filtered, -0.3, 0.3, -0.25, 0.25, -0.30, 0.50, 0.0005);
 
   std::cout << "BEGINNING RANSAC SEGMENTATION" << std::endl;
 
@@ -191,7 +195,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   // Apply Box and Voxel filters before performing second segmentation
   // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
-  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.5, 0.5, -0.5, 0.5, 0.03, 0.5, -1);
+  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.3, 0.3, -0.5, 0.5, 0.026, 0.5, -1);
 
   if (part1_type=="round_tube") //part two is a cylinder - this variable is set by command lines args
   {
@@ -306,11 +310,11 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
   icp.setMaxCorrespondenceDistance (1.0);
   // Set the maximum number of iterations (criterion 1)
-  icp.setMaximumIterations (10000);
+  icp.setMaximumIterations (1e10);
   // Set the transformation epsilon (criterion 2)
-  icp.setTransformationEpsilon (1e-9);
+  icp.setTransformationEpsilon (1e-10);
   // Set the euclidean distance difference epsilon (criterion 3)
-  icp.setEuclideanFitnessEpsilon (1e-6);
+  icp.setEuclideanFitnessEpsilon (1e-10);
 
   icp.setInputTarget(cloud_A); // target (fixed) cloud
   icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
@@ -430,12 +434,12 @@ int main(int argc, char** argv)
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
-  std::cout<<std::endl;
+
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"******************** Seam Detection v1.2 ********************"<<endl;
-  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"*************************************************************"<<endl<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
-  std::cout<<std::endl;
+
 
   // read the command line arguments to pick the data file and some other details
 /*
@@ -447,11 +451,11 @@ int main(int argc, char** argv)
 
   // find the path to the seam_detection package (this package)
 
-  std::cout<<std::endl;
+
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"**************** Loading Configuratiuon File ****************"<<endl;
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl<<endl;
+
 
   std::string packagepath = ros::package::getPath("seam_detection");
 
@@ -484,19 +488,16 @@ int main(int argc, char** argv)
 
   //std::cout<<points<<std::endl;
 
-
   //double sum = 0;
   //nh.getParam("my_double_list", my_double_list);
-
 
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
   // tf::Transform tf_searchbox;
-  std::cout<<std::endl;
+
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"******************* Perparing Pointcloud Data ***************"<<endl;
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl<<endl;
 
   // instantiate some clouds
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
@@ -568,11 +569,11 @@ int main(int argc, char** argv)
   pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients);
   pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
 
-  std::cout<<std::endl;
+
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"*************** Beginning Processing Pointclouds ************"<<endl;
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl<<endl;
+
   // RANSAC Segmentation to separate clouds
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,part1_type,coeffs_plane,coeffs_cylinder);
 
@@ -609,17 +610,13 @@ int main(int argc, char** argv)
   std::cout << "Final transformation computed and converted to message." <<endl;
   std::cout << "Plane Coefficients" << *coeffs_plane <<endl;
 
-  std::cout<<std::endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"*************** Processing Pointclouds Complete *************"<<endl;
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl<<endl;
 
-  std::cout<<std::endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"*************** Preparing Visualization *********************"<<endl;
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl<<endl;
 
   // publish 'markers' to to show the plane and cylinder found with RANSAC
   // instantiate pubs for the plane marker
@@ -711,11 +708,10 @@ int main(int argc, char** argv)
   cloud_part1->header.frame_id = "base_link";
   cloud_part2->header.frame_id = "base_link";
 
-  std::cout<<std::endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"****************** seam_detection Complete ******************"<<endl;
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<std::endl;
+  std::cout<<"*************************************************************"<<endl<<endl;
+
   //publish forever
   while(ros::ok())
   {
