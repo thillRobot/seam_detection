@@ -434,7 +434,6 @@ int main(int argc, char** argv)
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
-
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"******************** Seam Detection v1.2 ********************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
