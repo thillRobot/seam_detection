@@ -252,8 +252,8 @@ add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
 target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # import_seam
-add_executable(import_seam src/import_seam.cpp)
-target_link_libraries(import_seam ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(import_seam src/import_seam.cpp)
+# target_link_libraries(import_seam ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 ## Archived nodes previously but no longer used with SEAM_DETECTION package
 # un-comment if you need to compile archived nodes
