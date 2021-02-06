@@ -17,7 +17,7 @@ This is a ROS package for weld seam detection using pointcloud data based on the
 - `nvidia-455` working currently
 - `nvidia-340` was not supported but older card worked with `Nouveau`
 - intel embededded graphics `Kaby Lake` and others
- 
+
 
 #### Step 1 - Setup ROS workspace
 If you want to use a catkin workspace that is already setup, then you can skip **Step 1** (you workspace must compile). If you do not, then create and build a catkin workspace before proceeding. Choose a location and insert a name for the workpace. Typically this is somewhere in `~/`.
@@ -123,18 +123,21 @@ These examples have the `round_tube` or a `square_tube` and the `plate`. There c
 Now you define all the file names and other parameters in a <scene>.yaml file. The .yaml files are saved in `config/`
 ```
 ---
-scene_name: "plate_round_tube_01"
-scene_file: "pcd_images/plate_round_tube_01.pcd"
-part1_name: "round_tube_01"
-part1_file: "pcd_images/round_tube_01.pcd"
-part1_type: "round_tube"
+scene_name: "plate_square_tube_c2"
+scene_file: "pcd_images/plate_square_tube/plate_square_tube_c2.pcd"
+part1_name: "square_tube_01"
+part1_file: "pcd_images/plate_square_tube/square_tube_01.pcd"
+part1_type: "square_tube"
 part2_name: "plate"
 part2_type: "plate with notch"
 seam1_length: 1.0
-seam1_points:
-  - 0.1
-  - 0.2
-  - 0.3
+
+seam1_xs: [10, 11, 12, 13]
+seam1_ys: [20, 21, 22, 23]
+seam1_zs: [30, 31, 32, 33]
+
+icp_params: [1.0, 100000, 0.000001, 0.000001]
+
 ```
 
 Pass the name of scene when using seam_detection as shown below. This is much more convenient and allows for all nodes in the system access to parameters.  
@@ -167,7 +170,7 @@ seq: 0 stamp: 0 frame_id:
 values[]
   values[0]:   9.70263e-06
   values[1]:   9.7027e-06
-  values[2]:   1
+  values[2]:   1g
   values[3]:   -0.0250056
 
 PointCloud representing the planar component: 2993 data points.
@@ -183,11 +186,17 @@ PointCloud representing the planar component: 2993 data points.
   - added `round_tube` or `square_tube` segmentation option for part1
   - added `part1_type` to `seam_detection.launch` args
   - removed `thresh` from `seam_detection.launch` args
-- v1.2 (stable - tagged 01/15/2021) 
+- v1.2 (stable - tagged 01/15/2021)
   - added yaml files as config files for parameters, see `seam_detection/config/`
   - added `cad_cloud_bulk.cpp`  to process multiple .ply files at once
-- v1.3 (development - master/devel)
-  
+- v1.3 (stable - tagged 02/05/2021)
+  - added part1 types `rect_block` and `round_tube`
+  - added calibration sets c0-c8 for `round_tube`, `square_tube`, and 'rect_block' (partial)
+  - added `icp_params` to config files to adjust search without re-compile
+  - added `src/archive/` for old source code
+- v1.4 (development - master/devel)
+  - goal: reduce to finding a single part, `part1` - retain naming if possible
+
 
 #### To Prepare for IDETC2021
 

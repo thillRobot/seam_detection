@@ -195,6 +195,11 @@ int
 main (int argc, char **argv)
 {
 
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"******************** cad_cloud_bulk v1.3 ********************"<<endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
+
   print_info ("Convert a directory of .ply files to .pcd files using uniform sampling. For more information, use: %s -h\n",
               argv[0]);
 

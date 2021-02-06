@@ -179,6 +179,12 @@ printHelp (int, char **argv)
 int
 main (int argc, char **argv)
 {
+
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"******************** cad_cloud v1.3 ********************"<<endl;
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
+
   print_info ("Convert a CAD model to a point cloud using uniform sampling. For more information, use: %s -h\n",
               argv[0]);
 

@@ -243,7 +243,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   }else if (part1_type=="square_tube")
   {
 
-    std::cout<<"Searching for square-tube as a single plane"; // can
+    std::cout<<"Searching for square-tube as:"<< std::endl;; // as a single plane?
     // Estimate point normals
     ne.setSearchMethod (tree);
     ne.setInputCloud (cloud_filtered3);
@@ -272,7 +272,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
     extract.filter (*cloud_squaretube);
     if (cloud_squaretube->points.empty ())
-      std::cout << "Can't find the square tube component of cloud." << std::endl;
+      std::cout << "Cannot find the square tube component of cloud." << std::endl;
     else
     {
       std::cout << "PointCloud representing the square tube component: " << cloud_squaretube->points.size () << " data points." << std::endl;
@@ -289,7 +289,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 }
 
 // This function REGISTER_CLOUD finds the transform between two pointclouds
-void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA)
+void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
 {
 
   // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
@@ -299,7 +299,12 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(cloud_source,*cloud_B);
 
-  std::cout << "BEGINNING ICP REGISTRATION" << std::endl;
+  std::cout <<"BEGINNING ICP REGISTRATION" << std::endl;
+  std::cout<<"Using Search Parameters:"<< std::endl;
+  std::cout<<"Max Correspondence Distance = "<< params[0] <<std::endl;
+  std::cout<<"Maximum Number of Iterations = "<< params[1] <<std::endl;
+  std::cout<<"Transformation Epsilon = "<< params[2] <<std::endl;
+  std::cout<<"Euclidean Distance Difference Epsilon = "<< params[3] <<std::endl;
   // perform ICP on the lidar and cad clouds
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
   pcl::PointCloud<pcl::PointXYZ> Final;
@@ -308,13 +313,13 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   Eigen::MatrixXf T_inverse;
 
   // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-  icp.setMaxCorrespondenceDistance (1.0);
+  icp.setMaxCorrespondenceDistance (params[0]);
   // Set the maximum number of iterations (criterion 1)
-  icp.setMaximumIterations (1e10);
+  icp.setMaximumIterations (params[1]);
   // Set the transformation epsilon (criterion 2)
-  icp.setTransformationEpsilon (1e-10);
+  icp.setTransformationEpsilon (params[2]);
   // Set the euclidean distance difference epsilon (criterion 3)
-  icp.setEuclideanFitnessEpsilon (1e-10);
+  icp.setEuclideanFitnessEpsilon (params[3]);
 
   icp.setInputTarget(cloud_A); // target (fixed) cloud
   icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
@@ -436,9 +441,8 @@ int main(int argc, char** argv)
 
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"******************** Seam Detection v1.2 ********************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
+  std::cout<<"*************************************************************"<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
-
 
   // read the command line arguments to pick the data file and some other details
 /*
@@ -449,7 +453,6 @@ int main(int argc, char** argv)
   // replace command line args with params from .yaml
 
   // find the path to the seam_detection package (this package)
-
 
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"**************** Loading Configuratiuon File ****************"<<endl;
@@ -477,15 +480,22 @@ int main(int argc, char** argv)
   std::vector<double> xs;
   std::vector<double> ys;
   std::vector<double> zs;
-  //double points;
-  node.getParam("seam1_xs",xs);
+  std::vector<double> icps;
+
+  double icp_params[4];
+
+  node.getParam("seam1_xs",xs); // these arrays define x,y,z, points in the model
   node.getParam("seam1_ys",ys);
   node.getParam("seam1_zs",zs);
+
+  node.getParam("icp_params",icps);  // these four ICP parameters define the search
+
+  // Define array for the four ICP search paremeters
   for(unsigned i=0; i < xs.size(); i++) {
-    std::cout<<xs[i]<<ys[i]<<zs[i]<<std::endl;
+    //std::cout<<xs[i]<<ys[i]<<zs[i]<<std::endl;
+    icp_params[i]=icps[i]; // copy into an array to be used in register_cloud fn
   }
 
-  //std::cout<<points<<std::endl;
 
   //double sum = 0;
   //nh.getParam("my_double_list", my_double_list);
@@ -576,8 +586,10 @@ int main(int argc, char** argv)
   // RANSAC Segmentation to separate clouds
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,part1_type,coeffs_plane,coeffs_cylinder);
 
+
+
   // perform ICP Cloud Registration - results is a TF
-  register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg);
+  register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg,icp_params);
 
   std::cout<<"Computing Matrix Inverse"<<std::endl;
 
@@ -587,7 +599,7 @@ int main(int argc, char** argv)
   //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
 
   // repeat registration on moved cad model
-  register_cloud(*cloud_cad2, *cloud_part1, *T_21, *T_12, *T_21_msg, *T_12_msg);
+  register_cloud(*cloud_cad2, *cloud_part1, *T_21, *T_12, *T_21_msg, *T_12_msg,icp_params);
 
   // now move the CAD part again to the newly located frame
   pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_12);
