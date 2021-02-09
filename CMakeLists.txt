@@ -255,9 +255,6 @@ target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # add_executable(import_seam src/import_seam.cpp)
 # target_link_libraries(import_seam ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-## Archived nodes previously but no longer used with SEAM_DETECTION package
-# un-comment if you need to compile archived nodes
-
 # filter_cloud
 #add_executable(filter_cloud src/filter_cloud.cpp)
 #target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
@@ -267,13 +264,16 @@ target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 #target_link_libraries(plane_filter_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # ransac_plane
-#add_executable(ransac_plane src/ransac_plane.cpp)
-#target_link_libraries(ransac_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(ransac_plane src/ransac_plane.cpp)
+target_link_libraries(ransac_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # segment_plane
-#add_executable(segment_plane src/segment_plane.cpp)
-#target_link_libraries(segment_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(segment_plane src/segment_plane.cpp)
+target_link_libraries(segment_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # segment_cylinder
-#add_executable(segment_cylinder src/segment_cylinder.cpp)
-#target_link_libraries(segment_cylinder ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(segment_cylinder src/segment_cylinder.cpp)
+target_link_libraries(segment_cylinder ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+## Archived nodes previously but no longer used with SEAM_DETECTION package
+# un-comment if you need to compile archived nodes
