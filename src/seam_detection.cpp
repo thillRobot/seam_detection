@@ -148,8 +148,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   pcl::PointCloud<PointT>::Ptr cloud_squaretube (new pcl::PointCloud<PointT> ());
   pcl::PointCloud<PointT>::Ptr cloud_plane (new pcl::PointCloud<PointT> ());
 
-  // Apply Box and Voxel filters before performing segmentation
-  // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
+  // Apply Workspace Filter using XYZ and Voxel filters before performing segmentation
   filter_cloud(cloud_input,*cloud_filtered, -0.3, 0.3, -0.25, 0.25, -0.30, 0.50, 0.0005);
 
   std::cout << "BEGINNING RANSAC SEGMENTATION" << std::endl;
