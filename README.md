@@ -101,6 +101,17 @@ Alternatively, you can use `cad_cloud_bulk.cpp` to convert an entire directory o
 rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .00025 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
 ```
 
+Sometimes the extensions get changed from .ply to .PLY and I do not know why. This causes errors and confusion because there can be duplicate files in the same location. To fix this issue delete any duplicates before running the following command.
+
+```
+find . -name '*.*' -exec sh -c '
+>   a=$(echo "$0" | sed -r "s/([^.]*)\$/\L\1/");
+>   [ "$a" != "$0" ] && mv "$0" "$a" ' {} \;
+```
+
+This comes from [stackoverflow](https://stackoverflow.com/questions/11818408/convert-all-file-extensions-to-lower-case/11824856)
+
+
 ###### Step 4)
 Use ICP to compare the CAD/reference image to the LIDAR/source image.
 The LIDAR '.pcd' file must also be in the image directory. There are four numbered scenes choose from.
