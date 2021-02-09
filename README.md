@@ -30,6 +30,8 @@ catkin_make
 
 This will build your workspace for the first time. There should now be a `CMakeLists.txt` file and a few new directories in the workspace.
 
+Also, you need to add the workspace path to `/.bashrc` so that ros can find your packages
+
 #### Step 2 - Download seam_detection Package
 Change to the source directory of the workapce and pull the package using git.
 
@@ -59,17 +61,17 @@ Note: **.pcd** files are currently in the **.gitignore** so you have to generate
 ##### Use RANSAC to fit a models to a pointcloud.
 The library supports planes, cylinders, spheres and more.
 ```
-roslaunch seam_detection ransac_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01
+roslaunch seam_detection ransac_plane.launch in_file:="lidar_cad_scenes/test_cloud8.pcd" thresh:=0.01
 ```
 
 ##### Use RANSAC to segment, or separate, pointclouds.
 ```
-roslaunch seam_detection segment_plane.launch in_file:="test_cloud8.pcd" thresh:=0.01
+roslaunch seam_detection segment_plane.launch in_file:="lidar_cad_scenes/test_cloud8.pcd" thresh:=0.01
 ```
 
-##### Use RANSAC for weld seam detection. For now it is just locating the origin of the intersection of three planes.
+##### Use RANSAC for weld seam detection. Each plane is found with RANSAC, then the origin is calculated as the intersection of the three planes.
 ```
-roslaunch seam_detection seam_detection_RANSAC.launch in_file:="lidar_scene1.pcd" out_file:="scene1.txt" thresh1:=0.01 thresh2:=0.001
+roslaunch seam_detection seam_detection_RANSAC.launch in_file:="lidar_cad_scenes/lidar_scene1.pcd" out_file:="scene1.txt" thresh1:=0.01 thresh2:=0.001
 ```
 
 #### Iterative Closest Point - ICP
@@ -114,20 +116,17 @@ This comes from [stackoverflow](https://stackoverflow.com/questions/11818408/con
 
 ###### Step 4)
 Use ICP to compare the CAD/reference image to the LIDAR/source image.
-The LIDAR '.pcd' file must also be in the image directory. There are four numbered scenes choose from.
+The LIDAR '.pcd' file must also be in the image directory. There are four numbered scenes choose from. There appears to be one directory level hidden in the launch file. I am not sure if this is a good idea or not. 
+
 
 ```
-roslaunch seam_detection seam_detection_ICP.launch lidar_file:="lidar_scene1.pcd" cad_file:="cad_scene1.pcd"  thresh:=0.003
-```
-
-##### use ICP for weld seam detection. For now it is just locating the origin of the part.
+roslaunch seam_detection seam_detection_ICP.launch lidar_file:="lidar_cad_scenes/plate_cylinder.pcd" cad_file:="lidar_cad_scenes/cylinder.pcd"  thresh:=0.0001
 
 ```
-roslaunch seam_detection seam_detection_ICP.launch lidar_file:="plate_cylinder.pcd" cad_file:="cylinder.pcd"  thresh:=0.0001
-```
+
 
 #### RANSAC + ICP SEAM DETECTION - In Development
-##### use RANSAC + ICP for weld seam detection. For now it is just locating the origin of the part.
+##### Use RANSAC + ICP for weld seam detection. First segmenmmt with RANSAC(or other) then use ICP to locate the origin of the part.
 
 These examples have the `round_tube` or a `square_tube` and the `plate`. There can be variations in part1 one but you must choose `round_tube` or a `square_tube`for the segmentation to work properly. These work well, but there is some discrepancy along the length of the cylinder. All other dimensions match very well. This seems to be related to the amount of data that is avaialanble about this dimension.
 
