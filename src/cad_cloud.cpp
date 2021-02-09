@@ -181,7 +181,7 @@ main (int argc, char **argv)
 {
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"******************** cad_cloud v1.3 ********************"<<endl;
+  std::cout<<"******************** cad_cloud v1.4 ********************"<<endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
 

@@ -146,7 +146,7 @@ int main(int argc, char** argv)
         myfile<<"A1i"<<","<<"B1i"<<","<<"C1i"<<","<<"A2i"<<","<<"B2i"<<","<<"C2i"<<","<<"A3i"<<","<<"B3i"<<","<<"C3i"<<std::endl;
     }
 
-    // Filter LIDAR cloud before running ICP
+    // Filter LIDAR cloud before running using RANSAC
     pcl::PassThrough<pcl::PointXYZ> lpass;
     lpass.setInputCloud(cloud_in);
 
