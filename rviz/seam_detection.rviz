@@ -227,7 +227,7 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 238; 238; 236
+      Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
@@ -240,7 +240,7 @@ Visualization Manager:
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 1
+      Size (Pixels): 2
       Size (m): 0.0020000000949949026
       Style: Points
       Topic: /cloud_cad1
@@ -340,7 +340,7 @@ Visualization Manager:
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: true
+      Show Names: false
       Tree:
         map:
           base_link:
@@ -402,25 +402,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.6200971603393555
+      Distance: 0.37186941504478455
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.04500737413764
-        Y: 0.033110085874795914
-        Z: 0.10704507678747177
+        X: -0.021652380004525185
+        Y: 0.032563384622335434
+        Z: 0.09126617759466171
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4397956430912018
+      Pitch: 0.22479760646820068
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.6022112369537354
+      Yaw: 1.3722114562988281
     Saved: ~
 Window Geometry:
   Displays:
@@ -438,5 +438,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 2493
-  X: 1667
+  X: 2627
   Y: 27

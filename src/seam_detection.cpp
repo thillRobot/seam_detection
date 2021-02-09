@@ -9,6 +9,8 @@ Updated - 02/17/2018
 Revisited 02/22/2020
 v1.0 - 12/07/2020 this officially became seam_detection_v1.0
 v1.1 - 12/26/2020
+...
+v1.4 - 02/08/2021
 
 see README.md or https://github.com/thillRobot/seam_detection for documentation
 */
@@ -585,8 +587,6 @@ int main(int argc, char** argv)
 
   // RANSAC Segmentation to separate clouds
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,part1_type,coeffs_plane,coeffs_cylinder);
-
-
 
   // perform ICP Cloud Registration - results is a TF
   register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg,icp_params);
