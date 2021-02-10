@@ -114,7 +114,6 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
     std::cout<<"No voxel filtering"<< std::endl;
   }
 
-
   pcl::copyPointCloud(*cloud,cloud_output);
 
 }
@@ -152,6 +151,9 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   filter_cloud(cloud_input,*cloud_filtered, -0.3, 0.3, -0.25, 0.25, -0.30, 0.50, 0.0005);
 
   std::cout << "BEGINNING RANSAC SEGMENTATION" << std::endl;
+  
+  std::cout<<"Performing First Segmentaion"<<std::endl;
+  std::cout<<"Searching for plate/table as: SACMODEL_NORMAL_PLANE"<< std::endl;; // as a single plane?
 
   // Estimate point normals before segmentation
   ne.setSearchMethod (tree);
@@ -201,7 +203,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   if (part1_type=="round_tube") //part two is a cylinder - this variable is set by command lines args
   {
 
-    std::cout<<"Searching for round-tube as a cylinder with RANSAC";
+    std::cout<<"Performing Second Segmentaion"<<std::endl;
+    std::cout<<"Searching for round-tube as a cylinder as: SACMODEL_CYLINDER"<<std::endl;
 
     // Estimate point normals before segmentation
     ne.setSearchMethod (tree);
@@ -238,13 +241,13 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
       std::cout << "The PointCloud representing the cylindrical component contains: " << cloud_cylinder->points.size () << " data points." << std::endl;
     }
 
-    //pcl::copyPointCloud(*cloud_filtered2,cloud_output1); // ignore second segmentation
     pcl::copyPointCloud(*cloud_cylinder,cloud_output1);    // use second segmentation
 
   }else if (part1_type=="square_tube")
   {
 
-    std::cout<<"Searching for square-tube as:"<< std::endl;; // as a single plane?
+    std::cout<<"Performing Second Segmentaion"<<std::endl;
+    std::cout<<"Searching for square-tube as: <INSERT SACMODEL>"<< std::endl;; // as a single plane?
     // Estimate point normals
     ne.setSearchMethod (tree);
     ne.setInputCloud (cloud_filtered3);
@@ -280,9 +283,13 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
       //writer.write ("table_scene_mug_stereo_textured_cylinder.pcd", *cloud_cylinder, false);
     }
 
-    //pcl::copyPointCloud(*cloud_filtered2,cloud_output1); // ignore second segmentation
     pcl::copyPointCloud(*cloud_squaretube,cloud_output1);  // use second segmentation
 
+  }else if (part1_type=="generic")
+  {
+    std::cout<<"Skipping Second Segmentation"<<std::endl;
+    std::cout<<"Proceeding with filtered outliers of first segmentation"<<std::endl;
+    pcl::copyPointCloud(*cloud_filtered3,cloud_output1); // ignore second segmentation  
   }
 
   std::cerr << "END OF SEGMENT_CLOUD FUNCTION" << std::endl;
@@ -443,7 +450,7 @@ int main(int argc, char** argv)
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"******************** Seam Detection v1.4 ********************"<<endl;
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
+  std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
   // read the command line arguments to pick the data file and some other details
 /*
@@ -456,10 +463,8 @@ int main(int argc, char** argv)
   // find the path to the seam_detection package (this package)
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"**************** Loading Configuratiuon File ****************"<<endl;
+  std::cout<<"**************** Loading Configuration File ****************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
-
-
   std::string packagepath = ros::package::getPath("seam_detection");
 
   std::string file_lidar; // source cloud
@@ -507,7 +512,7 @@ int main(int argc, char** argv)
 
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"******************* Perparing Pointcloud Data ***************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
+  std::cout<<"*************************************************************"<<endl;
 
   // instantiate some clouds
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
@@ -534,7 +539,7 @@ int main(int argc, char** argv)
       return (-1);
   }
   std::cout << "Loaded image file: "<< file_cad <<std::endl<<
-      cloud_cad1->width * cloud_cad1->height << " Data points from "<< file_cad << std::endl;
+      cloud_cad1->width * cloud_cad1->height << " Data points from "<< file_cad <<std::endl<<std::endl;
 
   // for now each tf has three objects associated with it
   // 1) 'name' (tf::transform)      // needed for transforms with pcl_ros
@@ -581,23 +586,23 @@ int main(int argc, char** argv)
 
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"*************** Beginning Processing Pointclouds ************"<<endl;
+  std::cout<<"*************** Processing Pointcloud Data ******************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
 
-  // RANSAC Segmentation to separate clouds
+  // Perform RANSAC Segmentation to separate clouds and find part of interest
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,part1_type,coeffs_plane,coeffs_cylinder);
 
-  // perform ICP Cloud Registration - results is a TF
+  // Perform ICP Cloud Registration to find location and orientation of part of interest
   register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg,icp_params);
 
-  std::cout<<"Computing Matrix Inverse"<<std::endl;
+  //std::cout<<"Computing Matrix Inverse"<<std::endl;
 
   // now move the CAD part to the newly located frame
   pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud transformed." << std::endl;
   //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
 
-  // repeat registration on moved cad model
+  // repeat registration on moved cad model (ICP second pass)
   register_cloud(*cloud_cad2, *cloud_part1, *T_21, *T_12, *T_21_msg, *T_12_msg,icp_params);
 
   // now move the CAD part again to the newly located frame
@@ -621,7 +626,7 @@ int main(int argc, char** argv)
   std::cout << "Plane Coefficients" << *coeffs_plane <<endl;
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"*************** Processing Pointclouds Complete *************"<<endl;
+  std::cout<<"*************** Pointcloud Processing Complete *************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
 
   std::cout<<"*************************************************************"<<endl;
