@@ -107,8 +107,8 @@ Sometimes the extensions get changed from .ply to .PLY and I do not know why. Th
 
 ```
 find . -name '*.*' -exec sh -c '
->   a=$(echo "$0" | sed -r "s/([^.]*)\$/\L\1/");
->   [ "$a" != "$0" ] && mv "$0" "$a" ' {} \;
+  a=$(echo "$0" | sed -r "s/([^.]*)\$/\L\1/");
+  [ "$a" != "$0" ] && mv "$0" "$a" ' {} \;
 ```
 
 This comes from [stackoverflow](https://stackoverflow.com/questions/11818408/convert-all-file-extensions-to-lower-case/11824856)
