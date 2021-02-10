@@ -119,7 +119,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
 }
 
 
-void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, const std::string& part1_type, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
+void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, PointCloud &cloud_output3, const std::string& part1_type, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
 {
 
   // instantiate all objects needed for segment_cloud function
@@ -148,7 +148,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   pcl::PointCloud<PointT>::Ptr cloud_plane (new pcl::PointCloud<PointT> ());
 
   // Apply Workspace Filter using XYZ and Voxel filters before performing segmentation
-  filter_cloud(cloud_input,*cloud_filtered, -0.3, 0.3, -0.25, 0.25, -0.30, 0.50, 0.0005);
+  filter_cloud(cloud_input,*cloud_filtered, -0.2, 0.4, -0.2, 0.4, -0.30, 0.50, 0.0005);
 
   std::cout << "BEGINNING RANSAC SEGMENTATION" << std::endl;
   
@@ -193,12 +193,15 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   extract_normals.setIndices (inliers_plane);
   extract_normals.filter (*cloud_normals2);
 
-  // Copy the plane inliers as cloud for part 2 (plate - base)
+  // Copy the filtered cloud as third output
+  pcl::copyPointCloud(*cloud_filtered,cloud_output3);
+
+  // Copy the plane inliers as cloud for part 2 (plate or table)
   pcl::copyPointCloud(*cloud_plane,cloud_output2);
 
   // Apply Box and Voxel filters before performing second segmentation
   // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
-  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.3, 0.3, -0.5, 0.5, 0.026, 0.5, -1);
+  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.2, 0.4, -0.2, 0.4, 0.00, 0.5, -1);
 
   if (part1_type=="round_tube") //part two is a cylinder - this variable is set by command lines args
   {
@@ -453,13 +456,9 @@ int main(int argc, char** argv)
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
   // read the command line arguments to pick the data file and some other details
-/*
-  std::string file_lidar = argv[2];  // source cloud
-  std::string file_cad = argv[3];    // reference cloud
-  std::string part1_type = argv[4]; // part1 is the part to be welded to plate
-*/
-  // replace command line args with params from .yaml
-
+  
+  // there is onlt one cmd line arg and it is the name of the config file
+  
   // find the path to the seam_detection package (this package)
 
   std::cout<<"*************************************************************"<<endl;
@@ -542,9 +541,9 @@ int main(int argc, char** argv)
       cloud_cad1->width * cloud_cad1->height << " Data points from "<< file_cad <<std::endl<<std::endl;
 
   // for now each tf has three objects associated with it
-  // 1) 'name' (tf::transform)      // needed for transforms with pcl_ros
-  // 2) 'name_tf2' (tf2::transform) // not used
-  // 3) 'name_msg' (geometry_msgs)  // needed for bradcasting frames
+  // 1) '<name>' (tf::transform)      // needed for transforms with pcl_ros
+  // 2) '<name>_tf2' (tf2::transform) // not used
+  // 3) '<name>_msg' (geometry_msgs)  // needed for bradcasting frames
 
   tf::StampedTransform *T_01 (new tf::StampedTransform);    // these are from the old 'TF'
   tf::StampedTransform *T_10 (new tf::StampedTransform);    // they are stil used for pcl_ros::transformPointCloud
@@ -580,6 +579,7 @@ int main(int argc, char** argv)
   T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
 
   geometry_msgs::TransformStamped *T_20_msg (new geometry_msgs::TransformStamped);
+  T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
 
   pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients);
   pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
@@ -590,7 +590,7 @@ int main(int argc, char** argv)
   std::cout<<"*************************************************************"<<endl<<endl;
 
   // Perform RANSAC Segmentation to separate clouds and find part of interest
-  segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,part1_type,coeffs_plane,coeffs_cylinder);
+  segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,*cloud_filtered,part1_type,coeffs_plane,coeffs_cylinder);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
   register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg,icp_params);
@@ -648,6 +648,7 @@ int main(int argc, char** argv)
   marker_plane.pose.position.x = 0; // set origin
   marker_plane.pose.position.y = 0;
   marker_plane.pose.position.z = 0;
+
   marker_plane.pose.position.z = -coeffs_plane->values[3];
   //marker_plane.pose.orientation.x = 0;  // set rotation
   marker_plane.pose.orientation.y = 0;
@@ -708,7 +709,7 @@ int main(int argc, char** argv)
   //print_tf(*T_20);
 
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
-  ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtrd", 1) ;
+  ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
   ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
   ros::Publisher pub_cad2 = node.advertise<PointCloud> ("/cloud_cad2", 1) ;
   ros::Publisher pub_cad3 = node.advertise<PointCloud> ("/cloud_cad3", 1) ;
