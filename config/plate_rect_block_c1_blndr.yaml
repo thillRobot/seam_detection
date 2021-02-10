@@ -3,7 +3,7 @@ scene_name: "plate_rect_block_c1_blndr"
 scene_file: "pcd_images/plate_rect_block/plate_rect_block_c1_blndr.pcd"
 part1_name: "rect_block_02"
 part1_file: "pcd_images/plate_rect_block/rect_block_02.pcd"
-part1_type: "square_tube"
+part1_type: "generic"
 part2_name: "plate_02"
 part2_type: "plate with notch"
 seam1_length: 1.0
