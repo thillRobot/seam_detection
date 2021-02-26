@@ -311,7 +311,103 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 }
 
 // This function REGISTER_CLOUD finds the transform between two pointclouds
-void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
+void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
+{
+
+  //teaser::PLYReader reader;
+  //teaser::PointCloud src_cloud;
+ 
+  // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
+  PointCloud::Ptr cloud_A (new PointCloud);       //use this as the working copy of the target cloud
+  pcl::copyPointCloud(cloud_target,*cloud_A);
+  // make a copy of the lidar cloud called 'cloud'
+  PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
+  pcl::copyPointCloud(cloud_source,*cloud_B);
+
+
+  // perform ICP on the lidar and cad clouds
+  pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+  pcl::PointCloud<pcl::PointXYZ> Final;
+
+  Eigen::MatrixXf T_result;
+  Eigen::MatrixXf T_inverse;
+
+  // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
+  icp.setMaxCorrespondenceDistance (params[0]);
+  // Set the maximum number of iterations (criterion 1)
+  icp.setMaximumIterations (params[1]);
+  // Set the transformation epsilon (criterion 2)
+  icp.setTransformationEpsilon (params[2]);
+  // Set the euclidean distance difference epsilon (criterion 3)
+  icp.setEuclideanFitnessEpsilon (params[3]);
+
+  icp.setInputTarget(cloud_A); // target (fixed) cloud
+  icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
+  icp.align(Final);
+
+  T_result=icp.getFinalTransformation(); // get the resutls of ICP
+  T_inverse=T_result.inverse();
+
+  //Eigen::MatrixXf *T_eig (new Eigen::MatrixXf);
+  //T_result=icp.getFinalTransformation(); // get the resutls of ICP
+
+  std::cout << "ICP COMPLETED" << std::endl;
+  std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
+  std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
+  std::cout << T_result << std::endl;
+
+  //tf::Transform *T (new tf::Transform);
+  //tf::transformEigenToTF(T_result,*T);
+
+  // this part seems very over bloated !!! I feel like this is done in a method somewhere
+  // I spent forever on this part and it seems like it needs to be overhauled, i guess it works for now
+  // use last collum of Transformation as center of marker
+  tf::Quaternion q_result;
+  tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
+
+  tf::Quaternion q_inverse;
+  tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
+  // instantiate a 3x3 rotation matrix from the transformation matrix // I feel like this is done in a method somewhere
+  tf::Matrix3x3 R_result(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
+  tf2::Matrix3x3 R_result_tf2(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
+
+  tf::Matrix3x3 R_inverse(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
+  tf2::Matrix3x3 R_inverse_tf2(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
+
+  // copy tf::quaternion from R_result to q_result
+  R_result.getRotation(q_result);
+  R_result_tf2.getRotation(*q_result_tf2);
+
+  // copy tf::quaternion from R_result to q_result
+  R_inverse.getRotation(q_inverse);
+  R_inverse_tf2.getRotation(*q_inverse_tf2);
+
+  // set set rotation and origin of a quaternion for the tf transform object
+  T_AB.setRotation(q_result);
+  T_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+
+  //T_AB.setRotation(R_result.getRotation());
+  //T_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+
+  // new 'TF2' style tf transform object
+  q_result_tf2->normalize(); // normalize the Quaternion
+  //tf2_out.setRotation(*q_result_tf2);
+  //tf2_out.setOrigin(tf2::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+
+  // set set rotation and origin tfof a quaternion for the tf transform object
+  T_BA.setRotation(q_inverse);
+  T_BA.setOrigin(tf::Vector3(T_inverse(0,3),T_inverse(1,3),T_inverse(2,3)));
+  // new 'TF2' style tf transform object
+  q_inverse_tf2->normalize(); // normalize the Quaternion
+
+  tf::transformStampedTFToMsg(T_AB,msg_AB);
+  tf::transformStampedTFToMsg(T_BA,msg_BA);
+
+  std::cout << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
+}
+
+// This function REGISTER_CLOUD finds the transform between two pointclouds
+void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
 {
 
   //teaser::PLYReader reader;
@@ -337,10 +433,14 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   for (size_t i = 0; i < M; ++i) {
     tgt.col(i) << cloud_target[i].x, cloud_target[i].y, cloud_target[i].z;
   }
-  
+
+  std::cout << "Source Cloud:"<<N<<"points"<< std::endl;
+  std::cout << "Target Cloud:"<<M<<"points"<< std::endl;
+
+
    // Run TEASER++ registration
   // Prepare solver parameters
-  std::cout <<"Beginning TEASER++" << std::endl;
+  std::cout <<"Configuring TEASER++" << std::endl;
   teaser::RobustRegistrationSolver::Params tparams;
   tparams.noise_bound = NOISE_BOUND;
   tparams.cbar2 = 1;
@@ -348,10 +448,11 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   tparams.rotation_max_iterations = 100;
   tparams.rotation_gnc_factor = 1.4;
   tparams.rotation_estimation_algorithm =
-      teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
+  teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
   tparams.rotation_cost_threshold = 0.005;
 
   // Solve with TEASER++
+  std::cout <<"Beginning TEASER++" << std::endl;
   teaser::RobustRegistrationSolver solver(tparams);
   std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   solver.solve(src, tgt);
@@ -584,7 +685,7 @@ int main(int argc, char** argv)
   // tf::Transform tf_searchbox;
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"******************* Perparing Pointcloud Data ***************"<<endl;
+  std::cout<<"******************* Preparing Pointcloud Data ***************"<<endl;
   std::cout<<"*************************************************************"<<endl;
 
   // instantiate some clouds
@@ -643,17 +744,17 @@ int main(int argc, char** argv)
   geometry_msgs::TransformStamped *T_10_msg (new geometry_msgs::TransformStamped);
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
 
-  geometry_msgs::TransformStamped *T_12_msg (new geometry_msgs::TransformStamped);
-  T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
+  //geometry_msgs::TransformStamped *T_12_msg (new geometry_msgs::TransformStamped);
+  //T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
 
-  geometry_msgs::TransformStamped *T_21_msg (new geometry_msgs::TransformStamped);
-  T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
+  //geometry_msgs::TransformStamped *T_21_msg (new geometry_msgs::TransformStamped);
+  //T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
 
-  geometry_msgs::TransformStamped *T_02_msg (new geometry_msgs::TransformStamped);
-  T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
+  //geometry_msgs::TransformStamped *T_02_msg (new geometry_msgs::TransformStamped);
+  //T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
 
-  geometry_msgs::TransformStamped *T_20_msg (new geometry_msgs::TransformStamped);
-  T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
+  //geometry_msgs::TransformStamped *T_20_msg (new geometry_msgs::TransformStamped);
+  //T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
 
   pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients);
   pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
@@ -666,8 +767,12 @@ int main(int argc, char** argv)
   // Perform RANSAC Segmentation to separate clouds and find part of interest
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,*cloud_filtered,part1_type,coeffs_plane,coeffs_cylinder);
 
+  
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg,icp_params);
+  register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg,icp_params);
+
+  register_cloud_teaser(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg,icp_params);
+
 
   //std::cout<<"Computing Matrix Inverse"<<std::endl;
 
@@ -677,24 +782,24 @@ int main(int argc, char** argv)
   //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
 
   // repeat registration on moved cad model (ICP second pass)
-  register_cloud(*cloud_cad2, *cloud_part1, *T_21, *T_12, *T_21_msg, *T_12_msg,icp_params);
+  //register_cloud(*cloud_cad2, *cloud_part1, *T_21, *T_12, *T_21_msg, *T_12_msg,icp_params);
 
   // now move the CAD part again to the newly located frame
-  pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_12);
-  std::cout << "Cloud transformed again." << std::endl;
+  //pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_12);
+  //std::cout << "Cloud transformed again." << std::endl;
 
   //*T_02=(*T_01)*(*T_12); // multiply the two transforms to get final tf
   //*T_20=T_02->inverse(); // get the inverse of the tf
 
-  combine_transformation(*T_01,*T_12,*T_20,*T_02,*T_20_msg,*T_02_msg);
+  //combine_transformation(*T_01,*T_12,*T_20,*T_02,*T_20_msg,*T_02_msg);
   T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01";
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
 
-  T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
-  T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
+  //T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
+  //T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
 
-  T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
-  T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
+  //T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
+  //T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
 
   std::cout << "Final transformation computed and converted to message." <<endl;
   std::cout << "Plane Coefficients" << *coeffs_plane <<endl;
@@ -810,11 +915,11 @@ int main(int argc, char** argv)
       T_01_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_msg);
       T_10_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_msg);
 
-      T_12_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_12_msg);
-      T_21_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_21_msg);
+      //T_12_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_12_msg);
+      //T_21_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_21_msg);
 
-      T_02_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_02_msg);
-      T_20_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_20_msg);
+      //T_02_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_02_msg);
+      //T_20_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_20_msg);
 
       pub_lidar.publish(cloud_lidar);
       pub_filtered.publish(cloud_filtered);
