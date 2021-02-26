@@ -1,7 +1,10 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.10)
+#cmake_minimum_required(VERSION 2.8.3)
 #cmake_minimum_required(VERSION 3.0.2)
 #cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(seam_detection)
+
+set (CMAKE_CXX_STANDARD 14)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -20,6 +23,10 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   sensor_msgs
 )
+
+find_package(Eigen3 REQUIRED)
+find_package(teaserpp REQUIRED)
+
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -223,11 +230,28 @@ add_definitions(${PCL_DEFINITIONS})
 ## nodes to be compiled with catkin_make ##
 ###########################################
 
+
+# Change this line to include your own executable file
+add_executable(teaser_cpp_ply src/teaser_cpp_ply.cc)
+
+# Link to teaserpp & Eigen3
+target_link_libraries(teaser_cpp_ply Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_io)
+
+
 ## primary nodes for the SEAM_DETECTION package
 
 # seam_detection
 add_executable(seam_detection src/seam_detection.cpp)
 target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+add_executable(seam_detection_teaser src/seam_detection.cpp)
+target_link_libraries(seam_detection_teaser 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+  teaserpp::teaser_registration 
+  teaserpp::teaser_io
+  )
 
 # seam_detection_ICP
 add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
