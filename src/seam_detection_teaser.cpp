@@ -65,7 +65,15 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 
 #include <teaser/ply_io.h>
 #include <teaser/registration.h>
+#include <chrono>
+#include <random>
 
+
+// Macro constants for generating noise and outliers
+#define NOISE_BOUND 0.05
+#define N_OUTLIERS 1700
+#define OUTLIER_TRANSLATION_LB 5
+#define OUTLIER_TRANSLATION_UB 10
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -306,8 +314,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
 {
 
-  teaser::PLYReader reader;
-  teaser::PointCloud src_cloud;
+  //teaser::PLYReader reader;
+  //teaser::PointCloud src_cloud;
  
   // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
   PointCloud::Ptr cloud_A (new PointCloud);       //use this as the working copy of the target cloud
@@ -315,6 +323,66 @@ void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::Stam
   // make a copy of the lidar cloud called 'cloud'
   PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(cloud_source,*cloud_B);
+
+  std::cout <<"CONVERTING POINTCLOUDS TO EIGEN" << std::endl;
+  int N = cloud_source.size();
+  // Convert the point cloud to Eigen
+  Eigen::Matrix<double, 3, Eigen::Dynamic> src(3, N);
+  for (size_t i = 0; i < N; ++i) {
+    src.col(i) << cloud_source[i].x, cloud_source[i].y, cloud_source[i].z;
+  }
+  int M = cloud_target.size();
+  // Convert the point cloud to Eigen
+  Eigen::Matrix<double, 3, Eigen::Dynamic> tgt(3, M);
+  for (size_t i = 0; i < M; ++i) {
+    tgt.col(i) << cloud_target[i].x, cloud_target[i].y, cloud_target[i].z;
+  }
+  
+   // Run TEASER++ registration
+  // Prepare solver parameters
+  std::cout <<"Beginning TEASER++" << std::endl;
+  teaser::RobustRegistrationSolver::Params tparams;
+  tparams.noise_bound = NOISE_BOUND;
+  tparams.cbar2 = 1;
+  tparams.estimate_scaling = false;
+  tparams.rotation_max_iterations = 100;
+  tparams.rotation_gnc_factor = 1.4;
+  tparams.rotation_estimation_algorithm =
+      teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
+  tparams.rotation_cost_threshold = 0.005;
+
+  // Solve with TEASER++
+  teaser::RobustRegistrationSolver solver(tparams);
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  solver.solve(src, tgt);
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+  auto solution = solver.getSolution();
+
+  // Compare results
+  std::cout << "=====================================" << std::endl;
+  std::cout << "          TEASER++ Results           " << std::endl;
+  std::cout << "=====================================" << std::endl;
+  std::cout << "Expected rotation: " << std::endl;
+  //std::cout << T.topLeftCorner(3, 3) << std::endl;
+  std::cout << "Estimated rotation: " << std::endl;
+  std::cout << solution.rotation << std::endl;
+  //std::cout << "Error (deg): " << getAngularError(T.topLeftCorner(3, 3), solution.rotation)
+  //          << std::endl;
+  std::cout << std::endl;
+  std::cout << "Expected translation: " << std::endl;
+  //std::cout << T.topRightCorner(3, 1) << std::endl;
+  std::cout << "Estimated translation: " << std::endl;
+  std::cout << solution.translation << std::endl;
+  //std::cout << "Error (m): " << (T.topRightCorner(3, 1) - solution.translation).norm() << std::endl;
+  std::cout << std::endl;
+  std::cout << "Number of correspondences: " << N << std::endl;
+  std::cout << "Number of outliers: " << N_OUTLIERS << std::endl;
+  std::cout << "Time taken (s): "
+            << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() /
+                   1000000.0
+            << std::endl;
+
 
   std::cout <<"BEGINNING ICP REGISTRATION" << std::endl;
   std::cout<<"Using Search Parameters:"<< std::endl;
