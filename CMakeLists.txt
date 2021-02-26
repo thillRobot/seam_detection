@@ -244,7 +244,7 @@ target_link_libraries(teaser_cpp_ply Eigen3::Eigen teaserpp::teaser_registration
 add_executable(seam_detection src/seam_detection.cpp)
 target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-add_executable(seam_detection_teaser src/seam_detection.cpp)
+add_executable(seam_detection_teaser src/seam_detection_teaser.cpp)
 target_link_libraries(seam_detection_teaser 
   ${catkin_LIBRARIES} 
   ${PCL_LIBRARIES} 
