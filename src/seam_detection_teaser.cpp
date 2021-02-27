@@ -36,6 +36,10 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/registration/icp.h>
+#include <pcl/registration/correspondence_estimation.h>
+#include <pcl/registration/correspondence_rejection.h>
+#include <pcl/registration/correspondence_rejection_surface_normal.h>
+
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
@@ -68,7 +72,6 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <chrono>
 #include <random>
 
-
 // Macro constants for generating noise and outliers
 #define NOISE_BOUND 0.05
 #define N_OUTLIERS 1700
@@ -77,6 +80,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 
 void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin, double xmax, double ymin,double ymax, double zmin, double zmax, double leaf_size)
 {
@@ -313,9 +317,6 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 // This function REGISTER_CLOUD finds the transform between two pointclouds
 void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
 {
-
-  //teaser::PLYReader reader;
-  //teaser::PointCloud src_cloud;
  
   // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
   PointCloud::Ptr cloud_A (new PointCloud);       //use this as the working copy of the target cloud
@@ -323,7 +324,6 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   // make a copy of the lidar cloud called 'cloud'
   PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(cloud_source,*cloud_B);
-
 
   // perform ICP on the lidar and cad clouds
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
@@ -348,78 +348,137 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   T_result=icp.getFinalTransformation(); // get the resutls of ICP
   T_inverse=T_result.inverse();
 
-  //Eigen::MatrixXf *T_eig (new Eigen::MatrixXf);
-  //T_result=icp.getFinalTransformation(); // get the resutls of ICP
-
   std::cout << "ICP COMPLETED" << std::endl;
   std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
   std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
   std::cout << T_result << std::endl;
 
-  //tf::Transform *T (new tf::Transform);
-  //tf::transformEigenToTF(T_result,*T);
+  // This part seems very over bloated !!! 
+  // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
 
-  // this part seems very over bloated !!! I feel like this is done in a method somewhere
-  // I spent forever on this part and it seems like it needs to be overhauled, i guess it works for now
-  // use last collum of Transformation as center of marker
   tf::Quaternion q_result;
   tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
 
   tf::Quaternion q_inverse;
   tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
   // instantiate a 3x3 rotation matrix from the transformation matrix // I feel like this is done in a method somewhere
-  tf::Matrix3x3 R_result(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
-  tf2::Matrix3x3 R_result_tf2(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
+  tf::Matrix3x3 R_result( T_result(0,0),T_result(0,1),T_result(0,2),
+                          T_result(1,0),T_result(1,1),T_result(1,2),
+                          T_result(2,0),T_result(2,1),T_result(2,2));
+  tf2::Matrix3x3 R_result_tf2(T_result(0,0),T_result(0,1),T_result(0,2),
+                              T_result(1,0),T_result(1,1),T_result(1,2),
+                              T_result(2,0),T_result(2,1),T_result(2,2));
 
-  tf::Matrix3x3 R_inverse(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
-  tf2::Matrix3x3 R_inverse_tf2(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
+  tf::Matrix3x3 R_inverse(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),
+                          T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),
+                          T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
+  tf2::Matrix3x3 R_inverse_tf2( T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),
+                                T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),
+                                T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
 
   // copy tf::quaternion from R_result to q_result
   R_result.getRotation(q_result);
   R_result_tf2.getRotation(*q_result_tf2);
+  q_result_tf2->normalize(); // normalize the Quaternion
 
   // copy tf::quaternion from R_result to q_result
   R_inverse.getRotation(q_inverse);
   R_inverse_tf2.getRotation(*q_inverse_tf2);
+  q_inverse_tf2->normalize(); // normalize the Quaternion
 
   // set set rotation and origin of a quaternion for the tf transform object
   T_AB.setRotation(q_result);
   T_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
 
-  //T_AB.setRotation(R_result.getRotation());
-  //T_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
-
-  // new 'TF2' style tf transform object
-  q_result_tf2->normalize(); // normalize the Quaternion
-  //tf2_out.setRotation(*q_result_tf2);
-  //tf2_out.setOrigin(tf2::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
-
-  // set set rotation and origin tfof a quaternion for the tf transform object
+  // set set rotation and origin of a quaternion for the tf transform object
   T_BA.setRotation(q_inverse);
   T_BA.setOrigin(tf::Vector3(T_inverse(0,3),T_inverse(1,3),T_inverse(2,3)));
-  // new 'TF2' style tf transform object
-  q_inverse_tf2->normalize(); // normalize the Quaternion
 
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  std::cout << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
+  std::cout << "END OF REGISTER_CLOUD_ICP FUNCTION" << std::endl;
 }
 
 // This function REGISTER_CLOUD finds the transform between two pointclouds
 void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
 {
-
-  //teaser::PLYReader reader;
-  //teaser::PointCloud src_cloud;
  
   // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
-  PointCloud::Ptr cloud_A (new PointCloud);       //use this as the working copy of the target cloud
-  pcl::copyPointCloud(cloud_target,*cloud_A);
-  // make a copy of the lidar cloud called 'cloud'
-  PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
-  pcl::copyPointCloud(cloud_source,*cloud_B);
+  //PointCloud::Ptr target (new PointCloud);       //use this as the working copy of the target cloud
+  //pcl::copyPointCloud(cloud_target,*target);
+  //// make a copy of the lidar cloud called 'cloud'
+  //PointCloud::Ptr source (new PointCloud);       //use this as the working copy of the source cloud
+  //pcl::copyPointCloud(cloud_source,*source);
 
+  std::cout <<"Beginning Correspondence Estimation with PCL"<< std::endl;
+
+  pcl::PointCloud<pcl::PointXYZ>::Ptr source (new pcl::PointCloud<pcl::PointXYZ>(cloud_source));
+  pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>(cloud_target));
+
+  boost::shared_ptr<pcl::Correspondences> correspondences (new pcl::Correspondences);
+  pcl::registration::CorrespondenceEstimation<pcl::PointXYZ, pcl::PointXYZ> estimator;
+  estimator.setInputCloud (source);
+  estimator.setInputTarget (target);
+  estimator.determineReciprocalCorrespondences (*correspondences);
+
+ // check for correct order and number of matches
+
+  //if (int (correspondences->size ()) == nr_original_correspondences)
+  //{
+  int imax;
+  std::cout <<"Correspondence Estimation Complete"<< std::endl;
+  std::cout <<"Index, Index Query, Index Match"<< std::endl;
+  for (int i = 0; i < 40; ++i)
+    std::cout <<i<<","<<(*correspondences)[i].index_query<<","<<(*correspondences)[i].index_match<< std::endl;
+
+    // check for correct matches
+    //for (int i = 0; i < nr_original_correspondences; ++i)
+    //  std::cout <<((*correspondences)[i].index_match<<"," i << std::endl;
+
+  //}
+
+  //pcl::PointCloud<pcl::PointXYZ>::Ptr source, target;
+  //pcl::copyPointCloud(cloud_target,*target);
+  //pcl::copyPointCloud(cloud_source,*source);
+
+  // ... read or fill in source and target
+  //pcl::registration::CorrespondenceEstimation<pcl::PointXYZ, pcl::PointXYZ> estimator;
+  //estimator.setInputSource (source);
+  //est.setInputTarget (target);
+ 
+  //pcl::Correspondences all_correspondences;
+  // Determine all reciprocal correspondences
+  //est.determineReciprocalCorrespondences (all_correspondences);
+
+
+  pcl::registration::CorrespondenceRejectorSurfaceNormal rejector;
+  //rejector.setInputTarget(target);
+  //rejector.setInputSource(source);
+  std::cout <<"CONVERTING CORRESPONDENCE POINTCLOUDS TO EIGEN" << std::endl;
+  //int N = cloud_source.size();
+  int N = 50;
+  int S,T;
+  // Convert the point cloud to Eigen
+  Eigen::Matrix<double, 3, Eigen::Dynamic> src(3, N);
+  Eigen::Matrix<double, 3, Eigen::Dynamic> tgt(3, N);
+  for (size_t i = 0; i < N; ++i) {
+    S=(*correspondences)[i].index_query;
+    T=(*correspondences)[i].index_match;
+    src.col(i) << cloud_source[S].x, cloud_source[S].y, cloud_source[S].z;
+    tgt.col(i) << cloud_target[T].x, cloud_target[T].y, cloud_target[T].z;
+  }
+
+  /*
+  int M = cloud_target.size();
+  // Convert the point cloud to Eigen
+  Eigen::Matrix<double, 3, Eigen::Dynamic> tgt(3, M);
+  for (size_t i = 0; i < M; ++i) {
+    tgt.col(i) << cloud_target[i].x, cloud_target[i].y, cloud_target[i].z;
+  }
+  */
+
+  /*
   std::cout <<"CONVERTING POINTCLOUDS TO EIGEN" << std::endl;
   int N = cloud_source.size();
   // Convert the point cloud to Eigen
@@ -433,9 +492,10 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   for (size_t i = 0; i < M; ++i) {
     tgt.col(i) << cloud_target[i].x, cloud_target[i].y, cloud_target[i].z;
   }
+  */
 
-  std::cout << "Source Cloud:"<<N<<"points"<< std::endl;
-  std::cout << "Target Cloud:"<<M<<"points"<< std::endl;
+  //std::cout << "Source Cloud: "<<N<<" points"<< std::endl;
+  //std::cout << "Target Cloud: "<<M<<" points"<< std::endl;
 
 
    // Run TEASER++ registration
@@ -458,23 +518,22 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   solver.solve(src, tgt);
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-  auto solution = solver.getSolution();
+  auto soln = solver.getSolution();
 
-  // Compare results
-  std::cout << "=====================================" << std::endl;
-  std::cout << "          TEASER++ Results           " << std::endl;
-  std::cout << "=====================================" << std::endl;
+  // Display results
+  std::cout << "TEASER++ Completed" << std::endl;
   std::cout << "Expected rotation: " << std::endl;
   //std::cout << T.topLeftCorner(3, 3) << std::endl;
   std::cout << "Estimated rotation: " << std::endl;
-  std::cout << solution.rotation << std::endl;
+  std::cout << soln.rotation << std::endl;
+  std::cout << soln.rotation(0,0) << std::endl;
   //std::cout << "Error (deg): " << getAngularError(T.topLeftCorner(3, 3), solution.rotation)
   //          << std::endl;
   std::cout << std::endl;
   std::cout << "Expected translation: " << std::endl;
   //std::cout << T.topRightCorner(3, 1) << std::endl;
   std::cout << "Estimated translation: " << std::endl;
-  std::cout << solution.translation << std::endl;
+  std::cout << soln.translation << std::endl;
   //std::cout << "Error (m): " << (T.topRightCorner(3, 1) - solution.translation).norm() << std::endl;
   std::cout << std::endl;
   std::cout << "Number of correspondences: " << N << std::endl;
@@ -483,93 +542,63 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
             << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() /
                    1000000.0
             << std::endl;
+  
+  Eigen::MatrixXd soln_T(4,4); // a Transformation matrix for the teaser solution 
+  soln_T<<soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),soln.translation(0),
+          soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),soln.translation(1),
+          soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2),soln.translation(2),
+          0                 ,0                 ,0                 ,1                  ;
 
+  Eigen::MatrixXd soln_T_inv(4,4);
+  soln_T_inv=soln_T.inverse(); // take the inverse of the transformation returned by Teaser
 
-  std::cout <<"BEGINNING ICP REGISTRATION" << std::endl;
-  std::cout<<"Using Search Parameters:"<< std::endl;
-  std::cout<<"Max Correspondence Distance = "<< params[0] <<std::endl;
-  std::cout<<"Maximum Number of Iterations = "<< params[1] <<std::endl;
-  std::cout<<"Transformation Epsilon = "<< params[2] <<std::endl;
-  std::cout<<"Euclidean Distance Difference Epsilon = "<< params[3] <<std::endl;
-  // perform ICP on the lidar and cad clouds
-  pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
-  pcl::PointCloud<pcl::PointXYZ> Final;
+  // This part seems very over bloated !!! 
+  // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
 
-  Eigen::MatrixXf T_result;
-  Eigen::MatrixXf T_inverse;
-
-  // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-  icp.setMaxCorrespondenceDistance (params[0]);
-  // Set the maximum number of iterations (criterion 1)
-  icp.setMaximumIterations (params[1]);
-  // Set the transformation epsilon (criterion 2)
-  icp.setTransformationEpsilon (params[2]);
-  // Set the euclidean distance difference epsilon (criterion 3)
-  icp.setEuclideanFitnessEpsilon (params[3]);
-
-  icp.setInputTarget(cloud_A); // target (fixed) cloud
-  icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
-  icp.align(Final);
-
-  T_result=icp.getFinalTransformation(); // get the resutls of ICP
-  T_inverse=T_result.inverse();
-
-  //Eigen::MatrixXf *T_eig (new Eigen::MatrixXf);
-  //T_result=icp.getFinalTransformation(); // get the resutls of ICP
-
-  std::cout << "ICP COMPLETED" << std::endl;
-  std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
-  std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
-  std::cout << T_result << std::endl;
-
-  //tf::Transform *T (new tf::Transform);
-  //tf::transformEigenToTF(T_result,*T);
-
-  // this part seems very over bloated !!! I feel like this is done in a method somewhere
-  // I spent forever on this part and it seems like it needs to be overhauled, i guess it works for now
-  // use last collum of Transformation as center of marker
   tf::Quaternion q_result;
   tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
 
   tf::Quaternion q_inverse;
   tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
-  // instantiate a 3x3 rotation matrix from the transformation matrix // I feel like this is done in a method somewhere
-  tf::Matrix3x3 R_result(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
-  tf2::Matrix3x3 R_result_tf2(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
+  // instantiate a 3x3 rotation matrix from the transformation matrix // 
+  
 
-  tf::Matrix3x3 R_inverse(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
-  tf2::Matrix3x3 R_inverse_tf2(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
-
+  tf::Matrix3x3 R_result(soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),
+                         soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),
+                         soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2));
+  tf2::Matrix3x3 R_result_tf2(soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),
+                              soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),
+                              soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2));
+  
+  tf::Matrix3x3 R_inverse(soln_T_inv(0,0),soln_T_inv(0,1),soln_T_inv(0,2),
+                          soln_T_inv(1,0),soln_T_inv(1,1),soln_T_inv(1,2),
+                          soln_T_inv(2,0),soln_T_inv(2,1),soln_T_inv(2,2));
+  tf2::Matrix3x3 R_inverse_tf2( soln_T_inv(0,0),soln_T_inv(0,1),soln_T_inv(0,2),
+                                soln_T_inv(1,0),soln_T_inv(1,1),soln_T_inv(1,2),
+                                soln_T_inv(2,0),soln_T_inv(2,1),soln_T_inv(2,2));
+  
   // copy tf::quaternion from R_result to q_result
   R_result.getRotation(q_result);
   R_result_tf2.getRotation(*q_result_tf2);
+  q_result_tf2->normalize(); // normalize the Quaternion
 
-  // copy tf::quaternion from R_result to q_result
+  // copy tf::quaternion from R_inverse to q_inverse
   R_inverse.getRotation(q_inverse);
   R_inverse_tf2.getRotation(*q_inverse_tf2);
-
-  // set set rotation and origin of a quaternion for the tf transform object
-  T_AB.setRotation(q_result);
-  T_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
-
-  //T_AB.setRotation(R_result.getRotation());
-  //T_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
-
-  // new 'TF2' style tf transform object
-  q_result_tf2->normalize(); // normalize the Quaternion
-  //tf2_out.setRotation(*q_result_tf2);
-  //tf2_out.setOrigin(tf2::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
-
-  // set set rotation and origin tfof a quaternion for the tf transform object
-  T_BA.setRotation(q_inverse);
-  T_BA.setOrigin(tf::Vector3(T_inverse(0,3),T_inverse(1,3),T_inverse(2,3)));
-  // new 'TF2' style tf transform object
   q_inverse_tf2->normalize(); // normalize the Quaternion
 
+  // set rotation and origin of a quaternion for the tf transform object
+  T_AB.setRotation(q_result);
+  T_AB.setOrigin(tf::Vector3(soln.translation[0],soln.translation[1],soln.translation[2]));
+ 
+  // set rotation and origin of a quaternion for the tf transform object
+  T_BA.setRotation(q_inverse);
+  T_BA.setOrigin(tf::Vector3(soln_T_inv(0,3),soln_T_inv(1,3),soln_T_inv(2,3)));
+  
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  std::cout << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
+  std::cout << "END OF REGISTER_CLOUD_TEASER FUNCTION" << std::endl;
 }
 
 void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_BC, tf::StampedTransform &T_AC, tf::StampedTransform &T_CA, geometry_msgs::TransformStamped &msg_AC,geometry_msgs::TransformStamped &msg_CA){
@@ -769,9 +798,9 @@ int main(int argc, char** argv)
 
   
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg,icp_params);
+  register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
 
-  register_cloud_teaser(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg,icp_params);
+  register_cloud_teaser(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
 
 
   //std::cout<<"Computing Matrix Inverse"<<std::endl;
