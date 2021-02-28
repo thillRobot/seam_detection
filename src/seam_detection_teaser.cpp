@@ -73,10 +73,10 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <random>
 
 // Macro constants for generating noise and outliers
-#define NOISE_BOUND 0.05
-#define N_OUTLIERS 1700
-#define OUTLIER_TRANSLATION_LB 5
-#define OUTLIER_TRANSLATION_UB 10
+//#define NOISE_BOUND 0.05
+//#define N_OUTLIERS 1700
+//#define OUTLIER_TRANSLATION_LB 5
+//#define OUTLIER_TRANSLATION_UB 10
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -530,7 +530,7 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   std::cout <<"CONVERTING CORRESPONDENCE POINTCLOUDS TO EIGEN" << std::endl;
   //int N = cloud_source.size();
   //int N = 50;
-  int Nc = 50;
+  int Nc = 100;  // number of correspondences to process
   int src_idx,tgt_idx;
   // Convert the point cloud to Eigen
   Eigen::Matrix<double, 3, Eigen::Dynamic> src(3, Ns);
@@ -577,10 +577,10 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   // Prepare solver parameters
   std::cout <<"Configuring TEASER++" << std::endl;
   teaser::RobustRegistrationSolver::Params tparams;
-  tparams.noise_bound = NOISE_BOUND;
+  tparams.noise_bound = 0.01;
   tparams.cbar2 = 1;
   tparams.estimate_scaling = false;
-  tparams.rotation_max_iterations = 100;
+  tparams.rotation_max_iterations = 10000;
   tparams.rotation_gnc_factor = 1.4;
   tparams.rotation_estimation_algorithm =
   teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
@@ -597,7 +597,7 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
 
   // Display results
   std::cout << "TEASER++ Completed" << std::endl;
-  std::cout << "Expected rotation: " << std::endl;
+  //std::cout << "Expected rotation: " << std::endl;
   //std::cout << T.topLeftCorner(3, 3) << std::endl;
   std::cout << "Estimated rotation: " << std::endl;
   std::cout << soln.rotation << std::endl;
@@ -605,14 +605,14 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   //std::cout << "Error (deg): " << getAngularError(T.topLeftCorner(3, 3), solution.rotation)
   //          << std::endl;
   std::cout << std::endl;
-  std::cout << "Expected translation: " << std::endl;
+  //std::cout << "Expected translation: " << std::endl;
   //std::cout << T.topRightCorner(3, 1) << std::endl;
   std::cout << "Estimated translation: " << std::endl;
   std::cout << soln.translation << std::endl;
   //std::cout << "Error (m): " << (T.topRightCorner(3, 1) - solution.translation).norm() << std::endl;
   std::cout << std::endl;
-  std::cout << "Number of correspondences: " << Ns << std::endl;
-  std::cout << "Number of outliers: " << N_OUTLIERS << std::endl;
+  std::cout << "Number of correspondences: " << Nc << std::endl;
+  //std::cout << "Number of outliers: " << N_OUTLIERS << std::endl;
   std::cout << "Time taken (s): "
             << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() /
                    1000000.0
@@ -916,6 +916,7 @@ int main(int argc, char** argv)
   std::cout<<"*************************************************************"<<endl<<endl;
 
   // publish 'markers' to to show the plane and cylinder found with RANSAC
+
   // instantiate pubs for the plane marker
   ros::Publisher pub_plane = node.advertise<visualization_msgs::Marker>("/marker_plane", 1);
   visualization_msgs::Marker marker_plane; // notice the markers are not pointers
@@ -982,6 +983,68 @@ int main(int argc, char** argv)
   marker_cylinder.header.frame_id = "base_link";
   marker_cylinder.header.stamp = ros::Time::now();
 
+  //instantiate pub for the line marker
+  ros::Publisher pub_pointslines = node.advertise<visualization_msgs::Marker>("marker_pointslines ",10);
+
+  visualization_msgs::Marker points, line_strip, line_list;
+  points.header.frame_id = line_strip.header.frame_id = line_list.header.frame_id = "base_link";
+  points.header.stamp = line_strip.header.stamp = line_list.header.stamp = ros::Time::now();
+  points.ns = line_strip.ns = line_list.ns = "points_and_lines";
+  points.action = line_strip.action = line_list.action = visualization_msgs::Marker::ADD;
+  points.pose.orientation.w = line_strip.pose.orientation.w = line_list.pose.orientation.w = 1.0;
+
+  points.id = 0;
+  line_strip.id = 1;
+  line_list.id = 2;
+
+  points.type = visualization_msgs::Marker::POINTS;
+  line_strip.type = visualization_msgs::Marker::LINE_STRIP;
+  line_list.type = visualization_msgs::Marker::LINE_LIST;
+
+  // POINTS markers use x and y scale for width/height respectively
+  points.scale.x = 0.2;
+  points.scale.y = 0.2;
+
+  // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
+  line_strip.scale.x = 0.1;
+  line_list.scale.x = 0.1;
+
+  // Points are green
+  points.color.g = 1.0f;
+  points.color.a = 1.0;
+
+  // Line strip is blue
+  line_strip.color.b = 1.0;
+  line_strip.color.a = 1.0;
+
+  // Line list is red
+  line_list.color.r = 1.0;
+  line_list.color.a = 1.0;
+
+  float f = 0.0;
+  // Create the vertices for the points and lines
+  for (uint32_t i = 0; i < 100; ++i)
+  {
+    float y = 5 * sin(f + i / 100.0f * 2 * M_PI);
+    float z = 5 * cos(f + i / 100.0f * 2 * M_PI);
+
+    geometry_msgs::Point p;
+    p.x = (int32_t)i - 50;
+    p.y = y;
+    p.z = z;
+
+    points.points.push_back(p);
+    line_strip.points.push_back(p);
+
+    // The line list needs two points for each line
+    line_list.points.push_back(p);
+    p.z += 1.0;
+    line_list.points.push_back(p);
+  }
+
+ 
+
+
   //print_tf(*T_02);
   //print_tf(*T_01); // print the info in the TFs for debugging
   //print_tf(*T_10);
@@ -1034,6 +1097,10 @@ int main(int argc, char** argv)
 
       pub_plane.publish(marker_plane);
       pub_cylinder.publish(marker_cylinder);
+
+      pub_pointslines.publish(points);
+      pub_pointslines.publish(line_strip);
+      pub_pointslines.publish(line_list);
 
       ros::spinOnce();
       loop_rate.sleep();
