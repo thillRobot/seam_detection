@@ -87,7 +87,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(cloud_input,*cloud);
-  std::cout << "BEGINNING CLOUD FILTERING" << std::endl;
+  std::cout<<"BEGINNING CLOUD FILTERING" << std::endl;
   std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
 
   // XYZ Box Filter cloud before segementation
@@ -165,9 +165,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   // Apply Workspace Filter using XYZ and Voxel filters before performing segmentation
   filter_cloud(cloud_input,*cloud_filtered, -0.2, 0.4, -0.2, 0.4, -0.30, 0.50, 0.0005);
 
-  std::cout << "BEGINNING RANSAC SEGMENTATION" << std::endl;
-  
-  std::cout<<"Performing First Segmentaion"<<std::endl;
+  std::cout <<"BEGINNING RANSAC SEGMENTATION" << std::endl;
+  std::cout<<"Performing First Segmentaion on " <<cloud_filtered->width * cloud_filtered->height << " points"<<std::endl;
   std::cout<<"Searching for plate/table as: SACMODEL_NORMAL_PLANE"<< std::endl;; // as a single plane?
 
   // Estimate point normals before segmentation
@@ -411,27 +410,6 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   //PointCloud::Ptr source (new PointCloud);       //use this as the working copy of the source cloud
   //pcl::copyPointCloud(cloud_source,*source);
 
-  std::cout <<"Beginning Correspondence Estimation with PCL"<< std::endl;
-
-  pcl::PointCloud<pcl::PointXYZ>::Ptr source (new pcl::PointCloud<pcl::PointXYZ>(cloud_source));
-  pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>(cloud_target));
-
-  boost::shared_ptr<pcl::Correspondences> correspondences (new pcl::Correspondences);
-  pcl::registration::CorrespondenceEstimation<pcl::PointXYZ, pcl::PointXYZ> estimator;
-  estimator.setInputCloud (source);
-  estimator.setInputTarget (target);
-  estimator.determineReciprocalCorrespondences (*correspondences);
-
- // check for correct order and number of matches
-
-  //if (int (correspondences->size ()) == nr_original_correspondences)
-  //{
-  int imax;
-  std::cout <<"Correspondence Estimation Complete"<< std::endl;
-  std::cout <<"Index, Index Query, Index Match"<< std::endl;
-  for (int i = 0; i < 40; ++i)
-    std::cout <<i<<","<<(*correspondences)[i].index_query<<","<<(*correspondences)[i].index_match<< std::endl;
-
     // check for correct matches
     //for (int i = 0; i < nr_original_correspondences; ++i)
     //  std::cout <<((*correspondences)[i].index_match<<"," i << std::endl;
@@ -452,22 +430,119 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   //est.determineReciprocalCorrespondences (all_correspondences);
 
 
-  pcl::registration::CorrespondenceRejectorSurfaceNormal rejector;
+  //pcl::registration::CorrespondenceRejectorSurfaceNormal rejector;
   //rejector.setInputTarget(target);
   //rejector.setInputSource(source);
+ 
+  
+  int Ns = cloud_source.size();
+  int Nt = cloud_target.size();
+  int P = 50; //number to print
+  int M = -1; //number of matches
+  std::cout <<"Beginning Correspondence Estimation with PCL"<< std::endl;
+  std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
+
+  pcl::PointCloud<pcl::PointXYZ>::Ptr source (new pcl::PointCloud<pcl::PointXYZ>(cloud_source));
+  pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>(cloud_target));
+
+  boost::shared_ptr<pcl::Correspondences> correspondences (new pcl::Correspondences);
+  pcl::registration::CorrespondenceEstimation<pcl::PointXYZ, pcl::PointXYZ> estimator;
+  estimator.setInputCloud (source);
+  estimator.setInputTarget (target);
+  //estimator.determineReciprocalCorrespondences (*correspondences);
+  estimator.determineCorrespondences (*correspondences); 
+
+  // check for correct order and number of matches
+
+  //if (int (correspondences->size ()) == nr_original_correspondences)
+  //{
+  
+  std::cout <<"Correspondence Estimation Complete"<< std::endl;
+  std::cout <<"Index, Index Query, Index Match"<< std::endl;
+  for (int i = 0; i < Ns; ++i){
+    if (i<P)
+      std::cout <<i<<","<<(*correspondences)[i].index_query<<","<<(*correspondences)[i].index_match<< std::endl;
+    if ((*correspondences)[i].index_match == -1)
+      M=i;
+  }
+  std::cout << M << " matches found"<< std::endl ;
+  
+
+  //pcl::PointCloud<pcl::PointXYZ>::Ptr source (new pcl::PointCloud<pcl::PointXYZ>(cloud_source));
+  //pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>(cloud_target));
+
+  // re-do correspondence estimation - already done above
+  //boost::shared_ptr<pcl::Correspondences> SNRcorrespondences (new pcl::Correspondences);
+  //pcl::registration::CorrespondenceEstimation<pcl::PointXYZ, pcl::PointXYZ> corr_est;
+  //corr_est.setInputCloud (source);
+  //corr_est.setInputTarget (target);
+  //corr_est.determineCorrespondences (*SNRcorrespondences);
+
+  pcl::PointCloud<pcl::PointNormal>::Ptr source_normals(new pcl::PointCloud<pcl::PointNormal>);
+  pcl::copyPointCloud(*source, *source_normals);
+  pcl::PointCloud<pcl::PointNormal>::Ptr target_normals(new pcl::PointCloud<pcl::PointNormal>);
+  pcl::copyPointCloud(*target, *target_normals);
+
+  pcl::NormalEstimation<pcl::PointNormal, pcl::PointNormal> norm_est_src;
+  norm_est_src.setSearchMethod (pcl::search::KdTree<pcl::PointNormal>::Ptr (new pcl::search::KdTree<pcl::PointNormal>));
+  norm_est_src.setKSearch (10);
+  norm_est_src.setInputCloud (source_normals);
+  norm_est_src.compute (*source_normals);
+
+  pcl::NormalEstimation<pcl::PointNormal, pcl::PointNormal> norm_est_tgt;
+  norm_est_tgt.setSearchMethod (pcl::search::KdTree<pcl::PointNormal>::Ptr (new pcl::search::KdTree<pcl::PointNormal>));
+  norm_est_tgt.setKSearch (10);
+  norm_est_tgt.setInputCloud (target_normals);
+  norm_est_tgt.compute (*target_normals);
+
+  pcl::registration::CorrespondenceRejectorSurfaceNormal  corr_rej_surf_norm;
+  corr_rej_surf_norm.initializeDataContainer <pcl::PointXYZ, pcl::PointNormal> ();
+  corr_rej_surf_norm.setInputSource <pcl::PointXYZ> (source);
+  corr_rej_surf_norm.setInputTarget <pcl::PointXYZ> (target);
+  corr_rej_surf_norm.setInputNormals <pcl::PointXYZ, pcl::PointNormal> (source_normals);
+  corr_rej_surf_norm.setTargetNormals <pcl::PointXYZ, pcl::PointNormal> (target_normals);
+
+  boost::shared_ptr<pcl::Correspondences>  correspondences_result_rej_surf_norm (new pcl::Correspondences);
+  corr_rej_surf_norm.setInputCorrespondences (correspondences);
+  corr_rej_surf_norm.setThreshold (0.5);
+
+  corr_rej_surf_norm.getCorrespondences (*correspondences_result_rej_surf_norm);
+
+  std::cout <<"Surface Normal Correspondence Rejector Complete"<< std::endl;
+  std::cout <<"Index, Index Query, Index Match"<< std::endl;
+
+  int M_rsn=-1;
+  for (int i = 0; i < P; ++i)
+    std::cout <<i<<","<<(*correspondences_result_rej_surf_norm)[i].index_query
+                 <<","<<(*correspondences_result_rej_surf_norm)[i].index_match<< std::endl;
+
+                  //std::cout <<"Index, Index Query, Index Match"<< std::endl;
+  for (int i = 0; i < Ns; ++i){
+    if (i<P)
+      std::cout <<i<<","<<(*correspondences)[i].index_query<<","<<(*correspondences)[i].index_match<< std::endl;
+    if ((*correspondences_result_rej_surf_norm)[i].index_match == -1)
+      M_rsn=i;
+  }
+  std::cout << M << " matches found out of " << Ns << " source points and " <<Nt<<" target points" << std::endl ;
+
+  
+
   std::cout <<"CONVERTING CORRESPONDENCE POINTCLOUDS TO EIGEN" << std::endl;
   //int N = cloud_source.size();
-  int N = 50;
-  int S,T;
+  //int N = 50;
+  int Nc = 50;
+  int src_idx,tgt_idx;
   // Convert the point cloud to Eigen
-  Eigen::Matrix<double, 3, Eigen::Dynamic> src(3, N);
-  Eigen::Matrix<double, 3, Eigen::Dynamic> tgt(3, N);
-  for (size_t i = 0; i < N; ++i) {
-    S=(*correspondences)[i].index_query;
-    T=(*correspondences)[i].index_match;
-    src.col(i) << cloud_source[S].x, cloud_source[S].y, cloud_source[S].z;
-    tgt.col(i) << cloud_target[T].x, cloud_target[T].y, cloud_target[T].z;
+  Eigen::Matrix<double, 3, Eigen::Dynamic> src(3, Ns);
+  Eigen::Matrix<double, 3, Eigen::Dynamic> tgt(3, Ns);
+  for (size_t i = 0; i < Nc; ++i) {
+    src_idx=(*correspondences_result_rej_surf_norm)[i].index_query;
+    tgt_idx=(*correspondences_result_rej_surf_norm)[i].index_match;
+    src.col(i) << cloud_source[src_idx].x, cloud_source[src_idx].y, cloud_source[src_idx].z;
+    tgt.col(i) << cloud_target[tgt_idx].x, cloud_target[tgt_idx].y, cloud_target[tgt_idx].z;
   }
+
+
 
   /*
   int M = cloud_target.size();
@@ -536,7 +611,7 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   std::cout << soln.translation << std::endl;
   //std::cout << "Error (m): " << (T.topRightCorner(3, 1) - solution.translation).norm() << std::endl;
   std::cout << std::endl;
-  std::cout << "Number of correspondences: " << N << std::endl;
+  std::cout << "Number of correspondences: " << Ns << std::endl;
   std::cout << "Number of outliers: " << N_OUTLIERS << std::endl;
   std::cout << "Time taken (s): "
             << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() /
@@ -796,7 +871,6 @@ int main(int argc, char** argv)
   // Perform RANSAC Segmentation to separate clouds and find part of interest
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,*cloud_filtered,part1_type,coeffs_plane,coeffs_cylinder);
 
-  
   // Perform ICP Cloud Registration to find location and orientation of part of interest
   register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
 
