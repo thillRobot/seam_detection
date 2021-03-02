@@ -26,25 +26,21 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
-#include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/sample_consensus/sac_model_sphere.h>
+#include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/registration/icp.h>
-#include <pcl/registration/correspondence_estimation.h>
-#include <pcl/registration/correspondence_rejection.h>
-#include <pcl/registration/correspondence_rejection_surface_normal.h>
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
 
-#include "ros/package.h"
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -65,37 +61,21 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 //#include <tf/TransformStamped.h>
+#include "ros/package.h"
 
-
-//#include <teaser/ply_io.h>
-//#include <teaser/registration.h>
-//#include <teaser/matcher.h>
-
-//#include <chrono>
-//#include <random>
-
-// Macro constants for generating noise and outliers
-//#define NOISE_BOUND 0.05
-//#define N_OUTLIERS 1700
-//#define OUTLIER_TRANSLATION_LB 5
-//#define OUTLIER_TRANSLATION_UB 10
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
-typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
-
-//typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
-//typedef Eigen::Matrix<double, 3, Eigen::Dynamic>::Ptr EigenCorPtr;
 
 void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin, double xmax, double ymin,double ymax, double zmin, double zmax, double leaf_size)
 {
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(cloud_input,*cloud);
-  std::cout<<"BEGINNING CLOUD FILTERING" << std::endl;
-  std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the lidar (source) cloud. "<< std::endl;
+  std::cout << "BEGINNING CLOUD FILTERING" << std::endl;
+  std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
 
-  //Apply Bouding Box Filter
+  // XYZ Box Filter cloud before segementation
   pcl::PassThrough<pcl::PointXYZ> pass;cloud_input,
   pass.setInputCloud(cloud);
 
@@ -114,11 +94,14 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
   //pass.setFilterLimits(0.01,0.5);
   pass.filter (*cloud);
 
-  std::cout<<"Bounding Box Filter Limits: [" <<xmin<<","<<xmax<<","<<ymin<<","<<ymax<<","<<zmin<<","<<zmax<<"]"<< std::endl;
-  std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+  std::cout<<"Box/XYZ Filter Limits: [" <<xmin<<","<<xmax<<","<<ymin<<","<<ymax<<","<<zmin<<","<<zmax<<"]"<< std::endl;
+  std::cout<<"After box/XYZ filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+
 
   // Apply Voxel Filter the Cloud
   // use "001f","001f","0001f" or "none" to set voxel leaf size
+
+
   if (leaf_size>0)
   {
     pcl::VoxelGrid<pcl::PointXYZ> vox;
@@ -139,14 +122,17 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
 void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, PointCloud &cloud_output3, const std::string& part1_type, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
 {
 
-  // instantiate objects needed for segment_cloud function
+  // instantiate all objects needed for segment_cloud function
+  //pcl::PCDReader reader;
+  //pcl::PassThrough<PointT> pass;
   pcl::NormalEstimation<PointT, pcl::Normal> ne;
   pcl::SACSegmentationFromNormals<PointT, pcl::Normal> seg;
+  //pcl::PCDWriter writer;
   pcl::ExtractIndices<PointT> extract;
   pcl::ExtractIndices<pcl::Normal> extract_normals;
   pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT> ());
 
-  // Datasets - local to this function - could save resources here by not having copies for each step of cascade
+  // Datasets - local to this function
   //pcl::PointCloud<PointT>::Ptr cloud (new pcl::PointCloud<PointT>);
   pcl::PointCloud<PointT>::Ptr cloud_filtered (new pcl::PointCloud<PointT>);
   pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal>);
@@ -161,11 +147,12 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   pcl::PointCloud<PointT>::Ptr cloud_squaretube (new pcl::PointCloud<PointT> ());
   pcl::PointCloud<PointT>::Ptr cloud_plane (new pcl::PointCloud<PointT> ());
 
-  // Apply Bounding Box and Voxel filters before performing segmentation
-  filter_cloud(cloud_input,*cloud_filtered, -0.2, 0.4, 0.0, 0.4, -0.30, 0.50, 0.0005);
+  // Apply Workspace Filter using XYZ and Voxel filters before performing segmentation
+  filter_cloud(cloud_input,*cloud_filtered, -0.2, 0.4, -0.2, 0.4, -0.30, 0.50, 0.0005);
 
-  std::cout <<"BEGINNING RANSAC SEGMENTATION" << std::endl;
-  std::cout<<"Performing First Segmentaion on " <<cloud_filtered->width * cloud_filtered->height << " points"<<std::endl;
+  std::cout << "BEGINNING RANSAC SEGMENTATION" << std::endl;
+  
+  std::cout<<"Performing First Segmentaion"<<std::endl;
   std::cout<<"Searching for plate/table as: SACMODEL_NORMAL_PLANE"<< std::endl;; // as a single plane?
 
   // Estimate point normals before segmentation
@@ -174,8 +161,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   ne.setKSearch (50);
   ne.compute (*cloud_normals);
 
-  // Perform RANSAC Segmentation to find plane of the table first - Is it worth exposing these parameters to the config file? It would be easy.
-  // Instantiate segmentation object for the planar model and set parameters
+  // Perform RANSAC Segmentation to find plane first
+  // Instantiate segmentation object for the planar model and set all the parameters
   seg.setOptimizeCoefficients (true);
   seg.setModelType (pcl::SACMODEL_NORMAL_PLANE);
   seg.setNormalDistanceWeight (0.1);
@@ -190,7 +177,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   *C_plane=*coefficients_plane;
   std::cout << "Plane coefficients: " << *coefficients_plane << std::endl;
 
-  // Extract the planar inliers from the input (filtered) cloud - these are points in the plane model
+  // Extract the planar inliers from the input cloud
   extract.setInputCloud (cloud_filtered);
   extract.setIndices (inliers_plane);
   extract.setNegative (false);
@@ -198,7 +185,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   std::cout << "The PointCloud representing the planar component contains: " << cloud_plane->points.size () << " data points." << std::endl;
 
-  // Remove the planar inliers and proceed with the rest of the points
+  // Remove the planar inliers, extract the rest
   extract.setNegative (true);
   extract.filter (*cloud_filtered2); // cloud filtered2 are the outliers of the plane segmentation
   extract_normals.setNegative (true);
@@ -212,9 +199,9 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   // Copy the plane inliers as cloud for part 2 (plate or table)
   pcl::copyPointCloud(*cloud_plane,cloud_output2);
 
-  // Re-apply bounding box without voxel filter (notice leafsize=-1) before performing second segmentation
-  // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane - fix this!
-  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.2, 0.4, 0.0, 0.4, 0.00, 0.5, -1);
+  // Apply Box and Voxel filters before performing second segmentation
+  // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane
+  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.2, 0.4, -0.2, 0.4, 0.00, 0.5, -1);
 
   if (part1_type=="round_tube") //part two is a cylinder - this variable is set by command lines args
   {
@@ -259,10 +246,10 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
     pcl::copyPointCloud(*cloud_cylinder,cloud_output1);    // use second segmentation
 
-  }else if (part1_type=="square_tube") // part two is a square tube - collection of orthognal planes
+  }else if (part1_type=="square_tube")
   {
 
-    std::cout<<"Performing Second Segmentation"<<std::endl;
+    std::cout<<"Performing Second Segmentaion"<<std::endl;
     std::cout<<"Searching for square-tube as: <INSERT SACMODEL>"<< std::endl;; // as a single plane?
     // Estimate point normals
     ne.setSearchMethod (tree);
@@ -305,29 +292,36 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   {
     std::cout<<"Skipping Second Segmentation"<<std::endl;
     std::cout<<"Proceeding with filtered outliers of first segmentation"<<std::endl;
-    pcl::copyPointCloud(*cloud_filtered3,cloud_output1); // ignore second segmentation and copy to output 
+    pcl::copyPointCloud(*cloud_filtered3,cloud_output1); // ignore second segmentation  
   }
 
   std::cerr << "END OF SEGMENT_CLOUD FUNCTION" << std::endl;
 
 }
 
-// This function REGISTER_CLOUD finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
+// This function REGISTER_CLOUD finds the transform between two pointclouds
+void register_cloud(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
 {
- 
-  // make a copy of the CAD(target) cloud called 'cloud_A' 
+
+  // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
   PointCloud::Ptr cloud_A (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(cloud_target,*cloud_A);
-  // make a copy of the LiDAR(source) cloud called 'cloud_B'
+  // make a copy of the lidar cloud called 'cloud'
   PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(cloud_source,*cloud_B);
 
+  std::cout <<"BEGINNING ICP REGISTRATION" << std::endl;
+  std::cout<<"Using Search Parameters:"<< std::endl;
+  std::cout<<"Max Correspondence Distance = "<< params[0] <<std::endl;
+  std::cout<<"Maximum Number of Iterations = "<< params[1] <<std::endl;
+  std::cout<<"Transformation Epsilon = "<< params[2] <<std::endl;
+  std::cout<<"Euclidean Distance Difference Epsilon = "<< params[3] <<std::endl;
   // perform ICP on the lidar and cad clouds
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
   pcl::PointCloud<pcl::PointXYZ> Final;
 
-  Eigen::MatrixXf T_result, T_inverse;
+  Eigen::MatrixXf T_result;
+  Eigen::MatrixXf T_inverse;
 
   // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
   icp.setMaxCorrespondenceDistance (params[0]);
@@ -339,241 +333,69 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   icp.setEuclideanFitnessEpsilon (params[3]);
 
   icp.setInputTarget(cloud_A); // target (fixed) cloud
-  icp.setInputSource(cloud_B);  // source (moved during ICP) cloud
-  icp.align(Final); // do ICP
+  icp.setInputCloud(cloud_B);  // source (moved during ICP) cloud
+  icp.align(Final);
 
   T_result=icp.getFinalTransformation(); // get the resutls of ICP
   T_inverse=T_result.inverse();
+
+  //Eigen::MatrixXf *T_eig (new Eigen::MatrixXf);
+  //T_result=icp.getFinalTransformation(); // get the resutls of ICP
 
   std::cout << "ICP COMPLETED" << std::endl;
   std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
   std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
   std::cout << T_result << std::endl;
-  std::cout << "ICP Algorithm Information: " << std::endl;
-  std::cout <<  icp.getSearchMethodTarget() << std::endl;
 
-  // This part seems very over bloated !!! 
-  // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
-  // the benefit is that the transformation matrix or quaternion is available as TF
+  //tf::Transform *T (new tf::Transform);
+  //tf::transformEigenToTF(T_result,*T);
 
+  // this part seems very over bloated !!! I feel like this is done in a method somewhere
+  // I spent forever on this part and it seems like it needs to be overhauled, i guess it works for now
+  // use last collum of Transformation as center of marker
   tf::Quaternion q_result;
   tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
 
   tf::Quaternion q_inverse;
   tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
   // instantiate a 3x3 rotation matrix from the transformation matrix // I feel like this is done in a method somewhere
-  tf::Matrix3x3 R_result( T_result(0,0),T_result(0,1),T_result(0,2),
-                          T_result(1,0),T_result(1,1),T_result(1,2),
-                          T_result(2,0),T_result(2,1),T_result(2,2));
-  tf2::Matrix3x3 R_result_tf2(T_result(0,0),T_result(0,1),T_result(0,2),
-                              T_result(1,0),T_result(1,1),T_result(1,2),
-                              T_result(2,0),T_result(2,1),T_result(2,2));
+  tf::Matrix3x3 R_result(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
+  tf2::Matrix3x3 R_result_tf2(T_result(0,0),T_result(0,1),T_result(0,2),T_result(1,0),T_result(1,1),T_result(1,2),T_result(2,0),T_result(2,1),T_result(2,2));
 
-  tf::Matrix3x3 R_inverse(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),
-                          T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),
-                          T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
-  tf2::Matrix3x3 R_inverse_tf2( T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),
-                                T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),
-                                T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
+  tf::Matrix3x3 R_inverse(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
+  tf2::Matrix3x3 R_inverse_tf2(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
 
   // copy tf::quaternion from R_result to q_result
   R_result.getRotation(q_result);
   R_result_tf2.getRotation(*q_result_tf2);
-  q_result_tf2->normalize(); // normalize the Quaternion
 
   // copy tf::quaternion from R_result to q_result
   R_inverse.getRotation(q_inverse);
   R_inverse_tf2.getRotation(*q_inverse_tf2);
-  q_inverse_tf2->normalize(); // normalize the Quaternion
 
   // set set rotation and origin of a quaternion for the tf transform object
   T_AB.setRotation(q_result);
   T_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
 
-  // set set rotation and origin of a quaternion for the tf transform object
+  //T_AB.setRotation(R_result.getRotation());
+  //T_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+
+  // new 'TF2' style tf transform object
+  q_result_tf2->normalize(); // normalize the Quaternion
+  //tf2_out.setRotation(*q_result_tf2);
+  //tf2_out.setOrigin(tf2::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+
+  // set set rotation and origin tfof a quaternion for the tf transform object
   T_BA.setRotation(q_inverse);
   T_BA.setOrigin(tf::Vector3(T_inverse(0,3),T_inverse(1,3),T_inverse(2,3)));
-
-  tf::transformStampedTFToMsg(T_AB,msg_AB);
-  tf::transformStampedTFToMsg(T_BA,msg_BA);
-
-  std::cout << "END OF REGISTER_CLOUD_ICP FUNCTION" << std::endl;
-}
-
-/*
-// This function REGISTER_CLOUD finds the transform between two pointclouds using PCL::registration
-void register_cloud_PCL(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[], EigenCor &cor_src_pts, EigenCor &cor_tgt_pts)
-{
- 
-  int Ns = cloud_source.size();
-  int Nt = cloud_target.size();
-  int P = 50; //number to print
-  int M = -1; //number of matches
-  std::cout <<"Beginning Correspondence Estimation with PCL"<< std::endl;
-  std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
-
-  pcl::PointCloud<pcl::PointXYZ>::Ptr source (new pcl::PointCloud<pcl::PointXYZ>(cloud_source));
-  pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>(cloud_target));
-
-  boost::shared_ptr<pcl::Correspondences> correspondences (new pcl::Correspondences);
-  pcl::registration::CorrespondenceEstimation<pcl::PointXYZ, pcl::PointXYZ> estimator;
-  estimator.setInputCloud (source);
-  estimator.setInputTarget (target);
-  //estimator.determineReciprocalCorrespondences (*correspondences); // use reciprocal correspondences
-  estimator.determineCorrespondences (*correspondences);             
-
-  // check for correct order and number of matches
-
-  //if (int (correspondences->size ()) == nr_original_correspondences)
-  //{
-  
-  std::cout <<"Correspondence Estimation Complete"<< std::endl;
-  std::cout <<"Index, Index Query, Index Match"<< std::endl;
-  for (int i = 0; i < Ns; ++i){
-    if (i<P)
-      std::cout <<i<<","<<(*correspondences)[i].index_query<<","<<(*correspondences)[i].index_match<< std::endl;
-    if ((*correspondences)[i].index_match == -1)
-      M=i;
-  }
-  std::cout << M << " matches found"<< std::endl ;
-  
-  pcl::PointCloud<pcl::PointNormal>::Ptr source_normals(new pcl::PointCloud<pcl::PointNormal>);
-  pcl::copyPointCloud(*source, *source_normals);
-  pcl::PointCloud<pcl::PointNormal>::Ptr target_normals(new pcl::PointCloud<pcl::PointNormal>);
-  pcl::copyPointCloud(*target, *target_normals);
-
-  pcl::NormalEstimation<pcl::PointNormal, pcl::PointNormal> norm_est_src;
-  norm_est_src.setSearchMethod (pcl::search::KdTree<pcl::PointNormal>::Ptr (new pcl::search::KdTree<pcl::PointNormal>));
-  norm_est_src.setKSearch (10);
-  norm_est_src.setInputCloud (source_normals);
-  norm_est_src.compute (*source_normals);
-
-  pcl::NormalEstimation<pcl::PointNormal, pcl::PointNormal> norm_est_tgt;
-  norm_est_tgt.setSearchMethod (pcl::search::KdTree<pcl::PointNormal>::Ptr (new pcl::search::KdTree<pcl::PointNormal>));
-  norm_est_tgt.setKSearch (10);
-  norm_est_tgt.setInputCloud (target_normals);
-  norm_est_tgt.compute (*target_normals);
-
-  pcl::registration::CorrespondenceRejectorSurfaceNormal  corr_rej_surf_norm;
-  corr_rej_surf_norm.initializeDataContainer <pcl::PointXYZ, pcl::PointNormal> ();
-  corr_rej_surf_norm.setInputSource <pcl::PointXYZ> (source);
-  corr_rej_surf_norm.setInputTarget <pcl::PointXYZ> (target);
-  corr_rej_surf_norm.setInputNormals <pcl::PointXYZ, pcl::PointNormal> (source_normals);
-  corr_rej_surf_norm.setTargetNormals <pcl::PointXYZ, pcl::PointNormal> (target_normals);
-
-  boost::shared_ptr<pcl::Correspondences>  correspondences_result_rej_surf_norm (new pcl::Correspondences);
-  corr_rej_surf_norm.setInputCorrespondences (correspondences);
-  corr_rej_surf_norm.setThreshold (0.5);
-
-  corr_rej_surf_norm.getCorrespondences (*correspondences_result_rej_surf_norm);
-
-  std::cout <<"Surface Normal Correspondence Rejector Complete"<< std::endl;
-  std::cout <<"Index, Index Query, Index Match"<< std::endl;
-
-  int M_rsn=-1;
-  //for (int i = 0; i < P; ++i)
-  //  std::cout <<i<<","<<(*correspondences_result_rej_surf_norm)[i].index_query
-  //               <<","<<(*correspondences_result_rej_surf_norm)[i].index_match<< std::endl;
-
-                  //std::cout <<"Index, Index Query, Index Match"<< std::endl;
-  for (int i = 0; i < Ns; ++i){
-    if (i<P)
-      std::cout <<i<<","<<(*correspondences)[i].index_query<<","<<(*correspondences)[i].index_match<< std::endl;
-    if ((*correspondences_result_rej_surf_norm)[i].index_match == -1)
-      M_rsn=i;
-  }
-  std::cout << M << " matches found out of " << Ns << " source points and " <<Nt<<" target points" << std::endl ;
-
-  std::cout <<"CONVERTING CORRESPONDENCE POINTCLOUDS TO EIGEN" << std::endl;
-  //int N = cloud_source.size();
-  //int N = 50;
-  int Nc = 1000;  // number of correspondences to process
-  int src_idx,tgt_idx;
-  // Convert the point cloud to Eigen
-  EigenCor cor_src(3, Ns);
-  EigenCor cor_tgt(3, Ns);
-  for (size_t i = 0; i < Nc; ++i) {
-    //src_idx=(*correspondences)[i].index_query; // correspondences before rejection
-    //tgt_idx=(*correspondences)[i].index_match;
-    src_idx=(*correspondences_result_rej_surf_norm)[i].index_query; // correspondences after rejection
-    tgt_idx=(*correspondences_result_rej_surf_norm)[i].index_match;
-    cor_src.col(i) << cloud_source[src_idx].x, cloud_source[src_idx].y, cloud_source[src_idx].z;
-    cor_tgt.col(i) << cloud_target[tgt_idx].x, cloud_target[tgt_idx].y, cloud_target[tgt_idx].z;
-  }
-
-  cor_src_pts=cor_src; // make a copy to use for visualization
-  cor_tgt_pts=cor_tgt;
-
-  std::cout <<"Copied Points Debug"<< std::endl;
-  std::cout <<"Index, Index Query, Index Match"<< std::endl;
-
-  for (int i = 0; i < P; ++i)
-    std::cout <<i<<","<<cor_src_pts.col(i)<< std::endl;  
-
-  Eigen::MatrixXd soln_T(4,4); // a Transformation matrix for the teaser solution 
- // soln_T<<soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),soln.translation(0),
- //         soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),soln.translation(1),
- //         soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2),soln.translation(2),
- //         0                 ,0                 ,0                 ,1                  ;
-
-  // identity is placeholder
-  soln_T<<1,0,0,0,
-          0,1,0,0,
-          0,0,1,0,
-          0,0,0,1 ;        
-
-  Eigen::MatrixXd soln_T_inv(4,4);
-  soln_T_inv=soln_T.inverse(); // take the inverse of the transformation returned by Teaser
-
-  // This part seems very over bloated !!! 
-  // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
-
-  tf::Quaternion q_result;
-  tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
-
-  tf::Quaternion q_inverse;
-  tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
-  // instantiate a 3x3 rotation matrix from the transformation matrix // 
-  
-
-  tf::Matrix3x3 R_result(soln_T(0,0),soln_T(0,1),soln_T(0,2),
-                         soln_T(1,0),soln_T(1,1),soln_T(1,2),
-                         soln_T(2,0),soln_T(2,1),soln_T(2,2));
-  tf2::Matrix3x3 R_result_tf2(soln_T(0,0),soln_T(0,1),soln_T(0,2),
-                              soln_T(1,0),soln_T(1,1),soln_T(1,2),
-                              soln_T(2,0),soln_T(2,1),soln_T(2,2));
-  
-  tf::Matrix3x3 R_inverse(soln_T_inv(0,0),soln_T_inv(0,1),soln_T_inv(0,2),
-                          soln_T_inv(1,0),soln_T_inv(1,1),soln_T_inv(1,2),
-                          soln_T_inv(2,0),soln_T_inv(2,1),soln_T_inv(2,2));
-  tf2::Matrix3x3 R_inverse_tf2( soln_T_inv(0,0),soln_T_inv(0,1),soln_T_inv(0,2),
-                                soln_T_inv(1,0),soln_T_inv(1,1),soln_T_inv(1,2),
-                                soln_T_inv(2,0),soln_T_inv(2,1),soln_T_inv(2,2));
-  
-  // copy tf::quaternion from R_result to q_result
-  R_result.getRotation(q_result);
-  R_result_tf2.getRotation(*q_result_tf2);
-  q_result_tf2->normalize(); // normalize the Quaternion
-
-  // copy tf::quaternion from R_inverse to q_inverse
-  R_inverse.getRotation(q_inverse);
-  R_inverse_tf2.getRotation(*q_inverse_tf2);
+  // new 'TF2' style tf transform object
   q_inverse_tf2->normalize(); // normalize the Quaternion
 
-  // set rotation and origin of a quaternion for the tf transform object
-  T_AB.setRotation(q_result);
-  T_AB.setOrigin(tf::Vector3(soln_T(0),soln_T(1),soln_T(2)));
- 
-  // set rotation and origin of a quaternion for the tf transform object
-  T_BA.setRotation(q_inverse);
-  T_BA.setOrigin(tf::Vector3(soln_T_inv(0,3),soln_T_inv(1,3),soln_T_inv(2,3)));
-  
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  std::cout << "END OF REGISTER_CLOUD_PCL FUNCTION" << std::endl;
+  std::cout << "END OF REGISTER_CLOUD FUNCTION" << std::endl;
 }
-*/
 
 void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_BC, tf::StampedTransform &T_AC, tf::StampedTransform &T_CA, geometry_msgs::TransformStamped &msg_AC,geometry_msgs::TransformStamped &msg_CA){
 
@@ -597,6 +419,7 @@ void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_
 // this function prints the info in a TF to the console
 void print_tf(tf::Transform &tf_in)
 {
+
   std::cout<<"Printing Transformation"<<std::endl;
   std::cout<<"Quaternion"<<std::endl;
   std::cout<<"Origin"<<std::endl;
@@ -632,18 +455,21 @@ int main(int argc, char** argv)
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
+  // read the command line arguments to pick the data file and some other details
+  
+  // there is onlt one cmd line arg and it is the name of the config file
+  
+  // find the path to the seam_detection package (this package)
+
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"**************** Loading Configuration File ****************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
-  // find the path to the seam_detection package (this package)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   std::string file_lidar; // source cloud
   std::string file_cad;// reference cloud
   std::string part1_type; // part1 is the part to be welded to plate
 
-  // there is only one cmd line arg and it is the name of the config file
-  // read the config file(yaml) feild to pick the data files and set parameters
   std::string param1;
   node.getParam("scene_file", param1);
   file_lidar=packagepath+'/'+param1;
@@ -666,6 +492,7 @@ int main(int argc, char** argv)
   node.getParam("seam1_xs",xs); // these arrays define x,y,z, points in the model
   node.getParam("seam1_ys",ys);
   node.getParam("seam1_zs",zs);
+
   node.getParam("icp_params",icps);  // these four ICP parameters define the search
 
   // Define array for the four ICP search paremeters
@@ -673,6 +500,7 @@ int main(int argc, char** argv)
     //std::cout<<xs[i]<<ys[i]<<zs[i]<<std::endl;
     icp_params[i]=icps[i]; // copy into an array to be used in register_cloud fn
   }
+
 
   //double sum = 0;
   //nh.getParam("my_double_list", my_double_list);
@@ -682,7 +510,7 @@ int main(int argc, char** argv)
   // tf::Transform tf_searchbox;
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"******************* Preparing Pointcloud Data ***************"<<endl;
+  std::cout<<"******************* Perparing Pointcloud Data ***************"<<endl;
   std::cout<<"*************************************************************"<<endl;
 
   // instantiate some clouds
@@ -741,17 +569,17 @@ int main(int argc, char** argv)
   geometry_msgs::TransformStamped *T_10_msg (new geometry_msgs::TransformStamped);
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
 
-  //geometry_msgs::TransformStamped *T_12_msg (new geometry_msgs::TransformStamped);
-  //T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
+  geometry_msgs::TransformStamped *T_12_msg (new geometry_msgs::TransformStamped);
+  T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
 
-  //geometry_msgs::TransformStamped *T_21_msg (new geometry_msgs::TransformStamped);
-  //T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
+  geometry_msgs::TransformStamped *T_21_msg (new geometry_msgs::TransformStamped);
+  T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
 
-  //geometry_msgs::TransformStamped *T_02_msg (new geometry_msgs::TransformStamped);
-  //T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
+  geometry_msgs::TransformStamped *T_02_msg (new geometry_msgs::TransformStamped);
+  T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
 
-  //geometry_msgs::TransformStamped *T_20_msg (new geometry_msgs::TransformStamped);
-  //T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
+  geometry_msgs::TransformStamped *T_20_msg (new geometry_msgs::TransformStamped);
+  T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
 
   pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients);
   pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
@@ -765,13 +593,9 @@ int main(int argc, char** argv)
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,*cloud_filtered,part1_type,coeffs_plane,coeffs_cylinder);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
+  register_cloud(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg,icp_params);
 
-  int N_cor=100;
-
-  //EigenCor cor_src_pts, cor_tgt_pts;
-  //register_cloud_teaser(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params, cor_src_pts, cor_tgt_pts);
-  //register_cloud_FPFHteaser(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params, cor_src_pts, cor_tgt_pts);
+  //std::cout<<"Computing Matrix Inverse"<<std::endl;
 
   // now move the CAD part to the newly located frame
   pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
@@ -779,24 +603,24 @@ int main(int argc, char** argv)
   //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
 
   // repeat registration on moved cad model (ICP second pass)
-  //register_cloud(*cloud_cad2, *cloud_part1, *T_21, *T_12, *T_21_msg, *T_12_msg,icp_params);
+  register_cloud(*cloud_cad2, *cloud_part1, *T_21, *T_12, *T_21_msg, *T_12_msg,icp_params);
 
   // now move the CAD part again to the newly located frame
-  //pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_12);
-  //std::cout << "Cloud transformed again." << std::endl;
+  pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_12);
+  std::cout << "Cloud transformed again." << std::endl;
 
   //*T_02=(*T_01)*(*T_12); // multiply the two transforms to get final tf
   //*T_20=T_02->inverse(); // get the inverse of the tf
 
-  //combine_transformation(*T_01,*T_12,*T_20,*T_02,*T_20_msg,*T_02_msg);
+  combine_transformation(*T_01,*T_12,*T_20,*T_02,*T_20_msg,*T_02_msg);
   T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01";
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
 
-  //T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
-  //T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
+  T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
+  T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
 
-  //T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
-  //T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
+  T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
+  T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
 
   std::cout << "Final transformation computed and converted to message." <<endl;
   std::cout << "Plane Coefficients" << *coeffs_plane <<endl;
@@ -810,7 +634,6 @@ int main(int argc, char** argv)
   std::cout<<"*************************************************************"<<endl<<endl;
 
   // publish 'markers' to to show the plane and cylinder found with RANSAC
-
   // instantiate pubs for the plane marker
   ros::Publisher pub_plane = node.advertise<visualization_msgs::Marker>("/marker_plane", 1);
   visualization_msgs::Marker marker_plane; // notice the markers are not pointers
@@ -877,86 +700,6 @@ int main(int argc, char** argv)
   marker_cylinder.header.frame_id = "base_link";
   marker_cylinder.header.stamp = ros::Time::now();
 
-  /*
-  //instantiate pub for the points and line marker
-  ros::Publisher pub_pointslines = node.advertise<visualization_msgs::Marker>("marker_pointslines",10);
-
-  visualization_msgs::Marker points_src, points_tgt, line_strip, line_list;
-  points_src.header.frame_id = points_tgt.header.frame_id = line_strip.header.frame_id = line_list.header.frame_id = "base_link";
-  points_src.header.stamp = points_tgt.header.stamp = line_strip.header.stamp = line_list.header.stamp = ros::Time::now();
-  points_src.ns = points_tgt.ns = line_strip.ns = line_list.ns = "points_and_lines";
-  points_src.action = points_tgt.action = line_strip.action = line_list.action = visualization_msgs::Marker::ADD;
-  points_src.pose.orientation.w = points_tgt.pose.orientation.w = line_strip.pose.orientation.w = line_list.pose.orientation.w = 1.0;
-
-  points_src.id = 0;
-  points_tgt.id = 1;
-  line_strip.id = 2;
-  line_list.id = 3;
-
-  points_src.type = visualization_msgs::Marker::POINTS;
-  points_tgt.type = visualization_msgs::Marker::POINTS;
-  
-  line_strip.type = visualization_msgs::Marker::LINE_STRIP;
-  line_list.type = visualization_msgs::Marker::LINE_LIST;
-
-  // POINTS markers use x and y scale for width/height respectively
-  points_src.scale.x = 0.002;
-  points_src.scale.y = 0.002;
-  //points_src.scale.z = 0.002;
-  points_tgt.scale.x = 0.002;
-  points_tgt.scale.y = 0.002;
-  //points_tgt.scale.z = 0.002;
-
-  // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
-  line_strip.scale.x = 0.001;
-  line_list.scale.x = 0.001;
-
-  // Points are green
-  points_src.color.g = 1.0f;
-  points_src.color.a = 1.0;
-  points_tgt.color.r = 1.0f;
-  points_tgt.color.a = 1.0;
-
-  // Line strip is blue
-  line_strip.color.b = 1.0;
-  line_strip.color.a = 1.0;
-
-  // Line list is red
-  line_list.color.r = 1.0;
-  line_list.color.a = 1.0;
-
-  float f = 0.0;
-  // Create the vertices for the points and lines
-  for (uint32_t i = 0; i < 100; ++i)
-  {
-    //float y = 5 * sin(f + i / 100.0f * 2 * M_PI);
-    //float z = 5 * cos(f + i / 100.0f * 2 * M_PI);
-
-    cor_src_pts(1,i);
-
-    geometry_msgs::Point p_src,p_tgt; 
-    p_src.x = cor_src_pts(0,i); // first point of each line is on source cloud
-    p_src.y = cor_src_pts(1,i);
-    p_src.z = cor_src_pts(2,i);
-
-    p_tgt.x = cor_tgt_pts(0,i); // first point of each line is on source cloud
-    p_tgt.y = cor_tgt_pts(1,i);
-    p_tgt.z = cor_tgt_pts(2,i);
-
-    points_src.points.push_back(p_src);
-    points_tgt.points.push_back(p_tgt);
-    //line_strip.points.push_back(p_src);
-
-    // The line list needs two points for each line
-    //line_list.points.push_back(p);
-    //p.x += cor_tgt_pts(0,i); // the second point of each line is on target cloud
-    //p.y += cor_tgt_pts(1,i);
-    //p.z += cor_tgt_pts(2,i);
-
-    //line_list.points.push_back(p);
-  }
-  */
- 
   //print_tf(*T_02);
   //print_tf(*T_01); // print the info in the TFs for debugging
   //print_tf(*T_10);
@@ -993,11 +736,11 @@ int main(int argc, char** argv)
       T_01_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_msg);
       T_10_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_msg);
 
-      //T_12_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_12_msg);
-      //T_21_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_21_msg);
+      T_12_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_12_msg);
+      T_21_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_21_msg);
 
-      //T_02_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_02_msg);
-      //T_20_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_20_msg);
+      T_02_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_02_msg);
+      T_20_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_20_msg);
 
       pub_lidar.publish(cloud_lidar);
       pub_filtered.publish(cloud_filtered);
@@ -1009,13 +752,6 @@ int main(int argc, char** argv)
 
       pub_plane.publish(marker_plane);
       pub_cylinder.publish(marker_cylinder);
-
-      /*
-      pub_pointslines.publish(points_src);
-      pub_pointslines.publish(points_tgt);
-      pub_pointslines.publish(line_strip);
-      pub_pointslines.publish(line_list);
-      */
 
       ros::spinOnce();
       loop_rate.sleep();

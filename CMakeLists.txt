@@ -25,7 +25,9 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
-find_package(teaserpp REQUIRED)
+#find_package(teaserpp REQUIRED)
+find_package(Boost 1.58 REQUIRED)
+find_package(PCL 1.8 REQUIRED) # COMPONENTS common features kdtree)
 
 
 ## System dependencies are found with CMake's conventions
@@ -220,7 +222,7 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-find_package(PCL 1.8 REQUIRED) # I do not think this is needed...
+
 
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
@@ -231,11 +233,24 @@ add_definitions(${PCL_DEFINITIONS})
 ###########################################
 
 
+# Teaser Stuff is all disabled for now
 # Change this line to include your own executable file
-add_executable(teaser_cpp_ply src/teaser_cpp_ply.cc)
-
 # Link to teaserpp & Eigen3
-target_link_libraries(teaser_cpp_ply Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_io)
+# add_executable(teaser_cpp_ply src/teaser_cpp_ply.cc)
+# target_link_libraries(teaser_cpp_ply Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_io)
+
+# Change this line to include your own executable file
+# add_executable(teaser_cpp_fpfh src/teaser_cpp_fpfh.cc)
+
+# Link to teaserpp & Eigen3 // teaser::features requires PCL 1.9
+# target_link_libraries(teaser_cpp_fpfh Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_features
+#        teaserpp::teaser_io ${PCL_LIBRARIES})
+
+# Copy the data files to build directory
+# file(COPY ../example_data/
+#        DESTINATION ./example_data/
+#        FILES_MATCHING
+#        PATTERN *.ply)
 
 
 ## primary nodes for the SEAM_DETECTION package
@@ -244,14 +259,14 @@ target_link_libraries(teaser_cpp_ply Eigen3::Eigen teaserpp::teaser_registration
 add_executable(seam_detection src/seam_detection.cpp)
 target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-add_executable(seam_detection_teaser src/seam_detection_teaser.cpp)
-target_link_libraries(seam_detection_teaser 
-  ${catkin_LIBRARIES} 
-  ${PCL_LIBRARIES} 
-  Eigen3::Eigen 
-  teaserpp::teaser_registration 
-  teaserpp::teaser_io
-  )
+#add_executable(seam_detection_teaser src/seam_detection_teaser.cpp)
+#target_link_libraries(seam_detection_teaser 
+#  ${catkin_LIBRARIES} 
+#  ${PCL_LIBRARIES} 
+#  Eigen3::Eigen 
+#  teaserpp::teaser_registration 
+#  teaserpp::teaser_io
+#  )
 
 # seam_detection_ICP
 add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
