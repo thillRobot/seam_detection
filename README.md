@@ -128,7 +128,7 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="lidar_cad_scenes
 #### RANSAC + ICP SEAM DETECTION - In Development
 ##### Use RANSAC + ICP for weld seam detection. First segmenmmt with RANSAC(or other) then use ICP to locate the origin of the part.
 
-These examples have the `round_tube` or a `square_tube` and the `plate`. There can be variations in part1 one but you must choose `round_tube` or a `square_tube`for the segmentation to work properly. These work well, but there is some discrepancy along the length of the cylinder. All other dimensions match very well. This seems to be related to the amount of data that is avaialanble about this dimension.
+These examples have the `round_tube` or a `square_tube` and the `plate`. There can be variations in part1 one but you must choose `round_tube` or a `square_tube`for the segmentation to work properly. These work well, but there is some discrepancy along the length of the cylinder. All other dimensions match very well. This seems to be related to the amount of data that is avaialable about this dimension.
 
 Now you define all the file names and other parameters in a <scene>.yaml file. The .yaml files are saved in `config/`
 ```
@@ -164,7 +164,7 @@ roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_01"
 
 **plate_square_tube_02**
 ```
-roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_02"
+roslaunch seam_detection seam_detection.launch scene:="table_tee_c2_30_blndr"
 ```
 
 ##### add second plane that represents the table that the parts are sitting on.

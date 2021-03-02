@@ -17,6 +17,9 @@ Panels:
         - /TF1/Frames1
         - /Marker1
         - /Marker2
+        - /Marker3
+        - /Marker3/Status1
+        - /Marker3/Namespaces1
       Splitter Ratio: 0.502439022064209
     Tree Height: 1079
   - Class: rviz/Selection
@@ -323,15 +326,7 @@ Visualization Manager:
         All Enabled: false
         T_01:
           Value: true
-        T_02:
-          Value: true
         T_10:
-          Value: true
-        T_12:
-          Value: true
-        T_20:
-          Value: true
-        T_21:
           Value: true
         base_link:
           Value: true
@@ -347,15 +342,7 @@ Visualization Manager:
           base_link:
             T_01:
               {}
-            T_02:
-              {}
             T_10:
-              {}
-            T_12:
-              {}
-            T_20:
-              {}
-            T_21:
               {}
       Update Interval: 0
       Value: true
@@ -375,6 +362,14 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: false
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /marker_pointslines
+      Name: Marker
+      Namespaces:
+        points_and_lines: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -403,7 +398,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.7628893852233887
+      Distance: 3.2945005893707275
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -418,10 +413,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.24479764699935913
+      Pitch: 0.6197972297668457
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.197208285331726
+      Yaw: 1.2321949005126953
     Saved: ~
 Window Geometry:
   Displays:
