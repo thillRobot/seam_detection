@@ -173,6 +173,46 @@ This is not working. RANSAC fails.
 roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
 ```
 
+##### Testing TEASER
+
+##### Testing Model Recognition from PCL
+
+```
+rosrun seam_detection correspondence_grouping pcd_images/plate_rect_block/rect_block_02.pcd pcd_images/plate_rect_block/rect_block_02.pcd -c -k
+
+```
+
+the correspondence grouping sample code compile and runs, but it only rfinds a model instance if I give it the same clouds...
+```
+$ rosrun seam_detection correspondence_grouping pcd_images/table_tee/offset_tee_01.pcd pcd_images/table_tee/offset_tee_c1.pcd -c -k
+Failed to find match for field 'rgba'.
+Failed to find match for field 'rgba'.
+Model total points: 98060; Selected Keypoints: 1205
+Scene total points: 98121; Selected Keypoints: 72
+Correspondences found: 60
+Model instances found: 0
+
+$ rosrun seam_detection correspondence_grouping pcd_images/table_tee/offset_tee_c1.pcd pcd_images/table_tee/offset_tee_c1.pcd -c -k
+Failed to find match for field 'rgba'.
+Failed to find match for field 'rgba'.
+Model total points: 98121; Selected Keypoints: 1217
+Scene total points: 98121; Selected Keypoints: 72
+Correspondences found: 70
+Model instances found: 1
+
+    Instance 1:
+        Correspondences belonging to this instance: 56
+
+            |  1.000 -0.000 -0.000 | 
+        R = |  0.000  1.000  0.000 | 
+            |  0.000  0.000  1.000 | 
+
+        t = < 0.000, -0.000, -0.000 >
+
+
+```
+
+
 ```
 BEGINNING RANSAC SEGMENTATION
 Plane coefficients: header:
