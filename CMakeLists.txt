@@ -25,9 +25,11 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
+
 #find_package(teaserpp REQUIRED)
 find_package(Boost 1.58 REQUIRED)
 find_package(PCL 1.8 REQUIRED) # COMPONENTS common features kdtree)
+
 
 
 ## System dependencies are found with CMake's conventions
@@ -223,7 +225,6 @@ include_directories(
 # catkin_add_nosetests(test)
 
 
-
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
@@ -231,6 +232,7 @@ add_definitions(${PCL_DEFINITIONS})
 ###########################################
 ## nodes to be compiled with catkin_make ##
 ###########################################
+
 
 
 # Teaser Stuff is all disabled for now
@@ -253,9 +255,11 @@ add_definitions(${PCL_DEFINITIONS})
 #        PATTERN *.ply)
 
 
+
 ## primary nodes for the SEAM_DETECTION package
 
 # seam_detection
+
 
 add_executable(correspondence_grouping src/correspondence_grouping.cpp)
 target_link_libraries(correspondence_grouping ${catkin_LIBRARIES} ${PCL_LIBRARIES})
@@ -271,6 +275,7 @@ target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 #  teaserpp::teaser_registration 
 #  teaserpp::teaser_io
 #  )
+
 
 # seam_detection_ICP
 add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
