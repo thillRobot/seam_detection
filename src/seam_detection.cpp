@@ -175,7 +175,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
 
   // Apply Bounding Box and Voxel filters before performing segmentation
-  filter_cloud(cloud_input,*cloud_filtered, -0.2, 0.4, 0.0, 0.4, -0.30, 0.50, 0.0005);
+  filter_cloud(cloud_input,*cloud_filtered, -0.25, 0.4, -0.25, 0.4, -0.30, 0.40, 0.0005);
 
   std::cout <<"BEGINNING RANSAC SEGMENTATION" << std::endl;
   std::cout<<"Performing First Segmentaion on " <<cloud_filtered->width * cloud_filtered->height << " points"<<std::endl;
@@ -229,7 +229,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   // Re-apply bounding box without voxel filter (notice leafsize=-1) before performing second segmentation
   // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane - fix this!
-  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.2, 0.4, 0.0, 0.4, 0.00, 0.5, -1);
+  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.25, 0.4, -0.25, 0.4, 0.00, 0.4, -1);
 
   if (part1_type=="round_tube") //part two is a cylinder - this variable is set by command lines args
   {
@@ -279,7 +279,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   {
 
     std::cout<<"Performing Second Segmentation"<<std::endl;
-    std::cout<<"Searching for square-tube as: <INSERT SACMODEL>"<< std::endl;; // as a single plane?
+    std::cout<<"Searching for square-tube as: SACMODEL_PLANE"<< std::endl;; // as a single plane?
     // Estimate point normals
     ne.setSearchMethod (tree);
     ne.setInputCloud (cloud_filtered3);
@@ -289,10 +289,10 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     seg.setOptimizeCoefficients (true);
     seg.setModelType (pcl::SACMODEL_PLANE);
     seg.setMethodType (pcl::SAC_RANSAC);
-    seg.setNormalDistanceWeight (0.1);
+    //seg.setNormalDistanceWeight (0.1);
     seg.setMaxIterations (100);
-    seg.setDistanceThreshold (0.05);
-    seg.setRadiusLimits (0, 0.1);
+    seg.setDistanceThreshold (0.002);
+    //seg.setRadiusLimits (0, 0.1);
     seg.setInputCloud (cloud_filtered3);
     seg.setInputNormals (cloud_normals3);
 
