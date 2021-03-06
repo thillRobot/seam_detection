@@ -25,9 +25,12 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
+
+
 #find_package(teaserpp REQUIRED)
 find_package(Boost 1.58 REQUIRED)
 find_package(PCL 1.8 REQUIRED) # COMPONENTS common features kdtree)
+
 
 
 ## System dependencies are found with CMake's conventions
@@ -256,6 +259,11 @@ add_definitions(${PCL_DEFINITIONS})
 ## primary nodes for the SEAM_DETECTION package
 
 # seam_detection
+
+
+add_executable(correspondence_grouping src/correspondence_grouping.cpp)
+target_link_libraries(correspondence_grouping ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 add_executable(seam_detection src/seam_detection.cpp)
 target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 

@@ -26,6 +26,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
@@ -33,6 +34,15 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/sample_consensus/sac_model_sphere.h>
+
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/registration/icp.h>
+#include <pcl/registration/correspondence_estimation.h>
+#include <pcl/registration/correspondence_rejection.h>
+#include <pcl/registration/correspondence_rejection_surface_normal.h>
+#include <pcl/visualization/pcl_visualizer.h>
+
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/registration/icp.h>
@@ -66,6 +76,18 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <tf2_ros/transform_listener.h>
 //#include <tf/TransformStamped.h>
 
+//#include <teaser/ply_io.h>
+//#include <teaser/registration.h>
+//#include <teaser/matcher.h>
+
+//#include <chrono>
+//#include <random>
+
+// Macro constants for generating noise and outliers
+//#define NOISE_BOUND 0.05
+//#define N_OUTLIERS 1700
+//#define OUTLIER_TRANSLATION_LB 5
+//#define OUTLIER_TRANSLATION_UB 10
 
 //#include <teaser/ply_io.h>
 //#include <teaser/registration.h>
@@ -92,38 +114,37 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(cloud_input,*cloud);
+
   std::cout<<"BEGINNING CLOUD FILTERING" << std::endl;
   std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the lidar (source) cloud. "<< std::endl;
 
-  //Apply Bouding Box Filter
+  //Apply Bounding Box Filter
+
   pcl::PassThrough<pcl::PointXYZ> pass;cloud_input,
   pass.setInputCloud(cloud);
 
   pass.setFilterFieldName ("x");
   pass.setFilterLimits(xmin,xmax);
-  //pass.setFilterLimits(0.0,0.5);
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("y");
   pass.setFilterLimits(ymin,ymax);
-  //pass.setFilterLimits(0.0,0.5);
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("z");
   pass.setFilterLimits(zmin,zmax);
-  //pass.setFilterLimits(0.01,0.5);
   pass.filter (*cloud);
 
   std::cout<<"Bounding Box Filter Limits: [" <<xmin<<","<<xmax<<","<<ymin<<","<<ymax<<","<<zmin<<","<<zmax<<"]"<< std::endl;
   std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
 
-  // Apply Voxel Filter the Cloud
-  // use "001f","001f","0001f" or "none" to set voxel leaf size
+  // Apply Voxel Filter 
+
   if (leaf_size>0)
   {
     pcl::VoxelGrid<pcl::PointXYZ> vox;
     vox.setInputCloud (cloud);
-    vox.setLeafSize (leaf_size, leaf_size, leaf_size);
+    vox.setLeafSize (leaf_size, leaf_size, leaf_size); // use "001f","001f","0001f" or "none" to set voxel leaf size
     vox.filter (*cloud);
     std::cout<<"After voxel filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
   }else
@@ -135,7 +156,6 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
 
 }
 
-
 void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, PointCloud &cloud_output3, const std::string& part1_type, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
 {
 
@@ -146,77 +166,96 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   pcl::ExtractIndices<pcl::Normal> extract_normals;
   pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT> ());
 
-  // Datasets - local to this function - could save resources here by not having copies for each step of cascade
-  //pcl::PointCloud<PointT>::Ptr cloud (new pcl::PointCloud<PointT>);
-  pcl::PointCloud<PointT>::Ptr cloud_filtered (new pcl::PointCloud<PointT>);
-  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal>);
-  pcl::PointCloud<PointT>::Ptr cloud_filtered2 (new pcl::PointCloud<PointT>);
-  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2 (new pcl::PointCloud<pcl::Normal>);
-  pcl::PointCloud<PointT>::Ptr cloud_filtered3 (new pcl::PointCloud<PointT>);
-  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals3 (new pcl::PointCloud<pcl::Normal>);
+  //Point CLoud Datasets - local to this function - could save resources here by not having copies for each step of cascade
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals1 (new pcl::PointCloud<pcl::Normal>),
+                                    cloud_normals2 (new pcl::PointCloud<pcl::Normal>),
+                                    cloud_normals3 (new pcl::PointCloud<pcl::Normal>);
+                                    //cloud_normals4 (new pcl::PointCloud<pcl::Normal>);
 
-  pcl::ModelCoefficients::Ptr coefficients_plane (new pcl::ModelCoefficients), coefficients_cylinder (new pcl::ModelCoefficients);
-  pcl::PointIndices::Ptr inliers_plane (new pcl::PointIndices), inliers_cylinder (new pcl::PointIndices);
-  pcl::PointCloud<PointT>::Ptr cloud_cylinder (new pcl::PointCloud<PointT> ());
-  pcl::PointCloud<PointT>::Ptr cloud_squaretube (new pcl::PointCloud<PointT> ());
-  pcl::PointCloud<PointT>::Ptr cloud_plane (new pcl::PointCloud<PointT> ());
+  pcl::PointCloud<PointT>::Ptr cloud_filtered1 (new pcl::PointCloud<PointT>),
+                               cloud_filtered2 (new pcl::PointCloud<PointT>),
+                               cloud_filtered3 (new pcl::PointCloud<PointT>);
+                               //cloud_filtered4 (new pcl::PointCloud<PointT>);
 
-  // Apply Bounding Box and Voxel filters before performing segmentation
-  filter_cloud(cloud_input,*cloud_filtered, -0.2, 0.4, 0.0, 0.4, -0.30, 0.50, 0.0005);
+  pcl::ModelCoefficients::Ptr coefficients_cylinder (new pcl::ModelCoefficients), 
+                              coefficients_plane1 (new pcl::ModelCoefficients),
+                              coefficients_plane2 (new pcl::ModelCoefficients), 
+                              coefficients_plane3 (new pcl::ModelCoefficients);
+  
+  pcl::PointIndices::Ptr inliers_cylinder (new pcl::PointIndices),
+                         inliers_plane1 (new pcl::PointIndices), 
+                         inliers_plane2 (new pcl::PointIndices), 
+                         inliers_plane3 (new pcl::PointIndices);
+  
+  pcl::PointCloud<PointT>::Ptr cloud_cylinder (new pcl::PointCloud<PointT> ()),
+                               cloud_plane1 (new pcl::PointCloud<PointT> ()), 
+                               cloud_plane2 (new pcl::PointCloud<PointT> ()), 
+                               cloud_plane3 (new pcl::PointCloud<PointT> ()), 
+                               cloud_part1 (new pcl::PointCloud<PointT> ());
+  
 
-  std::cout <<"BEGINNING RANSAC SEGMENTATION" << std::endl;
-  std::cout<<"Performing First Segmentaion on " <<cloud_filtered->width * cloud_filtered->height << " points"<<std::endl;
-  std::cout<<"Searching for plate/table as: SACMODEL_NORMAL_PLANE"<< std::endl;; // as a single plane?
+  // Apply Bounding Box and Voxel filters before performing segmentation - reduce cloud to robot workspace
+
+  filter_cloud(cloud_input,*cloud_filtered1, -0.25, 0.4, -0.25, 0.4, 0.00, 0.22, 0.0005); // should these be exposed ? 
+
+  std::cout <<"BEGINNING SEGMENTATION" << std::endl;
+  std::cout<<"Performing First Segmentaion on " <<cloud_filtered1->width * cloud_filtered1->height << " points"<<std::endl;
+  std::cout<<"Searching for plate/table as: SACMODEL_NORMAL_PLANE"<< std::endl; // as a single plane?
 
   // Estimate point normals before segmentation
   ne.setSearchMethod (tree);
-  ne.setInputCloud (cloud_filtered);
+  ne.setInputCloud (cloud_filtered1);
   ne.setKSearch (50);
-  ne.compute (*cloud_normals);
+  ne.compute (*cloud_normals1);
 
-  // Perform RANSAC Segmentation to find plane of the table first - Is it worth exposing these parameters to the config file? It would be easy.
-  // Instantiate segmentation object for the planar model and set parameters
+  // Perform RANSAC Segmentation to find plane of the table first  
+  // Instantiate segmentation object for the planar model and set parameters // should these be exposed ?
   seg.setOptimizeCoefficients (true);
   seg.setModelType (pcl::SACMODEL_NORMAL_PLANE);
   seg.setNormalDistanceWeight (0.1);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setMaxIterations (100);
   seg.setDistanceThreshold (0.03);
-  seg.setInputCloud (cloud_filtered);
-  seg.setInputNormals (cloud_normals);
+  seg.setInputCloud (cloud_filtered1);
+  seg.setInputNormals (cloud_normals1);
 
   // Obtain the plane inliers and coefficients
-  seg.segment (*inliers_plane, *coefficients_plane);
-  *C_plane=*coefficients_plane;
-  std::cout << "Plane coefficients: " << *coefficients_plane << std::endl;
+  seg.segment (*inliers_plane1, *coefficients_plane1);
+  *C_plane=*coefficients_plane1;      // what is this? 
+  std::cout << "Plane coefficients: " << *coefficients_plane1 << std::endl;
 
   // Extract the planar inliers from the input (filtered) cloud - these are points in the plane model
-  extract.setInputCloud (cloud_filtered);
-  extract.setIndices (inliers_plane);
+  extract.setInputCloud (cloud_filtered1);
+  extract.setIndices (inliers_plane1);
   extract.setNegative (false);
-  extract.filter (*cloud_plane);
-
-  std::cout << "The PointCloud representing the planar component contains: " << cloud_plane->points.size () << " data points." << std::endl;
+  extract.filter (*cloud_plane1);
 
   // Remove the planar inliers and proceed with the rest of the points
   extract.setNegative (true);
   extract.filter (*cloud_filtered2); // cloud filtered2 are the outliers of the plane segmentation
-  extract_normals.setNegative (true);
-  extract_normals.setInputCloud (cloud_normals);
-  extract_normals.setIndices (inliers_plane);
-  extract_normals.filter (*cloud_normals2);
+  
+  //extract_normals.setNegative (true);             // are these needed, i think this is done with ne.compute
+  //extract_normals.setInputCloud (cloud_normals1); // tested ok without these
+  //extract_normals.setIndices (inliers_plane1);
+  //extract_normals.filter (*cloud_normals2);
+
+  std::cout << "The PointCloud representing the planar component contains: " << cloud_plane1->points.size () << " data points." << std::endl;
+
 
   // Copy the filtered cloud as third output
-  pcl::copyPointCloud(*cloud_filtered,cloud_output3);
+  pcl::copyPointCloud(*cloud_filtered1,cloud_output3);
 
   // Copy the plane inliers as cloud for part 2 (plate or table)
-  pcl::copyPointCloud(*cloud_plane,cloud_output2);
+  pcl::copyPointCloud(*cloud_plane1,cloud_output2);
 
-  // Re-apply bounding box without voxel filter (notice leafsize=-1) before performing second segmentation
+  // Re-apply bounding box without voxel filter (notice leafsize=-1) before continuing segmentation - removed - not needed
   // zmin=~0.3 here should be automatically set by first segementation using the z value of the plane - fix this!
-  filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.2, 0.4, 0.0, 0.4, 0.00, 0.5, -1);
 
-  if (part1_type=="round_tube") //part two is a cylinder - this variable is set by command lines args
+  //filter_cloud(*cloud_filtered2,*cloud_filtered3, -0.25, 0.4, -0.25, 0.4, 0.00, 0.22, -1); // this should be removed
+  //pcl::copyPointCloud(*cloud_filtered2,*cloud_filtered3); //this is a test
+
+
+  if (part1_type=="round_tube") //part one is a cylinder - this set in the config file
   {
 
     std::cout<<"Performing Second Segmentaion"<<std::endl;
@@ -224,9 +263,9 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
     // Estimate point normals before segmentation
     ne.setSearchMethod (tree);
-    ne.setInputCloud (cloud_filtered3);
+    ne.setInputCloud (cloud_filtered2);
     ne.setKSearch (50);
-    ne.compute (*cloud_normals3);
+    ne.compute (*cloud_normals2);
 
     // Create segmentation object for cylinder segmentation and set parameters
     seg.setOptimizeCoefficients (true);
@@ -236,20 +275,20 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     seg.setMaxIterations (100);
     seg.setDistanceThreshold (0.05);
     seg.setRadiusLimits (0, 0.1);
-    seg.setInputCloud (cloud_filtered3);
-    seg.setInputNormals (cloud_normals3);
+    seg.setInputCloud (cloud_filtered2);
+    seg.setInputNormals (cloud_normals2);
 
     // Obtain the cylinder inliers and coefficients
     seg.segment (*inliers_cylinder, *coefficients_cylinder);
     *C_cylinder=*coefficients_cylinder;
     std::cout << "Cylinder coefficients: " << *coefficients_cylinder << std::endl;
 
-    // Write the cylinder inliers to disk
-    extract.setInputCloud (cloud_filtered3);
+    // copy cylinder inliers to cloud
+    extract.setInputCloud (cloud_filtered2);
     extract.setIndices (inliers_cylinder);
     extract.setNegative (false);
-
     extract.filter (*cloud_cylinder);
+
     if (cloud_cylinder->points.empty ())
       std::cout << "Cannot find a cylindrical component in cloud" << std::endl;
     else
@@ -259,58 +298,115 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
     pcl::copyPointCloud(*cloud_cylinder,cloud_output1);    // use second segmentation
 
+
   }else if (part1_type=="square_tube") // part two is a square tube - collection of orthognal planes
   {
 
     std::cout<<"Performing Second Segmentation"<<std::endl;
-    std::cout<<"Searching for square-tube as: <INSERT SACMODEL>"<< std::endl;; // as a single plane?
+    std::cout<<"Searching for square-tube as: pcl::SACMODEL_PERPENDICULAR_PLANE"<< std::endl; // as a single plane?
+    std::cout<<"Before extracting plane 2: " << cloud_filtered2->points.size () << " data points." << std::endl;
+
     // Estimate point normals
     ne.setSearchMethod (tree);
+    ne.setInputCloud (cloud_filtered2);
+    ne.setKSearch (50);
+    ne.compute (*cloud_normals2);
+
+    // set parameters and perform segmentation 
+    seg.setOptimizeCoefficients (true);
+    seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
+    seg.setMethodType (pcl::SAC_RANSAC);
+    //seg.setNormalDistanceWeight (0.1);
+    seg.setMaxIterations (100);
+    seg.setDistanceThreshold (0.0025);
+
+    // choose an normal vector for the perpendicular plane segmentation
+    seg.setAxis (Eigen::Vector3f (-0.5, 1.0, 0.0));
+    seg.setEpsAngle (0.2); 
+
+    //seg.setRadiusLimits (0, 0.1);
+    seg.setInputCloud (cloud_filtered2);
+    seg.setInputNormals (cloud_normals2);
+    // Obtain the plane inliers and coefficients
+    seg.segment (*inliers_plane2, *coefficients_plane2);
+    *C_plane=*coefficients_plane2;
+
+    // copy the model inliers to a cloud 
+    extract.setInputCloud (cloud_filtered2);
+    extract.setIndices (inliers_plane2);
+    
+    extract.setNegative (false);
+    extract.filter (*cloud_plane2);
+
+    extract.setNegative (true);
+    extract.filter (*cloud_filtered3);
+
+    std::cout << "After extracting plane 2: " << cloud_filtered3->points.size () << " data points." << std::endl;
+
     ne.setInputCloud (cloud_filtered3);
     ne.setKSearch (50);
     ne.compute (*cloud_normals3);
-    // Create the segmentation object for ??? segmentation and set the parameters
+
+    // set parameters and perform segmentation 
     seg.setOptimizeCoefficients (true);
-    seg.setModelType (pcl::SACMODEL_PLANE);
+    seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
     seg.setMethodType (pcl::SAC_RANSAC);
-    seg.setNormalDistanceWeight (0.1);
-    seg.setMaxIterations (100);
-    seg.setDistanceThreshold (0.05);
-    seg.setRadiusLimits (0, 0.1);
+
+    // set the search axis to the cross product of the axis normal to plane 2, this should give an alternate face of the square tube 
+    seg.setAxis (Eigen::Vector3f (-coefficients_plane2->values[1],coefficients_plane2->values[0], 0.0)); 
+    seg.setEpsAngle (0.1); 
+    seg.setMaxIterations (1000);
+    seg.setDistanceThreshold (0.0015);
     seg.setInputCloud (cloud_filtered3);
     seg.setInputNormals (cloud_normals3);
+    // Obtain the plane inliers and coefficients
+    seg.segment (*inliers_plane3, *coefficients_plane3);
+    *C_plane=*coefficients_plane3;
 
-    // Obtain the square-tube inliers and coefficients
-    seg.segment (*inliers_cylinder, *coefficients_cylinder);
-    *C_cylinder=*coefficients_cylinder;
-    std::cout << "Square Tube coefficients : " << *coefficients_cylinder << std::endl;
-
-    // Write the square-tube inliers to disk
+    // copy the model inliers to a cloud 
     extract.setInputCloud (cloud_filtered3);
-    extract.setIndices (inliers_cylinder);
-    extract.setNegative (false);
+    extract.setIndices (inliers_plane3);
 
-    extract.filter (*cloud_squaretube);
-    if (cloud_squaretube->points.empty ())
-      std::cout << "Cannot find the square tube component of cloud." << std::endl;
+    extract.setNegative (false);
+    extract.filter (*cloud_plane3);
+
+    *cloud_part1=(*cloud_plane2)+(*cloud_plane3); // concatenate clouds to work the 
+    
+    if (cloud_plane2->points.empty ())
+      std::cout << "Cannot find the plane component of cloud." << std::endl;
     else
     {
-      std::cout << "PointCloud representing the square tube component: " << cloud_squaretube->points.size () << " data points." << std::endl;
+      std::cout << "PointCloud representing the plane component: " << cloud_plane2->points.size () << " data points." << std::endl;
+      std::cout << "PointCloud representing the plane component: " << cloud_plane3->points.size () << " data points." << std::endl;
+      std::cout << "PointCloud representing the plane component: " << cloud_part1->points.size () << " data points." << std::endl;
+      std::cout << "Plane3 Coefs: " << coefficients_plane2->values[0] << std::endl 
+                                    << coefficients_plane2->values[1] << std::endl 
+                                    << coefficients_plane2->values[2] << std::endl 
+                                    << coefficients_plane2->values[3] << std::endl;
       //writer.write ("table_scene_mug_stereo_textured_cylinder.pcd", *cloud_cylinder, false);
     }
 
-    pcl::copyPointCloud(*cloud_squaretube,cloud_output1);  // use second segmentation
+    //pcl::copyPointCloud(*cloud_plane2,cloud_output1);  // use second segmentation
+    pcl::copyPointCloud(*cloud_part1,cloud_output1);  // use second segmentation
+    //pcl::copyPointCloud(*cloud_plane3,cloud_output1);  // use second segmentation
 
   }else if (part1_type=="generic")
   {
     std::cout<<"Skipping Second Segmentation"<<std::endl;
     std::cout<<"Proceeding with filtered outliers of first segmentation"<<std::endl;
-    pcl::copyPointCloud(*cloud_filtered3,cloud_output1); // ignore second segmentation and copy to output 
+
+
+    pcl::copyPointCloud(*cloud_filtered2,cloud_output1); // ignore second segmentation and copy to output 
+
+
+
   }
 
   std::cerr << "END OF SEGMENT_CLOUD FUNCTION" << std::endl;
 
 }
+
+
 
 // This function REGISTER_CLOUD finds the transform between two pointclouds using PCL::IterativeClosestPoint
 void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
@@ -322,6 +418,15 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   // make a copy of the LiDAR(source) cloud called 'cloud_B'
   PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(cloud_source,*cloud_B);
+
+
+
+  std::cout <<"BEGINNING ICP REGISTRATION" << std::endl;
+  std::cout<<"Using Search Parameters:"<< std::endl;
+  std::cout<<"Max Correspondence Distance = "<< params[0] <<std::endl;
+  std::cout<<"Maximum Number of Iterations = "<< params[1] <<std::endl;
+  std::cout<<"Transformation Epsilon = "<< params[2] <<std::endl;
+  std::cout<<"Euclidean Distance Difference Epsilon = "<< params[3] <<std::endl;
 
   // perform ICP on the lidar and cad clouds
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
@@ -348,13 +453,16 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   std::cout << "ICP COMPLETED" << std::endl;
   std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
   std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
-  std::cout << T_result << std::endl;
-  std::cout << "ICP Algorithm Information: " << std::endl;
-  std::cout <<  icp.getSearchMethodTarget() << std::endl;
+  std::cout << "transformation: " << std::endl<< T_result << std::endl;
+  std::cout << "inverse: "<< std::endl << T_inverse << std::endl;
+  //std::cout << "ICP Algorithm Information: " << std::endl;
+  //std::cout <<  icp.getSearchMethodTarget() << std::endl;
+
 
   // This part seems very over bloated !!! 
   // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
   // the benefit is that the transformation matrix or quaternion is available as TF
+
 
   tf::Quaternion q_result;
   tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
@@ -362,6 +470,7 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   tf::Quaternion q_inverse;
   tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
   // instantiate a 3x3 rotation matrix from the transformation matrix // I feel like this is done in a method somewhere
+
   tf::Matrix3x3 R_result( T_result(0,0),T_result(0,1),T_result(0,2),
                           T_result(1,0),T_result(1,1),T_result(1,2),
                           T_result(2,0),T_result(2,1),T_result(2,2));
@@ -376,15 +485,21 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
                                 T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),
                                 T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
 
+
   // copy tf::quaternion from R_result to q_result
   R_result.getRotation(q_result);
   R_result_tf2.getRotation(*q_result_tf2);
+  q_result_tf2->normalize(); // normalize the Quaternion
+
   q_result_tf2->normalize(); // normalize the Quaternion
 
   // copy tf::quaternion from R_result to q_result
   R_inverse.getRotation(q_inverse);
   R_inverse_tf2.getRotation(*q_inverse_tf2);
   q_inverse_tf2->normalize(); // normalize the Quaternion
+
+  q_inverse_tf2->normalize(); // normalize the Quaternion
+
 
   // set set rotation and origin of a quaternion for the tf transform object
   T_AB.setRotation(q_result);
@@ -515,6 +630,7 @@ void register_cloud_PCL(PointCloud &cloud_target, PointCloud &cloud_source, tf::
  //         soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),soln.translation(1),
  //         soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2),soln.translation(2),
  //         0                 ,0                 ,0                 ,1                  ;
+<<<<<<< HEAD
 
   // identity is placeholder
   soln_T<<1,0,0,0,
@@ -536,6 +652,29 @@ void register_cloud_PCL(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   // instantiate a 3x3 rotation matrix from the transformation matrix // 
   
 
+=======
+
+  // identity is placeholder
+  soln_T<<1,0,0,0,
+          0,1,0,0,
+          0,0,1,0,
+          0,0,0,1 ;        
+
+  Eigen::MatrixXd soln_T_inv(4,4);
+  soln_T_inv=soln_T.inverse(); // take the inverse of the transformation returned by Teaser
+
+  // This part seems very over bloated !!! 
+  // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
+
+  tf::Quaternion q_result;
+  tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
+
+  tf::Quaternion q_inverse;
+  tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
+  // instantiate a 3x3 rotation matrix from the transformation matrix // 
+  
+
+>>>>>>> master
   tf::Matrix3x3 R_result(soln_T(0,0),soln_T(0,1),soln_T(0,2),
                          soln_T(1,0),soln_T(1,1),soln_T(1,2),
                          soln_T(2,0),soln_T(2,1),soln_T(2,2));
@@ -635,6 +774,7 @@ int main(int argc, char** argv)
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"**************** Loading Configuration File ****************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
+
   // find the path to the seam_detection package (this package)
   std::string packagepath = ros::package::getPath("seam_detection");
 
@@ -644,6 +784,7 @@ int main(int argc, char** argv)
 
   // there is only one cmd line arg and it is the name of the config file
   // read the config file(yaml) feild to pick the data files and set parameters
+
   std::string param1;
   node.getParam("scene_file", param1);
   file_lidar=packagepath+'/'+param1;
@@ -753,6 +894,8 @@ int main(int argc, char** argv)
   //geometry_msgs::TransformStamped *T_20_msg (new geometry_msgs::TransformStamped);
   //T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
 
+
+
   pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients);
   pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
 
@@ -765,7 +908,9 @@ int main(int argc, char** argv)
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,*cloud_filtered,part1_type,coeffs_plane,coeffs_cylinder);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
+
   register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
+
 
   int N_cor=100;
 
@@ -779,11 +924,13 @@ int main(int argc, char** argv)
   //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
 
   // repeat registration on moved cad model (ICP second pass)
+
   //register_cloud(*cloud_cad2, *cloud_part1, *T_21, *T_12, *T_21_msg, *T_12_msg,icp_params);
 
   // now move the CAD part again to the newly located frame
   //pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_12);
   //std::cout << "Cloud transformed again." << std::endl;
+
 
   //*T_02=(*T_01)*(*T_12); // multiply the two transforms to get final tf
   //*T_20=T_02->inverse(); // get the inverse of the tf
@@ -797,6 +944,8 @@ int main(int argc, char** argv)
 
   //T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
   //T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
+
+
 
   std::cout << "Final transformation computed and converted to message." <<endl;
   std::cout << "Plane Coefficients" << *coeffs_plane <<endl;
@@ -957,6 +1106,7 @@ int main(int argc, char** argv)
   }
   */
  
+
   //print_tf(*T_02);
   //print_tf(*T_01); // print the info in the TFs for debugging
   //print_tf(*T_10);
@@ -998,6 +1148,7 @@ int main(int argc, char** argv)
 
       //T_02_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_02_msg);
       //T_20_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_20_msg);
+
 
       pub_lidar.publish(cloud_lidar);
       pub_filtered.publish(cloud_filtered);

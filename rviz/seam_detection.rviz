@@ -18,7 +18,6 @@ Panels:
         - /Marker1
         - /Marker2
         - /Marker3
-        - /Marker3/Status1
         - /Marker3/Namespaces1
       Splitter Ratio: 0.502439022064209
     Tree Height: 1079
@@ -124,7 +123,7 @@ Visualization Manager:
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 1
+      Size (Pixels): 1.5
       Size (m): 0.0020000000949949026
       Style: Points
       Topic: /cloud_lidar
@@ -222,7 +221,7 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Alpha: 0.5
+    - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
         Max Value: 10
@@ -252,7 +251,7 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Alpha: 0.75
+    - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
         Max Value: 10
@@ -261,7 +260,7 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 35; 43; 238
+      Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
@@ -274,7 +273,7 @@ Visualization Manager:
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 1
+      Size (Pixels): 3
       Size (m): 0.0020000000949949026
       Style: Points
       Topic: /cloud_cad2
@@ -367,7 +366,7 @@ Visualization Manager:
       Marker Topic: /marker_pointslines
       Name: Marker
       Namespaces:
-        points_and_lines: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -398,25 +397,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.2945005893707275
+      Distance: 0.6984026432037354
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.11074430495500565
-        Y: 0.02089555189013481
-        Z: 0.10520573705434799
+        X: 0.20659755170345306
+        Y: 0.03281700238585472
+        Z: 0.05855176970362663
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6197972297668457
+      Pitch: 0.27479708194732666
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.2321949005126953
+      Yaw: 1.7271944284439087
     Saved: ~
 Window Geometry:
   Displays:
