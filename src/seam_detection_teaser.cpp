@@ -76,6 +76,33 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <chrono>
 #include <random>
 
+
+//#include <teaser/ply_io.h>
+//#include <teaser/registration.h>
+//#include <teaser/matcher.h>
+
+//#include <chrono>
+//#include <random>
+
+// Macro constants for generating noise and outliers
+//#define NOISE_BOUND 0.05
+//#define N_OUTLIERS 1700
+//#define OUTLIER_TRANSLATION_LB 5
+//#define OUTLIER_TRANSLATION_UB 10
+
+//#include <teaser/ply_io.h>
+//#include <teaser/registration.h>
+//#include <teaser/matcher.h>
+
+//#include <chrono>
+//#include <random>
+
+// Macro constants for generating noise and outliers
+//#define NOISE_BOUND 0.05
+//#define N_OUTLIERS 1700
+//#define OUTLIER_TRANSLATION_LB 5
+//#define OUTLIER_TRANSLATION_UB 10
+
 // Macro constants for generating noise and outliers
 //#define NOISE_BOUND 0.05
 //#define N_OUTLIERS 1700

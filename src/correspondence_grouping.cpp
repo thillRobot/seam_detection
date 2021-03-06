@@ -421,3 +421,306 @@ main (int argc, char *argv[])
 
   return (0);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //int N_cor=100;
+  //EigenCor cor_src_pts, cor_tgt_pts;
+  //register_cloud_teaser(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params, cor_src_pts, cor_tgt_pts);
+  //register_cloud_FPFHteaser(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params, cor_src_pts, cor_tgt_pts);
+
+// A work in progress - maybe later
+/*
+// This function REGISTER_CLOUD finds the transform between two pointclouds using PCL::registration (ICP from scratch - but why?) 
+// parts of this function work 
+void register_cloud_PCL(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[], EigenCor &cor_src_pts, EigenCor &cor_tgt_pts)
+{
+ 
+  int Ns = cloud_source.size();
+  int Nt = cloud_target.size();
+  int P = 50; //number to print
+  int M = -1; //number of matches
+  std::cout <<"Beginning Correspondence Estimation with PCL"<< std::endl;
+  std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
+
+  pcl::PointCloud<pcl::PointXYZ>::Ptr source (new pcl::PointCloud<pcl::PointXYZ>(cloud_source));
+  pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>(cloud_target));
+
+  boost::shared_ptr<pcl::Correspondences> correspondences (new pcl::Correspondences);
+  pcl::registration::CorrespondenceEstimation<pcl::PointXYZ, pcl::PointXYZ> estimator;
+  estimator.setInputCloud (source);
+  estimator.setInputTarget (target);
+  //estimator.determineReciprocalCorrespondences (*correspondences); // use reciprocal correspondences
+  estimator.determineCorrespondences (*correspondences);             
+
+  // check for correct order and number of matches
+
+  //if (int (correspondences->size ()) == nr_original_correspondences)
+  //{
+  
+  std::cout <<"Correspondence Estimation Complete"<< std::endl;
+  std::cout <<"Index, Index Query, Index Match"<< std::endl;
+  for (int i = 0; i < Ns; ++i){
+    if (i<P)
+      std::cout <<i<<","<<(*correspondences)[i].index_query<<","<<(*correspondences)[i].index_match<< std::endl;
+    if ((*correspondences)[i].index_match == -1)
+      M=i;
+  }
+  std::cout << M << " matches found"<< std::endl ;
+  
+  pcl::PointCloud<pcl::PointNormal>::Ptr source_normals(new pcl::PointCloud<pcl::PointNormal>);
+  pcl::copyPointCloud(*source, *source_normals);
+  pcl::PointCloud<pcl::PointNormal>::Ptr target_normals(new pcl::PointCloud<pcl::PointNormal>);
+  pcl::copyPointCloud(*target, *target_normals);
+
+  pcl::NormalEstimation<pcl::PointNormal, pcl::PointNormal> norm_est_src;
+  norm_est_src.setSearchMethod (pcl::search::KdTree<pcl::PointNormal>::Ptr (new pcl::search::KdTree<pcl::PointNormal>));
+  norm_est_src.setKSearch (10);
+  norm_est_src.setInputCloud (source_normals);
+  norm_est_src.compute (*source_normals);
+
+  pcl::NormalEstimation<pcl::PointNormal, pcl::PointNormal> norm_est_tgt;
+  norm_est_tgt.setSearchMethod (pcl::search::KdTree<pcl::PointNormal>::Ptr (new pcl::search::KdTree<pcl::PointNormal>));
+  norm_est_tgt.setKSearch (10);
+  norm_est_tgt.setInputCloud (target_normals);
+  norm_est_tgt.compute (*target_normals);
+
+  pcl::registration::CorrespondenceRejectorSurfaceNormal  corr_rej_surf_norm;
+  corr_rej_surf_norm.initializeDataContainer <pcl::PointXYZ, pcl::PointNormal> ();
+  corr_rej_surf_norm.setInputSource <pcl::PointXYZ> (source);
+  corr_rej_surf_norm.setInputTarget <pcl::PointXYZ> (target);
+  corr_rej_surf_norm.setInputNormals <pcl::PointXYZ, pcl::PointNormal> (source_normals);
+  corr_rej_surf_norm.setTargetNormals <pcl::PointXYZ, pcl::PointNormal> (target_normals);
+
+  boost::shared_ptr<pcl::Correspondences>  correspondences_result_rej_surf_norm (new pcl::Correspondences);
+  corr_rej_surf_norm.setInputCorrespondences (correspondences);
+  corr_rej_surf_norm.setThreshold (0.5);
+
+  corr_rej_surf_norm.getCorrespondences (*correspondences_result_rej_surf_norm);
+
+  std::cout <<"Surface Normal Correspondence Rejector Complete"<< std::endl;
+  std::cout <<"Index, Index Query, Index Match"<< std::endl;
+
+  int M_rsn=-1;
+  //for (int i = 0; i < P; ++i)
+  //  std::cout <<i<<","<<(*correspondences_result_rej_surf_norm)[i].index_query
+  //               <<","<<(*correspondences_result_rej_surf_norm)[i].index_match<< std::endl;
+
+                  //std::cout <<"Index, Index Query, Index Match"<< std::endl;
+  for (int i = 0; i < Ns; ++i){
+    if (i<P)
+      std::cout <<i<<","<<(*correspondences)[i].index_query<<","<<(*correspondences)[i].index_match<< std::endl;
+    if ((*correspondences_result_rej_surf_norm)[i].index_match == -1)
+      M_rsn=i;
+  }
+  std::cout << M << " matches found out of " << Ns << " source points and " <<Nt<<" target points" << std::endl ;
+
+  std::cout <<"CONVERTING CORRESPONDENCE POINTCLOUDS TO EIGEN" << std::endl;
+  //int N = cloud_source.size();
+  //int N = 50;
+  int Nc = 1000;  // number of correspondences to process
+  int src_idx,tgt_idx;
+  // Convert the point cloud to Eigen
+  EigenCor cor_src(3, Ns);
+  EigenCor cor_tgt(3, Ns);
+  for (size_t i = 0; i < Nc; ++i) {
+    //src_idx=(*correspondences)[i].index_query; // correspondences before rejection
+    //tgt_idx=(*correspondences)[i].index_match;
+    src_idx=(*correspondences_result_rej_surf_norm)[i].index_query; // correspondences after rejection
+    tgt_idx=(*correspondences_result_rej_surf_norm)[i].index_match;
+    cor_src.col(i) << cloud_source[src_idx].x, cloud_source[src_idx].y, cloud_source[src_idx].z;
+    cor_tgt.col(i) << cloud_target[tgt_idx].x, cloud_target[tgt_idx].y, cloud_target[tgt_idx].z;
+  }
+
+  cor_src_pts=cor_src; // make a copy to use for visualization
+  cor_tgt_pts=cor_tgt;
+
+  std::cout <<"Copied Points Debug"<< std::endl;
+  std::cout <<"Index, Index Query, Index Match"<< std::endl;
+
+  for (int i = 0; i < P; ++i)
+    std::cout <<i<<","<<cor_src_pts.col(i)<< std::endl;  
+
+  Eigen::MatrixXd soln_T(4,4); // a Transformation matrix for the teaser solution 
+ // soln_T<<soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),soln.translation(0),
+ //         soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),soln.translation(1),
+ //         soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2),soln.translation(2),
+ //         0                 ,0                 ,0                 ,1                  ;
+<<<<<<< HEAD
+
+  // identity is placeholder
+  soln_T<<1,0,0,0,
+          0,1,0,0,
+          0,0,1,0,
+          0,0,0,1 ;        
+
+  Eigen::MatrixXd soln_T_inv(4,4);
+  soln_T_inv=soln_T.inverse(); // take the inverse of the transformation returned by Teaser
+
+  // This part seems very over bloated !!! 
+  // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
+
+  tf::Quaternion q_result;
+  tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
+
+  tf::Quaternion q_inverse;
+  tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
+  // instantiate a 3x3 rotation matrix from the transformation matrix // 
+  
+
+=======
+
+  // identity is placeholder
+  soln_T<<1,0,0,0,
+          0,1,0,0,
+          0,0,1,0,
+          0,0,0,1 ;        
+
+  Eigen::MatrixXd soln_T_inv(4,4);
+  soln_T_inv=soln_T.inverse(); // take the inverse of the transformation returned by Teaser
+
+  // This part seems very over bloated !!! 
+  // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
+
+  tf::Quaternion q_result;
+  tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
+
+  tf::Quaternion q_inverse;
+  tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
+  // instantiate a 3x3 rotation matrix from the transformation matrix // 
+  
+
+>>>>>>> master
+  tf::Matrix3x3 R_result(soln_T(0,0),soln_T(0,1),soln_T(0,2),
+                         soln_T(1,0),soln_T(1,1),soln_T(1,2),
+                         soln_T(2,0),soln_T(2,1),soln_T(2,2));
+  tf2::Matrix3x3 R_result_tf2(soln_T(0,0),soln_T(0,1),soln_T(0,2),
+                              soln_T(1,0),soln_T(1,1),soln_T(1,2),
+                              soln_T(2,0),soln_T(2,1),soln_T(2,2));
+  
+  tf::Matrix3x3 R_inverse(soln_T_inv(0,0),soln_T_inv(0,1),soln_T_inv(0,2),
+                          soln_T_inv(1,0),soln_T_inv(1,1),soln_T_inv(1,2),
+                          soln_T_inv(2,0),soln_T_inv(2,1),soln_T_inv(2,2));
+  tf2::Matrix3x3 R_inverse_tf2( soln_T_inv(0,0),soln_T_inv(0,1),soln_T_inv(0,2),
+                                soln_T_inv(1,0),soln_T_inv(1,1),soln_T_inv(1,2),
+                                soln_T_inv(2,0),soln_T_inv(2,1),soln_T_inv(2,2));
+  
+  // copy tf::quaternion from R_result to q_result
+  R_result.getRotation(q_result);
+  R_result_tf2.getRotation(*q_result_tf2);
+  q_result_tf2->normalize(); // normalize the Quaternion
+
+  // copy tf::quaternion from R_inverse to q_inverse
+  R_inverse.getRotation(q_inverse);
+  R_inverse_tf2.getRotation(*q_inverse_tf2);
+  q_inverse_tf2->normalize(); // normalize the Quaternion
+
+  // set rotation and origin of a quaternion for the tf transform object
+  T_AB.setRotation(q_result);
+  T_AB.setOrigin(tf::Vector3(soln_T(0),soln_T(1),soln_T(2)));
+ 
+  // set rotation and origin of a quaternion for the tf transform object
+  T_BA.setRotation(q_inverse);
+  T_BA.setOrigin(tf::Vector3(soln_T_inv(0,3),soln_T_inv(1,3),soln_T_inv(2,3)));
+  
+  tf::transformStampedTFToMsg(T_AB,msg_AB);
+  tf::transformStampedTFToMsg(T_BA,msg_BA);
+
+  std::cout << "END OF REGISTER_CLOUD_PCL FUNCTION" << std::endl;
+}
+*/
+
+
+/*
+  //instantiate pub for the points and line marker
+  ros::Publisher pub_pointslines = node.advertise<visualization_msgs::Marker>("marker_pointslines",10);
+
+  visualization_msgs::Marker points_src, points_tgt, line_strip, line_list;
+  points_src.header.frame_id = points_tgt.header.frame_id = line_strip.header.frame_id = line_list.header.frame_id = "base_link";
+  points_src.header.stamp = points_tgt.header.stamp = line_strip.header.stamp = line_list.header.stamp = ros::Time::now();
+  points_src.ns = points_tgt.ns = line_strip.ns = line_list.ns = "points_and_lines";
+  points_src.action = points_tgt.action = line_strip.action = line_list.action = visualization_msgs::Marker::ADD;
+  points_src.pose.orientation.w = points_tgt.pose.orientation.w = line_strip.pose.orientation.w = line_list.pose.orientation.w = 1.0;
+
+  points_src.id = 0;
+  points_tgt.id = 1;
+  line_strip.id = 2;
+  line_list.id = 3;
+
+  points_src.type = visualization_msgs::Marker::POINTS;
+  points_tgt.type = visualization_msgs::Marker::POINTS;
+  
+  line_strip.type = visualization_msgs::Marker::LINE_STRIP;
+  line_list.type = visualization_msgs::Marker::LINE_LIST;
+
+  // POINTS markers use x and y scale for width/height respectively
+  points_src.scale.x = 0.002;
+  points_src.scale.y = 0.002;
+  //points_src.scale.z = 0.002;
+  points_tgt.scale.x = 0.002;
+  points_tgt.scale.y = 0.002;
+  //points_tgt.scale.z = 0.002;
+
+  // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
+  line_strip.scale.x = 0.001;
+  line_list.scale.x = 0.001;
+
+  // Points are green
+  points_src.color.g = 1.0f;
+  points_src.color.a = 1.0;
+  points_tgt.color.r = 1.0f;
+  points_tgt.color.a = 1.0;
+
+  // Line strip is blue
+  line_strip.color.b = 1.0;
+  line_strip.color.a = 1.0;
+
+  // Line list is red
+  line_list.color.r = 1.0;
+  line_list.color.a = 1.0;
+
+  float f = 0.0;
+  // Create the vertices for the points and lines
+  for (uint32_t i = 0; i < 100; ++i)
+  {
+    //float y = 5 * sin(f + i / 100.0f * 2 * M_PI);
+    //float z = 5 * cos(f + i / 100.0f * 2 * M_PI);
+
+    cor_src_pts(1,i);
+
+    geometry_msgs::Point p_src,p_tgt; 
+    p_src.x = cor_src_pts(0,i); // first point of each line is on source cloud
+    p_src.y = cor_src_pts(1,i);
+    p_src.z = cor_src_pts(2,i);
+
+    p_tgt.x = cor_tgt_pts(0,i); // first point of each line is on source cloud
+    p_tgt.y = cor_tgt_pts(1,i);
+    p_tgt.z = cor_tgt_pts(2,i);
+
+    points_src.points.push_back(p_src);
+    points_tgt.points.push_back(p_tgt);
+    //line_strip.points.push_back(p_src);
+
+    // The line list needs two points for each line
+    //line_list.points.push_back(p);
+    //p.x += cor_tgt_pts(0,i); // the second point of each line is on target cloud
+    //p.y += cor_tgt_pts(1,i);
+    //p.z += cor_tgt_pts(2,i);
+
+    //line_list.points.push_back(p);
+  }
+  */
