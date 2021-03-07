@@ -32,6 +32,11 @@ void dataCallback1(const std_msgs::Float32::ConstPtr& msg)
 */
 int main(int argc, char** argv){
 
+
+    std::cout<<"*************************************************************"<<std::endl;
+    std::cout<<"***************** Seam Detection TF v1.4 ********************"<<std::endl;
+    std::cout<<"*************************************************************"<<std::endl;
+
     ros::init(argc, argv, "seam_detection_tf");
     ros::NodeHandle n;
 

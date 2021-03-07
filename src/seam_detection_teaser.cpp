@@ -1157,7 +1157,7 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(2);
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"******************** Seam Detection v1.4 ********************"<<endl;
+  std::cout<<"***************** Seam Detection TEASER v1.4 ****************"<<endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 

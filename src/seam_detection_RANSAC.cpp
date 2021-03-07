@@ -56,6 +56,12 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 int main(int argc, char** argv)
 {
+
+    std::cout<<"*************************************************************"<<endl;
+    std::cout<<"************ Seam Detection RANSAC v1.4 *********************"<<endl;
+    std::cout<<"*************************************************************"<<endl;
+    std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
+
     ros::init(argc,argv,"seam_detection_RANSAC");
     ros::NodeHandle node;
 

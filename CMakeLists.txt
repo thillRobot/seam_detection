@@ -235,6 +235,53 @@ add_definitions(${PCL_DEFINITIONS})
 ## nodes to be compiled with catkin_make ##
 ###########################################
 
+###############################################
+## primary nodes for the SEAM_DETECTION package
+###############################################
+
+# seam_detection
+add_executable(seam_detection src/seam_detection.cpp)
+target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# seam_detection_ICP
+add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
+target_link_libraries(seam_detection_ICP ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# seam_detection_RANSAC
+add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
+target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+#####################################################
+## Supporting nodes for the SEAM_DETECTION package ##
+#####################################################
+
+# seam_detection_tf
+add_executable(seam_detection_tf src/seam_detection_tf.cpp)
+target_link_libraries(seam_detection_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# cad_cloud
+add_executable(cad_cloud src/cad_cloud.cpp)
+target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# cad_cloud_bulk
+add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
+target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+##########################################################
+## Nodes in developement for the SEAM_DETECTION package ##
+##########################################################
+# un-comment if you need to compile development nodes
+# these have not been compiled successfully since they have been moved into /devel
+# NOTE: move these back to src/ if they will not compile in src/devel
+
+# add_executable(seam_detection_teaser src/devel/seam_detection_teaser.cpp)
+# target_link_libraries(seam_detection_teaser 
+#  ${catkin_LIBRARIES} 
+#  ${PCL_LIBRARIES} 
+#  Eigen3::Eigen 
+#  teaserpp::teaser_registration 
+#  teaserpp::teaser_io
+#  )
 
 # Teaser Stuff is all disabled for now
 # Change this line to include your own executable file
@@ -255,72 +302,36 @@ add_definitions(${PCL_DEFINITIONS})
 #        FILES_MATCHING
 #        PATTERN *.ply)
 
+# add_executable(correspondence_grouping src/devel/correspondence_grouping.cpp)
+# target_link_libraries(correspondence_grouping ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-## primary nodes for the SEAM_DETECTION package
-
-# seam_detection
-
-
-add_executable(correspondence_grouping src/correspondence_grouping.cpp)
-target_link_libraries(correspondence_grouping ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(seam_detection src/seam_detection.cpp)
-target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-#add_executable(seam_detection_teaser src/seam_detection_teaser.cpp)
-#target_link_libraries(seam_detection_teaser 
-#  ${catkin_LIBRARIES} 
-#  ${PCL_LIBRARIES} 
-#  Eigen3::Eigen 
-#  teaserpp::teaser_registration 
-#  teaserpp::teaser_io
-#  )
-
-# seam_detection_ICP
-add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
-target_link_libraries(seam_detection_ICP ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-# seam_detection_RANSAC
-add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
-target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-## Supporting nodes for the SEAM_DETECTION package
-
-# seam_detection_tf
-add_executable(seam_detection_tf src/seam_detection_tf.cpp)
-target_link_libraries(seam_detection_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-# cad_cloud
-add_executable(cad_cloud src/cad_cloud.cpp)
-target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-# cad_cloud_bulk
-add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
-target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+################################################################
+## Archived nodes previously used with SEAM_DETECTION package ##
+################################################################
+# un-comment if you need to compile archived nodes
+# these have not been compiled successfully since they have been moved into /archive
+# NOTE: move these back to src/ if they will not compile in src/archive
 
 # import_seam
-# add_executable(import_seam src/import_seam.cpp)
+# add_executable(import_seam src/archive/import_seam.cpp)
 # target_link_libraries(import_seam ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # filter_cloud
-#add_executable(filter_cloud src/filter_cloud.cpp)
-#target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(filter_cloud src/archive/filter_cloud.cpp)
+# target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # plane_filter
-#add_executable(plane_filter_RANSAC src/plane_filter_RANSAC.cpp)
-#target_link_libraries(plane_filter_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(plane_filter_RANSAC src/archive/plane_filter_RANSAC.cpp)
+# target_link_libraries(plane_filter_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # ransac_plane
-add_executable(ransac_plane src/ransac_plane.cpp)
-target_link_libraries(ransac_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(ransac_plane src/archive/ransac_plane.cpp)
+# target_link_libraries(ransac_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # segment_plane
-add_executable(segment_plane src/segment_plane.cpp)
-target_link_libraries(segment_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(segment_plane src/archive/segment_plane.cpp)
+# target_link_libraries(segment_plane ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # segment_cylinder
-add_executable(segment_cylinder src/segment_cylinder.cpp)
-target_link_libraries(segment_cylinder ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-## Archived nodes previously but no longer used with SEAM_DETECTION package
-# un-comment if you need to compile archived nodes
+# add_executable(segment_cylinder src/archive/segment_cylinder.cpp)
+# target_link_libraries(segment_cylinder ${catkin_LIBRARIES} ${PCL_LIBRARIES})

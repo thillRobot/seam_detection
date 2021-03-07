@@ -56,6 +56,11 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 int main (int argc, char** argv)
 {
 
+    std::cout<<"*************************************************************"<<endl;
+    std::cout<<"******************** Seam Detection ICP v1.4 ********************"<<endl;
+    std::cout<<"*************************************************************"<<endl;
+    std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
+
     pcl::PointCloud<pcl::PointXYZ>::Ptr lidar_cloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr filtered_cloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr cad_cloud (new pcl::PointCloud<pcl::PointXYZ>);
