@@ -171,6 +171,15 @@ roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_01"
 roslaunch seam_detection seam_detection.launch scene:="table_tee_c2_30_blndr"
 ```
 
+```
+roslaunch seam_detection seam_detection.launch scene:="table_offset_tee_clamps_c1_blndr"
+
+```
+```
+roslaunch seam_detection seam_detection.launch scene:="table_offset_tee_clamps_c2_30_blndr"
+
+```
+
 ##### add second plane that represents the table that the parts are sitting on.
 This is not working. RANSAC fails.
 ```

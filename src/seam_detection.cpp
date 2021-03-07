@@ -267,7 +267,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     seg.setDistanceThreshold (0.0025);
 
     // choose an normal vector for the perpendicular plane segmentation
-    seg.setAxis (Eigen::Vector3f (-0.5, 1.0, 0.0));
+    //seg.setAxis (Eigen::Vector3f (-0.5, 1.0, 0.0));
+    seg.setAxis (Eigen::Vector3f (0.0, 1.0, 0.0));
     seg.setEpsAngle (0.2); 
     seg.setInputCloud (cloud_filtered2);
     seg.setInputNormals (cloud_normals2);
