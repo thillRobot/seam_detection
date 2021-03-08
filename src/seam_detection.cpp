@@ -128,7 +128,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output, double para
 }
 
 // This function takes the lidar cloud and separates or segments the cloud into different parts
-void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, const std::string& part1_type, double params[])
+void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2,PointCloud &cloud_output3, const std::string& part1_type, double params[])
 {
 
   // instantiate objects needed for segment_cloud function
@@ -327,6 +327,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     // Copy clouds to the function outputs
     pcl::copyPointCloud(*cloud_part1,cloud_output1);  // use second segmentation
     pcl::copyPointCloud(*cloud_plane1,cloud_output2);
+    pcl::copyPointCloud(*cloud_filtered2,cloud_output3);
 
   }else if (part1_type=="generic")
   {
@@ -555,6 +556,7 @@ int main(int argc, char** argv)
   // instantiate some clouds
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
   PointCloud::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
+  PointCloud::Ptr cloud_filtered2 (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
   PointCloud::Ptr cloud_cad1 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
   PointCloud::Ptr cloud_cad2 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud intermediate
   PointCloud::Ptr cloud_cad3 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud final
@@ -633,7 +635,7 @@ int main(int argc, char** argv)
   filter_cloud(*cloud_lidar,*cloud_filtered, filter_params); 
 
   // Perform RANSAC Segmentation to separate clouds and find part of interest
-  segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,part1_type, ransac_params);
+  segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2,part1_type, ransac_params);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
   register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
@@ -756,6 +758,7 @@ int main(int argc, char** argv)
 
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
   ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
+  ros::Publisher pub_filtered2 = node.advertise<PointCloud> ("/cloud_filtered2", 1) ;
   ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
   ros::Publisher pub_cad2 = node.advertise<PointCloud> ("/cloud_cad2", 1) ;
   ros::Publisher pub_cad3 = node.advertise<PointCloud> ("/cloud_cad3", 1) ;
@@ -764,6 +767,7 @@ int main(int argc, char** argv)
 
   cloud_lidar->header.frame_id = "base_link";
   cloud_filtered->header.frame_id = "base_link";
+  cloud_filtered2->header.frame_id = "base_link";
   cloud_cad1->header.frame_id = "base_link";
   cloud_cad2->header.frame_id = "base_link";
   cloud_cad3->header.frame_id = "base_link";
@@ -790,6 +794,7 @@ int main(int argc, char** argv)
 
       pub_lidar.publish(cloud_lidar);
       pub_filtered.publish(cloud_filtered);
+      pub_filtered2.publish(cloud_filtered2);
       pub_cad1.publish(cloud_cad1);
       pub_cad2.publish(cloud_cad2);
       pub_cad3.publish(cloud_cad3);
