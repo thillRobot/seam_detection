@@ -178,7 +178,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   double norm_dist_wt, max_iter,dist_thrsh;
   
-  norm_dist_wt=params[0];  // currentl these do nothing, 
+  norm_dist_wt=params[0];  // currentl these do nothing, i t
   max_iter=params[1];
   dist_thrsh=params[2];
 
@@ -189,7 +189,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   seg.setNormalDistanceWeight (0.1);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setMaxIterations (100);
-  seg.setDistanceThreshold (0.003);
+  seg.setDistanceThreshold (0.03);
   seg.setInputCloud (cloud_filtered1);
   seg.setInputNormals (cloud_normals1);
 
@@ -264,12 +264,12 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
     seg.setMethodType (pcl::SAC_RANSAC);
     seg.setMaxIterations (100);
-    seg.setDistanceThreshold (0.0015);
+    seg.setDistanceThreshold (0.0025);
 
     // choose an normal vector for the perpendicular plane segmentation
-    seg.setAxis (Eigen::Vector3f (-0.5, 1.0, 0.0)); // this needs to be set in the config file!
-    //seg.setAxis (Eigen::Vector3f (0.0, 1.0, 0.0));
-    seg.setEpsAngle (0.1); 
+    //seg.setAxis (Eigen::Vector3f (-0.5, 1.0, 0.0));
+    seg.setAxis (Eigen::Vector3f (0.0, 1.0, 0.0));
+    seg.setEpsAngle (0.2); 
     seg.setInputCloud (cloud_filtered2);
     seg.setInputNormals (cloud_normals2);
     // Obtain the plane inliers and coefficients
@@ -352,7 +352,7 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(cloud_source,*cloud_B);
 
-  std::cout<<"BEGINNING ICP REGISTRATION" << std::endl;
+  std::cout <<"BEGINNING ICP REGISTRATION" << std::endl;
   std::cout<<"Using Search Parameters:"<< std::endl;
   std::cout<<"Max Correspondence Distance = "<< params[0] <<std::endl;
   std::cout<<"Maximum Number of Iterations = "<< params[1] <<std::endl;
