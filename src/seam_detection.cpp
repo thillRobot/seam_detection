@@ -759,6 +759,7 @@ int main(int argc, char** argv)
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
   ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
   ros::Publisher pub_filtered2 = node.advertise<PointCloud> ("/cloud_filtered2", 1) ;
+  //ros::Publisher pub_filtered3 = node.advertise<PointCloud> ("/cloud_filtered3", 1) ;
   ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
   ros::Publisher pub_cad2 = node.advertise<PointCloud> ("/cloud_cad2", 1) ;
   ros::Publisher pub_cad3 = node.advertise<PointCloud> ("/cloud_cad3", 1) ;
@@ -768,6 +769,7 @@ int main(int argc, char** argv)
   cloud_lidar->header.frame_id = "base_link";
   cloud_filtered->header.frame_id = "base_link";
   cloud_filtered2->header.frame_id = "base_link";
+  //cloud_filtered3->header.frame_id = "base_link";
   cloud_cad1->header.frame_id = "base_link";
   cloud_cad2->header.frame_id = "base_link";
   cloud_cad3->header.frame_id = "base_link";
@@ -795,6 +797,7 @@ int main(int argc, char** argv)
       pub_lidar.publish(cloud_lidar);
       pub_filtered.publish(cloud_filtered);
       pub_filtered2.publish(cloud_filtered2);
+      //pub_filtered3.publish(cloud_filtered3);
       pub_cad1.publish(cloud_cad1);
       pub_cad2.publish(cloud_cad2);
       pub_cad3.publish(cloud_cad3);
