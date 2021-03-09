@@ -214,6 +214,16 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   extract.setNegative (true);
   extract.filter (*cloud_filtered2); // cloud filtered2 are the outliers of the plane segmentation
   
+  //Apply Z Filter
+
+  pcl::PassThrough<pcl::PointXYZ> pass;
+  pass.setInputCloud(cloud_filtered2);
+
+  pass.setFilterFieldName ("z");
+  pass.setFilterLimits(-0.01,0.5);
+  pass.filter (*cloud_filtered2);
+
+
   std::cout << "The PointCloud representing the planar component contains: " << cloud_plane1->points.size () << " data points." << std::endl;
 
   if (part1_type=="round_tube") //part one is a cylinder - this is set in the config file
