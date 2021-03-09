@@ -195,7 +195,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   seg.setNormalDistanceWeight (0.1);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setMaxIterations (100);
-  seg.setDistanceThreshold (0.003);
+  //seg.setDistanceThreshold (0.003);
+  seg.setDistanceThreshold (0.03);
   seg.setInputCloud (cloud_filtered1);
   seg.setInputNormals (cloud_normals1);
 
