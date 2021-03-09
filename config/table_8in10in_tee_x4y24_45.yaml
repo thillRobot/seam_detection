@@ -2,15 +2,16 @@
 scene_name: "table_8in10in_tee_x4y24_45"
 scene_file: "pcd_images/table_tee/table_8in10in_tee_x4y24_45.pcd"
 part1_name: "8in10in_tee_01"
-part1_file: "pcd_images/table_tee/8in10in_tee_01_blndr.pcd"
+part1_file: "pcd_images/table_tee/8in10in_tee_01_blndrB.pcd"
 part1_type: "square_tube"
 part2_name: "none"
 part2_type: "none"
 seam1_length: 1.0
 
-filter_params: [0.0, 0.3, -0.7, -0.4, 0.00, 0.22, 0.0005]
+filter_params: [0.0, 0.5, -0.9, -0.4, -0.05, 0.22, 0.0005]
 ransac_params: [0.1,100,0.03,-1.0,1.0,0.0]
-icp_params: [1.0, 1000000000, 0.000000001, 0.000000001]
+icp_params: [0.5, 1000000000, 0.000000001, 0.000000001]
+expected_results: [0.1016, -0.6096, 0.0254,0.0,0.0,0.7854] # [4.0in, -24.0in, 1.0in]*(25.4e-3) #[0.0,0.0,45.0]*(pi/180)
 
 seam1_length: 1.0
 seam1_xs: [10, 11, 12, 13]

@@ -508,28 +508,19 @@ void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_
 }
 
 // this function prints the info in a TF to the console
-void analyze_results(tf::Transform &tf_in,double e_results[])
+void analyze_results(tf::Transform &tf_in1,tf::Transform &tf_in2, double e_trans[], double e_rots[] )
 {
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"********************* Analyzing Results *********************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
-  std::cout<<"Expected Translation: ["<<e_results[0]<<","
-                                      <<e_results[1]<<","
-                                      <<e_results[2]<<"]"<<std::endl;
-
-  std::cout<<"Measured Translation: ["<<tf_in.getOrigin().getX()<<","
-                                      <<tf_in.getOrigin().getY()<<","
-                                      <<tf_in.getOrigin().getZ()<<"]"<<std::endl;
-  
-  std::cout<<"Expected Rotation: [" <<e_results[3]<<","
-                                    <<e_results[4]<<","
-                                    <<e_results[5]<<"]"<<std::endl;
-
-  std::cout<<"Measured Rotation: [" <<tf_in.getRotation().getAxis().getX()
-                                    <<","<<tf_in.getRotation().getAxis().getY()
-                                    <<","<<tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
- 
-  //std::cout<<"W:"<<tf_in.getRotation().getW()<<std::endl;
+  //std::cout<<"Printing Transformation"<<std::endl;
+  //std::cout<<"Quaternion"<<std::endl;
+  std::cout<<"Expected Translation:"<<e_trans[1]<<std::endl;
+  std::cout<<"X:"<<tf_in2.getOrigin().getX()<<std::endl;
+  std::cout<<"Y:"<<tf_in2.getOrigin().getY()<<std::endl;
+  std::cout<<"Z:"<<tf_in2.getOrigin().getZ()<<std::endl;
+  std::cout<<"Axis"<<std::endl;
+  std::cout<<"X:"<<tf_in2.getRotation().getAxis().getX()<<std::endl;
+  std::cout<<"Y:"<<tf_in2.getRotation().getAxis().getY()<<std::endl;
+  std::cout<<"Z:"<<tf_in2.getRotation().getAxis().getZ()<<std::endl;
+  std::cout<<"W:"<<tf_in2.getRotation().getW()<<std::endl;
 }
 
 /*
@@ -541,7 +532,7 @@ void print_tf(tf::Transform &tf_in)
   std::cout<<"Origin"<<std::endl;
   std::cout<<"X:"<<tf_in.getOrigin().getX()<<std::endl;
   std::cout<<"Y:"<<tf_in.getOrigin().getY()<<std::endl;
-  std::cout<<"Z:"<<tf_in.getOrigin().getY()<<std::endl;
+  std::cout<<"Z:"<<tf_in.getOrigin().getZ()<<std::endl;
   std::cout<<"Axis"<<std::endl;
   std::cout<<"X:"<<tf_in.getRotation().getAxis().getX()<<std::endl;
   std::cout<<"Y:"<<tf_in.getRotation().getAxis().getY()<<std::endl;
@@ -559,6 +550,7 @@ void print4x4Matrix (const Eigen::Matrix4d & matrix)
   printf ("t = < %6.3f, %6.3f, %6.3f >\n\n", matrix (0, 3), matrix (1, 3), matrix (2, 3));
 }
 */
+
 
 int main(int argc, char** argv)
 {
@@ -598,18 +590,19 @@ int main(int argc, char** argv)
   node.getParam("part1_type", param3);
   part1_type=param3;
 
-  std::vector<double> xs, ys, zs, filts, sacs, icps, resu;
-  double filter_params[7],ransac_params[3],icp_params[4],expected_results[6];
-
+  std::vector<double> xs, ys, zs, filts, sacs, icps, trans, rots; // why not just leave it as a std::vector ?
+  double filter_params[7],ransac_params[3],icp_params[4], expected_trans[3], expected_rots[3];               // I do not understand why this portion converts
+                                                                        // the lists from the configs to an array
   node.getParam("seam1_xs",xs); // these arrays define x,y,z, points in the model
   node.getParam("seam1_ys",ys);
   node.getParam("seam1_zs",zs);
   node.getParam("filter_params",filts);  // these four filter parameters define the search
   node.getParam("ransac_params",sacs);  // these four ICP parameters define the search
   node.getParam("icp_params",icps);  // these four ICP parameters define the search
-  node.getParam("expected_results",resu);  // these four ICP parameters define the search
+  node.getParam("expected_translation",trans);  // expected translation from ICP 
+  node.getParam("expected_rotation",rots);  // expected rotation from ICP 
  
-  // populate array with the filter parameters
+  // populate array with the filter parameters 
   for(unsigned i=0; i < filts.size(); i++)
     filter_params[i]=filts[i]; // copy into an array to be used in register_cloud fn
   // populate array with the filter parameters
@@ -618,8 +611,11 @@ int main(int argc, char** argv)
   // populate array with the four ICP search paremeters
   for(unsigned i=0; i < icps.size(); i++)
     icp_params[i]=icps[i]; // copy into an array to be used in register_cloud fn
-  for(unsigned i=0; i < resu.size(); i++)
-    expected_results[i]=resu[i]; // copy into an array to be used in register_cloud fn
+  for(unsigned i=0; i < trans.size(); i++)
+  {
+    expected_trans[i]=trans[i]; // copy into an array to be used in register_cloud fn
+    expected_rots[i]=rots[i]; // copy into an array to be used in register_cloud fn
+  }
 
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
@@ -711,16 +707,16 @@ int main(int argc, char** argv)
   filter_cloud(*cloud_lidar,*cloud_filtered, filter_params); 
 
   // Perform RANSAC Segmentation to separate clouds and find part of interest
-  segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2, part1_type, ransac_params);
+  segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2,part1_type, ransac_params);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
   register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
 
+  analyze_results(*T_10, *T_01, expected_trans, expected_rots);  
+
   // now align the CAD part to using the resulting transformation
   pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   
-  analyze_results(*T_01, expected_results);
-
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
   //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
 

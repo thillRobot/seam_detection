@@ -128,7 +128,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output, double para
 }
 
 // This function takes the lidar cloud and separates or segments the cloud into different parts
-void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, const std::string& part1_type, double params[])
+void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, PointCloud &cloud_output3, const std::string& part1_type, double params[])
 {
 
   // instantiate objects needed for segment_cloud function
@@ -141,26 +141,32 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   //Point CLoud Datasets - local to this function - could save resources here by not having copies for each step of cascade
   pcl::PointCloud<pcl::Normal>::Ptr cloud_normals1 (new pcl::PointCloud<pcl::Normal>),
                                     cloud_normals2 (new pcl::PointCloud<pcl::Normal>),
-                                    cloud_normals3 (new pcl::PointCloud<pcl::Normal>);
+                                    cloud_normals3 (new pcl::PointCloud<pcl::Normal>),
+                                    cloud_normals4 (new pcl::PointCloud<pcl::Normal>);
 
   pcl::PointCloud<PointT>::Ptr cloud_filtered1 (new pcl::PointCloud<PointT>),
                                cloud_filtered2 (new pcl::PointCloud<PointT>),
-                               cloud_filtered3 (new pcl::PointCloud<PointT>);
+                               cloud_filtered3 (new pcl::PointCloud<PointT>),
+                               cloud_filtered4 (new pcl::PointCloud<PointT>),
+                               cloud_filtered5 (new pcl::PointCloud<PointT>);
 
   pcl::ModelCoefficients::Ptr coefficients_cylinder (new pcl::ModelCoefficients), 
                               coefficients_plane1 (new pcl::ModelCoefficients),
                               coefficients_plane2 (new pcl::ModelCoefficients), 
-                              coefficients_plane3 (new pcl::ModelCoefficients);
+                              coefficients_plane3 (new pcl::ModelCoefficients),
+                              coefficients_plane4 (new pcl::ModelCoefficients);
   
   pcl::PointIndices::Ptr inliers_cylinder (new pcl::PointIndices),
                          inliers_plane1 (new pcl::PointIndices), 
                          inliers_plane2 (new pcl::PointIndices), 
-                         inliers_plane3 (new pcl::PointIndices);
+                         inliers_plane3 (new pcl::PointIndices),
+                         inliers_plane4 (new pcl::PointIndices);
   
   pcl::PointCloud<PointT>::Ptr cloud_cylinder (new pcl::PointCloud<PointT> ()),
                                cloud_plane1 (new pcl::PointCloud<PointT> ()), 
                                cloud_plane2 (new pcl::PointCloud<PointT> ()), 
-                               cloud_plane3 (new pcl::PointCloud<PointT> ()), 
+                               cloud_plane3 (new pcl::PointCloud<PointT> ()),
+                               cloud_plane4 (new pcl::PointCloud<PointT> ()),  
                                cloud_part1 (new pcl::PointCloud<PointT> ());
   
   // copy the input cloud to begin the segmentation 
@@ -178,7 +184,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
   double norm_dist_wt, max_iter,dist_thrsh;
   
-  norm_dist_wt=params[0];  // currentl these do nothing, i t
+  norm_dist_wt=params[0];  // currentl these do nothing, 
   max_iter=params[1];
   dist_thrsh=params[2];
 
@@ -189,7 +195,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   seg.setNormalDistanceWeight (0.1);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setMaxIterations (100);
-  seg.setDistanceThreshold (0.03);
+  seg.setDistanceThreshold (0.003);
   seg.setInputCloud (cloud_filtered1);
   seg.setInputNormals (cloud_normals1);
 
@@ -209,7 +215,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   
   std::cout << "The PointCloud representing the planar component contains: " << cloud_plane1->points.size () << " data points." << std::endl;
 
-  if (part1_type=="round_tube") //part one is a cylinder - this set in the config file
+  if (part1_type=="round_tube") //part one is a cylinder - this is set in the config file
   {
 
     std::cout<<"Performing Second Segmentaion"<<std::endl;
@@ -264,12 +270,12 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
     seg.setMethodType (pcl::SAC_RANSAC);
     seg.setMaxIterations (100);
-    seg.setDistanceThreshold (0.0025);
+    seg.setDistanceThreshold (0.0015);
 
     // choose an normal vector for the perpendicular plane segmentation
-    //seg.setAxis (Eigen::Vector3f (-0.5, 1.0, 0.0));
-    seg.setAxis (Eigen::Vector3f (0.0, 1.0, 0.0));
-    seg.setEpsAngle (0.2); 
+    //seg.setAxis (Eigen::Vector3f (-0.5, 1.0, 0.0)); // this needs to be set in the config file!
+    seg.setAxis (Eigen::Vector3f (params[3], params[4], params[5])); // and now it is!
+    seg.setEpsAngle (0.1); 
     seg.setInputCloud (cloud_filtered2);
     seg.setInputNormals (cloud_normals2);
     // Obtain the plane inliers and coefficients
@@ -284,7 +290,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     extract.setNegative (true);
     extract.filter (*cloud_filtered3);
 
-    std::cout << "After extracting plane 2: " << cloud_filtered3->points.size () << " data points." << std::endl;
+    std::cout << "Extracted first plane of part 1 with " << cloud_plane2->points.size () << " data points." << std::endl;
+    std::cout << "There are " << cloud_filtered3->points.size () << " data points remaining." << std::endl;
 
     ne.setInputCloud (cloud_filtered3);
     ne.compute (*cloud_normals3);
@@ -307,8 +314,46 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     extract.setIndices (inliers_plane3);
     extract.setNegative (false);
     extract.filter (*cloud_plane3);
+    extract.setNegative (true);
+    extract.filter (*cloud_filtered4);
 
-    *cloud_part1=(*cloud_plane2)+(*cloud_plane3); // concatenate clouds to work the 
+    std::cout << "Extracted second plane of part 1 with " << cloud_plane3->points.size () << " data points." << std::endl;
+    std::cout << "There are " << cloud_filtered4->points.size () << " data points remaining." << std::endl;
+
+    ne.setInputCloud (cloud_filtered4);
+    ne.compute (*cloud_normals4);
+
+    // set parameters and perform segmentation 
+    seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
+    // set the search axis to the cross product of the axis normal to plane 2, this should give an alternate face of the square tube 
+    float A_plane4,B_plane4,C_plane4;
+    A_plane4=(coefficients_plane2->values[1])*(coefficients_plane3->values[2])-(coefficients_plane2->values[2])*(coefficients_plane3->values[1]);
+    B_plane4=(coefficients_plane2->values[2])*(coefficients_plane3->values[0])-(coefficients_plane2->values[0])*(coefficients_plane3->values[2]);
+    C_plane4=(coefficients_plane2->values[0])*(coefficients_plane3->values[1])-(coefficients_plane2->values[1])*(coefficients_plane3->values[0]);   
+
+    seg.setAxis (Eigen::Vector3f ( A_plane4, B_plane4, C_plane4)); 
+    seg.setEpsAngle (0.1); 
+    seg.setMaxIterations (1000);
+    seg.setDistanceThreshold (0.0015);
+    seg.setInputCloud (cloud_filtered4);
+    seg.setInputNormals (cloud_normals4);
+    // Obtain the plane inliers and coefficients
+    seg.segment (*inliers_plane4, *coefficients_plane4);
+    //*C_plane=*coefficients_plane3;
+
+    // copy the model inliers to a cloud 
+    extract.setInputCloud (cloud_filtered4);
+    extract.setIndices (inliers_plane4);
+    extract.setNegative (false);
+    extract.filter (*cloud_plane4);
+    extract.setNegative (true);
+    extract.filter (*cloud_filtered5);
+
+    std::cout << "Extracted third plane of part 1 with " << cloud_plane4->points.size () << " data points." << std::endl;
+    std::cout << "There are " << cloud_filtered5->points.size () << " data points remaining." << std::endl;
+
+    *cloud_part1=(*cloud_plane2)+(*cloud_plane3); // concatenate clouds to work the
+    *cloud_part1=(*cloud_part1)+(*cloud_plane4);  // perform the concatenation in two steps becauase one line did not work
     
     if (cloud_plane2->points.empty ())
       std::cout << "Cannot find the plane component of cloud." << std::endl;
@@ -316,7 +361,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     {
       std::cout << "PointCloud representing the plane component: " << cloud_plane2->points.size () << " data points." << std::endl;
       std::cout << "PointCloud representing the plane component: " << cloud_plane3->points.size () << " data points." << std::endl;
-      std::cout << "PointCloud representing the plane component: " << cloud_part1->points.size () << " data points." << std::endl;
+      std::cout << "PointCloud representing the plane component: " << cloud_plane4->points.size () << " data points." << std::endl;
+      std::cout << "PointCloud representing the part component: " << cloud_part1->points.size () << " data points." << std::endl;
       std::cout << "Plane3 Coefs: " << coefficients_plane2->values[0] << std::endl 
                                     << coefficients_plane2->values[1] << std::endl 
                                     << coefficients_plane2->values[2] << std::endl 
@@ -327,6 +373,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     // Copy clouds to the function outputs
     pcl::copyPointCloud(*cloud_part1,cloud_output1);  // use second segmentation
     pcl::copyPointCloud(*cloud_plane1,cloud_output2);
+    pcl::copyPointCloud(*cloud_filtered2,cloud_output3);
 
   }else if (part1_type=="generic")
   {
@@ -352,7 +399,7 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(cloud_source,*cloud_B);
 
-  std::cout <<"BEGINNING ICP REGISTRATION" << std::endl;
+  std::cout<<"BEGINNING ICP REGISTRATION" << std::endl;
   std::cout<<"Using Search Parameters:"<< std::endl;
   std::cout<<"Max Correspondence Distance = "<< params[0] <<std::endl;
   std::cout<<"Maximum Number of Iterations = "<< params[1] <<std::endl;
@@ -555,6 +602,7 @@ int main(int argc, char** argv)
   // instantiate some clouds
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
   PointCloud::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
+  PointCloud::Ptr cloud_filtered2 (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
   PointCloud::Ptr cloud_cad1 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
   PointCloud::Ptr cloud_cad2 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud intermediate
   PointCloud::Ptr cloud_cad3 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud final
@@ -633,7 +681,7 @@ int main(int argc, char** argv)
   filter_cloud(*cloud_lidar,*cloud_filtered, filter_params); 
 
   // Perform RANSAC Segmentation to separate clouds and find part of interest
-  segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,part1_type, ransac_params);
+  segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2,part1_type, ransac_params);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
   register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
@@ -756,6 +804,8 @@ int main(int argc, char** argv)
 
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
   ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
+  ros::Publisher pub_filtered2 = node.advertise<PointCloud> ("/cloud_filtered2", 1) ;
+  //ros::Publisher pub_filtered3 = node.advertise<PointCloud> ("/cloud_filtered3", 1) ;
   ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
   ros::Publisher pub_cad2 = node.advertise<PointCloud> ("/cloud_cad2", 1) ;
   ros::Publisher pub_cad3 = node.advertise<PointCloud> ("/cloud_cad3", 1) ;
@@ -764,6 +814,8 @@ int main(int argc, char** argv)
 
   cloud_lidar->header.frame_id = "base_link";
   cloud_filtered->header.frame_id = "base_link";
+  cloud_filtered2->header.frame_id = "base_link";
+  //cloud_filtered3->header.frame_id = "base_link";
   cloud_cad1->header.frame_id = "base_link";
   cloud_cad2->header.frame_id = "base_link";
   cloud_cad3->header.frame_id = "base_link";
@@ -790,6 +842,8 @@ int main(int argc, char** argv)
 
       pub_lidar.publish(cloud_lidar);
       pub_filtered.publish(cloud_filtered);
+      pub_filtered2.publish(cloud_filtered2);
+      //pub_filtered3.publish(cloud_filtered3);
       pub_cad1.publish(cloud_cad1);
       pub_cad2.publish(cloud_cad2);
       pub_cad3.publish(cloud_cad3);
