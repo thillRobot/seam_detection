@@ -128,7 +128,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output, double para
 }
 
 // This function takes the lidar cloud and separates or segments the cloud into different parts
-void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, PointCloud &cloud_output3, const std::string& part1_type, double params[])
+void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, PointCloud &cloud_output3,PointCloud &cloud_output4, const std::string& part1_type, double params[])
 {
 
   // instantiate objects needed for segment_cloud function
@@ -195,8 +195,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   seg.setNormalDistanceWeight (0.1);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setMaxIterations (100);
-  //seg.setDistanceThreshold (0.003);
-  seg.setDistanceThreshold (0.03);
+  seg.setDistanceThreshold (0.003);
+  //seg.setDistanceThreshold (0.03);
   seg.setInputCloud (cloud_filtered1);
   seg.setInputNormals (cloud_normals1);
 
@@ -216,12 +216,12 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   
   //Apply Z Filter
 
-  pcl::PassThrough<pcl::PointXYZ> pass;
-  pass.setInputCloud(cloud_filtered2);
+  //pcl::PassThrough<pcl::PointXYZ> pass;
+  //pass.setInputCloud(cloud_filtered2);
 
-  pass.setFilterFieldName ("z");
-  pass.setFilterLimits(-0.01,0.5);
-  pass.filter (*cloud_filtered2);
+  //pass.setFilterFieldName ("z");
+  //pass.setFilterLimits(-0.01,0.5);
+  //pass.filter (*cloud_filtered2);
 
 
   std::cout << "The PointCloud representing the planar component contains: " << cloud_plane1->points.size () << " data points." << std::endl;
@@ -385,6 +385,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     pcl::copyPointCloud(*cloud_part1,cloud_output1);  // use second segmentation
     pcl::copyPointCloud(*cloud_plane1,cloud_output2);
     pcl::copyPointCloud(*cloud_filtered2,cloud_output3);
+    pcl::copyPointCloud(*cloud_filtered5,cloud_output4);
 
   }else if (part1_type=="generic")
   {
@@ -400,7 +401,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
+void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[],double e_results[],double c_offset[])
 {
  
   // make a copy of the CAD(target) cloud called 'cloud_A' 
@@ -495,6 +496,55 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"********************* Analyzing Results *********************"<<endl;
+  std::cout<<"*************************************************************"<<endl<<endl;
+  
+  double roll, pitch, yaw;
+  R_inverse.getRPY(roll, pitch, yaw);
+
+  std::cout<<"Calibration Translation:  ["<<c_offset[0]<<","
+                                          <<c_offset[1]<<","
+                                          <<c_offset[2]<<"]"<<std::endl;
+  std::cout<<"Calibration Rotation:     ["<<c_offset[3]<<","
+                                          <<c_offset[4]<<","
+                                          <<c_offset[5]<<"]"<<std::endl;
+
+
+  std::cout<<"Expected Translation: ["<<e_results[0]<<","
+                                      <<e_results[1]<<","
+                                      <<e_results[2]<<"]"<<std::endl;
+  std::cout<<"Measured Translation: ["<<T_inverse(0,3)<<","
+                                      <<T_inverse(1,3)<<","
+                                      <<T_inverse(2,3)<<"]"<<std::endl;
+  std::cout<<"Difference Translation: ["<<e_results[0]-T_inverse(0,3)<<","
+                                      <<e_results[1]-T_inverse(1,3)<<","
+                                      <<e_results[2]-T_inverse(2,3)<<"]"<<std::endl;
+ std::cout<<"Corrected Translation: ["<<T_inverse(0,3)+c_offset[0]<<","
+                                      <<T_inverse(1,3)+c_offset[1]<<","
+                                      <<T_inverse(2,3)+c_offset[2]<<"]"<<std::endl;
+ std::cout<<"Corr Diff Translation: ["<<e_results[0]-T_inverse(0,3)+c_offset[0]<<","
+                                      <<e_results[1]-T_inverse(1,3)+c_offset[1]<<","
+                                      <<e_results[2]-T_inverse(2,3)+c_offset[2]<<"]"<<std::endl;
+
+    
+  std::cout<<"Expected Rotation: [" <<e_results[3]<<","
+                                    <<e_results[4]<<","
+                                    <<e_results[5]<<"]"<<std::endl;
+  std::cout<<"Measured Rotation: [" <<roll
+                                    <<","<<pitch
+                                    <<","<<yaw<<"]"<<std::endl; 
+  std::cout<<"Difference Rotation: ["<<e_results[3]-roll
+                                    <<","<<e_results[4]-pitch
+                                    <<","<<e_results[5]-yaw<<"]"<<std::endl; 
+  std::cout<<"Corrected Rotation: ["<<roll+c_offset[3]<<","
+                                      <<pitch+c_offset[4]<<","
+                                      <<yaw+c_offset[5]<<"]"<<std::endl;
+  std::cout<<"Corr Diff Rotation: ["<<e_results[3]-roll+c_offset[3]<<","
+                                    <<e_results[3]-pitch+c_offset[4]<<","
+                                    <<e_results[3]-yaw+c_offset[5]<<"]"<<std::endl;
+
+
   std::cout << "END OF REGISTER_CLOUD_ICP FUNCTION" << std::endl;
 }
 
@@ -517,31 +567,48 @@ void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_
   tf::transformStampedTFToMsg(T_CA,msg_CA);
 
 }
-
+/*
 // this function prints the info in a TF to the console
-void analyze_results(tf::Transform &tf_in,double e_results[])
+void analyze_results(tf::Transform &tf_in,double e_results[],double c_offset[])
 {
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"********************* Analyzing Results *********************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
-  std::cout<<"Expected Translation: ["<<e_results[0]<<","
+  
+  std::cout<<"Calibration Translation:  ["<<c_offset[0]<<","
+                                          <<c_offset[1]<<","
+                                          <<c_offset[2]<<"]"<<std::endl;
+  std::cout<<"Calibration Rotation:     ["<<c_offset[3]<<","
+                                          <<c_offset[4]<<","
+                                          <<c_offset[5]<<"]"<<std::endl;
+
+
+  std::cout<<"[Expected,Translation: ["<<e_results[0]<<","
                                       <<e_results[1]<<","
                                       <<e_results[2]<<"]"<<std::endl;
-
   std::cout<<"Measured Translation: ["<<tf_in.getOrigin().getX()<<","
                                       <<tf_in.getOrigin().getY()<<","
                                       <<tf_in.getOrigin().getZ()<<"]"<<std::endl;
+  std::cout<<"Difference Translation: ["<<e_results[0]-tf_in.getOrigin().getX()<<","
+                                      <<e_results[1]-tf_in.getOrigin().getY()<<","
+                                      <<e_results[2]-tf_in.getOrigin().getZ()<<"]"<<std::endl;
+
   
   std::cout<<"Expected Rotation: [" <<e_results[3]<<","
                                     <<e_results[4]<<","
                                     <<e_results[5]<<"]"<<std::endl;
-
   std::cout<<"Measured Rotation: [" <<tf_in.getRotation().getAxis().getX()
                                     <<","<<tf_in.getRotation().getAxis().getY()
                                     <<","<<tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
+  std::cout<<"Difference Rotation: [" <<e_results[3]-tf_in.getRotation().getAxis().getX()
+                                    <<","<<e_results[4]-tf_in.getRotation().getAxis().getY()
+                                    <<","<<e_results[5]-tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
+
+
  
   //std::cout<<"W:"<<tf_in.getRotation().getW()<<std::endl;
 }
+*/
 
 /*
 // this function prints the info in a TF to the console
@@ -609,8 +676,8 @@ int main(int argc, char** argv)
   node.getParam("part1_type", param3);
   part1_type=param3;
 
-  std::vector<double> xs, ys, zs, filts, sacs, icps, resu;
-  double filter_params[7],ransac_params[3],icp_params[4],expected_results[6];
+  std::vector<double> xs, ys, zs, filts, sacs, icps, resu, calib;
+  double filter_params[7],ransac_params[3],icp_params[4],expected_results[6],calibration_offset[6];
 
   node.getParam("seam1_xs",xs); // these arrays define x,y,z, points in the model
   node.getParam("seam1_ys",ys);
@@ -619,7 +686,9 @@ int main(int argc, char** argv)
   node.getParam("ransac_params",sacs);  // these four ICP parameters define the search
   node.getParam("icp_params",icps);  // these four ICP parameters define the search
   node.getParam("expected_results",resu);  // these four ICP parameters define the search
+  node.getParam("calibration_offset",calib);  // these four ICP parameters define the search
  
+
   // populate array with the filter parameters
   for(unsigned i=0; i < filts.size(); i++)
     filter_params[i]=filts[i]; // copy into an array to be used in register_cloud fn
@@ -631,6 +700,9 @@ int main(int argc, char** argv)
     icp_params[i]=icps[i]; // copy into an array to be used in register_cloud fn
   for(unsigned i=0; i < resu.size(); i++)
     expected_results[i]=resu[i]; // copy into an array to be used in register_cloud fn
+  for(unsigned i=0; i < calib.size(); i++)
+    calibration_offset[i]=calib[i]; // copy into an array to be used in register_cloud fn
+
 
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
@@ -644,6 +716,7 @@ int main(int argc, char** argv)
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
   PointCloud::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
   PointCloud::Ptr cloud_filtered2 (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
+  PointCloud::Ptr cloud_filtered3 (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
   PointCloud::Ptr cloud_cad1 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
   PointCloud::Ptr cloud_cad2 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud intermediate
   PointCloud::Ptr cloud_cad3 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud final
@@ -722,15 +795,15 @@ int main(int argc, char** argv)
   filter_cloud(*cloud_lidar,*cloud_filtered, filter_params); 
 
   // Perform RANSAC Segmentation to separate clouds and find part of interest
-  segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2, part1_type, ransac_params);
+  segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2,*cloud_filtered3, part1_type, ransac_params);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
+  register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params,expected_results,calibration_offset);
 
   // now align the CAD part to using the resulting transformation
   pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   
-  analyze_results(*T_01, expected_results);
+  //analyze_results(*T_01, expected_results,calibration_offset);
 
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
   //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
@@ -848,7 +921,7 @@ int main(int argc, char** argv)
   ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
   ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
   ros::Publisher pub_filtered2 = node.advertise<PointCloud> ("/cloud_filtered2", 1) ;
-  //ros::Publisher pub_filtered3 = node.advertise<PointCloud> ("/cloud_filtered3", 1) ;
+  ros::Publisher pub_filtered3 = node.advertise<PointCloud> ("/cloud_filtered3", 1) ;
   ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
   ros::Publisher pub_cad2 = node.advertise<PointCloud> ("/cloud_cad2", 1) ;
   ros::Publisher pub_cad3 = node.advertise<PointCloud> ("/cloud_cad3", 1) ;
@@ -858,7 +931,7 @@ int main(int argc, char** argv)
   cloud_lidar->header.frame_id = "base_link";
   cloud_filtered->header.frame_id = "base_link";
   cloud_filtered2->header.frame_id = "base_link";
-  //cloud_filtered3->header.frame_id = "base_link";
+  cloud_filtered3->header.frame_id = "base_link";
   cloud_cad1->header.frame_id = "base_link";
   cloud_cad2->header.frame_id = "base_link";
   cloud_cad3->header.frame_id = "base_link";
@@ -886,7 +959,7 @@ int main(int argc, char** argv)
       pub_lidar.publish(cloud_lidar);
       pub_filtered.publish(cloud_filtered);
       pub_filtered2.publish(cloud_filtered2);
-      //pub_filtered3.publish(cloud_filtered3);
+      pub_filtered3.publish(cloud_filtered3);
       pub_cad1.publish(cloud_cad1);
       pub_cad2.publish(cloud_cad2);
       pub_cad3.publish(cloud_cad3);
