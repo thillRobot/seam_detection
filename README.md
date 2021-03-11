@@ -183,28 +183,24 @@ roslaunch seam_detection seam_detection.launch scene:="table_offset_tee_clamps_c
 
 ##### Experimental Application A - LiDAR scans from RPLiDAR A2 on Aubo i5
 
-**table_8in10in_tee_clamps**
+**table_8in10in_tee**
 
 ```
-roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_clamps_c1_blndr"
-```
-
-
-```
-roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_clamps_c2_30_blndr"
-
-```
-
-
-**table_8in10in_tee_clamps**
-
-```
-roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_c1_blndr"
+roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x4y24_45"
 ```
 
 
 ```
-roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_c2_30_blndr"
+roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x0y24"
+
+```
+
+
+**table_8in10in_tee_longclamps**
+
+
+```
+roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_longclamps_x4y24_45"
 
 ```
 
