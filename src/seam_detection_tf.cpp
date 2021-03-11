@@ -6,8 +6,8 @@
   Node: seam_detection_tf.cpp
   Package: seam_detection
 
-  Tristan Hill, 02/23/2020
-
+  Tristan Hill     - 02/23/2020
+  updated for v1.5 - 03/10/2021 
 */
 
 #include <ros/ros.h>
@@ -34,7 +34,7 @@ int main(int argc, char** argv){
 
 
     std::cout<<"*************************************************************"<<std::endl;
-    std::cout<<"***************** Seam Detection TF v1.4 ********************"<<std::endl;
+    std::cout<<"***************** Seam Detection TF v1.5 ********************"<<std::endl;
     std::cout<<"*************************************************************"<<std::endl;
 
     ros::init(argc, argv, "seam_detection_tf");

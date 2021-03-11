@@ -38,6 +38,7 @@
 // Importing simple CAD parts into .pcd files with PCL
 // modifed by Tristan Hill
 // revisited 12/25/2020
+// updated for v1.5 - 03/10/2021 
 
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/io/pcd_io.h>
@@ -181,7 +182,7 @@ main (int argc, char **argv)
 {
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"******************** cad_cloud v1.4 ********************"<<endl;
+  std::cout<<"******************** cad_cloud v1.5 ********************"<<endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl;
 

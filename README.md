@@ -132,6 +132,7 @@ These examples have the `round_tube` or a `square_tube` and the `plate`. There c
 
 
 Now you define all the file names and other parameters in a <scene>.yaml file. The .yaml files are saved in `config/`
+
 ```
 ---
 scene_name: "plate_square_tube_c2"
@@ -168,20 +169,45 @@ roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_01"
 roslaunch seam_detection seam_detection.launch scene:="table_tee_c2_30_blndr"
 ```
 
-```
-roslaunch seam_detection seam_detection.launch scene:="table_offset_tee_clamps_c1_blndr"
+**table_offset_tee_clamps**
 
 ```
+roslaunch seam_detection seam_detection.launch scene:="table_offset_tee_clamps_c1_blndr"
+```
+
+
 ```
 roslaunch seam_detection seam_detection.launch scene:="table_offset_tee_clamps_c2_30_blndr"
 
 ```
 
-##### add second plane that represents the table that the parts are sitting on.
-This is not working. RANSAC fails.
+##### Experimental Application A - LiDAR scans from RPLiDAR A2 on Aubo i5
+
+**table_8in10in_tee_clamps**
+
 ```
-roslaunch seam_detection seam_detection.launch lidar_file:="table_plate_cylinder.pcd" cad_file:="cylinder.pcd" thresh:=0.0001
+roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_clamps_c1_blndr"
 ```
+
+
+```
+roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_clamps_c2_30_blndr"
+
+```
+
+
+**table_8in10in_tee_clamps**
+
+```
+roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_c1_blndr"
+```
+
+
+```
+roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_c2_30_blndr"
+
+```
+
 
 
 ##### Testing TEASER
@@ -194,6 +220,7 @@ rosrun seam_detection correspondence_grouping pcd_images/plate_rect_block/rect_b
 ```
 
 the correspondence grouping sample code compile and runs, but it only rfinds a model instance if I give it the same clouds...
+
 ```
 $ rosrun seam_detection correspondence_grouping pcd_images/table_tee/offset_tee_01.pcd pcd_images/table_tee/offset_tee_c1.pcd -c -k
 Failed to find match for field 'rgba'.
@@ -254,13 +281,22 @@ PointCloud representing the planar component: 2993 data points.
   - added calibration sets c0-c8 for `round_tube`, `square_tube`, and 'rect_block' (partial)
   - added `icp_params` to config files to adjust search without re-compile
   - added `src/archive/` for old source code
-- v1.4 (development - master/devel)
-  - goal: reduce to finding a single part, `part1` - retain naming if possible
+- v1.4 (stable - tagged ~03/05/2021)
+  - changed: reduce to finding a single part, `part1` 
+  - exposed `part2` (table) cloud and `filtered` outliers to rviz 
+  - added scenes `table_tee` and `table_offset_tee` and `table_offset_tee_clamps`
+  - reorganized main node `seam_detection` and source code directory
+  - successfully tested part localization approach with artificial data with clamps
+    (target,source) -> [Bounding Box -> Voxel -> RANSAC -> ICP] -> transformation 
+- v1.5 (development - master/devel)
+  - exposed `part2` (table) cloud and `filtered` outliers to rviz 
+  - added `ransac_params`  and `filter_params` to config files to adjust search without re-compile
+  - added scenes `8in10in_tee` and `8in10in_tee_longclamps` 
 
 
 #### To Prepare for IDETC2021
 
-- [ ] design and test new scenes with v1.2 - Choose scenes for paper - choose units
+- [x] design and test new scenes with v1.2 - Choose scenes for paper - choose units - all (m) and convert to in if needed
 
 - [?] develop segmentation of the table and plate. Decide to include table or not include table. It will be in the scan so the code should be able to handle table
 
@@ -268,9 +304,9 @@ PointCloud representing the planar component: 2993 data points.
 
 - [?] document scene creation and conversion process - the steps are shown above
 
-- [x] figure out square tube RANSAC - currently not used - is it needed?
+- [x] figure out square tube RANSAC - added multiple plane RANSAC for pre ICP segmentation
 
-- [ ] investigate segmentation models - can we set the width of the `SACMODEL_PLANE` ?
+- [ ] investigate segmentation models - progress made with multiple planes and `SAC_PERPENDICULAR_PLANE` 
 
 - [ ] develop description of the weld seam - draw weld seam in CAD and export as PCD file.
 
@@ -278,9 +314,9 @@ PointCloud representing the planar component: 2993 data points.
 
 - [ ] determine or register control points on key parts from description of the seam
 
-- [ ] calculate a *measure of accuracy*
+- [ ] calculate a *measure of accuracy* - i started this in `analyse_results` then moved this to `register_cloud_icp` in a hurry
 
-- [ ] finish the manuscript !
+- [ ] finish the manuscript ! - submitted and now we wait
 
 
    ##### current test scenes

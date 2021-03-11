@@ -11,6 +11,7 @@ v1.0 - 12/07/2020 this officially became seam_detection_v1.0
 v1.1 - 12/26/2020
 ...
 v1.4 - 02/08/2021
+v1.5 - 03/10/2021 
 
 see README.md or https://github.com/thillRobot/seam_detection for documentation
 */
@@ -646,7 +647,7 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(2);
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"******************** Seam Detection v1.4 ********************"<<endl;
+  std::cout<<"******************** Seam Detection v1.5 ********************"<<endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
