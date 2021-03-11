@@ -1,4 +1,9 @@
 /*
+This source contains the primary approach and methods for:
+
+"Automated Weld Path Generation Using Random Sample Consensus and Iterative Closest
+Point Workpiece Localization" - IDETC2021
+
 RANSAC/Segementation based multiple plane detection using PCL
 
 Tristan Hill - Weld Seam Detection - Tennessee Technological University
@@ -177,26 +182,28 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   std::cout<<"Performing First Segmentaion on " <<cloud_filtered1->width * cloud_filtered1->height << " points"<<std::endl;
   std::cout<<"Searching for plate/table as: SACMODEL_NORMAL_PLANE"<< std::endl; // as a single plane?
 
-  // Estimate point normals before segmentation
-  ne.setSearchMethod (tree);
-  ne.setInputCloud (cloud_filtered1);
-  ne.setKSearch (50);
-  ne.compute (*cloud_normals1);
-
-  double norm_dist_wt, max_iter,dist_thrsh;
+ 
+  double norm_dist_wt, max_iter, dist_thrsh, k_srch;
   
-  norm_dist_wt=params[0];  // currentl these do nothing, 
+  norm_dist_wt=params[0];   // this still needs work, there are few more not here that are used below
   max_iter=params[1];
   dist_thrsh=params[2];
+  k_srch=params[3];
+
+   // Estimate point normals before segmentation
+  ne.setSearchMethod (tree);
+  ne.setInputCloud (cloud_filtered1);
+  ne.setKSearch (k_srch);
+  ne.compute (*cloud_normals1);
 
   // Perform RANSAC Segmentation to find plane of the table first  
   // Instantiate segmentation object for the planar model and set parameters // should these params be exposed ?
   seg.setOptimizeCoefficients (true);
   seg.setModelType (pcl::SACMODEL_NORMAL_PLANE);
-  seg.setNormalDistanceWeight (0.1);
+  seg.setNormalDistanceWeight (norm_dist_wt);
   seg.setMethodType (pcl::SAC_RANSAC);
-  seg.setMaxIterations (100);
-  seg.setDistanceThreshold (0.003);
+  seg.setMaxIterations (max_iter);
+  seg.setDistanceThreshold (dist_thrsh);
   //seg.setDistanceThreshold (0.03);
   seg.setInputCloud (cloud_filtered1);
   seg.setInputNormals (cloud_normals1);
@@ -215,7 +222,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   extract.setNegative (true);
   extract.filter (*cloud_filtered2); // cloud filtered2 are the outliers of the plane segmentation
   
-  //Apply Z Filter
+  //Apply Z Filter - this is a patch 
 
   //pcl::PassThrough<pcl::PointXYZ> pass;
   //pass.setInputCloud(cloud_filtered2);
@@ -240,8 +247,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     // Create segmentation object for cylinder segmentation and set parameters
     seg.setModelType (pcl::SACMODEL_CYLINDER);
     seg.setRadiusLimits (0, 0.1);
-    seg.setMaxIterations (100);
-    seg.setDistanceThreshold (0.05);
+    //seg.setMaxIterations (100);
+    //seg.setDistanceThreshold (0.05);
     
     seg.setInputCloud (cloud_filtered2);
     seg.setInputNormals (cloud_normals2);
@@ -281,13 +288,15 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     // set parameters and perform segmentation 
     seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
     seg.setMethodType (pcl::SAC_RANSAC);
-    seg.setMaxIterations (100);
-    seg.setDistanceThreshold (0.0015);
+    //seg.setMaxIterations (100);
+    //seg.setDistanceThreshold (0.0015);
 
     // choose an normal vector for the perpendicular plane segmentation
     //seg.setAxis (Eigen::Vector3f (-0.5, 1.0, 0.0)); // this needs to be set in the config file!
-    seg.setAxis (Eigen::Vector3f (params[3], params[4], params[5])); // and now it is!
-    seg.setEpsAngle (0.1); 
+    seg.setAxis (Eigen::Vector3f (params[4], params[5], params[6])); // and now it is!
+    seg.setEpsAngle (0.1);
+    seg.setMaxIterations (1000); // parameter change from those set in config file
+    seg.setDistanceThreshold (0.0015); 
     seg.setInputCloud (cloud_filtered2);
     seg.setInputNormals (cloud_normals2);
     // Obtain the plane inliers and coefficients
@@ -312,9 +321,9 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
     // set the search axis to the cross product of the axis normal to plane 2, this should give an alternate face of the square tube 
     seg.setAxis (Eigen::Vector3f (-coefficients_plane2->values[1],coefficients_plane2->values[0], 0.0)); 
-    seg.setEpsAngle (0.1); 
-    seg.setMaxIterations (1000);
-    seg.setDistanceThreshold (0.0015);
+    //seg.setEpsAngle (0.1); 
+    //seg.setMaxIterations (1000);
+    //seg.setDistanceThreshold (0.0015);
     seg.setInputCloud (cloud_filtered3);
     seg.setInputNormals (cloud_normals3);
     // Obtain the plane inliers and coefficients
@@ -344,9 +353,9 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     C_plane4=(coefficients_plane2->values[0])*(coefficients_plane3->values[1])-(coefficients_plane2->values[1])*(coefficients_plane3->values[0]);   
 
     seg.setAxis (Eigen::Vector3f ( A_plane4, B_plane4, C_plane4)); 
-    seg.setEpsAngle (0.1); 
-    seg.setMaxIterations (1000);
-    seg.setDistanceThreshold (0.0015);
+    //seg.setEpsAngle (0.1); 
+    //seg.setMaxIterations (1000);
+    //seg.setDistanceThreshold (0.0015);
     seg.setInputCloud (cloud_filtered4);
     seg.setInputNormals (cloud_normals4);
     // Obtain the plane inliers and coefficients
@@ -689,21 +698,17 @@ int main(int argc, char** argv)
   node.getParam("expected_results",resu);  // these four ICP parameters define the search
   node.getParam("calibration_offset",calib);  // these four ICP parameters define the search
  
-
-  // populate array with the filter parameters
+  // populate individual array with the filter parameters (converting from vector to array, why?)
   for(unsigned i=0; i < filts.size(); i++)
     filter_params[i]=filts[i]; // copy into an array to be used in register_cloud fn
-  // populate array with the filter parameters
   for(unsigned i=0; i < sacs.size(); i++)
     ransac_params[i]=sacs[i]; // copy into an array to be used in register_cloud fn
-  // populate array with the four ICP search paremeters
   for(unsigned i=0; i < icps.size(); i++)
     icp_params[i]=icps[i]; // copy into an array to be used in register_cloud fn
   for(unsigned i=0; i < resu.size(); i++)
     expected_results[i]=resu[i]; // copy into an array to be used in register_cloud fn
   for(unsigned i=0; i < calib.size(); i++)
     calibration_offset[i]=calib[i]; // copy into an array to be used in register_cloud fn
-
 
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;

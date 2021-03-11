@@ -175,7 +175,7 @@ Visualization Manager:
       Color: 115; 210; 22
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -192,7 +192,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -235,7 +235,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -252,7 +252,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -295,7 +295,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -312,7 +312,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 0.75
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -351,19 +351,32 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        T_01:
+          Value: true
+        T_10:
+          Value: true
+        base_link:
+          Value: true
+        map:
+          Value: true
       Marker Scale: 0.25
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        map:
+          base_link:
+            T_01:
+              {}
+            T_10:
+              {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Class: rviz/Marker
       Enabled: false
       Marker Topic: /marker_plane
@@ -431,10 +444,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.31979724764823914
+      Pitch: 0.37479719519615173
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.402198314666748
+      Yaw: 1.7221896648406982
     Saved: ~
 Window Geometry:
   Displays:

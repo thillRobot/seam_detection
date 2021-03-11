@@ -181,6 +181,13 @@ roslaunch seam_detection seam_detection.launch scene:="table_offset_tee_clamps_c
 
 ```
 
+**table_plate_tee_clamps**
+
+```
+roslaunch seam_detection seam_detection.launch scene:="table_plate_tee_clamps_c1_blndr"
+```
+
+
 ##### Experimental Application A - LiDAR scans from RPLiDAR A2 on Aubo i5
 
 **table_8in10in_tee**
@@ -292,15 +299,6 @@ PointCloud representing the planar component: 2993 data points.
 
 #### To Prepare for IDETC2021
 
-- [x] design and test new scenes with v1.2 - Choose scenes for paper - choose units - all (m) and convert to in if needed
-
-- [?] develop segmentation of the table and plate. Decide to include table or not include table. It will be in the scan so the code should be able to handle table
-
-- [x] dust off and test workflow for designing new scene and converting to the proper filetypes, this has not been tested recently
-
-- [?] document scene creation and conversion process - the steps are shown above
-
-- [x] figure out square tube RANSAC - added multiple plane RANSAC for pre ICP segmentation
 
 - [ ] investigate segmentation models - progress made with multiple planes and `SAC_PERPENDICULAR_PLANE` 
 
@@ -313,6 +311,8 @@ PointCloud representing the planar component: 2993 data points.
 - [ ] calculate a *measure of accuracy* - i started this in `analyse_results` then moved this to `register_cloud_icp` in a hurry
 
 - [ ] finish the manuscript ! - submitted and now we wait
+
+- [ ] update all old config files with new parameters lists, maybe we should wait until we finish changing 
 
 
    ##### current test scenes
