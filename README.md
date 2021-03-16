@@ -212,6 +212,19 @@ roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_longcla
 ```
 
 
+###### current test scenes
+
+   - [x] fillet weld: lidarfile= `plate_round_tube_01.ply(.pcd)`, cadfile=`round_tube_01.ply(.pcd)` tested and working
+   - [x] fillet weld: lidarfile= `plate_round_tube_02.ply(.pcd)`, cadfile=`round_tube_02.ply(.pcd)` tested and working
+
+   - [x] fillet weld: lidarfile= `plate_square_tube_01.ply(.pcd)`, cadfile=`square_tube_01.ply(.pcd)` tested and working
+   - [x] fillet weld: lidarfile= `plate_square_tube_02.ply(.pcd)`, cadfile=`square_tube_02.ply(.pcd)` tested and working
+   - [x] fillet weld: lidarfile= `plate_square_tube_03.ply(.pcd)`, cadfile=`square_tube_03.ply(.pcd)` tested and working
+
+   - [ ] fillet weld: `table_plate_cylinder`- does not work - RANSAC segmentation fails
+
+   - [ ] fillet weld: `square tube to plate` - designed by RS - initial tests now
+   - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests
 
 ##### Testing TEASER
 
@@ -297,46 +310,41 @@ PointCloud representing the planar component: 2993 data points.
   - added scenes `8in10in_tee` and `8in10in_tee_longclamps` 
 
 
-#### To Prepare for IDETC2021
+#### Things To Do: 
 
+- [ ] continue investigating the affects of cloud density on the performance of ICP. It is apparant that this effects the proper convergence of ICP. 
 
-- [ ] investigate segmentation models - progress made with multiple planes and `SAC_PERPENDICULAR_PLANE` 
+- [ ] consider improving the CAD->Cloud process to address the pixel density issue
 
-- [ ] develop description of the weld seam - draw weld seam in CAD and export as PCD file.
+- [ ] investigate and demonstrate the affect of the voxel filter
+
+- [ ] investigate different segmentation models - progress made with multiple planes and `SAC_PERPENDICULAR_PLANE` 
+
+- [ ] develope processing multiple parts, two parts work now
+
+- [ ] continiue to develop description of the weld seam - lists for seam points are setup in the config file
 
 - [ ] add description of the seam to the model - i have begun by creating seam *.pcd* files
 
-- [ ] determine or register control points on key parts from description of the seam
+- [ ] localize control points on key parts from description of the seam
 
 - [ ] calculate a *measure of accuracy* - i started this in `analyse_results` then moved this to `register_cloud_icp` in a hurry
 
-- [ ] finish the manuscript ! - submitted and now we wait
-
 - [ ] update all old config files with new parameters lists, maybe we should wait until we finish changing 
 
+- [ ] solve large file repo mess issue! -git-lfs?
 
-   ##### current test scenes
-   - [x] fillet weld: lidarfile= `plate_round_tube_01.ply(.pcd)`, cadfile=`round_tube_01.ply(.pcd)` tested and working
-   - [x] fillet weld: lidarfile= `plate_round_tube_02.ply(.pcd)`, cadfile=`round_tube_02.ply(.pcd)` tested and working
+- [ ] The migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
+- [ ] Improve conversion from `ICP::` to `TF::` in REGISTER_CLOUD_ICP function in `seam_detection.cpp`. Currently it is clunky and overbloated, but it works.
 
-   - [x] fillet weld: lidarfile= `plate_square_tube_01.ply(.pcd)`, cadfile=`square_tube_01.ply(.pcd)` tested and working
-   - [x] fillet weld: lidarfile= `plate_square_tube_02.ply(.pcd)`, cadfile=`square_tube_02.ply(.pcd)` tested and working
-   - [x] fillet weld: lidarfile= `plate_square_tube_03.ply(.pcd)`, cadfile=`square_tube_03.ply(.pcd)` tested and working
+- [ ] migration to Fossa/Noetic - Everything compiles, but ICP stage does not work. It does converges but the score is too high, and the results do not make any sense. It works in Melodic but not in Noetic. **This is an issue**.
 
-   - [ ] fillet weld: `table_plate_cylinder`- does not work - RANSAC segmentation fails
+- [ ] use a .cpp class to improve the implementation of seam_detection.cpp
 
-   - [ ] fillet weld: `square tube to plate` - designed by RS - initial tests now
-   - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests
+- [ ] improve efficiecy of `seam_detection.cpp` by redcucing the number of extra copies of cloud objects used in the main workflow. Many of these were only used for debugging purposes. 
 
+- [ ] revise the IDETC2021 manuscript, hopefully! - submited and now we wait
 
-- [ ] include **.pcd** and/or **.ply** in this **.gitignore** ?
+- [ ] re-do Experimental Application A and B with calibrated scans from Aubo i5
 
-***The plan is to wait until after IDETC 2021 submission to work on the developement issues below.***
-#### Development of `seam detection.cpp` which is implemenation of RANSAC + ICP SEAM DETECTION
-   - [x] migration from 'TF'  to 'TF2'. It has already fixed the 'static publisher issue'
-   - [ ] The migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
-   - [ ] In REGISTER_CLOUD function in `seam_detection.cpp` I think I could go straight from `ICP` to `TF` and not pull out the values like it is done currently, but it works like that for now.
-   - [ ] develope processing multiple parts, two parts work now
-   - [ ] add 'markers' to show the results from RANSAC, the markers are there, but they need the pose info now. (03/06/2020)
-   - [ ] migration to Fossa/Noetic - everything compiles  and returns
-   - [ ] the ICP stage does not work. It does converges but the score is too high, and the results do not make any sense. It works in Melodic but not in Noetic. **This is an issue**.
+- [ ] document calibration process of 3D LiDAR system - update `scan2cloud` package
