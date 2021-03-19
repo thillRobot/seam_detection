@@ -80,14 +80,14 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 
 // this function applies a bounding box and a voxel filter to the input cloud
-void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output, double params[])
+void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output, double box[], double leaf_size)
 {
 
-  double xmin, xmax, ymin, ymax, zmin, zmax, leaf_size; // this could be done without these copies
-  xmin=params[0];xmax=params[1];                        // for now they are being used 
-  ymin=params[2];ymax=params[3];
-  zmin=params[4];zmax=params[5];
-  leaf_size=params[6];
+  //double xmin, xmax, ymin, ymax, zmin, zmax;; // this could be done without these copies
+  //xmin=box[0];xmax=box[1];                        // for now they are being used 
+  //ymin=box[2];ymax=box[3];
+  //zmin=box[4];zmax=box[5];
+  //leaf_size=params[6];
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(cloud_input,*cloud);
@@ -101,18 +101,18 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output, double para
   pass.setInputCloud(cloud);
 
   pass.setFilterFieldName ("x");
-  pass.setFilterLimits(xmin,xmax);
+  pass.setFilterLimits(box[0],box[1]);
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("y");
-  pass.setFilterLimits(ymin,ymax);
+  pass.setFilterLimits(box[2],box[3]);
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("z");
-  pass.setFilterLimits(zmin,zmax);
+  pass.setFilterLimits(box[4],box[5]);
   pass.filter (*cloud);
 
-  std::cout<<"Bounding Box Filter Limits: [" <<xmin<<","<<xmax<<","<<ymin<<","<<ymax<<","<<zmin<<","<<zmax<<"]"<< std::endl;
+  std::cout<<"Bounding Box Filter Limits: [" <<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"]"<< std::endl;
   std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
 
   // Apply Voxel Filter 
@@ -134,7 +134,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output, double para
 }
 
 // This function takes the lidar cloud and separates or segments the cloud into different parts
-void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, PointCloud &cloud_output3,PointCloud &cloud_output4, const std::string& part1_type, double params[])
+void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, PointCloud &cloud_output3,PointCloud &cloud_output4, const std::string& part1_type, double norm_dist_wt, double max_iter, double dist_thrsh, double k_srch, double init_norm[])
 {
 
   // instantiate objects needed for segment_cloud function
@@ -183,12 +183,12 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   std::cout<<"Searching for plate/table as: SACMODEL_NORMAL_PLANE"<< std::endl; // as a single plane?
 
  
-  double norm_dist_wt, max_iter, dist_thrsh, k_srch;
+  //double norm_dist_wt, max_iter, dist_thrsh, k_srch;
   
-  norm_dist_wt=params[0];   // this still needs work, there are few more not here that are used below
-  max_iter=params[1];
-  dist_thrsh=params[2];
-  k_srch=params[3];
+  //norm_dist_wt=params[0];   // this still needs work, there are few more not here that are used below
+  //max_iter=params[1];
+  //dist_thrsh=params[2];
+  //k_srch=params[3];
 
    // Estimate point normals before segmentation
   ne.setSearchMethod (tree);
@@ -293,7 +293,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
     // choose an normal vector for the perpendicular plane segmentation
     //seg.setAxis (Eigen::Vector3f (-0.5, 1.0, 0.0)); // this needs to be set in the config file!
-    seg.setAxis (Eigen::Vector3f (params[4], params[5], params[6])); // and now it is!
+    seg.setAxis (Eigen::Vector3f (init_norm[0], init_norm[1], init_norm[2])); // and now it is!
     seg.setEpsAngle (0.1);
     seg.setMaxIterations (1000); // parameter change from those set in config file
     seg.setDistanceThreshold (0.0015); 
@@ -411,7 +411,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[],double e_results[],double c_offset[])
+void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
 {
  
   // make a copy of the CAD(target) cloud called 'cloud_A' 
@@ -423,10 +423,10 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
 
   std::cout<<"BEGINNING ICP REGISTRATION" << std::endl;
   std::cout<<"Using Search Parameters:"<< std::endl;
-  std::cout<<"Max Correspondence Distance = "<< params[0] <<std::endl;
-  std::cout<<"Maximum Number of Iterations = "<< params[1] <<std::endl;
-  std::cout<<"Transformation Epsilon = "<< params[2] <<std::endl;
-  std::cout<<"Euclidean Distance Difference Epsilon = "<< params[3] <<std::endl;
+  std::cout<<"Max Correspondence Distance = "<< max_corr_dist <<std::endl;
+  std::cout<<"Maximum Number of Iterations = "<< max_iter <<std::endl;
+  std::cout<<"Transformation Epsilon = "<< trns_epsl <<std::endl;
+  std::cout<<"Euclidean Distance Difference Epsilon = "<< ecld_fitn_epsl <<std::endl;
 
   // perform ICP on the lidar and cad clouds
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
@@ -435,13 +435,13 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   Eigen::MatrixXf T_result, T_inverse;
 
   // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-  icp.setMaxCorrespondenceDistance (params[0]);
+  icp.setMaxCorrespondenceDistance (max_corr_dist);
   // Set the maximum number of iterations (criterion 1)
-  icp.setMaximumIterations (params[1]);
+  icp.setMaximumIterations (max_iter);
   // Set the transformation epsilon (criterion 2)
-  icp.setTransformationEpsilon (params[2]);
+  icp.setTransformationEpsilon (trns_epsl);
   // Set the euclidean distance difference epsilon (criterion 3)
-  icp.setEuclideanFitnessEpsilon (params[3]);
+  icp.setEuclideanFitnessEpsilon (ecld_fitn_epsl);
 
   icp.setInputTarget(cloud_A); // target (fixed) cloud
   icp.setInputSource(cloud_B);  // source (moved during ICP) cloud
@@ -664,51 +664,65 @@ int main(int argc, char** argv)
   std::cout<<"**************** Loading Configuration File ****************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
 
-  // find the path to the seam_detection package (this package)
-  std::string packagepath = ros::package::getPath("seam_detection");
-
-  std::string file_lidar; // source cloud
-  std::string file_cad;   // reference cloud
-  std::string part1_type; // part1 is the part to be welded to plate
-
   // there is only one cmd line arg and it is the name of the config file
   // read the config file(yaml) feild to pick the data files and set parameters
 
-  std::string param1;
-  node.getParam("scene_file", param1);
-  file_lidar=packagepath+'/'+param1;
+  // find the path to the this package (seam_detection)
+  std::string packagepath = ros::package::getPath("seam_detection");
 
-  std::string param2;
-  node.getParam("part1_file", param2);
-  file_cad=packagepath+'/'+param2;
+  // parameters that contain strings  
+  std::string lidar_src_path, cad_ref_path, lidar_src_file, cad_ref_file, part1_type;
 
-  std::string param3;
-  node.getParam("part1_type", param3);
-  part1_type=param3;
+  node.getParam("lidar_src_file", lidar_src_file);
+  lidar_src_path=packagepath+'/'+lidar_src_file;
 
-  std::vector<double> xs, ys, zs, filts, sacs, icps, resu, calib;
-  double filter_params[7],ransac_params[3],icp_params[4],expected_results[6],calibration_offset[6];
+  node.getParam("cad_ref_file", cad_ref_file);
+  cad_ref_path=packagepath+'/'+cad_ref_file;
 
-  node.getParam("seam1_xs",xs); // these arrays define x,y,z, points in the model
-  node.getParam("seam1_ys",ys);
-  node.getParam("seam1_zs",zs);
-  node.getParam("filter_params",filts);  // these four filter parameters define the search
-  node.getParam("ransac_params",sacs);  // these four ICP parameters define the search
-  node.getParam("icp_params",icps);  // these four ICP parameters define the search
-  node.getParam("expected_results",resu);  // these four ICP parameters define the search
-  node.getParam("calibration_offset",calib);  // these four ICP parameters define the search
- 
-  // populate individual array with the filter parameters (converting from vector to array, why?)
-  for(unsigned i=0; i < filts.size(); i++)
-    filter_params[i]=filts[i]; // copy into an array to be used in register_cloud fn
-  for(unsigned i=0; i < sacs.size(); i++)
-    ransac_params[i]=sacs[i]; // copy into an array to be used in register_cloud fn
-  for(unsigned i=0; i < icps.size(); i++)
-    icp_params[i]=icps[i]; // copy into an array to be used in register_cloud fn
-  for(unsigned i=0; i < resu.size(); i++)
-    expected_results[i]=resu[i]; // copy into an array to be used in register_cloud fn
-  for(unsigned i=0; i < calib.size(); i++)
-    calibration_offset[i]=calib[i]; // copy into an array to be used in register_cloud fn
+  node.getParam("part1_type",  part1_type);
+
+  // parameters that contain doubles
+  double voxel_leaf_size, ransac_norm_dist_wt, ransac_max_iter, ransac_dist_thrsh, ransac_k_srch,
+         icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl;
+
+  // parameters that contain vectors of doubles
+  std::vector<double> xs, ys, zs, filter_box_vec, ransac_init_norm_vec, expected_results_vec, calibration_offset_vec, seam1_points_x_vec, seam1_points_y_vec, seam1_points_z_vec;
+  double filter_box[6],ransac_init_norm[3],icp_params[4],expected_results[6],calibration_offset[6],seam1_points_x[4],seam1_points_y[4],seam1_points_z[4];
+  
+  node.getParam("filter_box",  filter_box_vec);
+  for(unsigned i=0; i < filter_box_vec.size(); i++)
+    filter_box[i]=filter_box_vec[i]; // copy from vector to array 
+  node.getParam("voxel_leaf_size", voxel_leaf_size);
+
+  node.getParam("ransac_norm_dist_wt",ransac_norm_dist_wt);  
+  node.getParam("ransac_max_iter",ransac_max_iter);  
+  node.getParam("ransac_dist_thrsh",ransac_dist_thrsh);  
+  node.getParam("ransac_k_srch",ransac_k_srch);  
+  node.getParam("ransac_init_norm",  ransac_init_norm_vec);
+  for(unsigned i=0; i < ransac_init_norm_vec.size(); i++)
+    ransac_init_norm[i]=ransac_init_norm_vec[i]; // copy from vector to array
+  
+  node.getParam("icp_max_corr_dist",icp_max_corr_dist);  // these four ICP parameters define the search
+  node.getParam("icp_max_iter",icp_max_iter);
+  node.getParam("icp_trns_epsl",icp_trns_epsl);
+  node.getParam("icp_ecld_fitn_epsl",icp_ecld_fitn_epsl);
+
+  node.getParam("expected_results",expected_results_vec);  // these four ICP parameters define the search
+  node.getParam("calibration_offset",calibration_offset_vec);  // these four ICP parameters define the search
+  for(unsigned i=0; i < expected_results_vec.size(); i++){
+    expected_results[i]=expected_results_vec[i]; // copy into an array 
+    calibration_offset[i]=calibration_offset_vec[i]; // copy into an array 
+  }
+  
+  node.getParam("seam1_points_x",seam1_points_x_vec);
+  node.getParam("seam1_points_y",seam1_points_y_vec);
+  node.getParam("seam1_points_z",seam1_points_z_vec);
+  for(unsigned i=0; i < seam1_points_x_vec.size(); i++){
+    seam1_points_x[i]=seam1_points_x_vec[i]; // copy into arrays
+    seam1_points_y[i]=seam1_points_y_vec[i]; 
+    seam1_points_z[i]=seam1_points_z_vec[i];
+  }
+
 
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
@@ -730,22 +744,22 @@ int main(int argc, char** argv)
   PointCloud::Ptr cloud_part2 (new pcl::PointCloud<pcl::PointXYZ>); // plane cloud
 
   // load the clouds from file (.pcd)
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (file_lidar, *cloud_lidar) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (lidar_src_path, *cloud_lidar) == -1)
   {
-      std::cout<<"Couldn't read image file:"<<file_lidar;
+      std::cout<<"Couldn't read image file:"<<lidar_src_path;
       return (-1);
   }
-  std::cout << "Loaded image file: "<< file_lidar <<std::endl<<
-      cloud_lidar->width * cloud_lidar->height << " Data points from "<< file_lidar << std::endl;
+  std::cout << "Loaded image file: "<< lidar_src_path <<std::endl<<
+      cloud_lidar->width * cloud_lidar->height << " Data points from "<< lidar_src_path << std::endl;
 
   // load the cloud from CAD file
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (file_cad, *cloud_cad1) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (cad_ref_path, *cloud_cad1) == -1)
   {
-      std::cout<<"Couldn't read image file:"<<file_cad;
+      std::cout<<"Couldn't read image file:"<<cad_ref_path;
       return (-1);
   }
-  std::cout << "Loaded image file: "<< file_cad <<std::endl<<
-      cloud_cad1->width * cloud_cad1->height << " Data points from "<< file_cad <<std::endl<<std::endl;
+  std::cout << "Loaded image file: "<< cad_ref_path <<std::endl<<
+      cloud_cad1->width * cloud_cad1->height << " Data points from "<< cad_ref_path <<std::endl<<std::endl;
 
   // for now each tf has three objects associated with it
   // 1) '<name>' (tf::transform)      // needed for transforms with pcl_ros
@@ -798,13 +812,13 @@ int main(int argc, char** argv)
 
 
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
-  filter_cloud(*cloud_lidar,*cloud_filtered, filter_params); 
+  filter_cloud(*cloud_lidar,*cloud_filtered, filter_box, voxel_leaf_size); 
 
   // Perform RANSAC Segmentation to separate clouds and find part of interest
-  segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2,*cloud_filtered3, part1_type, ransac_params);
+  segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2,*cloud_filtered3, part1_type, ransac_norm_dist_wt, ransac_max_iter, ransac_dist_thrsh, ransac_k_srch, ransac_init_norm);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params,expected_results,calibration_offset);
+  register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
 
   // now align the CAD part to using the resulting transformation
   pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
