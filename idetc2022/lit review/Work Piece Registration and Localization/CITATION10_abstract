@@ -1,0 +1,21 @@
+Title:
+A robotic welding system using image processing techniques and a CAD model to provide information to a multi-intelligent decision module
+
+Abstract:
+Purpose – The paper aims to propose a system that uses a combination of techniques to
+suggest weld requirements for ships parts. These suggestions are evaluated, decisions
+are made and then weld parameters are sent to a program generator.
+Design/methodology/approach – A pattern recognition system recognizes shipbuilding parts
+using shape contour information. Fourier-descriptors provide information and neural
+networks make decisions about shapes. Findings – The system has distinguished between
+various parts and programs have been generated so that the methods have proved to be
+valid approaches. Practical implications – The new system used a rudimentary curvature
+metric that measured Euclidean distance between two points in a window but the improved
+accuracy and ease of implementation can benefit other applications concerning curve
+approximation, node tracing, and image processing, but especially in identifying
+images of manufactured parts with distinct corners. Originality/value – A new proposed
+system has been presented that uses image processing techniques in combination with
+a computer-aided design model to provide information to a multi-intelligent decision
+ module. This module will use different criteria to determine a best weld path. Once
+ the weld path has been determined then the program generator and post-processor can
+ be used to send a compatible program to the robot controller. The progress so far is described.

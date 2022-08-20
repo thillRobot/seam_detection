@@ -55,3 +55,6 @@ CATKIN_IGNORE
 *.blend*
 *_blndr.*
 *.zip
+
+*.mp4
+*.m4a
