@@ -1,6 +1,13 @@
 # seam_detection
 This is a ROS package for weld seam detection from pointclouds using the point cloud library [PCL](https://pointclouds.org/).
 
+## Publications:
+```
+IDETC2022-90082: Automated Weld Path Generation Using Random Sample Consensus and Iterative Closest Point Workpiece Localization
+St. Louis, MO 
+August 15, 2022
+```
+
 ### Installing seam_detection
 
 #### Requirements:
