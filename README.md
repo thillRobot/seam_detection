@@ -3,9 +3,11 @@ This is a ROS package for weld seam detection from pointclouds using the point c
 
 ## Publications:
 ```
-IDETC2022-90082: Automated Weld Path Generation Using Random Sample Consensus and Iterative Closest Point Workpiece Localization
-St. Louis, MO 
-August 15, 2022
+Automated Weld Path Generation Using Random Sample Consensus and Iterative Closest Point Workpiece Localization
+Proceedings of the ASME 2022
+International Design Engineering Technical Conferences and
+Computers and Information in Engineering Conference
+IDETC/CIE2022 August 14-17, 2022, St. Louis, MO
 ```
 
 ### Installing seam_detection
