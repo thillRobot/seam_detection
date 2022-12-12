@@ -9,11 +9,9 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN apt update && apt upgrade -y && apt update && apt install -y apt-utils build-essential vim git wget
 
-#RUN apt update && apt install -y ros-noetic-rviz ros-noetic-joint-state-publisher-gui ros-noetic-gazebo-ros ros-noetic-gazebo-ros-pkgs  ros-noetic-gazebo-ros-control ros-noetic-rqt-reconfigure ros-noetic-rqt-publisher ros-noetic-controller-manager ros-noetic-ros-control ros-noetic-ros-controllers ros-noetic-rviz-visual-tools 
-
-# RUN apt install python3-wstool python3-catkin-tools clang-format-10 python3-rosdep -y
-
 RUN apt install -y python3-catkin-tools
+
+RUN apt install -y ros-noetic-laser-geometry ros-noetic-pcl-conversions
 
 ENV SD_WS=/home/seamdetection_ws
 RUN mkdir -p $SD_WS/src 
