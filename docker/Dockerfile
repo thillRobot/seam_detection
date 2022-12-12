@@ -13,8 +13,10 @@ RUN apt update && apt upgrade -y && apt update && apt install -y apt-utils build
 
 # RUN apt install python3-wstool python3-catkin-tools clang-format-10 python3-rosdep -y
 
+RUN apt install -y python3-catkin-tools
+
 ENV SD_WS=/home/seamdetection_ws
-RUN mkdir $SD_WS 
+RUN mkdir -p $SD_WS/src 
 
 #EXPOSE 11345
 

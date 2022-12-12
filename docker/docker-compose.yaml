@@ -7,4 +7,4 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seam-detection/src
+      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
