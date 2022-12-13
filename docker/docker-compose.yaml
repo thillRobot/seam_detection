@@ -1,0 +1,10 @@
+services:
+  seam_detection:
+    build: .
+    command: roslaunch seam_detection seam_detection.launch scene:="plate_round_tube_01"
+    environment:
+      DISPLAY: $DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src

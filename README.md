@@ -306,6 +306,30 @@ PointCloud representing the planar component: 2993 data points.
 [pcl::SACSegmentationFromNormals::segment] Error segmenting the model! No solution found.
 ```
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### Changelog
 #### Versions
 - v1.0 (stable - tagged 12/07/2020)
