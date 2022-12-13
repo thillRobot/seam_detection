@@ -11,7 +11,8 @@ RUN apt update && apt upgrade -y && apt update && apt install -y apt-utils build
 
 RUN apt install -y python3-catkin-tools
 
-RUN apt install -y ros-noetic-laser-geometry ros-noetic-pcl-conversions
+RUN apt update && \
+DEBIAN_FRONTEND=noninteractive apt install -y ros-noetic-laser-geometry ros-noetic-pcl-conversions
 
 ENV SD_WS=/home/seamdetection_ws
 RUN mkdir -p $SD_WS/src 
