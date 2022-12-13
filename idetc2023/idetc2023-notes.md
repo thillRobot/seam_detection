@@ -37,6 +37,19 @@ https://paperswithcode.com/sota/point-cloud-registration-on-3dmatch-benchmark
 
 
 
+DeepICP
+
+
+DeepPRO: Deep Partial Point Cloud Registration of Objects
+
+
+
+
+
+
+
+
+
 teaser/teaser++
 
 
