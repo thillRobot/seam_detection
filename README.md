@@ -340,12 +340,14 @@ git clone git@github.com:thillrobot/seam_detection
 Build the container and start the application
 
 ```
+cd seam_detection/docker
 docker compose up --build 
 ```
 
 Run a simple test, this calls one of the launch files from above.
 
 ```
+cd seam_detection/docker
 docker compose run seam_detection
 ```
 
