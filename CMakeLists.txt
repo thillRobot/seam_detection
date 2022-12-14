@@ -27,10 +27,9 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3 REQUIRED)
 
 
-#find_package(teaserpp REQUIRED)
+find_package(teaserpp REQUIRED)
 find_package(Boost 1.58 REQUIRED)
 find_package(PCL 1.10 REQUIRED) # COMPONENTS common features kdtree)
-
 
 
 ## System dependencies are found with CMake's conventions
@@ -274,14 +273,14 @@ target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # these have not been compiled successfully since they have been moved into /devel
 # NOTE: move these back to src/ if they will not compile in src/devel
 
-# add_executable(seam_detection_teaser src/devel/seam_detection_teaser.cpp)
-# target_link_libraries(seam_detection_teaser 
-#  ${catkin_LIBRARIES} 
-#  ${PCL_LIBRARIES} 
-#  Eigen3::Eigen 
-#  teaserpp::teaser_registration 
-#  teaserpp::teaser_io
-#  )
+add_executable(seam_detection_teaser src/seam_detection_teaser.cpp)
+target_link_libraries(seam_detection_teaser 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+  teaserpp::teaser_registration 
+  teaserpp::teaser_io
+)
 
 # Teaser Stuff is all disabled for now
 # Change this line to include your own executable file
@@ -290,11 +289,9 @@ target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # target_link_libraries(teaser_cpp_ply Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_io)
 
 # Change this line to include your own executable file
-# add_executable(teaser_cpp_fpfh src/teaser_cpp_fpfh.cc)
-
+#add_executable(seam_detection_teaser src/seam_detection_teaser.cpp)
 # Link to teaserpp & Eigen3 // teaser::features requires PCL 1.9
-# target_link_libraries(teaser_cpp_fpfh Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_features
-#        teaserpp::teaser_io ${PCL_LIBRARIES})
+#target_link_libraries(seam_detection_teaser Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_features teaserpp::teaser_io #${PCL_LIBRARIES})
 
 # Copy the data files to build directory
 # file(COPY ../example_data/

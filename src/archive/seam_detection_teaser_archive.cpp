@@ -12,8 +12,6 @@ v1.1 - 12/26/2020
 ...
 v1.4 - 02/08/2021
 
-v1.6 - 12/14/2022 
-
 see README.md or https://github.com/thillRobot/seam_detection for documentation
 */
 
@@ -119,7 +117,7 @@ typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 //typedef Eigen::Matrix<double, 3, Eigen::Dynamic>::Ptr EigenCorPtr;
 
-// this function filters the point clouds with passthrough (bounding box) and a voxel filter 
+
 void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin, double xmax, double ymin,double ymax, double zmin, double zmax, double leaf_size)
 {
 
@@ -171,7 +169,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output,double xmin,
 
 }
 
-// this function uses RANSAC to segment the cloud into different parts before performing registration
+
 void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, PointCloud &cloud_output3, const std::string& part1_type, pcl::ModelCoefficients::Ptr C_plane, pcl::ModelCoefficients::Ptr C_cylinder)
 {
 
@@ -450,7 +448,12 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   std::cout << "END OF REGISTER_CLOUD_ICP FUNCTION" << std::endl;
 }
 
-// This function REGISTER_CLOUD finds the transform between two pointclouds 
+// This function REGISTER_CLOUD finds the transform between two pointclouds
+
+//void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[], EigenCor &cor_src_pts, EigenCor &cor_tgt_pts)
+//{
+ 
+
 void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[])
 {
  
@@ -717,6 +720,392 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   std::cout << "END OF REGISTER_CLOUD_TEASER FUNCTION" << std::endl;
 }
 
+/*
+// This function REGISTER_CLOUD finds the transform between two pointclouds
+void register_cloud_FPFHteaser(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[], EigenCor &cor_src_pts, EigenCor &cor_tgt_pts)
+{
+ 
+  // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
+  //PointCloud::Ptr target (new PointCloud);       //use this as the working copy of the target cloud
+  //pcl::copyPointCloud(cloud_target,*target);
+  //// make a copy of the lidar cloud called 'cloud'
+  //PointCloud::Ptr source (new PointCloud);       //use this as the working copy of the source cloud
+  //pcl::copyPointCloud(cloud_source,*source);
+
+    // check for correct matches
+    //for (int i = 0; i < nr_original_correspondences; ++i)
+    //  std::cout <<((*correspondences)[i].index_match<<"," i << std::endl;
+
+  //}
+
+  //pcl::PointCloud<pcl::PointXYZ>::Ptr source, target;
+  //pcl::copyPointCloud(cloud_target,*target);
+  //pcl::copyPointCloud(cloud_source,*source);
+
+  // Convert the point cloud to Eigen
+  int Ns=cloud_source.size();
+  int Nt=cloud_target.size();
+  Eigen::Matrix<double, 3, Eigen::Dynamic> src(3, Ns);
+  Eigen::Matrix<double, 3, Eigen::Dynamic> tgt(3, Nt);
+  for (size_t i = 0; i < Ns; ++i) {
+    src.col(i) << cloud_source[i].x, cloud_source[i].y, cloud_source[i].z;
+  }
+  for (size_t i = 0; i < Nt; ++i) {
+    tgt.col(i) << cloud_target[i].x, cloud_target[i].y, cloud_target[i].z;
+  }
+
+  // Convert to teaser point cloud
+  teaser::PointCloud tgt_cloud;
+  for (size_t i = 0; i < tgt.cols(); ++i) {
+    tgt_cloud.push_back({static_cast<float>(tgt(0, i)), static_cast<float>(tgt(1, i)),
+                         static_cast<float>(tgt(2, i))});
+  }
+  // Convert to teaser point cloud
+  teaser::PointCloud src_cloud;
+  for (size_t i = 0; i < src.cols(); ++i) {
+    src_cloud.push_back({static_cast<float>(src(0, i)), static_cast<float>(src(1, i)),
+                         static_cast<float>(src(2, i))});
+  }
+
+
+   // Compute FPFH
+  teaser::FPFHEstimation fpfh;
+  auto obj_descriptors = fpfh.computeFPFHFeatures(src_cloud, 0.02, 0.04); // this line requires PCL 1.9.1 - I think
+  auto scene_descriptors = fpfh.computeFPFHFeatures(tgt_cloud, 0.02, 0.04);
+
+  teaser::Matcher matcher;
+  auto correspondences = matcher.calculateCorrespondences(
+      src_cloud, tgt_cloud, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
+
+     // Run TEASER++ registration
+  // Prepare solver parameters
+  teaser::RobustRegistrationSolver::Params tparams;
+  tparams.noise_bound = .05;
+  tparams.cbar2 = 1;
+  tparams.estimate_scaling = false;
+  tparams.rotation_max_iterations = 100;
+  tparams.rotation_gnc_factor = 1.4;
+  tparams.rotation_estimation_algorithm =
+      teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
+  tparams.rotation_cost_threshold = 0.005;
+
+  // Solve with TEASER++
+  teaser::RobustRegistrationSolver solver(tparams);
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  solver.solve(src_cloud, tgt_cloud, correspondences);
+=======
+  int Nc = 100;  // number of correspondences to process
+>>>>>>> master
+  int src_idx,tgt_idx;
+  // Convert the point cloud to Eigen
+  EigenCor cor_src(3, Ns);
+  EigenCor cor_tgt(3, Ns);
+  for (size_t i = 0; i < Nc; ++i) {
+    //src_idx=(*correspondences)[i].index_query; // correspondences before rejection
+    //tgt_idx=(*correspondences)[i].index_match;
+    src_idx=(*correspondences_result_rej_surf_norm)[i].index_query; // correspondences after rejection
+    tgt_idx=(*correspondences_result_rej_surf_norm)[i].index_match;
+    cor_src.col(i) << cloud_source[src_idx].x, cloud_source[src_idx].y, cloud_source[src_idx].z;
+    cor_tgt.col(i) << cloud_target[tgt_idx].x, cloud_target[tgt_idx].y, cloud_target[tgt_idx].z;
+  }
+
+  cor_src_pts=cor_src; // make a copy to use for visualization
+  cor_tgt_pts=cor_tgt;
+
+  std::cout <<"Copied Points Debug"<< std::endl;
+  std::cout <<"Index, Index Query, Index Match"<< std::endl;
+
+  for (int i = 0; i < P; ++i)
+    std::cout <<i<<","<<cor_src_pts.col(i)<< std::endl;
+
+   // Run TEASER++ registration
+  // Prepare solver parameters
+  std::cout <<"Configuring TEASER++" << std::endl;
+  teaser::RobustRegistrationSolver::Params tparams;
+  tparams.noise_bound = 0.05;
+  tparams.cbar2 = 1;
+  tparams.estimate_scaling = false;
+  tparams.rotation_max_iterations = 1e3;
+  tparams.rotation_gnc_factor = 1.4;
+  tparams.rotation_estimation_algorithm =
+  teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
+  tparams.rotation_cost_threshold = 0.005;
+
+  // Solve with TEASER++
+  std::cout <<"Beginning TEASER++" << std::endl;
+  teaser::RobustRegistrationSolver solver(tparams);
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+<<<<<<< HEAD
+  solver.solve(cor_src, cor_tgt);
+=======
+  solver.solve(src, tgt);
+>>>>>>> 119d822f4953c54ef774fd18d12aa3f88fa8101a
+>>>>>>> master
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+  auto soln = solver.getSolution();
+
+<<<<<<< HEAD
+  // Compare results
+  std::cout << "=====================================" << std::endl;
+  std::cout << "          TEASER++ Results           " << std::endl;
+  std::cout << "=====================================" << std::endl;
+=======
+  // Display results
+  std::cout << "TEASER++ Completed" << std::endl;
+>>>>>>> 119d822f4953c54ef774fd18d12aa3f88fa8101a
+  //std::cout << "Expected rotation: " << std::endl;
+  //std::cout << T.topLeftCorner(3, 3) << std::endl;
+  std::cout << "Estimated rotation: " << std::endl;
+  std::cout << soln.rotation << std::endl;
+<<<<<<< HEAD
+=======
+  std::cout << soln.rotation(0,0) << std::endl;
+>>>>>>> 119d822f4953c54ef774fd18d12aa3f88fa8101a
+  //std::cout << "Error (deg): " << getAngularError(T.topLeftCorner(3, 3), solution.rotation)
+  //          << std::endl;
+  std::cout << std::endl;
+  //std::cout << "Expected translation: " << std::endl;
+  //std::cout << T.topRightCorner(3, 1) << std::endl;
+  std::cout << "Estimated translation: " << std::endl;
+  std::cout << soln.translation << std::endl;
+  //std::cout << "Error (m): " << (T.topRightCorner(3, 1) - solution.translation).norm() << std::endl;
+  std::cout << std::endl;
+<<<<<<< HEAD
+  std::cout << "Number of correspondences: " << Ns << std::endl;
+=======
+  std::cout << "Number of correspondences: " << Nc << std::endl;
+>>>>>>> 119d822f4953c54ef774fd18d12aa3f88fa8101a
+  //std::cout << "Number of outliers: " << N_OUTLIERS << std::endl;
+  std::cout << "Time taken (s): "
+            << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() /
+                   1000000.0
+            << std::endl;
+<<<<<<< HEAD
+
+=======
+>>>>>>> 119d822f4953c54ef774fd18d12aa3f88fa8101a
+  
+  Eigen::MatrixXd soln_T(4,4); // a Transformation matrix for the teaser solution 
+  soln_T<<soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),soln.translation(0),
+          soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),soln.translation(1),
+          soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2),soln.translation(2),
+          0                 ,0                 ,0                 ,1                  ;
+
+  Eigen::MatrixXd soln_T_inv(4,4);
+  soln_T_inv=soln_T.inverse(); // take the inverse of the transformation returned by Teaser
+
+  // This part seems very over bloated !!! 
+  // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
+
+  tf::Quaternion q_result;
+  tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
+
+  tf::Quaternion q_inverse;
+  tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
+  // instantiate a 3x3 rotation matrix from the transformation matrix // 
+  
+
+  tf::Matrix3x3 R_result(soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),
+                         soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),
+                         soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2));
+  tf2::Matrix3x3 R_result_tf2(soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),
+                              soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),
+                              soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2));
+  
+  tf::Matrix3x3 R_inverse(soln_T_inv(0,0),soln_T_inv(0,1),soln_T_inv(0,2),
+                          soln_T_inv(1,0),soln_T_inv(1,1),soln_T_inv(1,2),
+                          soln_T_inv(2,0),soln_T_inv(2,1),soln_T_inv(2,2));
+  tf2::Matrix3x3 R_inverse_tf2( soln_T_inv(0,0),soln_T_inv(0,1),soln_T_inv(0,2),
+                                soln_T_inv(1,0),soln_T_inv(1,1),soln_T_inv(1,2),
+                                soln_T_inv(2,0),soln_T_inv(2,1),soln_T_inv(2,2));
+  
+  // copy tf::quaternion from R_result to q_result
+  R_result.getRotation(q_result);
+  R_result_tf2.getRotation(*q_result_tf2);
+  q_result_tf2->normalize(); // normalize the Quaternion
+
+  // copy tf::quaternion from R_inverse to q_inverse
+  R_inverse.getRotation(q_inverse);
+  R_inverse_tf2.getRotation(*q_inverse_tf2);
+  q_inverse_tf2->normalize(); // normalize the Quaternion
+
+  // set rotation and origin of a quaternion for the tf transform object
+  T_AB.setRotation(q_result);
+  T_AB.setOrigin(tf::Vector3(soln.translation[0],soln.translation[1],soln.translation[2]));
+ 
+  // set rotation and origin of a quaternion for the tf transform object
+  T_BA.setRotation(q_inverse);
+  T_BA.setOrigin(tf::Vector3(soln_T_inv(0,3),soln_T_inv(1,3),soln_T_inv(2,3)));
+  
+  tf::transformStampedTFToMsg(T_AB,msg_AB);
+  tf::transformStampedTFToMsg(T_BA,msg_BA);
+
+  std::cout << "END OF REGISTER_CLOUD_TEASER FUNCTION" << std::endl;
+}
+<<<<<<< HEAD
+*/
+
+/*
+// This function REGISTER_CLOUD finds the transform between two pointclouds
+void register_cloud_FPFHteaser(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double params[], EigenCor &cor_src_pts, EigenCor &cor_tgt_pts)
+{
+ 
+  // make 2 copy of the lidar cloud called 'cloud_A' and 'cloud_B'
+  //PointCloud::Ptr target (new PointCloud);       //use this as the working copy of the target cloud
+  //pcl::copyPointCloud(cloud_target,*target);
+  //// make a copy of the lidar cloud called 'cloud'
+  //PointCloud::Ptr source (new PointCloud);       //use this as the working copy of the source cloud
+  //pcl::copyPointCloud(cloud_source,*source);
+
+    // check for correct matches
+    //for (int i = 0; i < nr_original_correspondences; ++i)
+    //  std::cout <<((*correspondences)[i].index_match<<"," i << std::endl;
+
+  //}
+
+  //pcl::PointCloud<pcl::PointXYZ>::Ptr source, target;
+  //pcl::copyPointCloud(cloud_target,*target);
+  //pcl::copyPointCloud(cloud_source,*source);
+
+  // Convert the point cloud to Eigen
+  int Ns=cloud_source.size();
+  int Nt=cloud_target.size();
+  Eigen::Matrix<double, 3, Eigen::Dynamic> src(3, Ns);
+  Eigen::Matrix<double, 3, Eigen::Dynamic> tgt(3, Nt);
+  for (size_t i = 0; i < Ns; ++i) {
+    src.col(i) << cloud_source[i].x, cloud_source[i].y, cloud_source[i].z;
+  }
+  for (size_t i = 0; i < Nt; ++i) {
+    tgt.col(i) << cloud_target[i].x, cloud_target[i].y, cloud_target[i].z;
+  }
+
+  // Convert to teaser point cloud
+  teaser::PointCloud tgt_cloud;
+  for (size_t i = 0; i < tgt.cols(); ++i) {
+    tgt_cloud.push_back({static_cast<float>(tgt(0, i)), static_cast<float>(tgt(1, i)),
+                         static_cast<float>(tgt(2, i))});
+  }
+  // Convert to teaser point cloud
+  teaser::PointCloud src_cloud;
+  for (size_t i = 0; i < src.cols(); ++i) {
+    src_cloud.push_back({static_cast<float>(src(0, i)), static_cast<float>(src(1, i)),
+                         static_cast<float>(src(2, i))});
+  }
+
+
+   // Compute FPFH
+  teaser::FPFHEstimation fpfh;
+  auto obj_descriptors = fpfh.computeFPFHFeatures(src_cloud, 0.02, 0.04); // this line requires PCL 1.9.1 - I think
+  auto scene_descriptors = fpfh.computeFPFHFeatures(tgt_cloud, 0.02, 0.04);
+
+  teaser::Matcher matcher;
+  auto correspondences = matcher.calculateCorrespondences(
+      src_cloud, tgt_cloud, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
+
+     // Run TEASER++ registration
+  // Prepare solver parameters
+  teaser::RobustRegistrationSolver::Params tparams;
+  tparams.noise_bound = .05;
+  tparams.cbar2 = 1;
+  tparams.estimate_scaling = false;
+  tparams.rotation_max_iterations = 100;
+  tparams.rotation_gnc_factor = 1.4;
+  tparams.rotation_estimation_algorithm =
+      teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
+  tparams.rotation_cost_threshold = 0.005;
+
+  // Solve with TEASER++
+  teaser::RobustRegistrationSolver solver(tparams);
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+  solver.solve(src_cloud, tgt_cloud, correspondences);
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+  auto soln = solver.getSolution();
+
+  // Compare results
+  std::cout << "=====================================" << std::endl;
+  std::cout << "          TEASER++ Results           " << std::endl;
+  std::cout << "=====================================" << std::endl;
+  //std::cout << "Expected rotation: " << std::endl;
+  //std::cout << T.topLeftCorner(3, 3) << std::endl;
+  std::cout << "Estimated rotation: " << std::endl;
+  std::cout << soln.rotation << std::endl;
+  //std::cout << "Error (deg): " << getAngularError(T.topLeftCorner(3, 3), solution.rotation)
+  //          << std::endl;
+  std::cout << std::endl;
+  //std::cout << "Expected translation: " << std::endl;
+  //std::cout << T.topRightCorner(3, 1) << std::endl;
+  std::cout << "Estimated translation: " << std::endl;
+  std::cout << soln.translation << std::endl;
+  //std::cout << "Error (m): " << (T.topRightCorner(3, 1) - solution.translation).norm() << std::endl;
+  std::cout << std::endl;
+  std::cout << "Number of correspondences: " << Ns << std::endl;
+  //std::cout << "Number of outliers: " << N_OUTLIERS << std::endl;
+  std::cout << "Time taken (s): "
+            << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() /
+                   1000000.0
+            << std::endl;
+
+  
+  Eigen::MatrixXd soln_T(4,4); // a Transformation matrix for the teaser solution 
+  soln_T<<soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),soln.translation(0),
+          soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),soln.translation(1),
+          soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2),soln.translation(2),
+          0                 ,0                 ,0                 ,1                  ;
+
+  Eigen::MatrixXd soln_T_inv(4,4);
+  soln_T_inv=soln_T.inverse(); // take the inverse of the transformation returned by Teaser
+
+  // This part seems very over bloated !!! 
+  // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
+
+  tf::Quaternion q_result;
+  tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
+
+  tf::Quaternion q_inverse;
+  tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
+  // instantiate a 3x3 rotation matrix from the transformation matrix // 
+  
+
+  tf::Matrix3x3 R_result(soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),
+                         soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),
+                         soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2));
+  tf2::Matrix3x3 R_result_tf2(soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),
+                              soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),
+                              soln.rotation(2,0),soln.rotation(2,1),soln.rotation(2,2));
+  
+  tf::Matrix3x3 R_inverse(soln_T_inv(0,0),soln_T_inv(0,1),soln_T_inv(0,2),
+                          soln_T_inv(1,0),soln_T_inv(1,1),soln_T_inv(1,2),
+                          soln_T_inv(2,0),soln_T_inv(2,1),soln_T_inv(2,2));
+  tf2::Matrix3x3 R_inverse_tf2( soln_T_inv(0,0),soln_T_inv(0,1),soln_T_inv(0,2),
+                                soln_T_inv(1,0),soln_T_inv(1,1),soln_T_inv(1,2),
+                                soln_T_inv(2,0),soln_T_inv(2,1),soln_T_inv(2,2));
+  
+  // copy tf::quaternion from R_result to q_result
+  R_result.getRotation(q_result);
+  R_result_tf2.getRotation(*q_result_tf2);
+  q_result_tf2->normalize(); // normalize the Quaternion
+
+  // copy tf::quaternion from R_inverse to q_inverse
+  R_inverse.getRotation(q_inverse);
+  R_inverse_tf2.getRotation(*q_inverse_tf2);
+  q_inverse_tf2->normalize(); // normalize the Quaternion
+
+  // set rotation and origin of a quaternion for the tf transform object
+  T_AB.setRotation(q_result);
+  T_AB.setOrigin(tf::Vector3(soln.translation[0],soln.translation[1],soln.translation[2]));
+ 
+  // set rotation and origin of a quaternion for the tf transform object
+  T_BA.setRotation(q_inverse);
+  T_BA.setOrigin(tf::Vector3(soln_T_inv(0,3),soln_T_inv(1,3),soln_T_inv(2,3)));
+  
+  tf::transformStampedTFToMsg(T_AB,msg_AB);
+  tf::transformStampedTFToMsg(T_BA,msg_BA);
+
+  std::cout << "END OF REGISTER_CLOUD_TEASER FUNCTION" << std::endl;
+}
+*/
 
 void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_BC, tf::StampedTransform &T_AC, tf::StampedTransform &T_CA, geometry_msgs::TransformStamped &msg_AC,geometry_msgs::TransformStamped &msg_CA){
 
@@ -772,7 +1161,7 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(2);
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"***************** Seam Detection TEASER v1.6 ****************"<<endl;
+  std::cout<<"***************** Seam Detection TEASER v1.4 ****************"<<endl;
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
@@ -914,7 +1303,7 @@ int main(int argc, char** argv)
   segment_cloud(*cloud_lidar,*cloud_part1,*cloud_part2,*cloud_filtered,part1_type,coeffs_plane,coeffs_cylinder);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  // register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
+  register_cloud_icp(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
 
 
   int N_cor=100;
@@ -925,7 +1314,6 @@ int main(int argc, char** argv)
 
   //register_cloud_FPFHteaser(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params, cor_src_pts, cor_tgt_pts);
 
-  // Perform TEASERPP cloud registration
   register_cloud_teaser(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_params);
 
 
@@ -1035,6 +1423,24 @@ int main(int argc, char** argv)
   marker_cylinder.header.frame_id = "base_link";
   marker_cylinder.header.stamp = ros::Time::now();
 
+
+  //instantiate pub for the points and line marker
+  ros::Publisher pub_pointslines = node.advertise<visualization_msgs::Marker>("marker_pointslines",10);
+
+  visualization_msgs::Marker points_src, points_tgt, line_strip, line_list;
+  points_src.header.frame_id = points_tgt.header.frame_id = line_strip.header.frame_id = line_list.header.frame_id = "base_link";
+  points_src.header.stamp = points_tgt.header.stamp = line_strip.header.stamp = line_list.header.stamp = ros::Time::now();
+  points_src.ns = points_tgt.ns = line_strip.ns = line_list.ns = "points_and_lines";
+  points_src.action = points_tgt.action = line_strip.action = line_list.action = visualization_msgs::Marker::ADD;
+  points_src.pose.orientation.w = points_tgt.pose.orientation.w = line_strip.pose.orientation.w = line_list.pose.orientation.w = 1.0;
+
+  points_src.id = 0;
+  points_tgt.id = 1;
+  line_strip.id = 2;
+  line_list.id = 3;
+
+  points_src.type = visualization_msgs::Marker::POINTS;
+  points_tgt.type = visualization_msgs::Marker::POINTS;
   
   //instantiate pub for the line marker
   ros::Publisher pub_pointslines = node.advertise<visualization_msgs::Marker>("marker_pointslines ",10);
@@ -1052,13 +1458,17 @@ int main(int argc, char** argv)
   line_strip.id = 2;
   line_list.id = 3;
 
+
   points_src.type = visualization_msgs::Marker::POINTS;
   points_tgt.type = visualization_msgs::Marker::POINTS;
+  
+
 
   line_strip.type = visualization_msgs::Marker::LINE_STRIP;
   line_list.type = visualization_msgs::Marker::LINE_LIST;
 
   // POINTS markers use x and y scale for width/height respectively
+
   points_src.scale.x = 0.002;
   points_src.scale.y = 0.002;
   //points_src.scale.z = 0.002;
@@ -1066,9 +1476,23 @@ int main(int argc, char** argv)
   points_tgt.scale.y = 0.002;
   //points_tgt.scale.z = 0.002;
 
+
+
   // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
   line_strip.scale.x = 0.001;
   line_list.scale.x = 0.001;
+
+  // Points are green
+  points_src.color.g = 1.0f;
+  points_src.color.a = 1.0;
+  points_tgt.color.r = 1.0f;
+  points_tgt.color.a = 1.0;
+
+
+  // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
+  line_strip.scale.x = 0.001;
+  line_list.scale.x = 0.001;
+
 
   points_src.color.g = 1.0f;
   points_src.color.a = 1.0;
@@ -1139,9 +1563,9 @@ int main(int argc, char** argv)
 
     //line_list.points.push_back(p);
 
-    //line_list.points.push_back(p);
-    //p.z += 1.0;
-    //line_list.points.push_back(p);
+    line_list.points.push_back(p);
+    p.z += 1.0;
+    line_list.points.push_back(p);
 
   }
 
@@ -1173,7 +1597,7 @@ int main(int argc, char** argv)
   cloud_part2->header.frame_id = "base_link";
 
   std::cout<<"*************************************************************"<<endl;
-  std::cout<<"****************** seam_detection TEASER Complete ******************"<<endl;
+  std::cout<<"****************** seam_detection Complete ******************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
 
   //publish forever

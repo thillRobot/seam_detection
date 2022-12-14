@@ -8,4 +8,13 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ~/.Xauthority:/root/.Xauthority
       - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
-  
+  seam_detection_teaser: 
+    build: .
+    #command: rosrun seam_detection correspondence_grouping pcd_images/plate_rect_block/rect_block_02.pcd pcd_images/plate_rect_block/rect_block_02.pcd -c -k
+    command: roslaunch seam_detection seam_detection_teaser.launch scene:="table_8in10in_tee_longclamps_x4y24_45"
+    environment:
+      DISPLAY: $DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
