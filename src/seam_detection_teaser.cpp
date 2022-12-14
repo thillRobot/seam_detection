@@ -785,54 +785,72 @@ int main(int argc, char** argv)
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"**************** Loading Configuration File ****************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
+
+  // there is only one cmd line arg and it is the name of the config file
+  // read the config file(yaml) feild to pick the data files and set parameters
+
+  // find the path to the this package (seam_detection)
   std::string packagepath = ros::package::getPath("seam_detection");
 
-  std::string file_lidar; // source cloud
-  std::string file_cad;// reference cloud
-  std::string part1_type; // part1 is the part to be welded to plate
+  // parameters that contain strings  
+  std::string lidar_src_path, cad_ref_path, lidar_src_file, cad_ref_file, part1_type;
 
-  std::string param1;
-  node.getParam("scene_file", param1);
-  file_lidar=packagepath+'/'+param1;
+  node.getParam("lidar_src_file", lidar_src_file);
+  lidar_src_path=packagepath+'/'+lidar_src_file;
 
-  std::string param2;
-  node.getParam("part1_file", param2);
-  file_cad=packagepath+'/'+param2;
+  node.getParam("cad_ref_file", cad_ref_file);
+  cad_ref_path=packagepath+'/'+cad_ref_file;
 
-  std::string param3;
-  node.getParam("part1_type", param3);
-  part1_type=param3;
+  node.getParam("part1_type",  part1_type);
 
-  std::vector<double> xs;
-  std::vector<double> ys;
-  std::vector<double> zs;
-  std::vector<double> icps;
+  // parameters that contain doubles
+  double voxel_leaf_size, ransac_norm_dist_wt, ransac_max_iter, ransac_dist_thrsh, ransac_k_srch,
+         icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl;
 
-  double icp_params[4];
+  // parameters that contain vectors of doubles
+  std::vector<double> xs, ys, zs, filter_box_vec, ransac_init_norm_vec, expected_results_vec, calibration_offset_vec, seam1_points_x_vec, seam1_points_y_vec, seam1_points_z_vec;
+  double filter_box[6],ransac_init_norm[3],icp_params[4],expected_results[6],calibration_offset[6],seam1_points_x[4],seam1_points_y[4],seam1_points_z[4];
+  
+  node.getParam("filter_box",  filter_box_vec);
+  for(unsigned i=0; i < filter_box_vec.size(); i++)
+    filter_box[i]=filter_box_vec[i]; // copy from vector to array 
+  node.getParam("voxel_leaf_size", voxel_leaf_size);
 
-  node.getParam("seam1_xs",xs); // these arrays define x,y,z, points in the model
-  node.getParam("seam1_ys",ys);
-  node.getParam("seam1_zs",zs);
+  node.getParam("ransac_norm_dist_wt",ransac_norm_dist_wt);  
+  node.getParam("ransac_max_iter",ransac_max_iter);  
+  node.getParam("ransac_dist_thrsh",ransac_dist_thrsh);  
+  node.getParam("ransac_k_srch",ransac_k_srch);  
+  node.getParam("ransac_init_norm",  ransac_init_norm_vec);
+  for(unsigned i=0; i < ransac_init_norm_vec.size(); i++)
+    ransac_init_norm[i]=ransac_init_norm_vec[i]; // copy from vector to array
+  
+  node.getParam("icp_max_corr_dist",icp_max_corr_dist);  // these four ICP parameters define the search
+  node.getParam("icp_max_iter",icp_max_iter);
+  node.getParam("icp_trns_epsl",icp_trns_epsl);
+  node.getParam("icp_ecld_fitn_epsl",icp_ecld_fitn_epsl);
 
-  node.getParam("icp_params",icps);  // these four ICP parameters define the search
-
-  // Define array for the four ICP search paremeters
-  for(unsigned i=0; i < xs.size(); i++) {
-    //std::cout<<xs[i]<<ys[i]<<zs[i]<<std::endl;
-    icp_params[i]=icps[i]; // copy into an array to be used in register_cloud fn
+  node.getParam("expected_results",expected_results_vec);  // these four ICP parameters define the search
+  node.getParam("calibration_offset",calibration_offset_vec);  // these four ICP parameters define the search
+  for(unsigned i=0; i < expected_results_vec.size(); i++){
+    expected_results[i]=expected_results_vec[i]; // copy into an array 
+    calibration_offset[i]=calibration_offset_vec[i]; // copy into an array 
+  }
+  
+  node.getParam("seam1_points_x",seam1_points_x_vec);
+  node.getParam("seam1_points_y",seam1_points_y_vec);
+  node.getParam("seam1_points_z",seam1_points_z_vec);
+  for(unsigned i=0; i < seam1_points_x_vec.size(); i++){
+    seam1_points_x[i]=seam1_points_x_vec[i]; // copy into arrays
+    seam1_points_y[i]=seam1_points_y_vec[i]; 
+    seam1_points_z[i]=seam1_points_z_vec[i];
   }
 
-
-  //double sum = 0;
-  //nh.getParam("my_double_list", my_double_list);
-
-  // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
-  // static tf::TransformBroadcaster br_searchbox;
-  // tf::Transform tf_searchbox;
 
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"******************* Preparing Pointcloud Data ***************"<<endl;
   std::cout<<"*************************************************************"<<endl;
+
+  std::cout<<"Debug0"<<endl;
 
   // instantiate some clouds
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
@@ -843,6 +861,9 @@ int main(int argc, char** argv)
   PointCloud::Ptr cloud_part1 (new pcl::PointCloud<pcl::PointXYZ>); // cylinder cloud // input to ICP
   PointCloud::Ptr cloud_part2 (new pcl::PointCloud<pcl::PointXYZ>); // plane cloud
 
+  std::cout<<"Debug1"<<endl;
+
+  /*
   // load the clouds from file (.pcd)
   if (pcl::io::loadPCDFile<pcl::PointXYZ> (file_lidar, *cloud_lidar) == -1)
   {
@@ -860,6 +881,27 @@ int main(int argc, char** argv)
   }
   std::cout << "Loaded image file: "<< file_cad <<std::endl<<
       cloud_cad1->width * cloud_cad1->height << " Data points from "<< file_cad <<std::endl<<std::endl;
+  */
+    // load the clouds from file (.pcd)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (lidar_src_path, *cloud_lidar) == -1)
+  {
+      std::cout<<"Couldn't read image file:"<<lidar_src_path;
+      return (-1);
+  }
+  std::cout << "Loaded image file: "<< lidar_src_path <<std::endl<<
+      cloud_lidar->width * cloud_lidar->height << " Data points from "<< lidar_src_path << std::endl;
+
+  // load the cloud from CAD file
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (cad_ref_path, *cloud_cad1) == -1)
+  {
+      std::cout<<"Couldn't read image file:"<<cad_ref_path;
+      return (-1);
+  }
+  std::cout << "Loaded image file: "<< cad_ref_path <<std::endl<<
+      cloud_cad1->width * cloud_cad1->height << " Data points from "<< cad_ref_path <<std::endl<<std::endl;
+
+  std::cout<<"Debug2"<<endl;
+      
 
   // for now each tf has three objects associated with it
   // 1) '<name>' (tf::transform)      // needed for transforms with pcl_ros
