@@ -33,7 +33,7 @@ devel_isolated/
 CMakeLists.txt.user
 
 srv/_*.py
-*.pcd
+#*.pcd
 *.pyc
 qtcreator-*
 *.user
@@ -58,3 +58,7 @@ CATKIN_IGNORE
 
 *.mp4
 *.m4a
+
+pcd_images/plate_rect_block/archive
+pcd_images/table_tee/archive
+

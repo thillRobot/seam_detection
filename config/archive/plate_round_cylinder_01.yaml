@@ -1,0 +1,18 @@
+---
+scene_name: "plate_round_tube_01"
+scene_file: "pcd_images/plate_round_tube_01.pcd"
+part1_name: "round_tube_01"
+part1_file: "pcd_images/round_tube_01.pcd"
+part1_type: "round_tube"
+part2_name: "plate"
+part2_type: "plate with notch"
+seam1_length: 1.0
+
+filter_params: [-0.25, 0.4, -0.25, 0.4, 0.00, 0.22, 0.0005]
+ransac_params: [0.1,100,0.03]
+icp_params: [1.0, 1000000000, 0.000000001, 0.000000001]
+
+seam1_length: 1.0
+seam1_xs: [10, 11, 12, 13]
+seam1_ys: [20, 55, 22, 23]
+seam1_zs: [30, 31, 54, 12]

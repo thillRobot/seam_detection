@@ -728,9 +728,13 @@ int main(int argc, char** argv)
   // static tf::TransformBroadcaster br_searchbox;
   // tf::Transform tf_searchbox;
 
+  std::cout<<"Debug0"<<endl;
+
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"******************* Preparing Pointcloud Data ***************"<<endl;
   std::cout<<"*************************************************************"<<endl;
+
+  
 
   // instantiate some clouds
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
@@ -742,6 +746,9 @@ int main(int argc, char** argv)
   PointCloud::Ptr cloud_cad3 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud final
   PointCloud::Ptr cloud_part1 (new pcl::PointCloud<pcl::PointXYZ>); // cylinder cloud // input to ICP
   PointCloud::Ptr cloud_part2 (new pcl::PointCloud<pcl::PointXYZ>); // plane cloud
+
+  std::cout<<"Debug1"<<endl;
+
 
   // load the clouds from file (.pcd)
   if (pcl::io::loadPCDFile<pcl::PointXYZ> (lidar_src_path, *cloud_lidar) == -1)
@@ -760,6 +767,8 @@ int main(int argc, char** argv)
   }
   std::cout << "Loaded image file: "<< cad_ref_path <<std::endl<<
       cloud_cad1->width * cloud_cad1->height << " Data points from "<< cad_ref_path <<std::endl<<std::endl;
+
+  std::cout<<"Debug2"<<endl;
 
   // for now each tf has three objects associated with it
   // 1) '<name>' (tf::transform)      // needed for transforms with pcl_ros

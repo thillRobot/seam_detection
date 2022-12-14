@@ -178,38 +178,28 @@ seam1_points_z: [30, 31, 54, 12]
 
 Pass the name of scene when using seam_detection as shown below. This is much more convenient and allows for all nodes in the system access to parameters.  
 
-**plate_round_tube_01**
+
+##### Simulated Application - source and target clouds from CAD (simulated LiDAR)
+
+**plate_rect_block**
 ```
-roslaunch seam_detection seam_detection.launch scene:="plate_round_tube_01"
+roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_c0_blndr"
+```
+```
+roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_c1_30_blndr"
+```
+```
+roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_c1_blndr"
+```
+```
+roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_c2_blndr"
 ```
 
-**plate_square_tube_01**
-```
-roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_01"
-```
+**table_tee**
 
-**plate_square_tube_02**
-```
-roslaunch seam_detection seam_detection.launch scene:="table_tee_c2_30_blndr"
-```
-
-**table_offset_tee_clamps**
-
-```
-roslaunch seam_detection seam_detection.launch scene:="table_offset_tee_clamps_c1_blndr"
-```
+add these here, this scene was used in the 2022 pub
 
 
-```
-roslaunch seam_detection seam_detection.launch scene:="table_offset_tee_clamps_c2_30_blndr"
-
-```
-
-**table_plate_tee_clamps**
-
-```
-roslaunch seam_detection seam_detection.launch scene:="table_plate_tee_clamps_c1_blndr"
-```
 
 
 ##### Experimental Application A - LiDAR scans from RPLiDAR A2 on Aubo i5
@@ -235,6 +225,26 @@ roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_longcla
 
 ```
 
+
+
+##### archived examples 
+These examples will not run because the config files need to be updated to the new format
+
+**plate_round_tube_01** (not working)
+```
+roslaunch seam_detection seam_detection.launch scene:="plate_round_tube_01"
+```
+
+**plate_square_tube_01** (not working)
+```
+roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_01"
+```
+
+**table_plate_tee_clamps** (not working)
+
+```
+roslaunch seam_detection seam_detection.launch scene:="table_plate_tee_clamps_c1_blndr"
+```
 
 ###### current test scenes
 
