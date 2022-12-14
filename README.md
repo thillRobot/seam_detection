@@ -318,23 +318,36 @@ PointCloud representing the planar component: 2993 data points.
 
 
 
+### running in Docker
+
+Use docker and docker compose to stand up the entire application in a single line. 
 
 
+Create a source directory and set environment variable $CATKIN_WS_PATH 
 
+```
+mkdir -p ~/catkin_ws/src
+export CATKIN_WS_PATH=~/catkin_ws
+```
 
+Clone this repository into $CATKIN_WS_PATH/src
 
+```
+cd $CATKIN_WS_PATH/src
+git clone git@github.com:thillrobot/seam_detection
+```
 
+Build the container and start the application
 
+```
+docker compose up --build 
+```
 
+Run a simple test, this calls one of the launch files from above.
 
-
-
-
-
-
-
-
-
+```
+docker compose run seam_detection
+```
 
 
 
@@ -366,6 +379,12 @@ PointCloud representing the planar component: 2993 data points.
   - exposed `part2` (table) cloud and `filtered` outliers to rviz 
   - added `ransac_params`  and `filter_params` to config files to adjust search without re-compile
   - added scenes `8in10in_tee` and `8in10in_tee_longclamps` 
+- v1.6 (stable - main/devel - tagged 12/14/2022)
+  - changed branch name from `master` to `main`
+  - added files to run in docker container  
+  - successfully tested in `ros:noetic-robot-focal` container, first time successfully testing in 20.04
+  - updated example launch commands in this README
+
 
 
 #### Things To Do: 
