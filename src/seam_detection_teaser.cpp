@@ -601,7 +601,6 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   //rejector.setInputTarget(target);
   //rejector.setInputSource(source);
  
-  
 
   int Ns = cloud_source.size();
   int Nt = cloud_target.size();
@@ -1009,7 +1008,6 @@ int main(int argc, char** argv)
   std::cout<<"*************************************************************"<<endl;
 
   
-
   // instantiate some clouds
   PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
   PointCloud::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
@@ -1115,6 +1113,8 @@ int main(int argc, char** argv)
   // Perform TEASER++ cloud registration
   double teaser_params[3]={1,2,3}; // temporary place holder 
   register_cloud_teaser(*cloud_cad1, *cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+
+  //register_cloud_teaser(*cloud_cad1, *cloud_filtered,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
 
   // now align the CAD part to using the resulting transformation
