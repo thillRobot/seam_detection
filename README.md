@@ -386,6 +386,7 @@ docker compose run seam_detection
   - added files to run in docker container  
   - successfully tested in `ros:noetic-robot-focal` container, first time successfully testing in 20.04
   - updated example launch commands in this README
+  - successfully registered clouds and localized workpiece with TEASER++, ironically using old code
 
 
 
