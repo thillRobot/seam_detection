@@ -406,26 +406,29 @@ docker compose run seam_detection
 
 - [ ] add description of the seam to the model - i have begun by creating seam *.pcd* files
 
-- [ ] localize control points on key parts from description of the seam
-
 - [ ] calculate a *measure of accuracy* - i started this in `analyse_results` then moved this to `register_cloud_icp` in a hurry
 
-- [ ] update all old config files with new parameters lists, maybe we should wait until we finish changing 
+- [ ] update all old config files in archive with new parameters lists, maybe we should wait until we finish changing 
 
-- [ ] solve large file repo mess issue! -git-lfs?
+- [ ] solve large file repo mess issue! -git-lfs? solution: dont commit large files, use .gitignore
 
-- [ ] The migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
+- [ ] The tf migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
 - [ ] Improve conversion from `ICP::` to `TF::` in REGISTER_CLOUD_ICP function in `seam_detection.cpp`. Currently it is clunky and overbloated, but it works.
 
-- [ ] migration to Fossa/Noetic - Everything compiles, but ICP stage does not work. It does converges but the score is too high, and the results do not make any sense. It works in Melodic but not in Noetic. **This is an issue**.
-
-- [ ] use a .cpp class to improve the implementation of seam_detection.cpp
+- [ ] use a .cpp class to improve the implementation of seam_detection.cpp - DO THIS!
 
 - [ ] improve efficiecy of `seam_detection.cpp` by redcucing the number of extra copies of cloud objects used in the main workflow. Many of these were only used for debugging purposes. 
-
-- [ ] revise the IDETC2021 manuscript, hopefully! - submited and now we wait
 
 - [ ] re-do Experimental Application A and B with calibrated scans from Aubo i5
 
 - [ ] document calibration process of 3D LiDAR system - update `scan2cloud` package
 
+- [ ] complete workpeice localization with TEASER as substitute for ICP and/or RANSAC - testing `seam_detection_teaser.cpp` currently
+
+- [ ] troubleshoot teaser rotation estimation, experiment with input cloud density and bounds 
+
+- [ ] implement and test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
+
+- [ ] implement and test Python examples from TEASER: `teaser_python_fpfh_icp.py`, `teaser_python_3d_smooth.py`, `teaser_python_ply.py`
+
+- [ ] prepare a manuscript for ASME IDETC2023, submissions due: 2023-03-13
