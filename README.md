@@ -316,6 +316,28 @@ PointCloud representing the planar component: 2993 data points.
 [pcl::SACSegmentationFromNormals::segment] Error segmenting the model! No solution found.
 ```
 
+#### TEASER Notes
+
+Teaser is running on the the current data sets, however the results are not correct or usable. 
+
+The translation component of the solution is mostly correct. It appears that the algorithm is successfully locating the centroid of the workpiece based on the ROS  visualization.
+
+The rotation portion of the solution is not correct. It is off by 30+ deg. 
+
+##### BIG IDEA
+It appears that registration requires correspondence and/or overlapping point clouds. However, most sample code and algorithm testing is done on standard data sets, and the clouds in these sets have correspondance by nature of the test. For example, it is common to test registration on a cloud and a modified version of the same cloud. This test represents an ideal situation and best case inputs to the registration problem in which correspondence within a tolerance is expected. 
+
+The applied registration problem for workpiece localization provides no guarantee that of correpondence between cloud points can be found. Check for this idea in the literature.
+
+##### Strategies
+
+ -
+
+
+
+
+
+
 
 
 ### running in Docker
@@ -335,6 +357,12 @@ Clone this repository into $CATKIN_WS_PATH/src
 ```
 cd $CATKIN_WS_PATH/src
 git clone git@github.com:thillrobot/seam_detection
+```
+
+
+Disable xauth access control 
+```
+xhost local:root
 ```
 
 Build the container and start the application
@@ -425,6 +453,9 @@ docker compose run seam_detection
 - [ ] complete workpeice localization with TEASER as substitute for ICP and/or RANSAC - testing `seam_detection_teaser.cpp` currently
 
 - [ ] troubleshoot teaser rotation estimation, experiment with input cloud density and bounds 
+  - Test TEASER with two point clouds from same source to verify idea about required correspondence   
+  - Hand select/crop better realistic data
+  - re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
 
 - [ ] implement and test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
 
