@@ -8,6 +8,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ~/.Xauthority:/root/.Xauthority
       - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
+
   seam-detection-teaser: 
     build: .
     #command: rosrun seam_detection correspondence_grouping pcd_images/plate_rect_block/rect_block_02.pcd pcd_images/plate_rect_block/rect_block_02.pcd -c -k
@@ -30,3 +31,15 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ~/.Xauthority:/root/.Xauthority
       - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
+
+  registration-examples: 
+    build: .
+    command: roslaunch seam_detection registration_examples.launch
+    environment:
+      DISPLAY: $DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
+
+    

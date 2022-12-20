@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+ cmake_minimum_required(VERSION 3.10)
 #cmake_minimum_required(VERSION 2.8.3)
 #cmake_minimum_required(VERSION 3.0.2)
 #cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
@@ -281,6 +281,23 @@ target_link_libraries(seam_detection_teaser
   teaserpp::teaser_registration 
   teaserpp::teaser_io
 )
+
+
+#######################################################
+## Registration Examples - Algorithm Testing Node(s) ##
+#######################################################
+
+add_executable(registration_examples.cpp src/registration_examples.cpp)
+target_link_libraries(registration_examples.cpp 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+  teaserpp::teaser_registration 
+  teaserpp::teaser_io
+)
+
+
+
 
 # Teaser Stuff is all disabled for now
 # Change this line to include your own executable file

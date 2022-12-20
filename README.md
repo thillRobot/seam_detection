@@ -334,7 +334,7 @@ The applied registration problem for workpiece localization provides no guarante
 
 If the number of source points (Ns) is less that the number of target points (Nt), seam_detection_teaser.cpp crashes during TEASER registration. This has been double checked, Ns > Nt or TEASER will crash.
 
-If the number of source points is close to the number of target points, the algorithm converges quickly. Currently testing will N ~1000
+If the number of source points is close to the number of target points, the algorithm converges quickly. Currently testing will N = ~1000
 
 Some of the data sets we are testing are not good because they have low overlap. This is partially due to the segmentation process and partly due to the lidar shadow concept. Next, setup/find a ideal case for algorithm testing. I have a hunch that TEASER is working, but the data we are giving it is not great. CHECKTHISSOON!
 
@@ -383,6 +383,11 @@ cd seam_detection/docker
 docker compose run seam_detection
 ```
 
+Note: if you want generate files in the container, for example when using `cad_cloud` to make PCDs, you must set the permissions of the workspace directory or sub directory on the host to give the docker container write access which would be an 'other' in this case.
+
+```
+chmod o+w seam_detection/<SUBDIR>
+````
 
 
 
@@ -441,7 +446,7 @@ docker compose run seam_detection
 
 - [ ] update all old config files in archive with new parameters lists, maybe we should wait until we finish changing 
 
-- [ ] solve large file repo mess issue! -git-lfs? solution: dont commit large files, use .gitignore
+- [x] solve large file repo mess issue! -git-lfs? solution: dont commit large files, use .gitignore
 
 - [ ] The tf migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
 - [ ] Improve conversion from `ICP::` to `TF::` in REGISTER_CLOUD_ICP function in `seam_detection.cpp`. Currently it is clunky and overbloated, but it works.
@@ -454,7 +459,7 @@ docker compose run seam_detection
 
 - [ ] document calibration process of 3D LiDAR system - update `scan2cloud` package
 
-- [ ] complete workpeice localization with TEASER as substitute for ICP and/or RANSAC - testing `seam_detection_teaser.cpp` currently
+- [x] complete workpeice localization with TEASER as substitute for ICP and/or RANSAC - testing `seam_detection_teaser.cpp` currently
 
 - [ ] troubleshoot teaser rotation estimation, experiment with input cloud density and bounds 
   - Test TEASER with two point clouds from same source to verify idea about required correspondence   
@@ -465,4 +470,8 @@ docker compose run seam_detection
 
 - [ ] implement and test Python examples from TEASER: `teaser_python_fpfh_icp.py`, `teaser_python_3d_smooth.py`, `teaser_python_ply.py`
 
-- [ ] prepare a manuscript for ASME IDETC2023, submissions due: 2023-03-13
+- [ ] temporarily separate the segmentation and registration code to ease testing of new algorithms
+
+- [ ] create and save one best case ideal data set for testing different registration algorithms
+
+- [!] prepare a manuscript for ASME IDETC2023, submissions due: 2023-03-13
