@@ -1,0 +1,18 @@
+<launch>
+  <!-- This is a launch file for CAD_CLOUD node from package SEAM_DETECTION -->
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
+
+  <!-- read value of arg -->
+  <param name="param" value="$(arg if)"/> 
+  <param name="param" value="$(arg of)"/> 
+
+  <!-- convert PLY files to PCD files -->
+  <node
+    pkg="seam_detection"
+    name="cad_cloud"
+    type="cad_cloud"
+    output="screen"
+    args="-n_samples 100000 -leaf_size 0.00025 -write_normals 1 $(arg if) $(arg of)"    
+  />
+
+</launch>
