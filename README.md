@@ -329,10 +329,14 @@ It appears that registration requires correspondence and/or overlapping point cl
 
 The applied registration problem for workpiece localization provides no guarantee that of correpondence between cloud points can be found. Check for this idea in the literature.
 
-##### Strategies
 
- -
+#### More TEASER Notes
 
+If the number of source points (Ns) is less that the number of target points (Nt), seam_detection_teaser.cpp crashes during TEASER registration. This has been double checked, Ns > Nt or TEASER will crash.
+
+If the number of source points is close to the number of target points, the algorithm converges quickly. Currently testing will N ~1000
+
+Some of the data sets we are testing are not good because they have low overlap. This is partially due to the segmentation process and partly due to the lidar shadow concept. Next, setup/find a ideal case for algorithm testing. I have a hunch that TEASER is working, but the data we are giving it is not great. CHECKTHISSOON!
 
 
 

@@ -296,12 +296,12 @@ main (int argc, char **argv)
   std::cout<<"TH debug - write normals: "<< write_normals <<std::endl;
   std::cout<<"TH - BUGS!... "<<std::endl;
   */
-
-  //argv[obj_file_indices[0]]
+  
+  // write results to a PCD file
   std::string file_out = argv[pcd_file_indices[0]];
+  std::cout<<"Writing " <<file_out<< " with " <<voxel_cloud->size()<<" points"<<std::endl;
   savePCDFileASCII (file_out, *voxel_cloud);
-  std::cout<<"TH - Writing PCD output file: "<<file_out<<std::endl;
-  std::cout<<"TH - Finsished writing PCD file. "<<std::endl;
+  std::cout<<"Finsished writing PCD file. "<<std::endl;
 
   /* For some reason there is a crash (even seg fault on some inputs)  in this section - TH 03/05/2018 (late night) - This needs to be fixed!
   if (vis_result)

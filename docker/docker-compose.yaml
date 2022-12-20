@@ -1,7 +1,7 @@
 services:
   seam-detection:
     build: .
-    command: roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_longclamps_x4y24_45"
+    command: roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_c0_blndr"
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -11,7 +11,7 @@ services:
   seam-detection-teaser: 
     build: .
     #command: rosrun seam_detection correspondence_grouping pcd_images/plate_rect_block/rect_block_02.pcd pcd_images/plate_rect_block/rect_block_02.pcd -c -k
-    command: roslaunch seam_detection seam_detection_teaser.launch scene:="table_8in10in_tee_longclamps_x4y24_45"
+    command: roslaunch seam_detection seam_detection_teaser.launch scene:="plate_rect_block_c0"
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -22,8 +22,8 @@ services:
   cad-cloud: 
     build: .
     command: roslaunch seam_detection cad_cloud.launch
-             if:=$(find seam_detection)/ply_images/plate_rect_block/plate_rect_block_c0.ply
-             of:=$(find seam_detection)/pcd_images/plate_rect_block/plate_rect_block_c0.pcd
+             if:=$(find seam_detection)/ply_images/plate_rect_block/rect_block_02.ply
+             of:=$(find seam_detection)/pcd_images/plate_rect_block/rect_block_02.pcd
     environment:
       DISPLAY: $DISPLAY
     volumes:
