@@ -12,7 +12,7 @@
     name="cad_cloud"
     type="cad_cloud"
     output="screen"
-    args="-n_samples 1075 -leaf_size 0.00025 -write_normals 1 $(arg if) $(arg of)"    
+    args="-n_samples 30000 -leaf_size 0.00025 -write_normals 1 $(arg if) $(arg of)"    
   />
 
 </launch>

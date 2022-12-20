@@ -338,7 +338,7 @@ If the number of source points is close to the number of target points, the algo
 
 Some of the data sets we are testing are not good because they have low overlap. This is partially due to the segmentation process and partly due to the lidar shadow concept. Next, setup/find a ideal case for algorithm testing. I have a hunch that TEASER is working, but the data we are giving it is not great. CHECKTHISSOON!
 
-
+It seems that it is all about the input data, duh!
 
 
 
