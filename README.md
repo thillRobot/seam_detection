@@ -451,7 +451,7 @@ chmod o+w seam_detection/<SUBDIR>
 - [ ] The tf migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
 - [ ] Improve conversion from `ICP::` to `TF::` in REGISTER_CLOUD_ICP function in `seam_detection.cpp`. Currently it is clunky and overbloated, but it works.
 
-- [ ] use a .cpp class to improve the implementation of seam_detection.cpp - DO THIS!
+- [ ] use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated!
 
 - [ ] improve efficiecy of `seam_detection.cpp` by redcucing the number of extra copies of cloud objects used in the main workflow. Many of these were only used for debugging purposes. 
 
@@ -472,6 +472,8 @@ chmod o+w seam_detection/<SUBDIR>
 - [ ] implement and test Python examples from TEASER: `teaser_python_fpfh_icp.py`, `teaser_python_3d_smooth.py`, `teaser_python_ply.py`
 
 - [x] temporarily separate the segmentation and registration code to ease testing of new algorithms
+  
+  - added new script `registration_examples.cpp`  
 
 - [x] create and save best case ideal data set for testing different registration algorithms
 

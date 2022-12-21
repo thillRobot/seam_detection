@@ -21,7 +21,7 @@ icp_max_iter: 1000000000          # ICP Maximum Iterations
 icp_trns_epsl: 0.000000001        # ICP Transformation Epsilon
 icp_ecld_fitn_epsl: 0.000000001   # ICP Euclidean Distance Fitness Epsilon          
 
-expected_results: [0.200, 0.250, 0.025,0.0,0.0,0.5236] # [4.0in, -24.0in, 1.0in]*(25.4e-3) #[0.0,0.0,45.0]*(pi/180)
+expected_results: [0.100, 0.05, 0.0, 0.0,0.0,0.5235] # [4.0in, -24.0in, 1.0in]*(25.4e-3) #[0.0,0.0,45.0]*(pi/180)
 calibration_offset: [0.0, 0.0, 0.0,0.0,0.0,0.0]
 
 seam1_length: 1.0                      # weld seam length

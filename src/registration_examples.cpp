@@ -69,26 +69,16 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <teaser/matcher.h>
 //#include <teaser/point_cloud.h>
 
-
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
-typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
-
 
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
 void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
 {
  
-  // make a copy of the CAD(target) cloud called 'cloud_A' 
-  PointCloud::Ptr cloud_A (new PointCloud);       //use this as the working copy of the target cloud
-  pcl::copyPointCloud(cloud_target,*cloud_A);
-  // make a copy of the LiDAR(source) cloud called 'cloud_B'
-  PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
-  pcl::copyPointCloud(cloud_source,*cloud_B);
-
   std::cout<<"BEGINNING ICP REGISTRATION" << std::endl;
   std::cout<<"Using Search Parameters:"<< std::endl;
   std::cout<<"Max Correspondence Distance = "<< max_corr_dist <<std::endl;
@@ -111,6 +101,14 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   // Set the euclidean distance difference epsilon (criterion 3)
   icp.setEuclideanFitnessEpsilon (ecld_fitn_epsl);
 
+  // these copies seem like a waste to me, figure out how to cut these out
+  // make a copy of the CAD(target) cloud called 'cloud_A' 
+  PointCloud::Ptr cloud_A (new PointCloud);       //use this as the working copy of the target cloud
+  pcl::copyPointCloud(cloud_target,*cloud_A);
+  // make a copy of the LiDAR(source) cloud called 'cloud_B'
+  PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
+  pcl::copyPointCloud(cloud_source,*cloud_B);
+
   icp.setInputTarget(cloud_A); // target (fixed) cloud
   icp.setInputSource(cloud_B);  // source (moved during ICP) cloud
   icp.align(Final); // do ICP
@@ -126,7 +124,7 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   //std::cout << "ICP Algorithm Information: " << std::endl;
   //std::cout <<  icp.getSearchMethodTarget() << std::endl;
 
-  // This part seems very over bloated !!! 
+  // This part below seems very over bloated !!! 
   // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
   // the benefit is that the transformation matrix or quaternion is available as TF
 
@@ -375,6 +373,39 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
 }
 
 
+// this function calculates a difference detween the measured and expected transformation and prints the info to the console
+void analyze_results(tf::Transform &tf_in,double e_results[])
+{
+  
+  std::cout<<"Measured Rotation Matrix:"<<std::endl;  
+  std::cout<<"["<<tf_in.getBasis()[0][0]<<","<<tf_in.getBasis()[0][1]<<","<<tf_in.getBasis()[0][2]<<","<<std::endl;
+  std::cout     <<tf_in.getBasis()[1][0]<<","<<tf_in.getBasis()[1][1]<<","<<tf_in.getBasis()[1][2]<<","<<std::endl;
+  std::cout     <<tf_in.getBasis()[2][0]<<","<<tf_in.getBasis()[2][1]<<","<<tf_in.getBasis()[2][2]<<"]"<<std::endl;
+
+  std::cout<<"Expected,Translation: ["<<e_results[0]<<","
+                                      <<e_results[1]<<","
+                                      <<e_results[2]<<"]"<<std::endl;
+  std::cout<<"Measured Translation: ["<<tf_in.getOrigin().getX()<<","
+                                      <<tf_in.getOrigin().getY()<<","
+                                      <<tf_in.getOrigin().getZ()<<"]"<<std::endl;
+  std::cout<<"Difference Translation: ["<<e_results[0]-tf_in.getOrigin().getX()<<","
+                                      <<e_results[1]-tf_in.getOrigin().getY()<<","
+                                      <<e_results[2]-tf_in.getOrigin().getZ()<<"]"<<std::endl;
+
+  std::cout<<"Expected Rotation: [" <<e_results[3]<<","
+                                    <<e_results[4]<<","
+                                    <<e_results[5]<<"]"<<std::endl;
+  std::cout<<"Measured Rotation: [" <<tf_in.getRotation().getAxis().getX()
+                                    <<","<<tf_in.getRotation().getAxis().getY()
+                                    <<","<<tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
+  std::cout<<"Difference Rotation: [" <<e_results[3]-tf_in.getRotation().getAxis().getX()
+                                    <<","<<e_results[4]-tf_in.getRotation().getAxis().getY()
+                                    <<","<<e_results[5]-tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
+
+  //std::cout<<"W:"<<tf_in.getRotation().getW()<<std::endl;
+}
+
+// this function combines transformations through multiplications and handles the object copy, is this really needed? or used?
 void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_BC, tf::StampedTransform &T_AC, tf::StampedTransform &T_CA, geometry_msgs::TransformStamped &msg_AC,geometry_msgs::TransformStamped &msg_CA){
 
   tf::Transform T;
@@ -568,7 +599,15 @@ int main(int argc, char** argv)
   // now align the CAD part to using the resulting transformation
   //pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   
-  //analyze_results(*T_01, expected_results,calibration_offset);
+ 
+  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"*************** Analyzing Results ***************************"<<endl;
+  std::cout<<"*************************************************************"<<endl<<endl;
+
+  analyze_results(*T_10, expected_results);
+
+  analyze_results(*T_01, expected_results);
+
 
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
   //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
@@ -598,9 +637,8 @@ int main(int argc, char** argv)
   std::cout << "Final transformation computed and converted to message." <<endl;
   //std::cout << "Plane Coefficients" << *coeffs_plane <<endl;
 
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"*************** Pointcloud Processing Complete *************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
+
+
 
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"*************** Preparing Visualization *********************"<<endl;

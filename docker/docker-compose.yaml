@@ -34,7 +34,7 @@ services:
 
   registration-examples: 
     build: .
-    command: roslaunch seam_detection registration_examples.launch scene:="rect_block_02"
+    command: roslaunch seam_detection registration_examples.launch scene:="rect_block_02_blndr"
     environment:
       DISPLAY: $DISPLAY
     volumes:
