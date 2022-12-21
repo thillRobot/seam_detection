@@ -23,8 +23,8 @@ services:
   cad-cloud: 
     build: .
     command: roslaunch seam_detection cad_cloud.launch
-             if:=$(find seam_detection)/ply_images/plate_rect_block/plate_rect_block_c0_blndr.ply
-             of:=$(find seam_detection)/pcd_images/plate_rect_block/plate_rect_block_c0_blndr.pcd
+             if:=$(find seam_detection)/ply_images/plate_rect_block/rect_block_02.ply
+             of:=$(find seam_detection)/pcd_images/plate_rect_block/rect_block_02.pcd
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -34,7 +34,7 @@ services:
 
   registration-examples: 
     build: .
-    command: roslaunch seam_detection registration_examples.launch
+    command: roslaunch seam_detection registration_examples.launch scene:="rect_block_02"
     environment:
       DISPLAY: $DISPLAY
     volumes:

@@ -1,8 +1,8 @@
 ---
-scene_name: "plate_rect_block_c0_blndr"
-lidar_src_file: "pcd_images/plate_rect_block/plate_rect_block_c0_blndr.pcd"
-part1_name: "rect_block_02"
-cad_ref_file: "pcd_images/plate_rect_block/rect_block_02_blndr.pcd"
+scene_name: "rect_block_02"
+lidar_src_file: "pcd_images/plate_rect_block/rect_block_02.pcd"
+part1_name: "rect_block_02"                
+cad_ref_file: "pcd_images/plate_rect_block/rect_block_02_dx100_dy50_rz30.pcd"
 part1_type: "square_tube"
 part2_name: "plate_02"
 part2_type: "plate with notch"

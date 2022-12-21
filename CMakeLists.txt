@@ -287,8 +287,8 @@ target_link_libraries(seam_detection_teaser
 ## Registration Examples - Algorithm Testing Node(s) ##
 #######################################################
 
-add_executable(registration_examples.cpp src/registration_examples.cpp)
-target_link_libraries(registration_examples.cpp 
+add_executable(registration_examples src/registration_examples.cpp)
+target_link_libraries(registration_examples 
   ${catkin_LIBRARIES} 
   ${PCL_LIBRARIES} 
   Eigen3::Eigen 

@@ -397,7 +397,7 @@ void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_
 int main(int argc, char** argv)
 {
 
-  ros::init(argc,argv,"seam_detection");
+  ros::init(argc,argv,"registration_examples");
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
@@ -562,11 +562,8 @@ int main(int argc, char** argv)
   EigenCor cor_src_pts, cor_tgt_pts;
 
   // Perform TEASER++ cloud registration
-  //double teaser_params[3]={1,2,3}; // temporary place holder 
-  //register_cloud_teaser(*cloud_cad1,*cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
-
-  //register_cloud_teaser(*cloud_cad1, *cloud_filtered,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
-
+  double teaser_params[3]={1,2,3}; // temporary place holder 
+  register_cloud_teaser(*src_cloud,*tgt_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
   // now align the CAD part to using the resulting transformation
   //pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'

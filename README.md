@@ -461,17 +461,20 @@ chmod o+w seam_detection/<SUBDIR>
 
 - [x] complete workpeice localization with TEASER as substitute for ICP and/or RANSAC - testing `seam_detection_teaser.cpp` currently
 
-- [ ] troubleshoot teaser rotation estimation, experiment with input cloud density and bounds 
+- [x] troubleshoot teaser rotation estimation, experiment with input cloud density and bounds 
   - Test TEASER with two point clouds from same source to verify idea about required correspondence   
   - Hand select/crop better realistic data
   - re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
+  - TEASER (no features) works with relatively dense _overlapping_ data. I think the later part is the ket.
 
 - [ ] implement and test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
 
 - [ ] implement and test Python examples from TEASER: `teaser_python_fpfh_icp.py`, `teaser_python_3d_smooth.py`, `teaser_python_ply.py`
 
-- [ ] temporarily separate the segmentation and registration code to ease testing of new algorithms
+- [x] temporarily separate the segmentation and registration code to ease testing of new algorithms
 
-- [ ] create and save one best case ideal data set for testing different registration algorithms
+- [x] create and save best case ideal data set for testing different registration algorithms
+
+  -  scenes `rect_block_02_blndr` and `rect_block_02` should provide a good base line data set. They have been tested with ICP and TEASER in `registration_examples.cpp`
 
 - [!] prepare a manuscript for ASME IDETC2023, submissions due: 2023-03-13
