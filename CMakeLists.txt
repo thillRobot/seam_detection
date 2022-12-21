@@ -1,7 +1,4 @@
- cmake_minimum_required(VERSION 3.10)
-#cmake_minimum_required(VERSION 2.8.3)
-#cmake_minimum_required(VERSION 3.0.2)
-#cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10)
 project(seam_detection)
 
 set (CMAKE_CXX_STANDARD 14)
@@ -294,6 +291,7 @@ target_link_libraries(registration_examples
   Eigen3::Eigen 
   teaserpp::teaser_registration 
   teaserpp::teaser_io
+  teaserpp::teaser_features
 )
 
 

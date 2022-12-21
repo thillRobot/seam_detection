@@ -22,7 +22,8 @@ RUN mkdir -p $SD_WS/src
 RUN apt install libeigen3-dev libboost-all-dev
 RUN git clone https://github.com/MIT-SPARK/TEASER-plusplus.git $SD_WS/src/TEASER-plusplus
 RUN cd $SD_WS/src/TEASER-plusplus && mkdir build && cd build && \
-    cmake .. && make && \
+    cmake -DBUILD_TEASER_FPFH=ON .. && \
+    make && \
     make install && \
     ldconfig
 RUN cd $SD_WS/src/TEASER-plusplus/examples/teaser_cpp_ply && mkdir build && cd build && \
