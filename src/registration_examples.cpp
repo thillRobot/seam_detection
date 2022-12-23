@@ -407,10 +407,10 @@ void register_cloud_teaser_fpfh(PointCloud &cloud_target, PointCloud &cloud_sour
   */
 
   for (size_t i = 0; i < Nt; ++i) {
-    tgt_cloud.push_back({static_cast<float>(cloud_target[i].x), static_cast<float>(cloud_target[i].x), static_cast<float>(cloud_target[i].x)});
+    tgt_cloud.push_back({static_cast<float>(cloud_target[i].x), static_cast<float>(cloud_target[i].y), static_cast<float>(cloud_target[i].z)});
   }
   for (size_t i = 0; i < Ns; ++i) {
-    src_cloud.push_back({static_cast<float>(cloud_source[i].x), static_cast<float>(cloud_source[i].x), static_cast<float>(cloud_source[i].x)});
+    src_cloud.push_back({static_cast<float>(cloud_source[i].x), static_cast<float>(cloud_source[i].y), static_cast<float>(cloud_source[i].z)});
   }
 
 
