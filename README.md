@@ -465,15 +465,15 @@ chmod o+w seam_detection/<SUBDIR>
   - Test TEASER with two point clouds from same source to verify idea about required correspondence   
   - Hand select/crop better realistic data
   - re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
-  - TEASER (no features) works with relatively dense _overlapping_ data. I think the later part is the ket.
+  - TEASER (no features) works with relatively dense _overlapping_ data. I think the later part is the key
 
 - [x] implement and test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
-  - tested in `registration_examples.cpp`, solving but not returning expected results
+  - successfully tested in `registration_examples.cpp` with ideal data, results look good, next test on realistic cases
 
 - [ ] implement and test Python examples from TEASER: `teaser_python_fpfh_icp.py`, `teaser_python_3d_smooth.py`, `teaser_python_ply.py`
 
 - [x] temporarily separate the segmentation and registration code to ease testing of new algorithms
-  - added new script `registration_examples.cpp`  
+  - added new script `registration_examples.cpp`, still needs to be cleaned up and trimmed down
 
 - [x] create and save best case ideal data set for testing different registration algorithms
   -  scenes `rect_block_02_blndr` and `rect_block_02` should provide a good base line data set. They have been tested with ICP and TEASER in `registration_examples.cpp`
