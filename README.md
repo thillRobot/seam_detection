@@ -479,3 +479,4 @@ chmod o+w seam_detection/<SUBDIR>
   -  scenes `rect_block_02_blndr` and `rect_block_02` should provide a good base line data set. They have been tested with ICP and TEASER in `registration_examples.cpp`
 
 - [!] prepare a manuscript for ASME IDETC2023, submissions due: 2023-03-13
+  - read the TEASER paper again, learn overview of algorithm

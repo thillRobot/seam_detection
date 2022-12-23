@@ -76,7 +76,7 @@ typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
+void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
 {
  
   std::cout<<"BEGINNING ICP REGISTRATION" << std::endl;
@@ -177,7 +177,7 @@ void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTrans
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
+void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
   // get size of inputs clouds
@@ -203,19 +203,6 @@ void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTr
     tgt.col(i) << target[i].x, target[i].y, target[i].z;
   }
   
-  /*
-  // Convert to homogeneous coordinates (not needed)
-  Eigen::Matrix<double, 4, Eigen::Dynamic> src_h;
-  src_h.resize(4, src.cols());
-  src_h.topRows(3) = src;
-  src_h.bottomRows(1) = Eigen::Matrix<double, 1, Eigen::Dynamic>::Ones(Ns);
-  
-  Eigen::Matrix<double, 4, Eigen::Dynamic> tgt_h;
-  tgt_h.resize(4, tgt.cols());
-  tgt_h.topRows(3) = tgt;
-  tgt_h.bottomRows(1) = Eigen::Matrix<double, 1, Eigen::Dynamic>::Ones(Nt);
-  */
-
   // Run TEASER++ registration
   // Prepare solver parameters
   teaser::RobustRegistrationSolver::Params params;
@@ -322,7 +309,7 @@ void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTr
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
+void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
   // get size of inputs clouds
@@ -404,8 +391,7 @@ void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::Stam
 
   tf::Quaternion q_inverse;
   tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
-  // instantiate a 3x3 rotation matrix from the transformation matrix // 
-  
+  // instantiate a 3x3 rotation matrix from components of the transformation matrix // 
   tf::Matrix3x3 R_result(solution.rotation(0,0),solution.rotation(0,1),solution.rotation(0,2),
                          solution.rotation(1,0),solution.rotation(1,1),solution.rotation(1,2),
                          solution.rotation(2,0),solution.rotation(2,1),solution.rotation(2,2));
@@ -620,7 +606,7 @@ int main(int argc, char** argv)
   register_cloud_teaser_fpfh(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
   // now align the CAD part to using the resulting transformation
-  pcl_ros::transformPointCloud(*source_cloud,*aligned_cloud,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+  pcl_ros::transformPointCloud(*source_cloud,*aligned_cloud,*T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
  
   std::cout<<"*************************************************************"<<endl;
