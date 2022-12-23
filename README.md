@@ -442,7 +442,7 @@ chmod o+w seam_detection/<SUBDIR>
 
 - [ ] add description of the seam to the model - i have begun by creating seam *.pcd* files
 
-- [ ] calculate a *measure of accuracy* - i started this in `analyse_results` then moved this to `register_cloud_icp` in a hurry
+- [ ] calculate a *measure of accuracy* - i started this in `analyse_results` then moved this to `register_cloud_icp` in a hurry, needs to go back now
 
 - [ ] update all old config files in archive with new parameters lists, maybe we should wait until we finish changing 
 

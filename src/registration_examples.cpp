@@ -76,7 +76,7 @@ typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
+void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
 {
  
   std::cout<<"BEGINNING ICP REGISTRATION" << std::endl;
@@ -103,18 +103,18 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
 
   // these copies seem like a waste to me, figure out how to cut these out
   // make a copy of the CAD(target) cloud called 'cloud_A' 
-  PointCloud::Ptr cloud_A (new PointCloud);       //use this as the working copy of the target cloud
-  pcl::copyPointCloud(cloud_target,*cloud_A);
+  PointCloud::Ptr tgt (new PointCloud);       //use this as the working copy of the target cloud
+  pcl::copyPointCloud(target,*tgt);
   // make a copy of the LiDAR(source) cloud called 'cloud_B'
-  PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
-  pcl::copyPointCloud(cloud_source,*cloud_B);
+  PointCloud::Ptr src (new PointCloud);       //use this as the working copy of the source cloud
+  pcl::copyPointCloud(source,*src);
 
-  icp.setInputTarget(cloud_A); // target (fixed) cloud
-  icp.setInputSource(cloud_B);  // source (moved during ICP) cloud
-  icp.align(Final); // do ICP
+  icp.setInputTarget(tgt); // target (fixed) cloud
+  icp.setInputSource(src); // source (moved during ICP) cloud
+  icp.align(Final); // perform ICP registration
 
   T_result=icp.getFinalTransformation(); // get the resutls of ICP
-  T_inverse=T_result.inverse();
+  T_inverse=T_result.inverse();          // also store the inverse transformation
 
   std::cout << "ICP COMPLETED" << std::endl;
   std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
@@ -172,91 +172,39 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"********************* Analyzing Results *********************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
-  
-  double roll, pitch, yaw;
-  R_inverse.getRPY(roll, pitch, yaw);
-
-  std::cout<<"Calibration Translation:  ["<<c_offset[0]<<","
-                                          <<c_offset[1]<<","
-                                          <<c_offset[2]<<"]"<<std::endl;
-  std::cout<<"Calibration Rotation:     ["<<c_offset[3]<<","
-                                          <<c_offset[4]<<","
-                                          <<c_offset[5]<<"]"<<std::endl;
-
-
-  std::cout<<"Expected Translation: ["<<e_results[0]<<","
-                                      <<e_results[1]<<","
-                                      <<e_results[2]<<"]"<<std::endl;
-  std::cout<<"Measured Translation: ["<<T_inverse(0,3)<<","
-                                      <<T_inverse(1,3)<<","
-                                      <<T_inverse(2,3)<<"]"<<std::endl;
-  std::cout<<"Difference Translation: ["<<e_results[0]-T_inverse(0,3)<<","
-                                      <<e_results[1]-T_inverse(1,3)<<","
-                                      <<e_results[2]-T_inverse(2,3)<<"]"<<std::endl;
- std::cout<<"Corrected Translation: ["<<T_inverse(0,3)+c_offset[0]<<","
-                                      <<T_inverse(1,3)+c_offset[1]<<","
-                                      <<T_inverse(2,3)+c_offset[2]<<"]"<<std::endl;
- std::cout<<"Corr Diff Translation: ["<<e_results[0]-T_inverse(0,3)+c_offset[0]<<","
-                                      <<e_results[1]-T_inverse(1,3)+c_offset[1]<<","
-                                      <<e_results[2]-T_inverse(2,3)+c_offset[2]<<"]"<<std::endl;
-
-    
-  std::cout<<"Expected Rotation: [" <<e_results[3]<<","
-                                    <<e_results[4]<<","
-                                    <<e_results[5]<<"]"<<std::endl;
-  std::cout<<"Measured Rotation: [" <<roll
-                                    <<","<<pitch
-                                    <<","<<yaw<<"]"<<std::endl; 
-  std::cout<<"Difference Rotation: ["<<e_results[3]-roll
-                                    <<","<<e_results[4]-pitch
-                                    <<","<<e_results[5]-yaw<<"]"<<std::endl; 
-  std::cout<<"Corrected Rotation: ["<<roll+c_offset[3]<<","
-                                      <<pitch+c_offset[4]<<","
-                                      <<yaw+c_offset[5]<<"]"<<std::endl;
-  std::cout<<"Corr Diff Rotation: ["<<e_results[3]-roll+c_offset[3]<<","
-                                    <<e_results[3]-pitch+c_offset[4]<<","
-                                    <<e_results[3]-yaw+c_offset[5]<<"]"<<std::endl;
-
-
   std::cout << "END OF REGISTER_CLOUD_ICP FUNCTION" << std::endl;
 }
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
+void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
   // get size of inputs clouds
-  int Ns = cloud_source.size();
-  int Nt = cloud_target.size();
+  int Ns = source.size();
+  int Nt = target.size();
   int P = 50; //number to print
   int M = -1; //number of matches
   std::cout <<"BEGINNING REGISTER_CLOUD_TEASER"<< std::endl;
   std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
 
-  // pointers to the input clouds, possibly not needed
-  //pcl::PointCloud<pcl::PointXYZ>::Ptr source (new pcl::PointCloud<pcl::PointXYZ>(cloud_source));
-  //pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>(cloud_target));
-
   // instantiate teaser pointclouds
   //teaser::PointCloud src_cloud;
   //teaser::PointCloud tgt_cloud;
   
-  // Convert the point clouds to Eigen
+  // Convert the input point clouds to Eigen
   Eigen::Matrix<double, 3, Eigen::Dynamic> src(3, Ns);
   Eigen::Matrix<double, 3, Eigen::Dynamic> tgt(3, Nt);
   
   for (size_t i = 0; i < Ns; ++i) {
-    src.col(i) << cloud_source[i].x, cloud_source[i].y, cloud_source[i].z;
+    src.col(i) << source[i].x, source[i].y, source[i].z;
   }  
   for (size_t i = 0; i < Nt; ++i) {
-    tgt.col(i) << cloud_target[i].x, cloud_target[i].y, cloud_target[i].z;
+    tgt.col(i) << target[i].x, target[i].y, target[i].z;
   }
   
-  // Convert to homogeneous coordinates
+  /*
+  // Convert to homogeneous coordinates (not needed)
   Eigen::Matrix<double, 4, Eigen::Dynamic> src_h;
   src_h.resize(4, src.cols());
   src_h.topRows(3) = src;
@@ -266,6 +214,7 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   tgt_h.resize(4, tgt.cols());
   tgt_h.topRows(3) = tgt;
   tgt_h.bottomRows(1) = Eigen::Matrix<double, 1, Eigen::Dynamic>::Ones(Nt);
+  */
 
   // Run TEASER++ registration
   // Prepare solver parameters
@@ -288,9 +237,8 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
   auto soln = solver.getSolution();
 
   // Compare results
-  std::cout << "=====================================" << std::endl;
-  std::cout << "          TEASER++ Results           " << std::endl;
-  std::cout << "=====================================" << std::endl;
+  std::cout << "TEASER++ Completed" << std::endl;
+
   //std::cout << "Expected rotation: " << std::endl;
   //std::cout << T.topLeftCorner(3, 3) << std::endl;
   std::cout << "Estimated rotation: " << std::endl;
@@ -374,68 +322,36 @@ void register_cloud_teaser(PointCloud &cloud_target, PointCloud &cloud_source, t
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser_fpfh(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
+void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
   // get size of inputs clouds
-  int Ns = cloud_source.size();
-  int Nt = cloud_target.size();
+  int Ns = source.size();
+  int Nt = target.size();
   int P = 50; //number to print
   int M = -1; //number of matches
   std::cout <<"BEGINNING REGISTER_CLOUD_TEASER"<< std::endl;
   std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
 
-  // pointers to the input clouds, possibly not needed
-  //pcl::PointCloud<pcl::PointXYZ>::Ptr source (new pcl::PointCloud<pcl::PointXYZ>(cloud_source));
-  //pcl::PointCloud<pcl::PointXYZ>::Ptr target (new pcl::PointCloud<pcl::PointXYZ>(cloud_target));
-
   // instantiate teaser pointclouds
-  teaser::PointCloud src_cloud;
-  teaser::PointCloud tgt_cloud;
-  
-  // Convert the point clouds to Eigen
-  //Eigen::Matrix<double, 3, Eigen::Dynamic> src_cloud(3, Ns);
-  //Eigen::Matrix<double, 3, Eigen::Dynamic> tgt_cloud(3, Nt);
-  
-  /*
-  for (size_t i = 0; i < Ns; ++i) {
-    src_cloud.col(i) << cloud_source[i].x, cloud_source[i].y, cloud_source[i].z;
-  }  
-  for (size_t i = 0; i < Nt; ++i) {
-    tgt_cloud.col(i) << cloud_target[i].x, cloud_target[i].y, cloud_target[i].z;
-  }
-  */
+  teaser::PointCloud src;
+  teaser::PointCloud tgt;
 
   for (size_t i = 0; i < Nt; ++i) {
-    tgt_cloud.push_back({static_cast<float>(cloud_target[i].x), static_cast<float>(cloud_target[i].y), static_cast<float>(cloud_target[i].z)});
+    tgt.push_back({static_cast<float>(target[i].x), static_cast<float>(target[i].y), static_cast<float>(target[i].z)});
   }
   for (size_t i = 0; i < Ns; ++i) {
-    src_cloud.push_back({static_cast<float>(cloud_source[i].x), static_cast<float>(cloud_source[i].y), static_cast<float>(cloud_source[i].z)});
+    src.push_back({static_cast<float>(source[i].x), static_cast<float>(source[i].y), static_cast<float>(source[i].z)});
   }
-
-
-  
-  // Convert to homogeneous coordinates
-  /*
-  Eigen::Matrix<double, 4, Eigen::Dynamic> src_h;
-  src_h.resize(4, src.cols());
-  src_h.topRows(3) = src;
-  src_h.bottomRows(1) = Eigen::Matrix<double, 1, Eigen::Dynamic>::Ones(Ns);
-  
-  Eigen::Matrix<double, 4, Eigen::Dynamic> tgt_h;
-  tgt_h.resize(4, tgt.cols());
-  tgt_h.topRows(3) = tgt;
-  tgt_h.bottomRows(1) = Eigen::Matrix<double, 1, Eigen::Dynamic>::Ones(Nt);
-  */
 
   // Compute FPFH (features)
   teaser::FPFHEstimation fpfh;
-  auto obj_descriptors = fpfh.computeFPFHFeatures(src_cloud, 0.02, 0.04);
-  auto scene_descriptors = fpfh.computeFPFHFeatures(tgt_cloud, 0.02, 0.04);
+  auto obj_descriptors = fpfh.computeFPFHFeatures(src, 0.02, 0.04);
+  auto scene_descriptors = fpfh.computeFPFHFeatures(tgt, 0.02, 0.04);
 
   teaser::Matcher matcher;
   auto correspondences = matcher.calculateCorrespondences(
-      src_cloud, tgt_cloud, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
+      src, tgt, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
 
     // Run TEASER++ registration
   // Prepare solver parameters
@@ -452,15 +368,13 @@ void register_cloud_teaser_fpfh(PointCloud &cloud_target, PointCloud &cloud_sour
   // Solve with TEASER++
   teaser::RobustRegistrationSolver solver(params);
   std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-  solver.solve(src_cloud, tgt_cloud, correspondences);
+  solver.solve(src, tgt, correspondences);
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
   auto solution = solver.getSolution();
 
-  // Compare results
-  std::cout << "=====================================" << std::endl;
-  std::cout << "          TEASER++ Results           " << std::endl;
-  std::cout << "=====================================" << std::endl;
+  // results
+  std::cout << "TEASER++ FPFH Completed" << std::endl;
   std::cout << "Estimated rotation: " << std::endl;
   std::cout << solution.rotation << std::endl;
   std::cout << std::endl;
@@ -527,7 +441,7 @@ void register_cloud_teaser_fpfh(PointCloud &cloud_target, PointCloud &cloud_sour
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  std::cout << "END OF REGISTER_CLOUD_TEASER FUNCTION" << std::endl;
+  std::cout << "END OF REGISTER_CLOUD_TEASER_FPFH FUNCTION" << std::endl;
 
 }
 
@@ -562,25 +476,6 @@ void analyze_results(tf::Transform &tf_in,double e_results[])
                                     <<","<<e_results[5]-tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
 
   //std::cout<<"W:"<<tf_in.getRotation().getW()<<std::endl;
-}
-
-// this function combines transformations through multiplications and handles the object copy, is this really needed? or used?
-void combine_transformation(tf::StampedTransform &T_AB, tf::StampedTransform &T_BC, tf::StampedTransform &T_AC, tf::StampedTransform &T_CA, geometry_msgs::TransformStamped &msg_AC,geometry_msgs::TransformStamped &msg_CA){
-
-  tf::Transform T;
-  tf::Transform T_inv;
-
-  T=T_BC*T_AB;    // this operation (StampedTransform)*(StampedTransform) returns a (Transform) NOT a (StampedTransform)!! unstamped!
-  T_inv=T.inverse();
-
-  T_AC.setOrigin(T.getOrigin());
-  T_AC.setRotation(T.getRotation());
-
-  T_CA.setOrigin(T_inv.getOrigin());
-  T_CA.setRotation(T_inv.getRotation());
-
-  tf::transformStampedTFToMsg(T_AC,msg_AC);
-  tf::transformStampedTFToMsg(T_CA,msg_CA);
 
 }
 
@@ -607,13 +502,13 @@ int main(int argc, char** argv)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   // parameters that contain strings  
-  std::string src_cloud_path, tgt_cloud_path, src_cloud_file, tgt_cloud_file;
+  std::string source_cloud_path, target_cloud_path, source_cloud_file, target_cloud_file;
 
-  node.getParam("lidar_src_file", src_cloud_file);
-  src_cloud_path=packagepath+'/'+src_cloud_file;
+  node.getParam("lidar_src_file", source_cloud_file);
+  source_cloud_path=packagepath+'/'+source_cloud_file;
 
-  node.getParam("cad_ref_file", tgt_cloud_file);
-  tgt_cloud_path=packagepath+'/'+tgt_cloud_file;
+  node.getParam("cad_ref_file", target_cloud_file);
+  target_cloud_path=packagepath+'/'+target_cloud_file;
 
 
   // parameters that contain doubles
@@ -658,7 +553,6 @@ int main(int argc, char** argv)
     seam1_points_z[i]=seam1_points_z_vec[i];
   }
 
-
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
   // tf::Transform tf_searchbox;
@@ -669,29 +563,26 @@ int main(int argc, char** argv)
   std::cout<<"******************* Preparing Pointcloud Data ***************"<<endl;
   std::cout<<"*************************************************************"<<endl;
 
-  
-  // instantiate two clouds
-  PointCloud::Ptr tgt_cloud (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  
-  PointCloud::Ptr src_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
+  // instantiate cloud objects
+  PointCloud::Ptr source_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
+  PointCloud::Ptr target_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud  
+  PointCloud::Ptr aligned_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
 
-  //std::cout<<"Debug1"<<endl;
-
-
-  // load the clouds from file (.pcd)
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (src_cloud_path, *src_cloud) == -1)
+  // load the cloud data from PCD files , files generated with src/cad_cloud.cpp
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (source_cloud_path, *source_cloud) == -1)
   {
-    std::cout<<"Couldn't read image file:"<<src_cloud_path;
+    std::cout<<"Couldn't read image file:"<<source_cloud_path;
     return (-1);
   }else{
-    std::cout << "Loaded "<<tgt_cloud->size()<< " data points from "<< tgt_cloud_file <<std::endl;
+    std::cout << "Loaded "<<target_cloud->size()<< " data points from "<< target_cloud_file <<std::endl;
   }
   // load the cloud from CAD file
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (tgt_cloud_path, *tgt_cloud) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_cloud_path, *target_cloud) == -1)
   {
-    std::cout<<"Couldn't read image file:"<<tgt_cloud_path;
+    std::cout<<"Couldn't read image file:"<<target_cloud_path;
     return (-1);
   }else{
-    std::cout << "Loaded "<<src_cloud->size()<< " data points from "<< src_cloud_file <<std::endl;
+    std::cout << "Loaded "<<source_cloud->size()<< " data points from "<< source_cloud_file <<std::endl;
   }
 
   // for now each tf has three objects associated with it
@@ -702,20 +593,6 @@ int main(int argc, char** argv)
   tf::StampedTransform *T_01 (new tf::StampedTransform);    // these are from the old 'TF'
   tf::StampedTransform *T_10 (new tf::StampedTransform);    // they are stil used for pcl_ros::transformPointCloud
 
-  tf::StampedTransform *T_12 (new tf::StampedTransform);
-  tf::StampedTransform *T_21 (new tf::StampedTransform);
-
-  tf::StampedTransform *T_02 (new tf::StampedTransform);
-  tf::StampedTransform *T_20 (new tf::StampedTransform);
-
-  //tf::StampedTransform *T_01_s (new tf::StampedTransform);coeffs_plane
-  //*T_01_s=*T_01;
-
-  //tf2::Transform *T_01_tf2 (new tf2::Transform); // I am not sure if these new tf2 ojects are worth anythings
-  //tf2::Transform *T_12_tf2 (new tf2::Transform); // I am sure I wasted hours messing with it though, dum...
-  //tf2::Transform *T_10_tf2 (new tf2::Transform);
-  //tf2::Transform *T_21_tf2 (new tf2::Transform);
-
   static tf2_ros::StaticTransformBroadcaster static_broadcaster; // this is the new 'TF2' way to broadcast tfs
   geometry_msgs::TransformStamped *T_01_msg (new geometry_msgs::TransformStamped);
   T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01";
@@ -723,98 +600,51 @@ int main(int argc, char** argv)
   geometry_msgs::TransformStamped *T_10_msg (new geometry_msgs::TransformStamped);
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
 
-  //geometry_msgs::TransformStamped *T_12_msg (new geometry_msgs::TransformStamped); // these were needed to repeat entire approach
-  //T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
-
-  //geometry_msgs::TransformStamped *T_21_msg (new geometry_msgs::TransformStamped);
-  //T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
-
-  //geometry_msgs::TransformStamped *T_02_msg (new geometry_msgs::TransformStamped);
-  //T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
-
-  //geometry_msgs::TransformStamped *T_20_msg (new geometry_msgs::TransformStamped);
-  //T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
-
-  //pcl::ModelCoefficients::Ptr coeffs_plane (new pcl::ModelCoefficients); // used for markers at one point
-  //pcl::ModelCoefficients::Ptr coeffs_cylinder (new pcl::ModelCoefficients);
-
 
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"*************** Processing Pointcloud Data ******************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
 
-
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*src_cloud,*tgt_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+  register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
 
   int N_cor=100;
-
   EigenCor cor_src_pts, cor_tgt_pts;
 
   // Perform TEASER++ cloud registration
   double teaser_params[3]={1,2,3}; // temporary place holder 
-  register_cloud_teaser(*src_cloud,*tgt_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  register_cloud_teaser(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
-    // Perform TEASER++ cloud registration
+    // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
   //double teaser_params[3]={1,2,3}; // temporary place holder 
-  register_cloud_teaser_fpfh(*src_cloud,*tgt_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
-
-
+  register_cloud_teaser_fpfh(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
   // now align the CAD part to using the resulting transformation
-  //pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
-  
+  pcl_ros::transformPointCloud(*source_cloud,*aligned_cloud,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+  std::cout << "Cloud aligned using resulting transformation." << std::endl;
  
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"*************** Analyzing Results ***************************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
 
   analyze_results(*T_10, expected_results);
-
   analyze_results(*T_01, expected_results);
 
-
-  std::cout << "Cloud aligned using resulting transformation." << std::endl;
-  //tf2::doTransform(*cloud_cad1,*cloud_cad2,*T_01_msg); // I have not made this work yet...
-
-  // repeat registration on aligned cad model (ICP second pass)
-
-  //register_cloud(*cloud_cad2, *cloud_part1, *T_21, *T_12, *T_21_msg, *T_12_msg,icp_params);
-
-  // now move the CAD part again to the newly located frame
-  //pcl_ros::transformPointCloud(*cloud_cad2,*cloud_cad3,*T_12);
-  //std::cout << "Cloud transformed again." << std::endl;
-
-  //*T_02=(*T_01)*(*T_12); // multiply the two transforms to get final tf
-  //*T_20=T_02->inverse(); // get the inverse of the tf
-
-  //combine_transformation(*T_01,*T_12,*T_20,*T_02,*T_20_msg,*T_02_msg);
   T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01";
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
 
-  //T_12_msg->header.frame_id = "base_link"; T_12_msg->child_frame_id = "T_12";
-  //T_21_msg->header.frame_id = "base_link"; T_21_msg->child_frame_id = "T_21";
-
-  //T_02_msg->header.frame_id = "base_link"; T_02_msg->child_frame_id = "T_02";
-  //T_20_msg->header.frame_id = "base_link"; T_20_msg->child_frame_id = "T_20";
-
-
-  std::cout << "Final transformation computed and converted to message." <<endl;
-  //std::cout << "Plane Coefficients" << *coeffs_plane <<endl;
-
-
-
-
+  
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"*************** Preparing Visualization *********************"<<endl;
   std::cout<<"*************************************************************"<<endl<<endl;
 
+  ros::Publisher source_pub = node.advertise<PointCloud> ("/source_cloud", 1);
+  ros::Publisher target_pub = node.advertise<PointCloud> ("/target_cloud", 1);
+  ros::Publisher aligned_pub = node.advertise<PointCloud> ("/aligned_cloud", 1);
 
-  ros::Publisher src_pub = node.advertise<PointCloud> ("/src_cloud", 1) ;
-  ros::Publisher tgt_pub = node.advertise<PointCloud> ("/tgt_cloud", 1) ;
-
-  src_cloud->header.frame_id = "base_link";
-  tgt_cloud->header.frame_id = "base_link";
+  source_cloud->header.frame_id = "base_link";
+  target_cloud->header.frame_id = "base_link";
+  aligned_cloud->header.frame_id = "base_link";
 
   std::cout<<"*************************************************************"<<endl;
   std::cout<<"****************** seam_detection Complete ******************"<<endl;
@@ -828,8 +658,9 @@ int main(int argc, char** argv)
       T_01_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_msg);
       T_10_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_msg);
 
-      src_pub.publish(src_cloud);
-      tgt_pub.publish(tgt_cloud);
+      source_pub.publish(source_cloud);
+      target_pub.publish(target_cloud);
+      aligned_pub.publish(aligned_cloud);
 
       ros::spinOnce();
       loop_rate.sleep();
@@ -837,5 +668,8 @@ int main(int argc, char** argv)
 
   return 0;
 }
+
+
+
 
 
