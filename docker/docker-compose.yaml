@@ -1,7 +1,7 @@
 services:
   seam-detection:
     build: .
-    command: roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_c0_blndr"
+    command: roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_02_blndr"
     environment:
       DISPLAY: $DISPLAY
     volumes:

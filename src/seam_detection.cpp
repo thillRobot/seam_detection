@@ -411,7 +411,7 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
+void register_cloud_icp(PointCloud &cloud_source, PointCloud &cloud_target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
 {
  
   // get size of inputs clouds
@@ -833,7 +833,7 @@ int main(int argc, char** argv)
   segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2,*cloud_filtered3, part1_type, ransac_norm_dist_wt, ransac_max_iter, ransac_dist_thrsh, ransac_k_srch, ransac_init_norm);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*cloud_cad1,*cloud_part1, *T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+  register_cloud_icp(*cloud_part1, *cloud_cad1, *T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
   // THESE TWO CLOUDS INPUTS ARGS ARE IN THE WRONG ORDER!!! - found 2022-1219
 
   // now align the CAD part to using the resulting transformation
