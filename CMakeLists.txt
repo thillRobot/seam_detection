@@ -237,13 +237,15 @@ add_definitions(${PCL_DEFINITIONS})
 
 # seam_detection
 add_executable(seam_detection src/seam_detection.cpp)
-target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(seam_detection
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+  teaserpp::teaser_registration 
+  teaserpp::teaser_io
+)
 
-# seam_detection_ICP
-add_executable(seam_detection_ICP src/seam_detection_ICP.cpp)
-target_link_libraries(seam_detection_ICP ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-# seam_detection_RANSAC
+# seam_detection_RANSAC # this node needs updating
 add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
 target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
@@ -269,15 +271,6 @@ target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # un-comment if you need to compile development nodes
 # these have not been compiled successfully since they have been moved into /devel
 # NOTE: move these back to src/ if they will not compile in src/devel
-
-add_executable(seam_detection_teaser src/seam_detection_teaser.cpp)
-target_link_libraries(seam_detection_teaser 
-  ${catkin_LIBRARIES} 
-  ${PCL_LIBRARIES} 
-  Eigen3::Eigen 
-  teaserpp::teaser_registration 
-  teaserpp::teaser_io
-)
 
 
 #######################################################

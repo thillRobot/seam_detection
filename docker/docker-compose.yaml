@@ -9,30 +9,6 @@ services:
       - ~/.Xauthority:/root/.Xauthority
       - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
 
-  seam-detection-teaser: 
-    build: .
-    #command: rosrun seam_detection correspondence_grouping pcd_images/plate_rect_block/rect_block_02.pcd pcd_images/plate_rect_block/rect_block_02.pcd -c -k
-    command: roslaunch seam_detection seam_detection_teaser.launch scene:="plate_rect_block_02_blndr"
-    environment:
-      DISPLAY: $DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
-
-  cad-cloud: 
-    build: .
-    command: roslaunch seam_detection cad_cloud.launch n_samples:=2000 leaf_size:=.00025
-             if:=$(find seam_detection)/ply_images/plate_rect_block/rect_block_01.ply
-             of:=$(find seam_detection)/pcd_images/plate_rect_block/rect_block_01.pcd
-
-    environment:
-      DISPLAY: $DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
-
   registration-examples: 
     build: .
     command: roslaunch seam_detection registration_examples.launch scene:="rect_block_02_blndr"
@@ -41,4 +17,18 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src    
+      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src      
+
+  cad-cloud: 
+    build: .
+    command: roslaunch seam_detection cad_cloud.launch n_samples:=14000 leaf_size:=.00025
+             if:=$(find seam_detection)/ply_images/plate_rect_block/plate_rect_block_02_blndr.ply
+             of:=$(find seam_detection)/pcd_images/plate_rect_block/plate_rect_block_02_blndr.pcd
+    environment:
+      DISPLAY: $DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
+
+    

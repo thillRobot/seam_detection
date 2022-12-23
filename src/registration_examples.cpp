@@ -76,7 +76,7 @@ typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
+void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
 {
  
   std::cout<<"BEGINNING ICP REGISTRATION" << std::endl;
@@ -177,7 +177,7 @@ void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTrans
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
+void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
   // get size of inputs clouds
@@ -246,8 +246,6 @@ void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTr
                    1000000.0
             << std::endl;
   
-  std::cout<<"TEASER debug0"<<endl;
-  
   Eigen::MatrixXd soln_T(4,4); // a Transformation matrix for the teaser solution 
   soln_T<<soln.rotation(0,0),soln.rotation(0,1),soln.rotation(0,2),soln.translation(0),
           soln.rotation(1,0),soln.rotation(1,1),soln.rotation(1,2),soln.translation(1),
@@ -309,21 +307,21 @@ void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTr
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
+void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
   // get size of inputs clouds
-  int Ns = source.size();
   int Nt = target.size();
+  int Ns = source.size();
   int P = 50; //number to print
   int M = -1; //number of matches
-  std::cout <<"BEGINNING REGISTER_CLOUD_TEASER"<< std::endl;
-  std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
+  std::cout <<"BEGINNING REGISTER_CLOUD_TEASER_FPFH"<< std::endl;
+  std::cout <<"Processing "<< Nt << " target points and " <<Ns<<" source points" << std::endl ;
 
   // instantiate teaser pointclouds
-  teaser::PointCloud src;
   teaser::PointCloud tgt;
-
+  teaser::PointCloud src;
+  
   for (size_t i = 0; i < Nt; ++i) {
     tgt.push_back({static_cast<float>(target[i].x), static_cast<float>(target[i].y), static_cast<float>(target[i].z)});
   }
@@ -427,7 +425,7 @@ void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::Stam
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  std::cout << "END OF REGISTER_CLOUD_TEASER_FPFH FUNCTION" << std::endl;
+  std::cout << "REGISTER_CLOUD_TEASER_FPFH Complete" << std::endl;
 
 }
 
@@ -472,14 +470,14 @@ int main(int argc, char** argv)
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"******************** Registration Examples v1.0 ********************"<<endl;
-  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"===================================================================="<<endl;
+  std::cout<<"                    Registration Examples v1.0                      "<<endl;
+  std::cout<<"===================================================================="<<endl<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"**************** Loading Configuration File ****************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
+  std::cout<<"===================================================================="<<endl;
+  std::cout<<"                    Loading Configuration File                      "<<endl;
+  std::cout<<"===================================================================="<<endl<<endl;
 
   // there is only one cmd line arg and it is the name of the config file
   // read the config file(yaml) feild to pick the data files and set parameters
@@ -545,9 +543,9 @@ int main(int argc, char** argv)
 
   std::cout<<"Debug0"<<endl;
 
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"******************* Preparing Pointcloud Data ***************"<<endl;
-  std::cout<<"*************************************************************"<<endl;
+  std::cout<<"===================================================================="<<endl;
+  std::cout<<"                    Preparing Pointcloud Data                       "<<endl;
+  std::cout<<"===================================================================="<<endl<<endl;
 
   // instantiate cloud objects
   PointCloud::Ptr source_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
@@ -587,9 +585,9 @@ int main(int argc, char** argv)
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
 
 
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"*************** Processing Pointcloud Data ******************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
+  std::cout<<"===================================================================="<<endl;
+  std::cout<<"                    Processing Pointcloud Data                      "<<endl;
+  std::cout<<"===================================================================="<<endl<<endl;
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
   register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
@@ -599,19 +597,19 @@ int main(int argc, char** argv)
 
   // Perform TEASER++ cloud registration
   double teaser_params[3]={1,2,3}; // temporary place holder 
-  register_cloud_teaser(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  register_cloud_teaser(*target_cloud, *source_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
     // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
   //double teaser_params[3]={1,2,3}; // temporary place holder 
-  register_cloud_teaser_fpfh(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  register_cloud_teaser_fpfh(*target_cloud, *source_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
   // now align the CAD part to using the resulting transformation
-  pcl_ros::transformPointCloud(*source_cloud,*aligned_cloud,*T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+  pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
  
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"*************** Analyzing Results ***************************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
+  std::cout<<"===================================================================="<<endl;
+  std::cout<<"                    Analzing Results                                "<<endl;
+  std::cout<<"===================================================================="<<endl<<endl;
 
   analyze_results(*T_10, expected_results);
   analyze_results(*T_01, expected_results);
@@ -620,9 +618,9 @@ int main(int argc, char** argv)
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
 
   
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"*************** Preparing Visualization *********************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
+  std::cout<<"===================================================================="<<endl;
+  std::cout<<"                    Preparing Visualization                         "<<endl;
+  std::cout<<"===================================================================="<<endl<<endl;
 
   ros::Publisher source_pub = node.advertise<PointCloud> ("/source_cloud", 1);
   ros::Publisher target_pub = node.advertise<PointCloud> ("/target_cloud", 1);
@@ -632,9 +630,9 @@ int main(int argc, char** argv)
   target_cloud->header.frame_id = "base_link";
   aligned_cloud->header.frame_id = "base_link";
 
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"****************** seam_detection Complete ******************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
+  std::cout<<"===================================================================="<<endl;
+  std::cout<<"                    SEAM_DETECTION Complete                         "<<endl;
+  std::cout<<"===================================================================="<<endl<<endl;
 
   //publish forever
   while(ros::ok())
