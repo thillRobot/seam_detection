@@ -221,8 +221,6 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-
-
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
@@ -243,6 +241,7 @@ target_link_libraries(seam_detection
   Eigen3::Eigen 
   teaserpp::teaser_registration 
   teaserpp::teaser_io
+  teaserpp::teaser_features
 )
 
 # seam_detection_RANSAC # this node needs updating
@@ -288,18 +287,11 @@ target_link_libraries(registration_examples
 )
 
 
-
-
-# Teaser Stuff is all disabled for now
+# Teaser Stuff
 # Change this line to include your own executable file
 # Link to teaserpp & Eigen3
 # add_executable(teaser_cpp_ply src/teaser_cpp_ply.cc)
 # target_link_libraries(teaser_cpp_ply Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_io)
-
-# Change this line to include your own executable file
-#add_executable(seam_detection_teaser src/seam_detection_teaser.cpp)
-# Link to teaserpp & Eigen3 // teaser::features requires PCL 1.9
-#target_link_libraries(seam_detection_teaser Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_features teaserpp::teaser_io #${PCL_LIBRARIES})
 
 # Copy the data files to build directory
 # file(COPY ../example_data/
