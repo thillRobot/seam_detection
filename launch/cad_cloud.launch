@@ -4,7 +4,9 @@
 
   <!-- read value of arg -->
   <param name="param" value="$(arg if)"/> 
-  <param name="param" value="$(arg of)"/> 
+  <param name="param" value="$(arg of)"/>
+  <param name="param" value="$(arg n_samples)"/> 
+  <param name="param" value="$(arg leaf_size)"/>  
 
   <!-- convert PLY files to PCD files -->
   <node
@@ -12,7 +14,7 @@
     name="cad_cloud"
     type="cad_cloud"
     output="screen"
-    args="-n_samples 1000 -leaf_size 0.00025 -write_normals 1 $(arg if) $(arg of)"    
+    args="-n_samples $(arg n_samples) -leaf_size $(arg leaf_size) -write_normals 1 $(arg if) $(arg of)"    
   />
 
 </launch>

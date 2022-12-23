@@ -90,7 +90,7 @@ typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 // this function applies a bounding box and a voxel filter to the input cloud
-void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output, double box[], double leaf_size)
+void filter_cloud(PointCloud &input, PointCloud &output, double box[], double leaf_size)
 {
 
   //double xmin, xmax, ymin, ymax, zmin, zmax;; // this could be done without these copies
@@ -100,14 +100,14 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output, double box[
   //leaf_size=params[6];
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
-  pcl::copyPointCloud(cloud_input,*cloud);
+  pcl::copyPointCloud(input,*cloud);
 
   std::cout<<"BEGINNING CLOUD FILTERING" << std::endl;
   std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the lidar (source) cloud. "<< std::endl;
 
   //Apply Bounding Box Filter
 
-  pcl::PassThrough<pcl::PointXYZ> pass;cloud_input,
+  pcl::PassThrough<pcl::PointXYZ> pass; //cloud_input,
   pass.setInputCloud(cloud);
 
   pass.setFilterFieldName ("x");
@@ -139,7 +139,7 @@ void filter_cloud(PointCloud &cloud_input, PointCloud &cloud_output, double box[
     std::cout<<"No voxel filtering"<< std::endl;
   }
 
-  pcl::copyPointCloud(*cloud,cloud_output);
+  pcl::copyPointCloud(*cloud,output);
 
 }
 
