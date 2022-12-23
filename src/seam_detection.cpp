@@ -415,26 +415,26 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
     pcl::copyPointCloud(*cloud_filtered2,cloud_output1); // ignore second segmentation and copy to output 
   }
 
-  std::cerr << "END OF SEGMENT_CLOUD FUNCTION" << std::endl;
+  std::cerr << "SEGMENT_CLOUD Completed" << std::endl;
 
 }
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
+void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
 {
  
   // get size of inputs clouds
-  int Nt = cloud_target.size();
-  int Ns = cloud_source.size();
+  int Nt = target.size();
+  int Ns = source.size();
   
   // make a copy of the CAD(target) cloud called 'cloud_A' 
-  PointCloud::Ptr cloud_A (new PointCloud);       //use this as the working copy of the target cloud
-  pcl::copyPointCloud(cloud_target,*cloud_A);
+  PointCloud::Ptr tgt (new PointCloud);       //use this as the working copy of the target cloud
+  pcl::copyPointCloud(target,*tgt);
   // make a copy of the LiDAR(source) cloud called 'cloud_B'
-  PointCloud::Ptr cloud_B (new PointCloud);       //use this as the working copy of the source cloud
-  pcl::copyPointCloud(cloud_source,*cloud_B);
+  PointCloud::Ptr src (new PointCloud);       //use this as the working copy of the source cloud
+  pcl::copyPointCloud(source,*src);
 
-  std::cout<<"BEGINNING REGISTER_CLOUD_ICP" << std::endl;
+  std::cout<<"Beginning REGISTER_CLOUD_ICP" << std::endl;
   std::cout <<"Processing "<< Nt << " target points and " <<Ns<<" source points" << std::endl ;
   std::cout<<"Using Search Parameters:"<< std::endl;
   std::cout<<"Max Correspondence Distance = "<< max_corr_dist <<std::endl;
@@ -457,14 +457,14 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   // Set the euclidean distance difference epsilon (criterion 3)
   icp.setEuclideanFitnessEpsilon (ecld_fitn_epsl);
 
-  icp.setInputTarget(cloud_A); // target (fixed) cloud
-  icp.setInputSource(cloud_B);  // source (moved during ICP) cloud
+  icp.setInputTarget(tgt); // target (fixed) cloud
+  icp.setInputSource(src);  // source (moved during ICP) cloud
   icp.align(Final); // do ICP
 
   T_result=icp.getFinalTransformation(); // get the resutls of ICP
   T_inverse=T_result.inverse();
 
-  std::cout << "ICP COMPLETED" << std::endl;
+  std::cout << "ICP Completed" << std::endl;
   std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
   std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
   std::cout << "transformation: " << std::endl<< T_result << std::endl;
@@ -520,56 +520,7 @@ void register_cloud_icp(PointCloud &cloud_target, PointCloud &cloud_source, tf::
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  std::cout<<"*************************************************************"<<endl;
-  std::cout<<"********************* Analyzing Results *********************"<<endl;
-  std::cout<<"*************************************************************"<<endl<<endl;
-  
-  double roll, pitch, yaw;
-  R_inverse.getRPY(roll, pitch, yaw);
-
-  std::cout<<"Calibration Translation:  ["<<c_offset[0]<<","
-                                          <<c_offset[1]<<","
-                                          <<c_offset[2]<<"]"<<std::endl;
-  std::cout<<"Calibration Rotation:     ["<<c_offset[3]<<","
-                                          <<c_offset[4]<<","
-                                          <<c_offset[5]<<"]"<<std::endl;
-
-
-  std::cout<<"Expected Translation: ["<<e_results[0]<<","
-                                      <<e_results[1]<<","
-                                      <<e_results[2]<<"]"<<std::endl;
-  std::cout<<"Measured Translation: ["<<T_inverse(0,3)<<","
-                                      <<T_inverse(1,3)<<","
-                                      <<T_inverse(2,3)<<"]"<<std::endl;
-  std::cout<<"Difference Translation: ["<<e_results[0]-T_inverse(0,3)<<","
-                                      <<e_results[1]-T_inverse(1,3)<<","
-                                      <<e_results[2]-T_inverse(2,3)<<"]"<<std::endl;
- std::cout<<"Corrected Translation: ["<<T_inverse(0,3)+c_offset[0]<<","
-                                      <<T_inverse(1,3)+c_offset[1]<<","
-                                      <<T_inverse(2,3)+c_offset[2]<<"]"<<std::endl;
- std::cout<<"Corr Diff Translation: ["<<e_results[0]-T_inverse(0,3)+c_offset[0]<<","
-                                      <<e_results[1]-T_inverse(1,3)+c_offset[1]<<","
-                                      <<e_results[2]-T_inverse(2,3)+c_offset[2]<<"]"<<std::endl;
-
-    
-  std::cout<<"Expected Rotation: [" <<e_results[3]<<","
-                                    <<e_results[4]<<","
-                                    <<e_results[5]<<"]"<<std::endl;
-  std::cout<<"Measured Rotation: [" <<roll
-                                    <<","<<pitch
-                                    <<","<<yaw<<"]"<<std::endl; 
-  std::cout<<"Difference Rotation: ["<<e_results[3]-roll
-                                    <<","<<e_results[4]-pitch
-                                    <<","<<e_results[5]-yaw<<"]"<<std::endl; 
-  std::cout<<"Corrected Rotation: ["<<roll+c_offset[3]<<","
-                                      <<pitch+c_offset[4]<<","
-                                      <<yaw+c_offset[5]<<"]"<<std::endl;
-  std::cout<<"Corr Diff Rotation: ["<<e_results[3]-roll+c_offset[3]<<","
-                                    <<e_results[3]-pitch+c_offset[4]<<","
-                                    <<e_results[3]-yaw+c_offset[5]<<"]"<<std::endl;
-
-
-  std::cout << "END OF REGISTER_CLOUD_ICP FUNCTION" << std::endl;
+  std::cout << "REGISTER_CLOUD_ICP Completed" << std::endl;
 }
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
@@ -697,7 +648,7 @@ void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTr
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  std::cout << "END OF REGISTER_CLOUD_TEASER FUNCTION" << std::endl;
+  std::cout << "REGISTER_CLOUD_TEASER Completed" << std::endl;
 
 }
 
@@ -711,7 +662,7 @@ void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::Stam
   int Ns = source.size();
   int P = 50; //number to print
   int M = -1; //number of matches
-  std::cout <<"BEGINNING REGISTER_CLOUD_TEASER_FPFH"<< std::endl;
+  std::cout <<"Beginning REGISTER_CLOUD_TEASER_FPFH"<< std::endl;
   std::cout <<"Processing "<< Nt << " target points and " <<Ns<<" source points" << std::endl ;
 
   // instantiate teaser pointclouds
@@ -821,7 +772,7 @@ void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::Stam
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  std::cout << "REGISTER_CLOUD_TEASER_FPFH Complete" << std::endl;
+  std::cout << "REGISTER_CLOUD_TEASER_FPFH Completed" << std::endl;
 
 }
 
@@ -1023,9 +974,6 @@ int main(int argc, char** argv)
 
   // now align the CAD part to using the resulting transformation
   pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
-  
-  //analyze_results(*T_01, expected_results,calibration_offset);
-
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
 
 
