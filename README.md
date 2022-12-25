@@ -459,7 +459,7 @@ chmod o+w seam_detection/<SUBDIR>
 
 - [ ] document calibration process of 3D LiDAR system - update `scan2cloud` package
 
-- [x] complete workpeice localization with TEASER as substitute for ICP and/or RANSAC - testing `seam_detection_teaser.cpp` currently
+- [x] complete workpeice localization with TEASER as substitute for ICP and/or RANSAC - implemented in `seam_detection.cpp`
 
 - [x] troubleshoot teaser rotation estimation, experiment with input cloud density and bounds 
   - Test TEASER with two point clouds from same source to verify idea about required correspondence   
@@ -468,7 +468,9 @@ chmod o+w seam_detection/<SUBDIR>
   - TEASER (no features) works with relatively dense _overlapping_ data. I think the later part is the key
 
 - [x] implement and test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
-  - successfully tested in `registration_examples.cpp` with ideal data, results look good, next test on realistic cases
+  - [x] successfully tested in `registration_examples.cpp` with ideal data, results look good
+  - [x] teaser tested on synthetic point clouds with partial overlap - rotation not solving
+  - [ ] improve this data set, create synthetic target cloud with complete overlap
 
 - [ ] implement and test Python examples from TEASER: `teaser_python_fpfh_icp.py`, `teaser_python_3d_smooth.py`, `teaser_python_ply.py`
 

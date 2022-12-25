@@ -17,6 +17,8 @@ workspace sensing and workpeice detection
 optimization based algorithms
 
 
+overlapping point clouds
+
 correspondances-based vs correspondances-free registration
 
 deep neural network - multi layered neural network 
