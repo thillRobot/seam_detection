@@ -1,7 +1,7 @@
 services:
   seam-detection:
     build: .
-    command: roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_02_blndr"
+    command: roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x4y24_45"
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -21,9 +21,9 @@ services:
 
   cad-cloud: 
     build: .
-    command: roslaunch seam_detection cad_cloud.launch n_samples:=14000 leaf_size:=.00025
-             if:=$(find seam_detection)/ply_images/plate_rect_block/plate_rect_block_02_blndr.ply
-             of:=$(find seam_detection)/pcd_images/plate_rect_block/plate_rect_block_02_blndr.pcd
+    command: roslaunch seam_detection cad_cloud.launch n_samples:=2000 leaf_size:=.00025
+             if:=$(find seam_detection)/ply_images/table_tee/8in10in_tee_01_blndr.ply
+             of:=$(find seam_detection)/pcd_images/table_tee/8in10in_tee_01_blndr.pcd
     environment:
       DISPLAY: $DISPLAY
     volumes:

@@ -8,16 +8,7 @@ Panels:
         - /Status1
         - /Grid1
         - /PointCloud22
-        - /PointCloud23
-        - /PointCloud25
-        - /PointCloud26
-        - /PointCloud27
-        - /PointCloud28
-        - /TF1
         - /TF1/Frames1
-        - /Marker1
-        - /Marker2
-        - /Marker3
         - /Marker3/Namespaces1
       Splitter Ratio: 0.5123042464256287
     Tree Height: 1085
@@ -165,6 +156,34 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
+      Color: 35; 43; 238
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0020000000949949026
+      Style: Points
+      Topic: /cloud_filtered2
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
       Color: 115; 210; 22
       Color Transformer: FlatColor
       Decay Time: 0
@@ -249,34 +268,6 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 35; 43; 238
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.0020000000949949026
-      Style: Points
-      Topic: /cloud_filtered2
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
       Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
@@ -296,34 +287,6 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Alpha: 0.75
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 1
-      Size (m): 0.0020000000949949026
-      Style: Points
-      Topic: /cloud_cad3
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
     - Alpha: 1
       Class: rviz/Axes
       Enabled: true
@@ -413,7 +376,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.1071588546037674
+      Distance: 0.15205463767051697
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -421,17 +384,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.13199616968631744
-        Y: 0.15982356667518616
-        Z: 0.16088040173053741
+        X: 0.22464916110038757
+        Y: -0.17320621013641357
+        Z: 0.13764402270317078
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3747970759868622
+      Pitch: 0.10979676246643066
       Target Frame: <Fixed Frame>
-      Yaw: 0.887190580368042
+      Yaw: 1.362195372581482
     Saved: ~
 Window Geometry:
   Displays:

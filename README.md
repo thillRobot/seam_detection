@@ -462,15 +462,15 @@ chmod o+w seam_detection/<SUBDIR>
 - [x] complete workpeice localization with TEASER as substitute for ICP and/or RANSAC - implemented in `seam_detection.cpp`
 
 - [x] troubleshoot teaser rotation estimation, experiment with input cloud density and bounds 
-  - Test TEASER with two point clouds from same source to verify idea about required correspondence   
-  - Hand select/crop better realistic data
-  - re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
-  - TEASER (no features) works with relatively dense _overlapping_ data. I think the later part is the key
+  - [x] test TEASER with two point clouds from same source to verify idea about required correspondence   
+  - [x] Hand select/crop better realistic data, TEASER (no features) works with relatively dense _overlapping_ data. I think the later part is the key
+  - [x] re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
+  - [x] tested TEASER_FPFH with realistic mostly overlapping data, rotation still not close to correct
 
 - [x] implement and test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
   - [x] successfully tested in `registration_examples.cpp` with ideal data, results look good
-  - [x] teaser tested on synthetic point clouds with partial overlap - rotation not solving
-  - [ ] improve this data set, create synthetic target cloud with complete overlap
+  - [x] teaser tested on synthetic point clouds with partial overlap - rotation solving but not correct
+  - [x] improve this data set, create synthetic target cloud with complete overlap, rotation not correct
 
 - [ ] implement and test Python examples from TEASER: `teaser_python_fpfh_icp.py`, `teaser_python_3d_smooth.py`, `teaser_python_ply.py`
 
