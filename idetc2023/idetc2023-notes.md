@@ -82,6 +82,7 @@ Overall, CNNs are a powerful tool for image and video recognition, and they have
 
 - SmoothNet3D - used by Teaser ?
 
+ - Predator (OverlapPredator) : https://github.com/prs-eth/OverlapPredator
 
 
 - IMFNet: Interpretable Multimodal Fusion for Point Cloud Registration

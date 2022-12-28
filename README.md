@@ -340,6 +340,15 @@ Some of the data sets we are testing are not good because they have low overlap.
 
 It seems that it is all about the input data, duh!
 
+it appears the python example may just be a wrapper on what we already have access to
+
+on the other hand it seems like the python_3dsmooth.py example is different, uses KNN 3DSmoothNet 
+
+3DsmoothNet seemed interesting and the demo results are compeling, the downside is that the example is outdated in python 3.5,3.6, this is not what we want but we could use docker to make an old environment just for the sake of testing, it would be worth it I think
+
+New Stuff! - While invesigating the 3DsmoothNet author Zan Gojcic(zgojcic@github) I found something very interesting! Guess what it also has a catchy name: OverlapPredator [prs-eth/OverlapPredator](https://github.com/prs-eth/OverlapPredator). It seems like the main idea is "Registration of 3D Point Clouds with Low Overlap". This may be what we need. Also, the tested example is for Python 3.8.5 which is much more acceptable than 3.5/3.6 as in previous example.
+
+
 
 
 
@@ -467,13 +476,24 @@ chmod o+w seam_detection/<SUBDIR>
   - [x] re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
   - [x] tested TEASER_FPFH with realistic mostly overlapping data, rotation still not close to correct
 
-- [x] implement and test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
+- [x] test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
+  - [x] add TEASER C++ library installation to Dockerfile
   - [x] successfully tested in `registration_examples.cpp` with ideal data, results look good
   - [x] teaser tested on synthetic point clouds with partial overlap - rotation solving but not correct
   - [x] improve this data set, create synthetic target cloud with complete overlap, rotation not correct
 
-- [ ] implement and test Python examples from TEASER: `teaser_python_fpfh_icp.py`, `teaser_python_3d_smooth.py`, `teaser_python_ply.py`
+- [ ] test Python examples from TEASER:
+  - [ ] FIRST determine if this is worth the time ... dont spend too much time doing that lol, that is the tricky part
+  - [ ] create new docker environment to test python example instead of using conda as docs suggest, `dockerpy`
+  - [ ] `teaser_python_ply.py`
+  - [ ] `teaser_python_fpfh_icp.py` 
+  - [ ] `teaser_python_3d_smooth.py` 
 
+- [ ] read publication - PREDATOR: Registration of 3D Point Clouds with Low Overlap, https://arxiv.org/pdf/2011.13005.pdf
+
+- [ ] test Predator example codeL: https://github.com/prs-eth/OverlapPredator
+
+  
 - [x] temporarily separate the segmentation and registration code to ease testing of new algorithms
   - added new script `registration_examples.cpp`, still needs to be cleaned up and trimmed down
 

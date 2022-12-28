@@ -685,7 +685,7 @@ void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::Stam
   auto correspondences = matcher.calculateCorrespondences(
       src, tgt, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
 
-    // Run TEASER++ registration
+  // Run TEASER++ registration
   // Prepare solver parameters
   teaser::RobustRegistrationSolver::Params params;
   params.noise_bound = 0.05;
