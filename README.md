@@ -492,8 +492,10 @@ chmod o+w seam_detection/<SUBDIR>
 
 - [ ] read publication - PREDATOR: Registration of 3D Point Clouds with Low Overlap, https://arxiv.org/pdf/2011.13005.pdf
 
-- [ ] test Predator example codeL: https://github.com/prs-eth/OverlapPredator
-
+- [x] test Predator example codeL: https://github.com/prs-eth/OverlapPredator
+  - see forked code at github.com/thillrobot/OverlapPredator
+  - [x] example code is working in docker :)
+  - [ ] load data set from this project, demo code uses .pth (python torch asset) and I do not know how to convert/save point cloud to .pth
   
 - [x] temporarily separate the segmentation and registration code to ease testing of new algorithms
   - added new script `registration_examples.cpp`, still needs to be cleaned up and trimmed down
