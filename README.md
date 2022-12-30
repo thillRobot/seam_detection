@@ -348,6 +348,7 @@ on the other hand it seems like the python_3dsmooth.py example is different, use
 
 New Stuff! - While invesigating the 3DsmoothNet author Zan Gojcic(zgojcic@github) I found something very interesting! Guess what it also has a catchy name: OverlapPredator [prs-eth/OverlapPredator](https://github.com/prs-eth/OverlapPredator). It seems like the main idea is "Registration of 3D Point Clouds with Low Overlap". This may be what we need. Also, the tested example is for Python 3.8.5 which is much more acceptable than 3.5/3.6 as in previous example.
 
+Predator comes from the Photogrammetry and Remote Sensing Lab: https://github.com/prs-eth
 
 
 

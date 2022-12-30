@@ -101,11 +101,12 @@ Overall, CNNs are a powerful tool for image and video recognition, and they have
 
 - GenReg: Deep Generative Method for Fast Point Cloud Registration
 
-
-
 - VoxelNet
 
 
+- Torch, Points 3D - https://github.com/nicolas-chaulet/torch-points3d
+
+	- this looks promising
 
 
 
@@ -122,6 +123,9 @@ https://paperswithcode.com/sota/point-cloud-registration-on-3dmatch-benchmark
 - vinits5/learning3d - https://github.com/vinits5/learning3d
 
 - chrischoy/FCGF
+
+- Python torch + Nvidia CUDA 
+ - used by OverlapPredator
 
 
 
@@ -143,6 +147,10 @@ Various Univ.
 Remote Sensing, 2020
 
 ### registration algorithm papers
+
+
+PREDATOR: Registration of 3D Point Clouds with Low Overlap (CVPR 2021, Oral)
+
 
 DeepMatch: Toward Lightweight in Point Cloud Registration
 Lizhe Qi, Fuwang Wu, Zuhao Ge, Yuquan Sun
