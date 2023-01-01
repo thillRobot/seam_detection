@@ -69,6 +69,24 @@ In a CNN, on the other hand, the neurons in each layer are only connected to a s
 Another key feature of CNNs is the use of pooling layers, which downsample the input data and reduce its dimensionality. This makes the network more efficient and allows it to learn more abstract features of the input data.
 Overall, CNNs are a powerful tool for image and video recognition, and they have been used to achieve state-of-the-art performance on many tasks. They are widely used in a variety of applications, including object detection, facial recognition, and medical image analysis. (chatGPT)
 
+We need to use a convolution kernals to process a point cloud with the NN
+
+Convolutions kernels
+
+Most point-based convolution networks borrow the common encoder/decoder idea (or encoder only). An encoder operates on a dense point cloud, which is iteratively decimated after each layer or group of layers as we go deeper. The points themselves support feature vectors, and going from one layer to the next usually entails two steps:
+
+    downsampling the point cloud;
+    for each point in the downsampled point cloud, computing a feature vector based on the features of its neighbours in the previous point cloud.
+
+In short, the deeper in the network, the fewer the points — but the richer their associated features.
+
+
+Sparse Convolution
+
+The convolution problem is similar to what is used in 2D image processing, but the third dimension Z causes the data to be sparse in general -> most voxels are empty
+https://towardsdatascience.com/how-does-sparse-convolution-work-3257a0a8fd1
+
+
 
 
 ## algorithms/networks
@@ -104,7 +122,7 @@ Overall, CNNs are a powerful tool for image and video recognition, and they have
 - VoxelNet
 
 
-- Torch, Points 3D - https://github.com/nicolas-chaulet/torch-points3d
+- Torch Points3D - https://github.com/nicolas-chaulet/torch-points3d
 
 	- this looks promising
 
@@ -127,7 +145,7 @@ https://paperswithcode.com/sota/point-cloud-registration-on-3dmatch-benchmark
 - Python torch + Nvidia CUDA 
  - used by OverlapPredator
 
-
+- ROS pointcloud_registration - https://github.com/carlosmccosta/pointcloud_registration
 
 
 
@@ -177,7 +195,6 @@ PCRNet: Point Cloud Registration Network using PointNet Encoding
 Vinit Sarode, Xueqian Li, Hunter Goforth, Yasuhiro Aoki, Rangaprasad Arun Srivatsan, Simon Lucey, Howie Choset
 2019
 
-
 Deep Closest Point: Learning Representations for Point Cloud Registration
 Yue Wang, Justin M. Solomon, MIT
 Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), 2019
@@ -195,6 +212,10 @@ Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognitio
 Gil Elbaz, Tamar Avraham, Anath Fischer
 Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2017
 
+NCHW stands for:
+batch N, channels C, depth D, height H, width W
+It is a way to store multidimensional arrays / data frames / matrix into memory - https://stackoverflow.com/questions/67087131/what-is-nchw-format
+
 
 
 ### related papers
@@ -207,6 +228,34 @@ Apple Inc.
 Arxiv, Computer Science, Computer Vision and Pattern Recognition, 2018
 
 
-
-
 ### application papers
+
+
+
+
+
+
+### things to do:
+
+- [x] test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
+
+- [ ] test Python examples from TEASER:
+
+- [ ] read publication - PREDATOR: Registration of 3D Point Clouds with Low Overlap, https://arxiv.org/pdf/2011.13005.pdf
+
+- [x] test Predator example codeL: https://github.com/prs-eth/OverlapPredator
+  - see forked code at github.com/thillrobot/OverlapPredator
+  - [x] example code is working in docker :)
+  - [ ] load data set from seamdetection project, demo code uses .pth (python torch asset) and I do not know how to convert/save point cloud to .pth
+  - [ ] generate custom dataset to use with Predator, this should handle the convolution encoding (see _convolution kernel_)
+
+- [ ] investigate Predator fork from Zan Gojcic: https://github.com/zgojcic/OverlapPredator
+
+- [ ] test torch points3d examples
+ - [ ] setup environment in docker
+ - [ ] test custom point clouds with regstration from torch-points3d
+
+- [ ] read/learn/review convolution (dense) for 2d images
+- [ ] read/learn about sparse convolution for 2D images
+- [ ] read/learn about sparse convolution for 3D images
+https://towardsdatascience.com/how-does-sparse-convolution-work-3257a0a8fd1

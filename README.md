@@ -483,20 +483,6 @@ chmod o+w seam_detection/<SUBDIR>
   - [x] teaser tested on synthetic point clouds with partial overlap - rotation solving but not correct
   - [x] improve this data set, create synthetic target cloud with complete overlap, rotation not correct
 
-- [ ] test Python examples from TEASER:
-  - [ ] FIRST determine if this is worth the time ... dont spend too much time doing that lol, that is the tricky part
-  - [ ] create new docker environment to test python example instead of using conda as docs suggest, `dockerpy`
-  - [ ] `teaser_python_ply.py`
-  - [ ] `teaser_python_fpfh_icp.py` 
-  - [ ] `teaser_python_3d_smooth.py` 
-
-- [ ] read publication - PREDATOR: Registration of 3D Point Clouds with Low Overlap, https://arxiv.org/pdf/2011.13005.pdf
-
-- [x] test Predator example codeL: https://github.com/prs-eth/OverlapPredator
-  - see forked code at github.com/thillrobot/OverlapPredator
-  - [x] example code is working in docker :)
-  - [ ] load data set from this project, demo code uses .pth (python torch asset) and I do not know how to convert/save point cloud to .pth
-  
 - [x] temporarily separate the segmentation and registration code to ease testing of new algorithms
   - added new script `registration_examples.cpp`, still needs to be cleaned up and trimmed down
 
