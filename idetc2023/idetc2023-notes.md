@@ -89,6 +89,9 @@ https://towardsdatascience.com/how-does-sparse-convolution-work-3257a0a8fd1
 
 
 
+
+
+
 ## algorithms/networks
 
 
@@ -146,6 +149,20 @@ https://paperswithcode.com/sota/point-cloud-registration-on-3dmatch-benchmark
  - used by OverlapPredator
 
 - ROS pointcloud_registration - https://github.com/carlosmccosta/pointcloud_registration
+
+
+## Docker Images
+
+Ubuntu 
+
+Python
+
+CUDA
+
+Pytorch - If we are using python torch this makes sense lol
+
+
+
 
 
 
@@ -251,6 +268,10 @@ Arxiv, Computer Science, Computer Vision and Pattern Recognition, 2018
 
 - [ ] investigate Predator fork from Zan Gojcic: https://github.com/zgojcic/OverlapPredator
 
+- [ ] learn about sparse convolution with NVIDIA MinkowskiEngine: https://github.com/NVIDIA/MinkowskiEngine
+ - [ ] build image from Dockerfile from NVIDIA
+ - [x] build image from custom Dockerfile
+
 - [ ] test torch points3d examples
  - [ ] setup environment in docker
  - [ ] test custom point clouds with regstration from torch-points3d
@@ -259,3 +280,6 @@ Arxiv, Computer Science, Computer Vision and Pattern Recognition, 2018
 - [ ] read/learn about sparse convolution for 2D images
 - [ ] read/learn about sparse convolution for 3D images
 https://towardsdatascience.com/how-does-sparse-convolution-work-3257a0a8fd1
+
+
+
