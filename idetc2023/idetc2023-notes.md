@@ -252,6 +252,7 @@ Arxiv, Computer Science, Computer Vision and Pattern Recognition, 2018
 
 
 
+
 ### things to do:
 
 - [x] test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
@@ -269,11 +270,12 @@ Arxiv, Computer Science, Computer Vision and Pattern Recognition, 2018
 - [ ] investigate Predator fork from Zan Gojcic: https://github.com/zgojcic/OverlapPredator
 
 - [ ] learn about sparse convolution with NVIDIA MinkowskiEngine: https://github.com/NVIDIA/MinkowskiEngine
- - [ ] build image from Dockerfile from NVIDIA
+ - [x] build image from Dockerfile from NVIDIA
  - [x] build image from custom Dockerfile
 
 - [ ] test torch points3d examples
  - [ ] setup environment in docker
+ - [ ] prepare data test data set with sparse convolution
  - [ ] test custom point clouds with regstration from torch-points3d
 
 - [ ] read/learn/review convolution (dense) for 2d images
@@ -281,5 +283,11 @@ Arxiv, Computer Science, Computer Vision and Pattern Recognition, 2018
 - [ ] read/learn about sparse convolution for 3D images
 https://towardsdatascience.com/how-does-sparse-convolution-work-3257a0a8fd1
 
-
-
+- [ ] test/read PyTorch (Python torch) basic tutorials: https://pytorch.org/tutorials/beginner/basics/intro.html
+ - [x] tensors
+ - [x] datasets
+ - [x] transforms
+ - [x] build model - need to read this one again
+ - [ ] auto differentiation
+ - [ ] optimization loop
+ - [ ] save, load and use model
