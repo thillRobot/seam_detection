@@ -94,6 +94,17 @@ Sematantic Segmentationm - determine what is in a image and where in the image i
 this is typically a dense prediction
 
 
+Inference -  a conclusion reached on the basis of evidence and reasoning
+
+Using the model!
+
+Machine learning inference is the process of running data points into a machine learning model to calculate an output such as a single numerical score. This process is also referred to as “operationalizing a machine learning model” or “putting a machine learning model into production.” - https://cloud.google.com/bigquery-ml/docs/reference/standard-sql/bigqueryml-syntax-inference-overview
+
+
+Machine learning (ML) inference is the process of running live data points into a machine learning algorithm (or “ML model”) to calculate an output such as a single numerical score. This process is also referred to as “operationalizing an ML model” or “putting an ML model into production.” When an ML model is running in production, it is often then described as artificial intelligence (AI) since it is performing functions similar to human thinking and analysis. Machine learning inference basically entails deploying a software application into a production environment, as the ML model is typically just software code that implements a mathematical algorithm. That algorithm makes calculations based on the characteristics of the data, known as “features” in the ML vernacular. - https://hazelcast.com/glossary/machine-learning-inference/
+
+
+
 
 
 
