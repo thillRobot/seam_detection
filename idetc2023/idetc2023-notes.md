@@ -88,6 +88,11 @@ https://towardsdatascience.com/how-does-sparse-convolution-work-3257a0a8fd1
 
 
 
+Idea - Use CNNs to replace segmentation in workpiece localization !?!?
+ 		
+Sematantic Segmentationm - determine what is in a image and where in the image it is located, label each pixel into a corresponding class
+this is typically a dense prediction
+
 
 
 
