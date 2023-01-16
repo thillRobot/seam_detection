@@ -94,6 +94,12 @@ Sematantic Segmentationm - determine what is in a image and where in the image i
 this is typically a dense prediction
 
 
+Quantization - restrict the number of possible values of (a quantity) or states of (a system) so that certain variables can assume only certain discrete magnitudes - oxford languages
+
+
+
+
+
 
 
 
@@ -135,6 +141,36 @@ this is typically a dense prediction
 	- this looks promising
 
 
+- Minkowski Engine - Sparse Convolutional Networks for 3D data - examples and python library for networks
+
+## Standard Datasets
+
+for 2D images
+
+- MNIST - handwritten letters
+
+- FashionMNIST - picture of fashion and clothing items, 10 classes
+
+- VGG-Nets - 1000 class of general and specific items 
+
+for 3D images
+
+- Princeon ModelNet
+  - ModelNet40 standard 3D images for generalized image recognition and other tasks
+  - ModelNet10 subset of 40 with labeled orientation for registration hopefully - !!! This seems promising.
+
+- 3DMatch used by overlap predator
+- KITTI used by overlap predator
+
+
+
+
+
+
+Herrman Minkowski - generalized rotations
+
+
+
 
 ### lists of algoritms 
 
@@ -156,7 +192,7 @@ https://paperswithcode.com/sota/point-cloud-registration-on-3dmatch-benchmark
 - ROS pointcloud_registration - https://github.com/carlosmccosta/pointcloud_registration
 
 
-## Docker Images
+## Docker base images
 
 Ubuntu 
 
@@ -262,9 +298,20 @@ Arxiv, Computer Science, Computer Vision and Pattern Recognition, 2018
 
 - [x] test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
 
+  - [ ] further investigate FPFH, visualize features?   https://github.com/chrischoy/FCGF
+
+
 - [ ] test Python examples from TEASER:
 
-- [ ] read publication - PREDATOR: Registration of 3D Point Clouds with Low Overlap, https://arxiv.org/pdf/2011.13005.pdf
+- [ ] test 3DSmoothNet for preparing point cloud data
+
+  - [ ] setup environment and install ... based on ubuntu16... lets look elsewhere....
+
+- [ ] test Minkowski Engine - this seems like a good re-starting point, and it appears to be current
+  - [x] use dockerfile available in reposistory, example version check worked fine -> 0.5.4 
+  - [ ] test install in thillrobot/machine_learning/(pytorch)
+
+
 
 - [x] test Predator example codeL: https://github.com/prs-eth/OverlapPredator
   - see forked code at github.com/thillrobot/OverlapPredator
@@ -296,3 +343,9 @@ https://towardsdatascience.com/how-does-sparse-convolution-work-3257a0a8fd1
  - [ ] auto differentiation
  - [ ] optimization loop
  - [ ] save, load and use model
+
+- [ ] create a 'test' dataset from seam_detection idetc 2022 lidar images for NN algorithm XYZ
+
+- [ ] clean up this notes docs, organize short term goals 
+
+- [ ] work on literature review
