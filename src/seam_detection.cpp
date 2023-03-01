@@ -968,7 +968,7 @@ int main(int argc, char** argv)
   // Perform TEASER++ cloud registration
   double teaser_params[3]={1,2,3}; // temporary place holder 
   //register_cloud_teaser(*cloud_part1,*cloud_cad1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
-  register_cloud_teaser_fpfh(*cloud_part1,*cloud_cad1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  //register_cloud_teaser_fpfh(*cloud_part1,*cloud_cad1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
 
   // now align the CAD part to using the resulting transformation

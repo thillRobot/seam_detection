@@ -584,7 +584,6 @@ int main(int argc, char** argv)
   geometry_msgs::TransformStamped *T_10_msg (new geometry_msgs::TransformStamped);
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
 
-
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    Processing Pointcloud Data                      "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
