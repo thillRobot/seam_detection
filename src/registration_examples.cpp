@@ -307,7 +307,7 @@ void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTr
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
+void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[], teaser::FPFHEstimation features )
 {
  
   // get size of inputs clouds
@@ -600,7 +600,14 @@ int main(int argc, char** argv)
 
     // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
   //double teaser_params[3]={1,2,3}; // temporary place holder 
-  register_cloud_teaser_fpfh(*target_cloud, *source_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  teaser::FPFHEstimation features;     
+  register_cloud_teaser_fpfh(*target_cloud, *source_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+
+  std::cout<<"FPFH Features:";
+  //std::cout<<features.size();
+
+
+
 
   // now align the CAD part to using the resulting transformation
   pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
