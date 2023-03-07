@@ -76,10 +76,15 @@ typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
+void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
 {
  
+  // get size of inputs clouds
+  int Ns = source.size();
+  int Nt = target.size();
   std::cout<<"BEGINNING ICP REGISTRATION" << std::endl;
+  std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
+
   std::cout<<"Using Search Parameters:"<< std::endl;
   std::cout<<"Max Correspondence Distance = "<< max_corr_dist <<std::endl;
   std::cout<<"Maximum Number of Iterations = "<< max_iter <<std::endl;
@@ -102,15 +107,15 @@ void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTrans
   icp.setEuclideanFitnessEpsilon (ecld_fitn_epsl);
 
   // these copies seem like a waste to me, figure out how to cut these out
-  // make a copy of the CAD(target) cloud called 'cloud_A' 
-  PointCloud::Ptr tgt (new PointCloud);       //use this as the working copy of the target cloud
-  pcl::copyPointCloud(target,*tgt);
-  // make a copy of the LiDAR(source) cloud called 'cloud_B'
+  // make a copy of the LiDAR(source) cloud 
   PointCloud::Ptr src (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(source,*src);
-
-  icp.setInputTarget(tgt); // target (fixed) cloud
+  // make a copy of the CAD(target) cloud 
+  PointCloud::Ptr tgt (new PointCloud);       //use this as the working copy of the target cloud
+  pcl::copyPointCloud(target,*tgt);
+ 
   icp.setInputSource(src); // source (moved during ICP) cloud
+  icp.setInputTarget(tgt); // target (fixed) cloud
   icp.align(Final); // perform ICP registration
 
   T_result=icp.getFinalTransformation(); // get the resutls of ICP
@@ -177,7 +182,7 @@ void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTrans
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
+void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
   // get size of inputs clouds
@@ -307,21 +312,21 @@ void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTr
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[], teaser::FPFHEstimation features )
+void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[], teaser::FPFHEstimation features )
 {
  
   // get size of inputs clouds
-  int Nt = target.size();
   int Ns = source.size();
+  int Nt = target.size();
   int P = 50; //number to print
   int M = -1; //number of matches
   std::cout <<"BEGINNING REGISTER_CLOUD_TEASER_FPFH"<< std::endl;
-  std::cout <<"Processing "<< Nt << " target points and " <<Ns<<" source points" << std::endl ;
+  std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
 
   // instantiate teaser pointclouds
-  teaser::PointCloud tgt;
   teaser::PointCloud src;
-  
+  teaser::PointCloud tgt;
+    
   for (size_t i = 0; i < Nt; ++i) {
     tgt.push_back({static_cast<float>(target[i].x), static_cast<float>(target[i].y), static_cast<float>(target[i].z)});
   }
@@ -589,19 +594,19 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<endl<<endl;
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*target_cloud,*source_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+  register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
 
   int N_cor=100;
   EigenCor cor_src_pts, cor_tgt_pts;
 
   // Perform TEASER++ cloud registration
   double teaser_params[3]={1,2,3}; // temporary place holder 
-  register_cloud_teaser(*target_cloud, *source_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  register_cloud_teaser(*source_cloud,*target_cloud,  *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
     // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
   //double teaser_params[3]={1,2,3}; // temporary place holder 
   teaser::FPFHEstimation features;     
-  register_cloud_teaser_fpfh(*target_cloud, *source_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+  register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
 
   std::cout<<"FPFH Features:";
   //std::cout<<features.size();

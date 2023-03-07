@@ -22,9 +22,9 @@ services:
 
   cad-cloud: 
     build: .
-    command: roslaunch seam_detection cad_cloud.launch n_samples:=5000 leaf_size:=.00025
-             if:=$(find seam_detection)/ply_images/table_tee/8in10in_tee_01_blndrB.ply
-             of:=$(find seam_detection)/pcd_images/table_tee/8in10in_tee_01_blndrB.pcd
+    command: roslaunch seam_detection cad_cloud.launch n_samples:=10000 leaf_size:=.00025
+             if:=$(find seam_detection)/ply_images/table_tee/8in10in_tee_01_blndr.ply
+             of:=$(find seam_detection)/pcd_images/table_tee/8in10in_tee_01_blndr.pcd
     environment:
       DISPLAY: $DISPLAY
     volumes:

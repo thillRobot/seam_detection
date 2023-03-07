@@ -238,8 +238,8 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
   //pass.setInputCloud(cloud_filtered2);
 
   //pass.setFilterFieldName ("z");
-  //pass.setFilterLimits(-0.01,0.5);
-  //pass.filter (*cloud_filtered2);
+  //pass.setFilterLimits(0.0,0.5);
+  //  pass.filter (*cloud_filtered2);
 
 
   std::cout << "The PointCloud representing the planar component contains: " << cloud_plane1->points.size () << " data points." << std::endl;
@@ -420,22 +420,24 @@ void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointClou
 }
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
+void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
 {
  
   // get size of inputs clouds
-  int Nt = target.size();
   int Ns = source.size();
+  int Nt = target.size();
+ 
   
-  // make a copy of the CAD(target) cloud called 'cloud_A' 
-  PointCloud::Ptr tgt (new PointCloud);       //use this as the working copy of the target cloud
-  pcl::copyPointCloud(target,*tgt);
-  // make a copy of the LiDAR(source) cloud called 'cloud_B'
+  // make a copy of the LiDAR(source) cloud 
   PointCloud::Ptr src (new PointCloud);       //use this as the working copy of the source cloud
   pcl::copyPointCloud(source,*src);
+  // make a copy of the CAD(target) cloud c
+  PointCloud::Ptr tgt (new PointCloud);       //use this as the working copy of the target cloud
+  pcl::copyPointCloud(target,*tgt);
+
 
   std::cout<<"Beginning REGISTER_CLOUD_ICP" << std::endl;
-  std::cout <<"Processing "<< Nt << " target points and " <<Ns<<" source points" << std::endl ;
+  std::cout <<"Processing "<<Ns<<" source points and" << Nt << " target points" << std::endl ;
   std::cout<<"Using Search Parameters:"<< std::endl;
   std::cout<<"Max Correspondence Distance = "<< max_corr_dist <<std::endl;
   std::cout<<"Maximum Number of Iterations = "<< max_iter <<std::endl;
@@ -457,8 +459,9 @@ void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTrans
   // Set the euclidean distance difference epsilon (criterion 3)
   icp.setEuclideanFitnessEpsilon (ecld_fitn_epsl);
 
+  icp.setInputSource(src); // source (moved during ICP) cloud
   icp.setInputTarget(tgt); // target (fixed) cloud
-  icp.setInputSource(src);  // source (moved during ICP) cloud
+  
   icp.align(Final); // do ICP
 
   T_result=icp.getFinalTransformation(); // get the resutls of ICP
@@ -524,12 +527,12 @@ void register_cloud_icp(PointCloud &target, PointCloud &source, tf::StampedTrans
 }
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
+void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
   // get size of inputs clouds
-  int Nt = target.size();
   int Ns = source.size();
+  int Nt = target.size();
   int P = 50; //number to print
   int M = -1; //number of matches
   std::cout <<"BEGINNING REGISTER_CLOUD_TEASER"<< std::endl;
@@ -545,10 +548,11 @@ void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTr
   
   for (size_t i = 0; i < Ns; ++i) {
     src.col(i) << source[i].x, source[i].y, source[i].z;
-  }  
+  }   
   for (size_t i = 0; i < Nt; ++i) {
     tgt.col(i) << target[i].x, target[i].y, target[i].z;
   }
+
   
   // Run TEASER++ registration
   // Prepare solver parameters
@@ -654,26 +658,27 @@ void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTr
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser_fpfh(PointCloud &target, PointCloud &source, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
+void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
   // get size of inputs clouds
-  int Nt = target.size();
   int Ns = source.size();
+  int Nt = target.size();
   int P = 50; //number to print
   int M = -1; //number of matches
   std::cout <<"Beginning REGISTER_CLOUD_TEASER_FPFH"<< std::endl;
-  std::cout <<"Processing "<< Nt << " target points and " <<Ns<<" source points" << std::endl ;
+  std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
 
   // instantiate teaser pointclouds
   teaser::PointCloud tgt;
   teaser::PointCloud src;
   
-  for (size_t i = 0; i < Nt; ++i) {
-    tgt.push_back({static_cast<float>(target[i].x), static_cast<float>(target[i].y), static_cast<float>(target[i].z)});
-  }
+
   for (size_t i = 0; i < Ns; ++i) {
     src.push_back({static_cast<float>(source[i].x), static_cast<float>(source[i].y), static_cast<float>(source[i].z)});
+  }
+  for (size_t i = 0; i < Nt; ++i) {
+    tgt.push_back({static_cast<float>(target[i].x), static_cast<float>(target[i].y), static_cast<float>(target[i].z)});
   }
 
   // Compute FPFH (features)
@@ -817,7 +822,7 @@ int main(int argc, char** argv)
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
-  std::cout<<"===================================================================="<<endl;
+  std::cout<<"===================================== ==============================="<<endl;
   std::cout<<"                     Seam Detection Teaser v1.6                     "<<endl;
   std::cout<<"===================================================================="<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
@@ -833,13 +838,13 @@ int main(int argc, char** argv)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   // parameters that contain strings  
-  std::string lidar_src_path, cad_ref_path, lidar_src_file, cad_ref_file, part1_type;
+  std::string lidar_path, cad_path, lidar_file, cad_file, part1_type;
 
-  node.getParam("lidar_src_file", lidar_src_file);
-  lidar_src_path=packagepath+'/'+lidar_src_file;
+  node.getParam("lidar_file", lidar_file);
+  lidar_path=packagepath+'/'+lidar_file;
 
-  node.getParam("cad_ref_file", cad_ref_file);
-  cad_ref_path=packagepath+'/'+cad_ref_file;
+  node.getParam("cad_file", cad_file);
+  cad_path=packagepath+'/'+cad_file;
 
   node.getParam("part1_type",  part1_type);
 
@@ -912,22 +917,22 @@ int main(int argc, char** argv)
 
 
   // load the clouds from file (.pcd)
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (lidar_src_path, *cloud_lidar) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (lidar_path, *cloud_lidar) == -1)
   {
-      std::cout<<"Couldn't read image file:"<<lidar_src_path;
+      std::cout<<"Couldn't read image file:"<<lidar_path;
       return (-1);
   }
-  std::cout << "Loaded image file: "<< lidar_src_path <<std::endl<<
-      cloud_lidar->width * cloud_lidar->height << " Data points from "<< lidar_src_path << std::endl;
+  std::cout << "Loaded image file: "<< lidar_path <<std::endl<<
+      cloud_lidar->width * cloud_lidar->height << " Data points from "<< lidar_path << std::endl;
 
   // load the cloud from CAD file
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (cad_ref_path, *cloud_cad1) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (cad_path, *cloud_cad1) == -1)
   {
-      std::cout<<"Couldn't read image file:"<<cad_ref_path;
+      std::cout<<"Couldn't read image file:"<<cad_path;
       return (-1);
   }
-  std::cout << "Loaded image file: "<< cad_ref_path <<std::endl<<
-      cloud_cad1->width * cloud_cad1->height << " Data points from "<< cad_ref_path <<std::endl<<std::endl;
+  std::cout << "Loaded image file: "<< cad_path <<std::endl<<
+      cloud_cad1->width * cloud_cad1->height << " Data points from "<< cad_path <<std::endl<<std::endl;
 
   std::cout<<"Debug2"<<endl;
 
@@ -959,7 +964,7 @@ int main(int argc, char** argv)
   segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2,*cloud_filtered3, part1_type, ransac_norm_dist_wt, ransac_max_iter, ransac_dist_thrsh, ransac_k_srch, ransac_init_norm);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*cloud_cad1,*cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+  register_cloud_icp(*cloud_part1,*cloud_cad1, *T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
 
   int N_cor=100;
 
@@ -972,7 +977,7 @@ int main(int argc, char** argv)
 
 
   // now align the CAD part to using the resulting transformation
-  pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+  pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
 
 
