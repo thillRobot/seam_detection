@@ -528,8 +528,8 @@ void register_cloud_teaser(PointCloud &target, PointCloud &source, tf::StampedTr
 {
  
   // get size of inputs clouds
-  int Ns = source.size();
   int Nt = target.size();
+  int Ns = source.size();
   int P = 50; //number to print
   int M = -1; //number of matches
   std::cout <<"BEGINNING REGISTER_CLOUD_TEASER"<< std::endl;
@@ -959,7 +959,7 @@ int main(int argc, char** argv)
   segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2,*cloud_filtered3, part1_type, ransac_norm_dist_wt, ransac_max_iter, ransac_dist_thrsh, ransac_k_srch, ransac_init_norm);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*cloud_part1,*cloud_cad1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+  register_cloud_icp(*cloud_cad1,*cloud_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
 
   int N_cor=100;
 
@@ -972,7 +972,7 @@ int main(int argc, char** argv)
 
 
   // now align the CAD part to using the resulting transformation
-  pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+  pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
 
 
@@ -982,8 +982,6 @@ int main(int argc, char** argv)
 
   analyze_results(*T_10, expected_results);
   analyze_results(*T_01, expected_results);
-
-
 
   T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01";
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";

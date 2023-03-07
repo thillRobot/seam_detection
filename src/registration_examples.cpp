@@ -607,8 +607,6 @@ int main(int argc, char** argv)
   //std::cout<<features.size();
 
 
-
-
   // now align the CAD part to using the resulting transformation
   pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
@@ -637,7 +635,7 @@ int main(int argc, char** argv)
   aligned_cloud->header.frame_id = "base_link";
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    SEAM_DETECTION Complete                         "<<endl;
+  std::cout<<"                    REGISTRATION_EXAMPLES Complete                         "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   //publish forever
