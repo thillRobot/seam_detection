@@ -493,10 +493,10 @@ int main(int argc, char** argv)
   // parameters that contain strings  
   std::string source_cloud_path, target_cloud_path, source_cloud_file, target_cloud_file;
 
-  node.getParam("lidar_src_file", source_cloud_file);
+  node.getParam("source_file", source_cloud_file);
   source_cloud_path=packagepath+'/'+source_cloud_file;
 
-  node.getParam("cad_ref_file", target_cloud_file);
+  node.getParam("target_file", target_cloud_file);
   target_cloud_path=packagepath+'/'+target_cloud_file;
 
 

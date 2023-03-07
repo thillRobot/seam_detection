@@ -838,13 +838,13 @@ int main(int argc, char** argv)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   // parameters that contain strings  
-  std::string lidar_path, cad_path, lidar_file, cad_file, part1_type;
+  std::string source_path, target_path, source_file, target_file, part1_type;
 
-  node.getParam("lidar_file", lidar_file);
-  lidar_path=packagepath+'/'+lidar_file;
+  node.getParam("source_file", source_file);
+  source_path=packagepath+'/'+source_file;
 
-  node.getParam("cad_file", cad_file);
-  cad_path=packagepath+'/'+cad_file;
+  node.getParam("target_file", target_file);
+  target_path=packagepath+'/'+target_file;
 
   node.getParam("part1_type",  part1_type);
 
@@ -903,13 +903,13 @@ int main(int argc, char** argv)
 
   
   // instantiate some clouds
-  PointCloud::Ptr cloud_lidar (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
-  PointCloud::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
-  PointCloud::Ptr cloud_filtered2 (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
-  PointCloud::Ptr cloud_filtered3 (new pcl::PointCloud<pcl::PointXYZ>); // target cloud  // inputs to RANSAC
-  PointCloud::Ptr cloud_cad1 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
-  PointCloud::Ptr cloud_cad2 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud intermediate
-  PointCloud::Ptr cloud_cad3 (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud final
+  PointCloud::Ptr cloud_source (new pcl::PointCloud<pcl::PointXYZ>); // source cloud  // inputs to RANSAC
+  PointCloud::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>); // source cloud  // inputs to RANSAC
+  PointCloud::Ptr cloud_filtered2 (new pcl::PointCloud<pcl::PointXYZ>); // source cloud  // inputs to RANSAC
+  PointCloud::Ptr cloud_filtered3 (new pcl::PointCloud<pcl::PointXYZ>); // source cloud  // inputs to RANSAC
+  PointCloud::Ptr cloud_target1 (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud
+  PointCloud::Ptr cloud_target2 (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud intermediate
+  PointCloud::Ptr cloud_target3 (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud final
   PointCloud::Ptr cloud_part1 (new pcl::PointCloud<pcl::PointXYZ>); // cylinder cloud // input to ICP
   PointCloud::Ptr cloud_part2 (new pcl::PointCloud<pcl::PointXYZ>); // plane cloud
 
@@ -917,22 +917,22 @@ int main(int argc, char** argv)
 
 
   // load the clouds from file (.pcd)
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (lidar_path, *cloud_lidar) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (source_path, *cloud_source) == -1)
   {
-      std::cout<<"Couldn't read image file:"<<lidar_path;
+      std::cout<<"Couldn't read image file:"<<source_path;
       return (-1);
   }
-  std::cout << "Loaded image file: "<< lidar_path <<std::endl<<
-      cloud_lidar->width * cloud_lidar->height << " Data points from "<< lidar_path << std::endl;
+  std::cout << "Loaded image file: "<< source_path <<std::endl<<
+      cloud_source->width * cloud_source->height << " Data points from "<< source_path << std::endl;
 
   // load the cloud from CAD file
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (cad_path, *cloud_cad1) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_path, *cloud_target1) == -1)
   {
-      std::cout<<"Couldn't read image file:"<<cad_path;
+      std::cout<<"Couldn't read image file:"<<target_path;
       return (-1);
   }
-  std::cout << "Loaded image file: "<< cad_path <<std::endl<<
-      cloud_cad1->width * cloud_cad1->height << " Data points from "<< cad_path <<std::endl<<std::endl;
+  std::cout << "Loaded image file: "<< target_path <<std::endl<<
+      cloud_target1->width * cloud_target1->height << " Data points from "<< target_path <<std::endl<<std::endl;
 
   std::cout<<"Debug2"<<endl;
 
@@ -958,13 +958,13 @@ int main(int argc, char** argv)
 
 
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
-  filter_cloud(*cloud_lidar,*cloud_filtered, filter_box, voxel_leaf_size); 
+  filter_cloud(*cloud_source,*cloud_filtered, filter_box, voxel_leaf_size); 
 
   // Perform RANSAC Segmentation to separate clouds and find part of interest
   segment_cloud(*cloud_filtered,*cloud_part1,*cloud_part2,*cloud_filtered2,*cloud_filtered3, part1_type, ransac_norm_dist_wt, ransac_max_iter, ransac_dist_thrsh, ransac_k_srch, ransac_init_norm);
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*cloud_part1,*cloud_cad1, *T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+  register_cloud_icp(*cloud_part1,*cloud_target1, *T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
 
   int N_cor=100;
 
@@ -972,12 +972,12 @@ int main(int argc, char** argv)
 
   // Perform TEASER++ cloud registration
   double teaser_params[3]={1,2,3}; // temporary place holder 
-  //register_cloud_teaser(*cloud_part1,*cloud_cad1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
-  //register_cloud_teaser_fpfh(*cloud_part1,*cloud_cad1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  //register_cloud_teaser(*cloud_part1,*cloud_target1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  //register_cloud_teaser_fpfh(*cloud_part1,*cloud_target1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
 
   // now align the CAD part to using the resulting transformation
-  pcl_ros::transformPointCloud(*cloud_cad1,*cloud_cad2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+  pcl_ros::transformPointCloud(*cloud_target1,*cloud_target2,*T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
 
 
@@ -1004,23 +1004,23 @@ int main(int argc, char** argv)
   //print_tf(*T_10);
 
 
-  ros::Publisher pub_lidar = node.advertise<PointCloud> ("/cloud_lidar", 1) ;
+  ros::Publisher pub_source = node.advertise<PointCloud> ("/cloud_source", 1) ;
   ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
   ros::Publisher pub_filtered2 = node.advertise<PointCloud> ("/cloud_filtered2", 1) ;
   ros::Publisher pub_filtered3 = node.advertise<PointCloud> ("/cloud_filtered3", 1) ;
-  ros::Publisher pub_cad1 = node.advertise<PointCloud> ("/cloud_cad1", 1) ;
-  ros::Publisher pub_cad2 = node.advertise<PointCloud> ("/cloud_cad2", 1) ;
-  ros::Publisher pub_cad3 = node.advertise<PointCloud> ("/cloud_cad3", 1) ;
+  ros::Publisher pub_target1 = node.advertise<PointCloud> ("/cloud_target1", 1) ;
+  ros::Publisher pub_target2 = node.advertise<PointCloud> ("/cloud_target2", 1) ;
+  ros::Publisher pub_target3 = node.advertise<PointCloud> ("/cloud_target3", 1) ;
   ros::Publisher pub_part1 = node.advertise<PointCloud> ("/cloud_part1", 1) ;
   ros::Publisher pub_part2 = node.advertise<PointCloud> ("/cloud_part2", 1) ;
 
-  cloud_lidar->header.frame_id = "base_link";
+  cloud_source->header.frame_id = "base_link";
   cloud_filtered->header.frame_id = "base_link";
   cloud_filtered2->header.frame_id = "base_link";
   cloud_filtered3->header.frame_id = "base_link";
-  cloud_cad1->header.frame_id = "base_link";
-  cloud_cad2->header.frame_id = "base_link";
-  cloud_cad3->header.frame_id = "base_link";
+  cloud_target1->header.frame_id = "base_link";
+  cloud_target2->header.frame_id = "base_link";
+  cloud_target3->header.frame_id = "base_link";
   cloud_part1->header.frame_id = "base_link";
   cloud_part2->header.frame_id = "base_link";
 
@@ -1036,13 +1036,13 @@ int main(int argc, char** argv)
       T_01_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_msg);
       T_10_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_msg);
 
-      pub_lidar.publish(cloud_lidar);
+      pub_source.publish(cloud_source);
       pub_filtered.publish(cloud_filtered);
       pub_filtered2.publish(cloud_filtered2);
       pub_filtered3.publish(cloud_filtered3);
-      pub_cad1.publish(cloud_cad1);
-      pub_cad2.publish(cloud_cad2);
-      pub_cad3.publish(cloud_cad3);
+      pub_target1.publish(cloud_target1);
+      pub_target2.publish(cloud_target2);
+      pub_target3.publish(cloud_target3);
       pub_part1.publish(cloud_part1);
       pub_part2.publish(cloud_part2);
 
