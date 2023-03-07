@@ -1,8 +1,8 @@
 ---
 scene_name: "table_8in10in_tee_x0y24"
-lidar_tgt_file: "pcd_images/table_tee/table_8in10in_tee_x0y24.pcd"
+lidar_file: "pcd_images/table_tee/table_8in10in_tee_x0y24.pcd"
 part1_name: "8in10in_tee_01"
-cad_src_file: "pcd_images/table_tee/8in10in_tee_01_blndrB.pcd"
+cad_file: "pcd_images/table_tee/8in10in_tee_01_blndrB.pcd"
 part1_type: "square_tube"
 part2_name: "none"
 part2_type: "none"
