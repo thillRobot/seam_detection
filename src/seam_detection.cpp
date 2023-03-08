@@ -104,7 +104,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
   pcl::copyPointCloud(input,*cloud);
 
   std::cout<<"BEGINNING CLOUD FILTERING" << std::endl;
-  std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the lidar (source) cloud. "<< std::endl;
+  std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
 
   //Apply Bounding Box Filter
 
@@ -124,7 +124,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
   pass.filter (*cloud);
 
   std::cout<<"Bounding Box Filter Limits: [" <<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"]"<< std::endl;
-  std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+  std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
 
   // Apply Voxel Filter 
 
@@ -134,7 +134,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
     vox.setInputCloud (cloud);
     vox.setLeafSize (leaf_size, leaf_size, leaf_size); // use "001f","001f","0001f" or "none" to set voxel leaf size
     vox.filter (*cloud);
-    std::cout<<"After voxel filtering there are "<<cloud->width * cloud->height << " data points in the lidar cloud. "<< std::endl;
+    std::cout<<"After voxel filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
   }else
   {
     std::cout<<"No voxel filtering"<< std::endl;
@@ -144,7 +144,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
 
 }
 
-// This function takes the lidar cloud and separates or segments the cloud into different parts
+// This function takes a point cloud and separates or segments the cloud into different parts
 void segment_cloud(PointCloud &cloud_input, PointCloud &cloud_output1, PointCloud &cloud_output2, PointCloud &cloud_output3,PointCloud &cloud_output4, const std::string& part1_type, double norm_dist_wt, double max_iter, double dist_thrsh, double k_srch, double init_norm[])
 {
 
@@ -966,6 +966,7 @@ int main(int argc, char** argv)
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
   register_cloud_icp(*cloud_source_part1,*cloud_target1, *T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+  //register_cloud_icp(*cloud_target1,*cloud_source_part1, *T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
 
   int N_cor=100;
 
@@ -974,8 +975,10 @@ int main(int argc, char** argv)
   // Perform TEASER++ cloud registration
   double teaser_params[3]={1,2,3}; // temporary place holder 
   //register_cloud_teaser(*cloud_source_part1,*cloud_target1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
-  
+  //register_cloud_teaser(*cloud_target1,*cloud_source_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+
   //register_cloud_teaser_fpfh(*cloud_source_part1,*cloud_target1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  //register_cloud_teaser_fpfh(*cloud_target1,*cloud_source_part1,*T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
 
   // now align the CAD part to using the resulting transformation

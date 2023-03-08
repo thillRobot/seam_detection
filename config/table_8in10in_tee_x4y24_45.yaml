@@ -7,7 +7,9 @@ part1_type: "square_tube"
 part2_name: "none"
 part2_type: "none"
 
-filter_box: [0.0, 0.5, -0.9, -0.4, -0.5, 0.22] # bounding box limits
+filter_box: [0.0, 0.5, -0.9, -0.4, -0.01, 0.22] # bounding box limits
+#filter_box: [-1.0, 1.0, -1.0, 1.0, -1.0, 1.0] # bounding box limits
+
 voxel_leaf_size: 0.005                           # voxel leaf size
 
 ransac_norm_dist_wt: 0.1 # RANSAC Normal Distance Weight
