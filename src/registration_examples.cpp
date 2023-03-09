@@ -371,6 +371,7 @@ void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::Stam
   std::cout << "Estimated translation: " << std::endl;
   std::cout << solution.translation << std::endl;
   std::cout << "Number of correspondences: " << Ns << std::endl;
+  //std::cout << "correspondences:" <<correspondences << std::endl;
   //std::cout << "Number of outliers: " << N_OUTLIERS << std::endl;
   std::cout << "Time taken (s): "
             << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() /
@@ -594,14 +595,14 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<endl<<endl;
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+  //register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
 
   int N_cor=100;
   EigenCor cor_src_pts, cor_tgt_pts;
 
   // Perform TEASER++ cloud registration
   double teaser_params[3]={1,2,3}; // temporary place holder 
-  register_cloud_teaser(*source_cloud,*target_cloud,  *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  //register_cloud_teaser(*source_cloud,*target_cloud,  *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
 
     // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
   //double teaser_params[3]={1,2,3}; // temporary place holder 
@@ -612,7 +613,7 @@ int main(int argc, char** argv)
   //std::cout<<features.size();
 
 
-  // now align the CAD part to using the resulting transformation
+  // now align the source cloud using the resulting transformation
   pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
  
