@@ -68,6 +68,11 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <teaser/registration.h>
 #include <teaser/matcher.h>
 //#include <teaser/point_cloud.h>
+#include <teaser/features.h>
+
+
+
+
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -185,6 +190,8 @@ void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTrans
 void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
+  //teaserpp::teaser_features 
+  
   // get size of inputs clouds
   int Ns = source.size();
   int Nt = target.size();
@@ -315,6 +322,8 @@ void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTr
 void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[], teaser::FPFHEstimation features )
 {
  
+
+
   // get size of inputs clouds
   int Ns = source.size();
   int Nt = target.size();
@@ -342,6 +351,10 @@ void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::Stam
   teaser::Matcher matcher;
   auto correspondences = matcher.calculateCorrespondences(
       src, tgt, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
+
+  auto cloud_features = extract_fpfh(source);
+
+
 
     // Run TEASER++ registration
   // Prepare solver parameters

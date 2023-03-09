@@ -43,6 +43,21 @@ overlap ratio
 Zan agrees with me that the traditional benchmarks only include high overlapping pairs of clouds
 (one or two examples would be nice for the paper)
 
+Predator samples fixed ratio interest points in overlap regions with fully convolutional geometric features
+FCGF - Fully Convolutional Geometric Features
+they use an overlap attention module to predict the overlap regions
+
+FCGF (Fully Convolutional Geometric Features) is a type of 3D geometric feature descriptor used in point cloud processing for tasks such as object detection, classification, and segmentation. FCGF was introduced in a 2019 research paper by authors H. Thomas, C. R. Qi, J. Deschaud, B. Marcotegui, and L. J. Guibas.
+
+FCGF is designed to capture both geometric and contextual information of 3D points, making it effective at recognizing objects and surfaces in point clouds. It is based on a fully convolutional architecture, which means that it is capable of processing point clouds of arbitrary size and shape.
+
+To compute FCGF features, a point cloud is first voxelized into a 3D grid, and a convolutional neural network (CNN) is applied to the voxelized representation. The network consists of several convolutional layers that learn local geometric features, such as point normals and curvatures, and contextual features, such as spatial relationships between neighboring points.
+
+The output of the CNN is a set of per-voxel feature vectors, each of which describes the geometric and contextual properties of the points within that voxel. These feature vectors are then aggregated over the entire point cloud using a global pooling operation, producing a single feature vector that represents the entire point cloud.
+
+FCGF features are designed to be invariant to certain types of transformations, such as translation and rotation, which makes them robust to noise and variability in the input data. This makes them useful for a variety of 3D point cloud processing tasks, such as object recognition and segmentation, where it is important to capture both local and global geometric features. (chatgpt)
+
+
 
 
 
@@ -399,3 +414,12 @@ https://towardsdatascience.com/how-does-sparse-convolution-work-3257a0a8fd1
 - [ ] clean up this notes docs, organize short term goals 
 
 - [ ] work on literature review
+
+- [ ] investigate TEASER features:
+    - look into https://github.com/narutojxl/hdl_global_localization_noted
+    - look into https://github.com/hankyang94/teaser_fpfh_threedmatch_python
+
+    These examples may show how to view the feature set used for correspondences
+ 
+
+

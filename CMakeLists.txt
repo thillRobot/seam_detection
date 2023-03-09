@@ -291,7 +291,7 @@ target_link_libraries(registration_examples
 # Change this line to include your own executable file
 # Link to teaserpp & Eigen3
 # add_executable(teaser_cpp_ply src/teaser_cpp_ply.cc)
-# target_link_libraries(teaser_cpp_ply Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_io)
+# target_link_libraries(teaser_cpp_ply Eigen3::Eigen teaserpp::teaser_registration teaserpp::teaser_io teaserpp::teaser_features)
 
 # Copy the data files to build directory
 # file(COPY ../example_data/
