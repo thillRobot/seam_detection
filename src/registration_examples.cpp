@@ -323,13 +323,11 @@ void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTr
 Eigen::Matrix<double, 3, Eigen::Dynamic> register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, PointCloud &corrs, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[], teaser::FPFHEstimation features )
 {
  
-
-
   // get size of inputs clouds
   int Ns = source.size();
   int Nt = target.size();
-  int P = 50; //number to print
-  int M = -1; //number of matches
+  //int P = 50; //number to print
+  //int M = -1; //number of matches
   std::cout <<"BEGINNING REGISTER_CLOUD_TEASER_FPFH"<< std::endl;
   std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
 
@@ -355,31 +353,24 @@ Eigen::Matrix<double, 3, Eigen::Dynamic> register_cloud_teaser_fpfh(PointCloud &
 
   //cout<<correspondences<<endl;
 
-
-  std::vector<std::pair<int, int>> corrs_indices = matcher.calculateCorrespondences(
-      src, tgt, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
+  //std::vector<std::pair<int, int>> correspondences = matcher.calculateCorrespondences(
+  //src, tgt, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
   
   //std::vector<std::pair<float, float>> corrs_points;
 
-  int Nc=corrs_indices.size();
+  int Nc=correspondences.size();
   Eigen::Matrix<double, 3, Eigen::Dynamic> corrs_points(3, Nc);
 
-  for(int i = 0; i < Nc; i++)
+  for(size_t i = 0; i < Nc; i++)
   {
      //corrs_points[i].first
-    std::cout << target[corrs_indices[i].first].x << "," << target[corrs_indices[i].first].y << "," <<target[corrs_indices[i].first].z<< std::endl;
-    //corrs[i].push_back(target[corrs_indices[i].first].x,target[corrs_indices[i].first].y,target[corrs_indices[i].first].z);
-    corrs_points.col(i) << target[corrs_indices[i].first].x, target[corrs_indices[i].first].y, target[corrs_indices[i].first].z;
+    std::cout << target[correspondences[i].first].x << "," << target[correspondences[i].first].y << "," <<target[correspondences[i].first].z<< std::endl;
+    //corrs[i].push_back(target[correspondences[i].first].x,target[correspondences[i].first].y,target[correspondences[i].first].z);
+
+    corrs_points.col(i) << target[correspondences[i].first].x, target[correspondences[i].first].y, target[correspondences[i].first].z;
   }
-  
-  
-
-
-
-  
+    
   //auto cloud_features = teaser::features::extract_fpfh(source);
-
-
 
     // Run TEASER++ registration
   // Prepare solver parameters
@@ -387,7 +378,7 @@ Eigen::Matrix<double, 3, Eigen::Dynamic> register_cloud_teaser_fpfh(PointCloud &
   params.noise_bound = 0.05;
   params.cbar2 = 1;
   params.estimate_scaling = false;
-  params.rotation_max_iterations = 100;
+  params.rotation_max_iterations = 10000;
   params.rotation_gnc_factor = 1.4;
   params.rotation_estimation_algorithm =
       teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
@@ -408,7 +399,7 @@ Eigen::Matrix<double, 3, Eigen::Dynamic> register_cloud_teaser_fpfh(PointCloud &
   std::cout << std::endl;
   std::cout << "Estimated translation: " << std::endl;
   std::cout << solution.translation << std::endl;
-  std::cout << "Number of correspondences: " << Ns << std::endl;
+  std::cout << "Number of correspondences: " << Nc << std::endl;
   //std::cout << "correspondences:" <<correspondences << std::endl;
   //std::cout << "Number of outliers: " << N_OUTLIERS << std::endl;
   std::cout << "Time taken (s): "
@@ -532,7 +523,7 @@ int main(int argc, char** argv)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   // parameters that contain strings  
-  std::string source_cloud_path, target_cloud_path, source_cloud_file, target_cloud_file;
+  std::string source_cloud_path, target_cloud_path, source_cloud_file, target_cloud_file, registration_algorithm;
 
   node.getParam("source_file", source_cloud_file);
   source_cloud_path=packagepath+'/'+source_cloud_file;
@@ -636,7 +627,7 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<endl<<endl;
 
   // Perform ICP Cloud Registration to find location and orientation of part of interest
-  //register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+  register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
 
   int N_cor=100;
   EigenCor cor_src_pts, cor_tgt_pts;
@@ -652,18 +643,15 @@ int main(int argc, char** argv)
   //std::vector<std::pair<int, int>> corrs;
   Eigen::Matrix<double, 3, Eigen::Dynamic> corrs;
 
-  corrs=register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+  //corrs=register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
 
   //std::cout << corrs_cloud->size() << std::endl;
-  std::cout << corrs.size() << std::endl; 
-
-  
+  //std::cout << corrs.size() << std::endl; 
   //for (const auto& point: *corrs_cloud)
   //  std::cout << "    " << point.x
   //            << " "    << point.y
   //            << " "    << point.z << std::endl;
-  
-  //std::cout<<*source_cloud.point.x<<std::endl;
+    //std::cout<<*source_cloud.point.x<<std::endl;
 
 
   std::cout<<"register_cloud_teaser_fpfh() correspondences"<<std::endl;
@@ -671,9 +659,8 @@ int main(int argc, char** argv)
   //std::cout<<"size: "<<corrs<<std::endl;
 
 
-
   // now align the source cloud using the resulting transformation
-  pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+  pcl_ros::transformPointCloud(*target_cloud, *aligned_cloud, *T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
  
   std::cout<<"===================================================================="<<endl;
@@ -715,46 +702,26 @@ int main(int argc, char** argv)
   marker.pose.orientation.y = 0.0;
   marker.pose.orientation.z = 0.0;
   marker.pose.orientation.w = 1.0;
-  marker.scale.x = 0.01;
-  marker.scale.y = 0.01;
-  marker.scale.z = 0.01;
+  marker.scale.x = 0.002;
+  marker.scale.y = 0.002;
+  marker.scale.z = 0.002;
   marker.color.a = 1.0; // Don't forget to set the alpha!
-  marker.color.r = 0.0;
+  marker.color.r = 1.0;
   marker.color.g = 1.0;
-  marker.color.b = 0.0;
-  //marker_pub.publish( marker );
-
-  marker.id = 1;
-  marker.pose.position.x = corrs(0,0);
-  marker.pose.position.y = corrs(0,1);
-  marker.pose.position.z = corrs(0,2);
+  marker.color.b = 1.0;
   
-  markers.markers.push_back(marker); // add the marker to the marker array  
-
-  marker.id = 2;
-  marker.pose.position.x = corrs(1,0);
-  marker.pose.position.y = corrs(1,1);
-  marker.pose.position.z = corrs(1,2);
-  
-  markers.markers.push_back(marker); // add the marker to the marker array  
-
-  marker.id = 3;
-  marker.pose.position.x = corrs(2,0);
-  marker.pose.position.y = corrs(2,1);
-  marker.pose.position.z = corrs(2,2);
-  
-  markers.markers.push_back(marker); // add the marker to the marker array  
-
   /*
-  for(int i = 0; i < 10; i++)
+  for(size_t i = 0; i < corrs.cols(); i++)
   {  
     marker.id = i;
-    marker.pose.position.x = corrs(i,0);
-    marker.pose.position.y = corrs(i,1);
-    marker.pose.position.z = corrs(i,2);
+    marker.pose.position.x = corrs(0,i);
+    marker.pose.position.y = corrs(1,i);
+    marker.pose.position.z = corrs(2,i);
     //cout << corrs[i].first << ", " << corrs[i].second << endl;
+    //std::cout<<"i"<<std::endl;
     markers.markers.push_back(marker); // add the marker to the marker array   
-  }*/
+  }
+  */
   
   /*
   int i=0;
@@ -772,9 +739,6 @@ int main(int argc, char** argv)
   }
   */
 
-  
-
-
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    REGISTRATION_EXAMPLES Complete                  "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
@@ -782,7 +746,6 @@ int main(int argc, char** argv)
   //publish forever
   while(ros::ok())
   {
-
       // this is the new 'TF2' way of broadcasting tfs
       T_01_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_msg);
       T_10_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_msg);
