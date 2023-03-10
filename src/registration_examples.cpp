@@ -48,6 +48,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/PointStamped.h>
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Twist.h>
 
@@ -68,7 +69,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <teaser/registration.h>
 #include <teaser/matcher.h>
 //#include <teaser/point_cloud.h>
-#include <teaser/features.h>
+//#include <teaser/features.h>
 
 
 
@@ -319,7 +320,7 @@ void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTr
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[], teaser::FPFHEstimation features )
+Eigen::Matrix<double, 3, Eigen::Dynamic> register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, PointCloud &corrs, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[], teaser::FPFHEstimation features )
 {
  
 
@@ -352,7 +353,31 @@ void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::Stam
   auto correspondences = matcher.calculateCorrespondences(
       src, tgt, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
 
-  auto cloud_features = extract_fpfh(source);
+  //cout<<correspondences<<endl;
+
+
+  std::vector<std::pair<int, int>> corrs_indices = matcher.calculateCorrespondences(
+      src, tgt, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
+  
+  //std::vector<std::pair<float, float>> corrs_points;
+
+  int Nc=corrs_indices.size();
+  Eigen::Matrix<double, 3, Eigen::Dynamic> corrs_points(3, Nc);
+
+  for(int i = 0; i < Nc; i++)
+  {
+     //corrs_points[i].first
+    std::cout << target[corrs_indices[i].first].x << "," << target[corrs_indices[i].first].y << "," <<target[corrs_indices[i].first].z<< std::endl;
+    //corrs[i].push_back(target[corrs_indices[i].first].x,target[corrs_indices[i].first].y,target[corrs_indices[i].first].z);
+    corrs_points.col(i) << target[corrs_indices[i].first].x, target[corrs_indices[i].first].y, target[corrs_indices[i].first].z;
+  }
+  
+  
+
+
+
+  
+  //auto cloud_features = teaser::features::extract_fpfh(source);
 
 
 
@@ -445,6 +470,8 @@ void register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, tf::Stam
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
   std::cout << "REGISTER_CLOUD_TEASER_FPFH Complete" << std::endl;
+
+  return corrs_points;
 
 }
 
@@ -568,7 +595,8 @@ int main(int argc, char** argv)
 
   // instantiate cloud objects
   PointCloud::Ptr source_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
-  PointCloud::Ptr target_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud  
+  PointCloud::Ptr target_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud
+  PointCloud::Ptr corrs_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // correspondence cloud   
   PointCloud::Ptr aligned_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
 
   // load the cloud data from PCD files , files generated with src/cad_cloud.cpp
@@ -577,7 +605,7 @@ int main(int argc, char** argv)
     std::cout<<"Couldn't read image file:"<<source_cloud_path;
     return (-1);
   }else{
-    std::cout << "Loaded "<<target_cloud->size()<< " data points from "<< target_cloud_file <<std::endl;
+    std::cout << "Loaded "<<source_cloud->size()<< " data points from "<< source_cloud_file <<std::endl;
   }
   // load the cloud from CAD file
   if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_cloud_path, *target_cloud) == -1)
@@ -585,7 +613,7 @@ int main(int argc, char** argv)
     std::cout<<"Couldn't read image file:"<<target_cloud_path;
     return (-1);
   }else{
-    std::cout << "Loaded "<<source_cloud->size()<< " data points from "<< source_cloud_file <<std::endl;
+    std::cout << "Loaded "<<target_cloud->size()<< " data points from "<< target_cloud_file <<std::endl;
   }
 
   // for now each tf has three objects associated with it
@@ -619,11 +647,29 @@ int main(int argc, char** argv)
 
     // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
   //double teaser_params[3]={1,2,3}; // temporary place holder 
-  teaser::FPFHEstimation features;     
-  register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+  teaser::FPFHEstimation features;   
 
-  std::cout<<"FPFH Features:";
-  //std::cout<<features.size();
+  //std::vector<std::pair<int, int>> corrs;
+  Eigen::Matrix<double, 3, Eigen::Dynamic> corrs;
+
+  corrs=register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+
+  //std::cout << corrs_cloud->size() << std::endl;
+  std::cout << corrs.size() << std::endl; 
+
+  
+  //for (const auto& point: *corrs_cloud)
+  //  std::cout << "    " << point.x
+  //            << " "    << point.y
+  //            << " "    << point.z << std::endl;
+  
+  //std::cout<<*source_cloud.point.x<<std::endl;
+
+
+  std::cout<<"register_cloud_teaser_fpfh() correspondences"<<std::endl;
+  std::cout<<"size: "<<corrs.size()<<std::endl;
+  //std::cout<<"size: "<<corrs<<std::endl;
+
 
 
   // now align the source cloud using the resulting transformation
@@ -631,7 +677,7 @@ int main(int argc, char** argv)
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
  
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    Analzing Results                                "<<endl;
+  std::cout<<"                    Analyzing Results                                "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   analyze_results(*T_10, expected_results);
@@ -652,9 +698,85 @@ int main(int argc, char** argv)
   source_cloud->header.frame_id = "base_link";
   target_cloud->header.frame_id = "base_link";
   aligned_cloud->header.frame_id = "base_link";
+  
+  //ros::Publisher marker_pub = node.advertise<visualization_msgs::Marker>( "corrs_marker", 0 );
+  
+  ros::Publisher corrs_pub = node.advertise<visualization_msgs::MarkerArray>( "corrs_markers", 0 );
+  visualization_msgs::MarkerArray markers;
+
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = "base_link";
+  marker.header.stamp = ros::Time();
+  //marker.ns = "my_namespace";
+  
+  marker.type = visualization_msgs::Marker::SPHERE;
+  marker.action = visualization_msgs::Marker::ADD;
+  marker.pose.orientation.x = 0.0;
+  marker.pose.orientation.y = 0.0;
+  marker.pose.orientation.z = 0.0;
+  marker.pose.orientation.w = 1.0;
+  marker.scale.x = 0.01;
+  marker.scale.y = 0.01;
+  marker.scale.z = 0.01;
+  marker.color.a = 1.0; // Don't forget to set the alpha!
+  marker.color.r = 0.0;
+  marker.color.g = 1.0;
+  marker.color.b = 0.0;
+  //marker_pub.publish( marker );
+
+  marker.id = 1;
+  marker.pose.position.x = corrs(0,0);
+  marker.pose.position.y = corrs(0,1);
+  marker.pose.position.z = corrs(0,2);
+  
+  markers.markers.push_back(marker); // add the marker to the marker array  
+
+  marker.id = 2;
+  marker.pose.position.x = corrs(1,0);
+  marker.pose.position.y = corrs(1,1);
+  marker.pose.position.z = corrs(1,2);
+  
+  markers.markers.push_back(marker); // add the marker to the marker array  
+
+  marker.id = 3;
+  marker.pose.position.x = corrs(2,0);
+  marker.pose.position.y = corrs(2,1);
+  marker.pose.position.z = corrs(2,2);
+  
+  markers.markers.push_back(marker); // add the marker to the marker array  
+
+  /*
+  for(int i = 0; i < 10; i++)
+  {  
+    marker.id = i;
+    marker.pose.position.x = corrs(i,0);
+    marker.pose.position.y = corrs(i,1);
+    marker.pose.position.z = corrs(i,2);
+    //cout << corrs[i].first << ", " << corrs[i].second << endl;
+    markers.markers.push_back(marker); // add the marker to the marker array   
+  }*/
+  
+  /*
+  int i=0;
+  for (const auto& point: *source_cloud){
+    //std::cout << "    " << point.x
+    //        << " "    << point.y
+    //        << " "    << point.z << std::endl;
+    marker.id = i;
+    marker.pose.position.x = point.x;
+    marker.pose.position.y = point.y;
+    marker.pose.position.z = point.z;
+    //cout << corrs[i].first << ", " << corrs[i].second << endl;
+    markers.markers.push_back(marker); // add the marker to the marker array     
+    i++;
+  }
+  */
+
+  
+
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    REGISTRATION_EXAMPLES Complete                         "<<endl;
+  std::cout<<"                    REGISTRATION_EXAMPLES Complete                  "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   //publish forever
@@ -668,6 +790,7 @@ int main(int argc, char** argv)
       source_pub.publish(source_cloud);
       target_pub.publish(target_cloud);
       aligned_pub.publish(aligned_cloud);
+      corrs_pub.publish( markers );
 
       ros::spinOnce();
       loop_rate.sleep();

@@ -26,7 +26,12 @@ find_package(Eigen3 REQUIRED)
 
 find_package(teaserpp REQUIRED)
 find_package(Boost 1.58 REQUIRED)
+
 find_package(PCL 1.10 REQUIRED) # COMPONENTS common features kdtree)
+
+#find_package(PCL 1.9 REQUIRED COMPONENTS common features kdtree)
+
+
 
 
 ## System dependencies are found with CMake's conventions
