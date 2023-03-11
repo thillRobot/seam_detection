@@ -1,8 +1,8 @@
 services:
   seam-detection:
     build: .
-    command: roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x4y24_45"
-
+    command: roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x4y24_45B"
+    #command: roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_02_dx100_rz30_blndr"
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -13,6 +13,7 @@ services:
   registration-examples: 
     build: .
     command: roslaunch seam_detection registration_examples.launch scene:="table_8in10in_tee_x4y24_45_part1"
+    #command: roslaunch seam_detection registration_examples.launch scene:="rect_block_02_blndr"
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -32,22 +33,22 @@ services:
       - ~/.Xauthority:/root/.Xauthority
       - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
 
-  bash: 
-    build: .
-    command: /bin/bash
-    environment:
-      DISPLAY: $DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ~/.Xauthority:/root/.Xauthority
-      - $SD_PATH:/home/seamdetection_ws/src/seam_detection  
+  #bash: 
+  #  build: .
+  #  command: /bin/bash
+  #  environment:
+  #    DISPLAY: $DISPLAY
+  #  volumes:
+  #    - /tmp/.X11-unix:/tmp/.X11-unix
+  #    - ~/.Xauthority:/root/.Xauthority
+  #    - $SD_PATH:/home/seamdetection_ws/src/seam_detection  
 
-  python-example: 
-    build: .
-    command: python3 example.py
-    environment:
-      DISPLAY: $DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ~/.Xauthority:/root/.Xauthority
-      - $SD_PATH:/home/seamdetection_ws/src/seam_detection      
+  #python-example: 
+  #  build: .
+  #  command: python3 example.py
+  #  environment:
+  #    DISPLAY: $DISPLAY
+  #  volumes:
+  #    - /tmp/.X11-unix:/tmp/.X11-unix
+  #    - ~/.Xauthority:/root/.Xauthority
+  #    - $SD_PATH:/home/seamdetection_ws/src/seam_detection      

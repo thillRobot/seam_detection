@@ -320,7 +320,7 @@ void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTr
 
 
 // This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
-Eigen::Matrix<double, 3, Eigen::Dynamic> register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, PointCloud &corrs, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[], teaser::FPFHEstimation features )
+Eigen::Matrix<double, 6, Eigen::Dynamic> register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, PointCloud &corrs,  tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[], teaser::FPFHEstimation features )
 {
  
   // get size of inputs clouds
@@ -356,18 +356,21 @@ Eigen::Matrix<double, 3, Eigen::Dynamic> register_cloud_teaser_fpfh(PointCloud &
   //std::vector<std::pair<int, int>> correspondences = matcher.calculateCorrespondences(
   //src, tgt, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
   
-  //std::vector<std::pair<float, float>> corrs_points;
+  //std::vector<std::pair<float, float>> corrs_points_pairs;
 
   int Nc=correspondences.size();
-  Eigen::Matrix<double, 3, Eigen::Dynamic> corrs_points(3, Nc);
+  Eigen::Matrix<double, 6, Eigen::Dynamic> corrs_points(6, Nc);
+  //Eigen::Matrix<double, 3, Eigen::Dynamic> source_corrs_points(3, Nc);
 
   for(size_t i = 0; i < Nc; i++)
   {
-     //corrs_points[i].first
-    std::cout << target[correspondences[i].first].x << "," << target[correspondences[i].first].y << "," <<target[correspondences[i].first].z<< std::endl;
+    //corrs_points[i].first
+    //std::cout << target[correspondences[i].first].x << "," << target[correspondences[i].first].y << "," <<target[correspondences[i].first].z<< std::endl;
     //corrs[i].push_back(target[correspondences[i].first].x,target[correspondences[i].first].y,target[correspondences[i].first].z);
 
-    corrs_points.col(i) << target[correspondences[i].first].x, target[correspondences[i].first].y, target[correspondences[i].first].z;
+    corrs_points.col(i) << source[correspondences[i].first].x, source[correspondences[i].first].y, source[correspondences[i].first].z,
+                           target[correspondences[i].first].x, target[correspondences[i].first].y, target[correspondences[i].first].z;
+
   }
     
   //auto cloud_features = teaser::features::extract_fpfh(source);
@@ -641,7 +644,7 @@ int main(int argc, char** argv)
   teaser::FPFHEstimation features;   
 
   //std::vector<std::pair<int, int>> corrs;
-  Eigen::Matrix<double, 3, Eigen::Dynamic> corrs;
+  Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
 
   //corrs=register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
 
@@ -660,7 +663,7 @@ int main(int argc, char** argv)
 
 
   // now align the source cloud using the resulting transformation
-  pcl_ros::transformPointCloud(*target_cloud, *aligned_cloud, *T_01); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+  pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
  
   std::cout<<"===================================================================="<<endl;
@@ -688,40 +691,63 @@ int main(int argc, char** argv)
   
   //ros::Publisher marker_pub = node.advertise<visualization_msgs::Marker>( "corrs_marker", 0 );
   
-  ros::Publisher corrs_pub = node.advertise<visualization_msgs::MarkerArray>( "corrs_markers", 0 );
-  visualization_msgs::MarkerArray markers;
+  ros::Publisher source_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "source_markers", 0 );
+  visualization_msgs::MarkerArray source_markers;
 
-  visualization_msgs::Marker marker;
-  marker.header.frame_id = "base_link";
-  marker.header.stamp = ros::Time();
+  ros::Publisher target_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "target_markers", 0 );
+  visualization_msgs::MarkerArray target_markers;
+
+  visualization_msgs::Marker source_marker, target_marker;
+  source_marker.header.frame_id = "base_link";
+  source_marker.header.stamp = ros::Time();
   //marker.ns = "my_namespace";
+  source_marker.type = visualization_msgs::Marker::SPHERE;
+  source_marker.action = visualization_msgs::Marker::ADD;
+  source_marker.pose.orientation.x = 0.0;
+  source_marker.pose.orientation.y = 0.0;
+  source_marker.pose.orientation.z = 0.0;
+  source_marker.pose.orientation.w = 1.0;
+  source_marker.scale.x = 0.005;
+  source_marker.scale.y = 0.005;
+  source_marker.scale.z = 0.005;
+  source_marker.color.a = 1.0; // Don't forget to set the alpha!
+  source_marker.color.r = 255.0/255.0;
+  source_marker.color.g = 255.0/255.0;
+  source_marker.color.b = 255.0/255.0;
   
-  marker.type = visualization_msgs::Marker::SPHERE;
-  marker.action = visualization_msgs::Marker::ADD;
-  marker.pose.orientation.x = 0.0;
-  marker.pose.orientation.y = 0.0;
-  marker.pose.orientation.z = 0.0;
-  marker.pose.orientation.w = 1.0;
-  marker.scale.x = 0.002;
-  marker.scale.y = 0.002;
-  marker.scale.z = 0.002;
-  marker.color.a = 1.0; // Don't forget to set the alpha!
-  marker.color.r = 1.0;
-  marker.color.g = 1.0;
-  marker.color.b = 1.0;
+  target_marker.header.frame_id = "base_link";
+  target_marker.header.stamp = ros::Time();
+  target_marker.type = visualization_msgs::Marker::SPHERE;
+  target_marker.action = visualization_msgs::Marker::ADD;
+  target_marker.pose.orientation.x = 0.0;
+  target_marker.pose.orientation.y = 0.0;
+  target_marker.pose.orientation.z = 0.0;
+  target_marker.pose.orientation.w = 1.0;
+  target_marker.scale.x = 0.005;
+  target_marker.scale.y = 0.005;
+  target_marker.scale.z = 0.005;
+  target_marker.color.a = 1.0; // Don't forget to set the alpha!
+  target_marker.color.r = 255.0/255.0;
+  target_marker.color.g = 16.0/255.0;
+  target_marker.color.b = 240.0/255.0;
   
-  /*
   for(size_t i = 0; i < corrs.cols(); i++)
   {  
-    marker.id = i;
-    marker.pose.position.x = corrs(0,i);
-    marker.pose.position.y = corrs(1,i);
-    marker.pose.position.z = corrs(2,i);
+    source_marker.id = i;
+    source_marker.pose.position.x = corrs(0,i);
+    source_marker.pose.position.y = corrs(1,i);
+    source_marker.pose.position.z = corrs(2,i);
+
+    target_marker.id = i;
+    target_marker.pose.position.x = corrs(3,i);
+    target_marker.pose.position.y = corrs(4,i);
+    target_marker.pose.position.z = corrs(5,i);
     //cout << corrs[i].first << ", " << corrs[i].second << endl;
     //std::cout<<"i"<<std::endl;
-    markers.markers.push_back(marker); // add the marker to the marker array   
+    source_markers.markers.push_back(source_marker); // add the marker to the marker array
+    target_markers.markers.push_back(target_marker); // add the marker to the marker array   
   }
-  */
+  
   
   /*
   int i=0;
@@ -753,7 +779,8 @@ int main(int argc, char** argv)
       source_pub.publish(source_cloud);
       target_pub.publish(target_cloud);
       aligned_pub.publish(aligned_cloud);
-      corrs_pub.publish( markers );
+      source_markers_pub.publish( source_markers );
+      target_markers_pub.publish( target_markers );
 
       ros::spinOnce();
       loop_rate.sleep();
@@ -761,8 +788,3 @@ int main(int argc, char** argv)
 
   return 0;
 }
-
-
-
-
-
