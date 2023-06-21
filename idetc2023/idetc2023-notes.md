@@ -2,8 +2,21 @@
 
 ## concepts and brainstorming
 
-point cloud registration 
+Our goal is to develop a generalized procedure for workpiece localization using point clouds. My preferred topic for IDETC2023 is an improved process that is generalized to a broader class of part geometeries. In general, the localization process is achievable with ICP if the input clouds are overlapping. This is shown in lots of papers and our 2022 paper.
 
+However, the results degrade significantly with the loss of the overlap between clouds. This is consistent with many papers and our results. Would it be valuable to perform a study that shows this? I assume it has already been done, and we have limited space in conf. paper. so maybe not... On the other hand it would be relatively easy to perform the study.
+
+One approach to increase overlap is to pre condition the input clouds with filters and/or a rule based (engineered) segmentation. This is shown in [Hill, Canfield 2022] using RANSAC segmentation. The process was proven feasible, but the pre-conditioning process is not generalized for alternate part geometeries, and the developement of the segmentation rules must be completed be hand.
+
+A layer that we have been ignoring is feature detection prior to registration, but this is commonly used as opposed to processing the entire clouds directly. This should reduce computational load and improve registration results because the data input to the registration algorithm should be more meaningful. This has been tested with TEASER FPFH (Fast Point Feature Histograms) 
+
+Also, we could focus on the application discussed in the previous paper. There are several areas with room for improvement there. Completing the path planning procedure and showing the results in 3D with the input clouds may be compelling. It greatly improves the application value, but does not add considerable theory that was not discussed in 2022 paper. More thorough error analysis of the results should be present in the application section.
+
+stand up old paper, compare results with new methods, remember there is a page limit !
+
+
+
+point cloud registration - this is what we need to do 
 
 image registration - seam detection 
 
@@ -103,6 +116,10 @@ Machine learning inference is the process of running data points into a machine 
 
 Machine learning (ML) inference is the process of running live data points into a machine learning algorithm (or “ML model”) to calculate an output such as a single numerical score. This process is also referred to as “operationalizing an ML model” or “putting an ML model into production.” When an ML model is running in production, it is often then described as artificial intelligence (AI) since it is performing functions similar to human thinking and analysis. Machine learning inference basically entails deploying a software application into a production environment, as the ML model is typically just software code that implements a mathematical algorithm. That algorithm makes calculations based on the characteristics of the data, known as “features” in the ML vernacular. - https://hazelcast.com/glossary/machine-learning-inference/
 
+
+
+
+Idea from Lex - Is the model scalable?
 
 
 
