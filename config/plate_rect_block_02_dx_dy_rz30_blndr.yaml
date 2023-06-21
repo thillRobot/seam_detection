@@ -1,8 +1,8 @@
 ---
-scene_name: "plate_rect_block_c0"
-source_file: "pcd_images/plate_rect_block/plate_rect_block_c0.pcd"
+scene_name: "plate_rect_block_02_blndr"
+source_file: "pcd_images/plate_rect_block/plate_rect_block_02_dx_dy_rz30_blndr.pcd"
 part1_name: "rect_block_02"
-target_file: "pcd_images/plate_rect_block/rect_block_02.pcd"
+target_file: "pcd_images/plate_rect_block/rect_block_02_blndr.pcd"
 part1_type: "square_tube"
 part2_name: "plate_02"
 part2_type: "plate with notch"

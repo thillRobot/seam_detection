@@ -53,7 +53,7 @@ CATKIN_IGNORE
 *.xz
 *.gz
 *.blend*
-*_blndr.*
+#*_blndr.*
 *.zip
 
 *.mp4

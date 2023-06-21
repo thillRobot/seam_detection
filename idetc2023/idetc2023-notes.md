@@ -2,7 +2,11 @@
 
 ## concepts and brainstorming
 
+
 Our goal is to develop a generalized procedure for workpiece localization using point clouds. My preferred topic for IDETC2023 is an improved process that is generalized to a broader class of part geometeries. In general, the localization process is achievable with ICP if the input clouds are overlapping. This is shown in lots of papers and our 2022 paper.
+
+point cloud registration / 3D image registration 
+
 
 However, the results degrade significantly with the loss of the overlap between clouds. This is consistent with many papers and our results. Would it be valuable to perform a study that shows this? I assume it has already been done, and we have limited space in conf. paper. so maybe not... On the other hand it would be relatively easy to perform the study.
 
@@ -18,19 +22,61 @@ stand up old paper, compare results with new methods, remember there is a page l
 
 point cloud registration - this is what we need to do 
 
-image registration - seam detection 
+three main steps (as decsribed by Zan Zodjcic)
 
+first interest points are decribed by sampling the local neighborhoods with high dimensional feature descriptors
+
+next feature descriptors are matched to determine correspondance
+
+finally registration is performed through robust minimization of the distance between corresponding points
+
+
+
+registration recall
+
+In the context of image registration, registration recall is a performance metric used to evaluate the accuracy of an image registration algorithm. Image registration is the process of aligning two or more images of the same scene, taken from different viewpoints or at different times, to a common coordinate system.
+
+Registration recall measures the percentage of the reference image (or target image) that is correctly captured by the registered image (or source image) after registration. It is calculated by dividing the number of correctly registered pixels in the registered image by the total number of pixels in the reference image.
+
+In other words, registration recall indicates how much of the reference image is correctly registered by the image registration algorithm. A high registration recall indicates a more accurate registration, while a low registration recall indicates a less accurate registration.
+
+Registration recall is often used in conjunction with other performance metrics, such as registration precision, which measures the alignment error between the registered and reference images. Together, these metrics provide a comprehensive evaluation of the accuracy of an image registration algorithm. (chatgpt- this seems a bit forced, I had to provide the context)
+
+
+weld seam detection 
 
 robot arms and cobots
 
-
 workspace sensing and workpeice detection
-
 
 optimization based algorithms
 
+neural network approaches
 
 overlapping point clouds
+
+overlap ratio 
+
+Zan agrees with me that the traditional benchmarks only include high overlapping pairs of clouds
+(one or two examples would be nice for the paper)
+
+Predator samples fixed ratio interest points in overlap regions with fully convolutional geometric features
+FCGF - Fully Convolutional Geometric Features
+they use an overlap attention module to predict the overlap regions
+
+FCGF (Fully Convolutional Geometric Features) is a type of 3D geometric feature descriptor used in point cloud processing for tasks such as object detection, classification, and segmentation. FCGF was introduced in a 2019 research paper by authors H. Thomas, C. R. Qi, J. Deschaud, B. Marcotegui, and L. J. Guibas.
+
+FCGF is designed to capture both geometric and contextual information of 3D points, making it effective at recognizing objects and surfaces in point clouds. It is based on a fully convolutional architecture, which means that it is capable of processing point clouds of arbitrary size and shape.
+
+To compute FCGF features, a point cloud is first voxelized into a 3D grid, and a convolutional neural network (CNN) is applied to the voxelized representation. The network consists of several convolutional layers that learn local geometric features, such as point normals and curvatures, and contextual features, such as spatial relationships between neighboring points.
+
+The output of the CNN is a set of per-voxel feature vectors, each of which describes the geometric and contextual properties of the points within that voxel. These feature vectors are then aggregated over the entire point cloud using a global pooling operation, producing a single feature vector that represents the entire point cloud.
+
+FCGF features are designed to be invariant to certain types of transformations, such as translation and rotation, which makes them robust to noise and variability in the input data. This makes them useful for a variety of 3D point cloud processing tasks, such as object recognition and segmentation, where it is important to capture both local and global geometric features. (chatgpt)
+
+
+
+
 
 correspondances-based vs correspondances-free registration
 
@@ -51,7 +97,6 @@ The exact definition of "state of the art" can vary depending on the specific co
 
 Overall, the goal of state of the art efficiency is to find the best way of solving a problem using the current state of the art technologies and techniques. This may involve using advanced algorithms, specialized hardware, or other tools and technologies in order to achieve the best possible performance.
 
-
 point cloud benchmark data sets
 
 certifiable algorithm
@@ -61,7 +106,6 @@ generative learning algorithm
 	A generative learning algorithm is a type of machine learning algorithm that is trained to generate new data that is similar to the data it was trained on. These algorithms are typically used for tasks such as image generation, where the goal is to produce new, realistic-looking images based on a set of training examples. Generative learning algorithms typically use unsupervised learning techniques, which means that they learn to generate new data based on the patterns and structures they discover in the training data, without the need for explicit labels or targets. Some examples of generative learning algorithms include generative adversarial networks (GANs), variational autoencoders (VAEs), and autoregressive models such as the PixelRNN. (chatGPT, OpenAI)
 
 Machine Learning Concepts
-
 
 convolution integral 
 
@@ -82,17 +126,38 @@ In a CNN, on the other hand, the neurons in each layer are only connected to a s
 Another key feature of CNNs is the use of pooling layers, which downsample the input data and reduce its dimensionality. This makes the network more efficient and allows it to learn more abstract features of the input data.
 Overall, CNNs are a powerful tool for image and video recognition, and they have been used to achieve state-of-the-art performance on many tasks. They are widely used in a variety of applications, including object detection, facial recognition, and medical image analysis. (chatGPT)
 
+
+Fully Convolutional Neural Network
+A Fully Convolutional Neural Network (FCN) is a type of neural network architecture that is designed to process and classify images by using only convolutional layers. In contrast to traditional convolutional neural networks (CNNs), which use a combination of convolutional layers and fully connected layers, FCNs use only convolutional layers.
+The architecture of an FCN typically consists of an encoder network followed by a decoder network. The encoder network is a series of convolutional layers that downsample the input image by successively reducing its spatial resolution and increasing its number of channels. This process is typically performed using pooling layers or strided convolutions.
+The decoder network is a series of convolutional layers that upsample the feature maps produced by the encoder network to produce a segmentation map. This is typically done using transposed convolutional layers, which increase the spatial resolution of the feature maps while reducing their number of channels.
+FCNs are particularly well-suited for image segmentation tasks, where the goal is to classify each pixel in an image into one of several classes. By using only convolutional layers, FCNs can process images of arbitrary size and produce segmentation maps that are the same size as the input image. This makes them a popular choice for tasks such as object detection, semantic segmentation, and image restoration. (chatGPT)
+
+In a neural network, a fully connected layer and a convolutional layer are two different types of layers that serve different purposes.
+
+A fully connected layer, also known as a dense layer, is a type of layer in which each neuron is connected to every neuron in the previous layer. This means that each neuron in a fully connected layer receives input from every neuron in the previous layer, and it produces an output that is connected to every neuron in the next layer. Fully connected layers are typically used in the final layers of a neural network to perform classification or regression tasks, where the input data has already been processed and reduced in dimensionality.
+
+In contrast, a convolutional layer is a type of layer that performs convolution operations on the input data. In a convolutional layer, a set of filters is applied to the input data, producing a set of feature maps. Each filter is a small matrix of weights that is slid over the input data, producing a dot product at each location, which is then aggregated to produce a single output value. Convolutional layers are typically used to extract spatial features from the input data, and they are commonly used in tasks such as image classification, object detection, and segmentation.
+
+The main difference between a fully connected layer and a convolutional layer is in the way they process data. Fully connected layers treat each input feature independently, whereas convolutional layers exploit the spatial relationships between neighboring features. This makes convolutional layers particularly effective at capturing spatial patterns in data, such as the edges and textures in an image. In addition, convolutional layers typically have far fewer parameters than fully connected layers, which makes them more computationally efficient and less prone to overfitting. (chatGPT)
+
 We need to use a convolution kernals to process a point cloud with the NN
 
 Convolutions kernels
 
+In a convolutional neural network (CNN), a convolution kernel, also known as a filter or a weight matrix, is a small matrix of numbers that is used to perform a convolution operation on the input data. The convolution kernel is the key component of a convolutional layer in a CNN, and it is responsible for learning and extracting the features from the input data.
+
+A convolution kernel is typically a square matrix of odd dimensions, such as 3x3, 5x5, or 7x7. During the convolution operation, the kernel is slid over the input data, performing a dot product at each location. The resulting output value is placed into the corresponding position of the output feature map. The values of the convolution kernel are learned during the training process of the CNN, through a process called backpropagation, in which the network adjusts the kernel values to minimize the loss function.
+
+The choice of the size and number of convolution kernels is an important factor in the design of a CNN. A larger kernel size can capture more complex patterns in the input data, but it also requires more computation and can lead to overfitting. A smaller kernel size can capture simpler patterns, but it is faster and less prone to overfitting. The number of convolution kernels used in a layer determines the number of features that are extracted from the input data. Typically, the number of kernels increases as the spatial resolution of the feature maps decreases, resulting in a network that learns increasingly abstract features.
+
+Convolution kernels have become a fundamental building block of modern computer vision systems, and they are used in a wide range of applications, such as image classification, object detection, and segmentation. (chatgpt)
+
 Most point-based convolution networks borrow the common encoder/decoder idea (or encoder only). An encoder operates on a dense point cloud, which is iteratively decimated after each layer or group of layers as we go deeper. The points themselves support feature vectors, and going from one layer to the next usually entails two steps:
-
-    downsampling the point cloud;
+downsampling the point cloud;
     for each point in the downsampled point cloud, computing a feature vector based on the features of its neighbours in the previous point cloud.
-
 In short, the deeper in the network, the fewer the points — but the richer their associated features.
-
+(chatgpt)
 
 Sparse Convolution
 
@@ -100,12 +165,13 @@ The convolution problem is similar to what is used in 2D image processing, but t
 https://towardsdatascience.com/how-does-sparse-convolution-work-3257a0a8fd1
 
 
-
 Idea - Use CNNs to replace segmentation in workpiece localization !?!?
  		
-Sematantic Segmentationm - determine what is in a image and where in the image it is located, label each pixel into a corresponding class
+Sematantic Segmentation - determine what is in a image and where in the image it is located, label each pixel into a corresponding class
 this is typically a dense prediction
 
+
+Quantization - restrict the number of possible values of (a quantity) or states of (a system) so that certain variables can assume only certain discrete magnitudes - oxford languages
 
 Inference -  a conclusion reached on the basis of evidence and reasoning
 
@@ -118,9 +184,7 @@ Machine learning (ML) inference is the process of running live data points into 
 
 
 
-
 Idea from Lex - Is the model scalable?
-
 
 
 
@@ -163,6 +227,36 @@ Idea from Lex - Is the model scalable?
 	- this looks promising
 
 
+- Minkowski Engine - Sparse Convolutional Networks for 3D data - examples and python library for networks
+
+## Standard Datasets
+
+for 2D images
+
+- MNIST - handwritten letters
+
+- FashionMNIST - picture of fashion and clothing items, 10 classes
+
+- VGG-Nets - 1000 class of general and specific items 
+
+for 3D images
+
+- Princeton ModelNet
+  - ModelNet40 standard 3D images for generalized image recognition and other tasks
+  - ModelNet10 subset of 40 with labeled orientation for registration hopefully - !!! This seems promising.
+
+- 3DMatch used by overlap predator
+- KITTI used by overlap predator
+
+
+
+
+
+
+Herrman Minkowski - generalized rotations
+
+
+
 
 ### lists of algoritms 
 
@@ -184,7 +278,7 @@ https://paperswithcode.com/sota/point-cloud-registration-on-3dmatch-benchmark
 - ROS pointcloud_registration - https://github.com/carlosmccosta/pointcloud_registration
 
 
-## Docker Images
+## Docker base images
 
 Ubuntu 
 
@@ -290,9 +384,20 @@ Arxiv, Computer Science, Computer Vision and Pattern Recognition, 2018
 
 - [x] test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
 
+  - [ ] further investigate FPFH, visualize features?   https://github.com/chrischoy/FCGF
+
+
 - [ ] test Python examples from TEASER:
 
-- [ ] read publication - PREDATOR: Registration of 3D Point Clouds with Low Overlap, https://arxiv.org/pdf/2011.13005.pdf
+- [ ] test 3DSmoothNet for preparing point cloud data
+
+  - [ ] setup environment and install ... based on ubuntu16... lets look elsewhere....
+
+- [ ] test Minkowski Engine - this seems like a good re-starting point, and it appears to be current
+  - [x] use dockerfile available in reposistory, example version check worked fine -> 0.5.4 
+  - [ ] test install in thillrobot/machine_learning/(pytorch)
+
+
 
 - [x] test Predator example codeL: https://github.com/prs-eth/OverlapPredator
   - see forked code at github.com/thillrobot/OverlapPredator
@@ -324,3 +429,18 @@ https://towardsdatascience.com/how-does-sparse-convolution-work-3257a0a8fd1
  - [ ] auto differentiation
  - [ ] optimization loop
  - [ ] save, load and use model
+
+- [ ] create a 'test' dataset from seam_detection idetc 2022 lidar images for NN algorithm XYZ
+
+- [ ] clean up this notes docs, organize short term goals 
+
+- [ ] work on literature review
+
+- [ ] investigate TEASER features:
+    - look into https://github.com/narutojxl/hdl_global_localization_noted
+    - look into https://github.com/hankyang94/teaser_fpfh_threedmatch_python
+
+    These examples may show how to view the feature set used for correspondences
+ 
+
+

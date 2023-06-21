@@ -14,7 +14,11 @@ RUN apt install -y python3-catkin-tools
 RUN apt update && \
 DEBIAN_FRONTEND=noninteractive apt install -y ros-noetic-pcl-ros ros-noetic-laser-geometry ros-noetic-pcl-conversions
 
-RUN apt install -y ros-noetic-tf2-geometry-msgs ros-noetic-rviz
+RUN apt update && apt install -y ros-noetic-tf2-geometry-msgs ros-noetic-rviz python3-pip
+
+RUN pip install --upgrade pip
+RUN pip install --upgrade numpy scipy
+#RUN pip install open3d
 
 ENV SD_WS=/home/seamdetection_ws
 RUN mkdir -p $SD_WS/src 
