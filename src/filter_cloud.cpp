@@ -73,7 +73,7 @@ typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 // this function applies a bounding box and a voxel filter to the input cloud
-void filter_cloud(PointCloud &input, PointCloud &output, double box[], double leaf_size)
+void filter_cloud(PointCloud &input, PointCloud &output, double box[], double leaf_size, bool translate_output)
 {
 
   //double xmin, xmax, ymin, ymax, zmin, zmax;; // this could be done without these copies
@@ -122,7 +122,29 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
     std::cout<<"No voxel filtering"<< std::endl;
   }
 
-  pcl::copyPointCloud(*cloud,output);
+  // translate data by location of corner of bounding box
+  /*  METHOD #2: Using a Affine3f
+     This method is easier and less error prone
+   */
+   Eigen::Affine3f transform_2 = Eigen::Affine3f::Identity();
+ 
+   // Define a translation of 2.5 meters on the x axis.
+   transform_2.translation() << -box[0], -box[2], -box[4];
+
+  // Print the transformation
+  printf ("\nMethod #2: using an Affine3f\n");
+  std::cout << transform_2.matrix() << std::endl;
+
+  // Executing the transformation
+  pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZ> ());
+  // You can either apply transform_1 or transform_2; they are the same
+  pcl::transformPointCloud (*cloud, *transformed_cloud, transform_2);
+
+  if (translate_output){
+    pcl::copyPointCloud(*transformed_cloud, output);
+  }else{
+    pcl::copyPointCloud(*cloud,output);
+  }
 
 }
 
@@ -150,8 +172,9 @@ int main(int argc, char** argv)
 
   
   // boolen parameters 
-  bool save_output;
+  bool save_output, translate_output;
   node.getParam("save_output", save_output);
+  node.getParam("translate_output", translate_output);
 
   // parameters that contain strings  
   std::string input_path, output_path, input_file, output_file; 
@@ -211,7 +234,7 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<endl<<endl;
 
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
-  filter_cloud(*cloud_input,*cloud_output, filter_box, voxel_leaf_size); 
+  filter_cloud(*cloud_input,*cloud_output, filter_box, voxel_leaf_size, translate_output); 
 
   // save filtered cloud 
   if(save_output){

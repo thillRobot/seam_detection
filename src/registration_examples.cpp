@@ -111,6 +111,7 @@ void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTrans
   icp.setTransformationEpsilon (trns_epsl);
   // Set the euclidean distance difference epsilon (criterion 3)
   icp.setEuclideanFitnessEpsilon (ecld_fitn_epsl);
+  icp.setRANSACOutlierRejectionThreshold (1.5);
 
   // these copies seem like a waste to me, figure out how to cut these out
   // make a copy of the LiDAR(source) cloud 
@@ -522,11 +523,15 @@ int main(int argc, char** argv)
   // there is only one cmd line arg and it is the name of the config file
   // read the config file(yaml) feild to pick the data files and set parameters
 
+  bool use_teaser, use_teaser_fpfh;
+  node.getParam("use_teaser", use_teaser);
+  node.getParam("use_teaser_fpfh", use_teaser_fpfh);
+
   // find the path to the this package (seam_detection)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   // parameters that contain strings  
-  std::string source_cloud_path, target_cloud_path, source_cloud_file, target_cloud_file, registration_algorithm;
+  std::string source_cloud_path, target_cloud_path, source_cloud_file, target_cloud_file;
 
   node.getParam("source_file", source_cloud_file);
   source_cloud_path=packagepath+'/'+source_cloud_file;
@@ -629,38 +634,40 @@ int main(int argc, char** argv)
   std::cout<<"                    Processing Pointcloud Data                      "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
-  // Perform ICP Cloud Registration to find location and orientation of part of interest
-  register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
-
+  
   int N_cor=100;
   EigenCor cor_src_pts, cor_tgt_pts;
-
-  // Perform TEASER++ cloud registration
-  double teaser_params[3]={1,2,3}; // temporary place holder 
-  //register_cloud_teaser(*source_cloud,*target_cloud,  *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
-
-    // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
-  //double teaser_params[3]={1,2,3}; // temporary place holder 
-  teaser::FPFHEstimation features;   
-
-  //std::vector<std::pair<int, int>> corrs;
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
 
-  //corrs=register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+  if (use_teaser){
+    // Perform TEASER++ cloud registration
+    double teaser_params[3]={1,2,3}; // temporary place holder 
+    register_cloud_teaser(*source_cloud,*target_cloud,  *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+  }else if(use_teaser_fpfh){
+    // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
+    double teaser_params[3]={1,2,3}; // temporary place holder 
+    teaser::FPFHEstimation features;   
 
-  //std::cout << corrs_cloud->size() << std::endl;
-  //std::cout << corrs.size() << std::endl; 
-  //for (const auto& point: *corrs_cloud)
-  //  std::cout << "    " << point.x
-  //            << " "    << point.y
-  //            << " "    << point.z << std::endl;
+    //std::vector<std::pair<int, int>> corrs;
+    //Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
+    corrs=register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+  
+    //std::cout << corrs_cloud->size() << std::endl;
+    //std::cout << corrs.size() << std::endl; 
+    //for (const auto& point: *corrs_cloud)
+    //  std::cout << "    " << point.x
+    //            << " "    << point.y
+    //            << " "    << point.z << std::endl;
     //std::cout<<*source_cloud.point.x<<std::endl;
+    std::cout<<"register_cloud_teaser_fpfh() correspondences"<<std::endl;
+    std::cout<<"size: "<<corrs.size()<<std::endl;
+    //std::cout<<"size: "<<corrs<<std::endl;
+  }else{
+    // Perform ICP Cloud Registration to find location and orientation of part of interest
+    register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+  }
 
-
-  std::cout<<"register_cloud_teaser_fpfh() correspondences"<<std::endl;
-  std::cout<<"size: "<<corrs.size()<<std::endl;
-  //std::cout<<"size: "<<corrs<<std::endl;
-
+  
 
   // now align the source cloud using the resulting transformation
   pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
@@ -731,23 +738,23 @@ int main(int argc, char** argv)
   target_marker.color.g = 16.0/255.0;
   target_marker.color.b = 240.0/255.0;
   
-  for(size_t i = 0; i < corrs.cols(); i++)
-  {  
-    source_marker.id = i;
-    source_marker.pose.position.x = corrs(0,i);
-    source_marker.pose.position.y = corrs(1,i);
-    source_marker.pose.position.z = corrs(2,i);
+  if(use_teaser_fpfh){
+    for(size_t i = 0; i < corrs.cols(); i++){  
+      source_marker.id = i;
+      source_marker.pose.position.x = corrs(0,i);
+      source_marker.pose.position.y = corrs(1,i);
+      source_marker.pose.position.z = corrs(2,i);
 
-    target_marker.id = i;
-    target_marker.pose.position.x = corrs(3,i);
-    target_marker.pose.position.y = corrs(4,i);
-    target_marker.pose.position.z = corrs(5,i);
-    //cout << corrs[i].first << ", " << corrs[i].second << endl;
-    //std::cout<<"i"<<std::endl;
-    source_markers.markers.push_back(source_marker); // add the marker to the marker array
-    target_markers.markers.push_back(target_marker); // add the marker to the marker array   
+      target_marker.id = i;
+      target_marker.pose.position.x = corrs(3,i);
+      target_marker.pose.position.y = corrs(4,i);
+      target_marker.pose.position.z = corrs(5,i);
+      //cout << corrs[i].first << ", " << corrs[i].second << endl;
+      //std::cout<<"i"<<std::endl;
+      source_markers.markers.push_back(source_marker); // add the marker to the marker array
+      target_markers.markers.push_back(target_marker); // add the marker to the marker array   
+    }
   }
-  
   
   /*
   int i=0;

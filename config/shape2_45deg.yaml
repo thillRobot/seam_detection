@@ -1,6 +1,6 @@
 ---
-scene_name: "shape2_0deg"
-source_file: "pcd_images/shape1_shape2/shape2_0deg_filtered.pcd"
+scene_name: "shape2_45deg"
+source_file: "pcd_images/shape1_shape2/shape2_45deg_filtered.pcd"
 part1_name: "shape1"
 target_file: "pcd_images/shape1_shape2/shape2.pcd"
 part1_type: "square_tube"
@@ -8,6 +8,10 @@ part2_name: "none"
 part2_type: "none"
 save_part1_segment: false
 save_part2_segment: false
+
+use_teaser: false
+use_teaser_fpfh: false
+
 
 filter_box: [0.0, 0.5, -0.9, -0.4, -0.01, 0.23] # bounding box limits
 #filter_box: [-1.0, 1.0, -1.0, 1.0, -1.0, 1.0] # bounding box limits
@@ -22,8 +26,8 @@ ransac_init_norm: [-1.0, 1.0, 0.0] # RANSAC init perpendiculr vector
 
 icp_max_corr_dist: 0.5            # ICP Maximum Correspondence Distance
 icp_max_iter: 1000         # ICP Maximum Iterations
-icp_trns_epsl: 0.0000001        # ICP Transformation Epsilon
-icp_ecld_fitn_epsl: 1   # ICP Euclidean Distance Fitness Epsilon          
+icp_trns_epsl: 0.00000000001        # ICP Transformation Epsilon
+icp_ecld_fitn_epsl: 0.00001   # ICP Euclidean Distance Fitness Epsilon          
 
 expected_results: [0.1016, -0.6096, 0.0254,0.0,0.0,0.7854] # [4.0in, -24.0in, 1.0in]*(25.4e-3) #[0.0,0.0,45.0]*(pi/180)
 calibration_offset: [-0.00893203,-0.000860624,0.00537355,-0.00493333,-0.000708936,0.019938]

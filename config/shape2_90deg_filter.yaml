@@ -1,7 +1,7 @@
 ---
 
-input_file: "pcd_images/shape1_shape2/shape2_0deg.pcd"
-output_file: "pcd_images/shape1_shape2/shape2_0deg_filtered.pcd"
+input_file: "pcd_images/shape1_shape2/shape2_90deg.pcd"
+output_file: "pcd_images/shape1_shape2/shape2_90deg_filtered.pcd"
 save_output: true
 
 translate_output: true # re-center the cloud about the corner of the bounding box

@@ -13,7 +13,7 @@ services:
 
   registration-examples: 
     build: .
-    command: roslaunch seam_detection registration_examples.launch scene:="shape2_0deg"
+    command: roslaunch seam_detection registration_examples.launch scene:="shape2_60deg"
     #command: roslaunch seam_detection registration_examples.launch scene:="table_8in10in_tee_x4y24_45_part1"
     #command: roslaunch seam_detection registration_examples.launch scene:="rect_block_02_blndr"
     environment:
@@ -37,7 +37,7 @@ services:
 
   cad-cloud-bulk: 
     build: .
-    command: rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .00025 -write_normals 1 -input_dir "ply_images/shape1_shape2/" -output_dir "pcd_images/shape1_shape2/"
+    command: rosrun seam_detection cad_cloud_bulk -n_samples 4000 -leaf_size .00025 -write_normals 1 -input_dir "ply_images/shape1_shape2/" -output_dir "pcd_images/shape1_shape2/"
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -47,7 +47,7 @@ services:
 
   filter-cloud: 
     build: .
-    command: roslaunch seam_detection filter_cloud.launch filter_config:="shape1_0deg_filter"
+    command: roslaunch seam_detection filter_cloud.launch filter_config:="shape2_90deg_filter"
     environment:
       DISPLAY: $DISPLAY
     volumes:

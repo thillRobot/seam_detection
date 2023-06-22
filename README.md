@@ -201,7 +201,6 @@ add these here, this scene was used in the 2022 pub
 
 
 
-
 ##### Experimental Application A - LiDAR scans from RPLiDAR A2 on Aubo i5
 
 **table_8in10in_tee**
@@ -224,6 +223,12 @@ roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x0y24"
 roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_longclamps_x4y24_45"
 
 ```
+
+##### Experimental Application B - LiDAR scans from RPLiDAR A2 on Aubo i10 - recorded 06/21/2023
+
+```
+```
+
 
 
 
@@ -316,6 +321,13 @@ PointCloud representing the planar component: 2993 data points.
 [pcl::SACSegmentationFromNormals::segment] Error segmenting the model! No solution found.
 ```
 
+
+#### Notes about ICP
+
+- Being too 'far away' can cause ICP to fail. This may seem obvious, but I have not thought about the scale of initial translation until now. This is at least one thing I have  learned from the new shape1_shape2 dataset.
+
+
+
 #### TEASER Notes
 
 Teaser is running on the the current data sets, however the results are not correct or usable. 
@@ -349,6 +361,10 @@ on the other hand it seems like the python_3dsmooth.py example is different, use
 New Stuff! - While invesigating the 3DsmoothNet author Zan Gojcic(zgojcic@github) I found something very interesting! Guess what it also has a catchy name: OverlapPredator [prs-eth/OverlapPredator](https://github.com/prs-eth/OverlapPredator). It seems like the main idea is "Registration of 3D Point Clouds with Low Overlap". This may be what we need. Also, the tested example is for Python 3.8.5 which is much more acceptable than 3.5/3.6 as in previous example.
 
 Predator comes from the Photogrammetry and Remote Sensing Lab: https://github.com/prs-eth
+
+
+
+
 
 
 
