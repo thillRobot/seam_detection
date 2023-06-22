@@ -269,6 +269,10 @@ target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
 target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+# cad_cloud
+add_executable(filter_cloud src/filter_cloud.cpp)
+target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 ##########################################################
 ## Nodes in developement for the SEAM_DETECTION package ##
 ##########################################################
