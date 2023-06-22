@@ -1,0 +1,10 @@
+---
+
+input_file: "pcd_images/shape1_shape2/shape1_90deg.pcd"
+output_file: "pcd_images/shape1_shape2/shape1_90deg_filtered.pcd"
+save_output: true
+translate_output: true
+
+filter_box: [-0.4, 0.0, -0.8, -0.5, 0.005, 0.25] # bounding box limits
+
+voxel_leaf_size: 0.001                          # voxel leaf size

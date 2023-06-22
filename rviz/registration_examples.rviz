@@ -32,7 +32,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -205,13 +205,11 @@ Visualization Manager:
       Value: true
     - Class: rviz/TF
       Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        T_01:
-          Value: true
-        T_10:
-          Value: true
         base_link:
           Value: true
         map:
@@ -223,12 +221,10 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
+        base_link:
+          {}
         map:
-          base_link:
-            T_01:
-              {}
-            T_10:
-              {}
+          {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -319,5 +315,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1920
-  X: 0
-  Y: 0
+  X: 72
+  Y: 27

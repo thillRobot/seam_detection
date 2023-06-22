@@ -13,7 +13,7 @@ services:
 
   registration-examples: 
     build: .
-    command: roslaunch seam_detection registration_examples.launch scene:="shape2_60deg"
+    command: roslaunch seam_detection registration_examples.launch scene:="shape1_0deg"
     #command: roslaunch seam_detection registration_examples.launch scene:="table_8in10in_tee_x4y24_45_part1"
     #command: roslaunch seam_detection registration_examples.launch scene:="rect_block_02_blndr"
     environment:
@@ -47,7 +47,7 @@ services:
 
   filter-cloud: 
     build: .
-    command: roslaunch seam_detection filter_cloud.launch filter_config:="shape2_90deg_filter"
+    command: roslaunch seam_detection filter_cloud.launch filter_config:="shape1_90deg_filter"
     environment:
       DISPLAY: $DISPLAY
     volumes:

@@ -24,12 +24,13 @@ ransac_dist_thrsh: 0.03  # RANSAC Distance Threshold
 ransac_k_srch: 50        # RANSAC KD Tree Parmeter(?)
 ransac_init_norm: [-1.0, 1.0, 0.0] # RANSAC init perpendiculr vector
 
-icp_max_corr_dist: 0.5            # ICP Maximum Correspondence Distance
-icp_max_iter: 1000         # ICP Maximum Iterations
-icp_trns_epsl: 0.00000000001        # ICP Transformation Epsilon
-icp_ecld_fitn_epsl: 0.000000001   # ICP Euclidean Distance Fitness Epsilon          
+icp_max_corr_dist: 0.5           # ICP Maximum Correspondence Distance
+icp_max_iter: 1000               # ICP Maximum Iterations
+icp_trns_epsl: 0.000000001       # ICP Transformation Epsilon
+icp_ecld_fitn_epsl: 0.000000001  # ICP Euclidean Distance Fitness Epsilon          
+icp_ran_rej_thrsh: 1.5           # ICP RANSAC Outlier Rejection Threshold  
 
-expected_results: [0.1016, -0.6096, 0.0254,0.0,0.0,0.7854] # [4.0in, -24.0in, 1.0in]*(25.4e-3) #[0.0,0.0,45.0]*(pi/180)
+expected_results: [0.1016, -0.6096, 0.0254,0.0,0.0,0.7854] 
 calibration_offset: [-0.00893203,-0.000860624,0.00537355,-0.00493333,-0.000708936,0.019938]
 
 seam1_length: 1.0                      # weld seam length

@@ -82,7 +82,7 @@ typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double e_results[],double c_offset[])
+void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double ran_rej_thrsh, double e_results[],double c_offset[])
 {
  
   // get size of inputs clouds
@@ -111,7 +111,8 @@ void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTrans
   icp.setTransformationEpsilon (trns_epsl);
   // Set the euclidean distance difference epsilon (criterion 3)
   icp.setEuclideanFitnessEpsilon (ecld_fitn_epsl);
-  icp.setRANSACOutlierRejectionThreshold (1.5);
+  // Set the RANSAC Outlier Rejection Threshold
+  icp.setRANSACOutlierRejectionThreshold (ran_rej_thrsh);
 
   // these copies seem like a waste to me, figure out how to cut these out
   // make a copy of the LiDAR(source) cloud 
@@ -542,7 +543,7 @@ int main(int argc, char** argv)
 
   // parameters that contain doubles
   double voxel_leaf_size, ransac_norm_dist_wt, ransac_max_iter, ransac_dist_thrsh, ransac_k_srch,
-         icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl;
+         icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh;
 
   // parameters that contain vectors of doubles
   std::vector<double> xs, ys, zs, filter_box_vec, ransac_init_norm_vec, expected_results_vec, calibration_offset_vec, seam1_points_x_vec, seam1_points_y_vec, seam1_points_z_vec;
@@ -664,7 +665,7 @@ int main(int argc, char** argv)
     //std::cout<<"size: "<<corrs<<std::endl;
   }else{
     // Perform ICP Cloud Registration to find location and orientation of part of interest
-    register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl,expected_results,calibration_offset);
+    register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results,calibration_offset);
   }
 
   
