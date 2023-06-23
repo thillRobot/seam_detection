@@ -265,6 +265,10 @@ roslaunch seam_detection seam_detection.launch scene:="table_plate_tee_clamps_c1
    - [ ] fillet weld: `square tube to plate` - designed by RS - initial tests now
    - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests
 
+
+
+
+
 ##### Testing TEASER
 
 ##### Testing Model Recognition from PCL
@@ -322,9 +326,41 @@ PointCloud representing the planar component: 2993 data points.
 ```
 
 
-#### Notes about ICP
+
+
+###### new test scenes - generated 06/21/2023 - rplidar a2 on aubo i10
+
+two new steel objects: `shape1` and `shape2` (best names ever)
+
+testing with `registration_examples.cpp` to compare ICP vs TEASER vs TEASER_FPFH (fast point feature histogram)
+
+test mode 1: CAD model based target cloud (fixed) and a LiDAR based source cloud (transformed) - (what we previously have done)        
+
+example: 
+
+```
+roslaunch seam_detection registration_examples.launch scene:="shape2_60deg"
+```
+
+NEW! test mode 2: LiDAR based taget cloud and different LiDAR scan based source cloud - as suggested by SC 
+
+example:
+
+```
+roslaunch seam_detection registration_examples.launch scene:="shape2_45deg_60deg"
+```
+
+
+
+#### Notes about new tests
 
 - Being too 'far away' can cause ICP to fail. This may seem obvious, but I have not thought about the scale of initial translation until now. This is at least one thing I have  learned from the new shape1_shape2 dataset.
+
+- 8 new scans have been recorded and saved with the project. These have all been tested with ICP registration and TEASER_FPFH registration. 
+
+- registration using a CAD model based target cloud (fixed) and a LiDAR based source cloud (transformed) not always successful. Shape 1 is not successful in this mode, but shape 2 is successful with ICP in several examples.  Some examples have minor alignment error. TEASER and TEASER_FPFH are not successful in this mode.
+
+- Dr. Canfield suggested comparing LiDAR scan clouds to different LiDAR scan clouds. I do not know why we have not tried this yet. This mode seems to be more successful. Registration is successful using ICP and TEASER_FPFH (needs more testing) in several shape1 and shape2 examples. 
 
 
 
