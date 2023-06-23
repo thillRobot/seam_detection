@@ -597,7 +597,8 @@ int main(int argc, char** argv)
   PointCloud::Ptr source_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
   PointCloud::Ptr target_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud
   PointCloud::Ptr corrs_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // correspondence cloud   
-  PointCloud::Ptr aligned_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
+  PointCloud::Ptr aligned_cloud_T10 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
+  PointCloud::Ptr aligned_cloud_T01 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration inverse results)
 
   // load the cloud data from PCD files , files generated with src/cad_cloud.cpp
   if (pcl::io::loadPCDFile<pcl::PointXYZ> (source_cloud_path, *source_cloud) == -1)
@@ -671,7 +672,8 @@ int main(int argc, char** argv)
   
 
   // now align the source cloud using the resulting transformation
-  pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+  pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud_T01, *T_01);
+  pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud_T10, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
   std::cout << "Cloud aligned using resulting transformation." << std::endl;
  
   std::cout<<"===================================================================="<<endl;
@@ -691,11 +693,13 @@ int main(int argc, char** argv)
 
   ros::Publisher source_pub = node.advertise<PointCloud> ("/source_cloud", 1);
   ros::Publisher target_pub = node.advertise<PointCloud> ("/target_cloud", 1);
-  ros::Publisher aligned_pub = node.advertise<PointCloud> ("/aligned_cloud", 1);
-
+  ros::Publisher aligned_T01_pub = node.advertise<PointCloud> ("/aligned_cloud_T01", 1);
+  ros::Publisher aligned_T10_pub = node.advertise<PointCloud> ("/aligned_cloud_T10", 1);
+  
   source_cloud->header.frame_id = "base_link";
   target_cloud->header.frame_id = "base_link";
-  aligned_cloud->header.frame_id = "base_link";
+  aligned_cloud_T01->header.frame_id = "base_link";
+  aligned_cloud_T10->header.frame_id = "base_link";
   
   //ros::Publisher marker_pub = node.advertise<visualization_msgs::Marker>( "corrs_marker", 0 );
   
@@ -786,7 +790,8 @@ int main(int argc, char** argv)
 
       source_pub.publish(source_cloud);
       target_pub.publish(target_cloud);
-      aligned_pub.publish(aligned_cloud);
+      aligned_T01_pub.publish(aligned_cloud_T01);
+      aligned_T10_pub.publish(aligned_cloud_T10);
       source_markers_pub.publish( source_markers );
       target_markers_pub.publish( target_markers );
 
