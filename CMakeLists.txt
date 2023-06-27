@@ -22,21 +22,13 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
-
-
 find_package(teaserpp REQUIRED)
 find_package(Boost 1.58 REQUIRED)
-
-find_package(PCL 1.10 REQUIRED) # COMPONENTS common features kdtree)
-
 #find_package(PCL 1.9 REQUIRED COMPONENTS common features kdtree)
-
-
-
+find_package(PCL 1.10 REQUIRED) # COMPONENTS common features kdtree)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -249,6 +241,17 @@ target_link_libraries(seam_detection
   teaserpp::teaser_features
 )
 
+# register_clouds - Registration Algorithm Testing Node(s) ##
+add_executable(register_clouds src/register_clouds.cpp)
+target_link_libraries(register_clouds 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+  teaserpp::teaser_registration 
+  teaserpp::teaser_io
+  teaserpp::teaser_features
+)
+
 # seam_detection_RANSAC # this node needs updating
 add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
 target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
@@ -269,34 +272,13 @@ target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
 target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# cad_cloud
+# filter_cloud
 add_executable(filter_cloud src/filter_cloud.cpp)
 target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-##########################################################
-## Nodes in developement for the SEAM_DETECTION package ##
-##########################################################
-# un-comment if you need to compile development nodes
-# these have not been compiled successfully since they have been moved into /devel
-# NOTE: move these back to src/ if they will not compile in src/devel
-
-
-#######################################################
-## Registration Examples - Algorithm Testing Node(s) ##
-#######################################################
-
-add_executable(registration_examples src/registration_examples.cpp)
-target_link_libraries(registration_examples 
-  ${catkin_LIBRARIES} 
-  ${PCL_LIBRARIES} 
-  Eigen3::Eigen 
-  teaserpp::teaser_registration 
-  teaserpp::teaser_io
-  teaserpp::teaser_features
-)
-
-
-# Teaser Stuff
+################################################################
+## Teaser Nodes
+################################################################
 # Change this line to include your own executable file
 # Link to teaserpp & Eigen3
 # add_executable(teaser_cpp_ply src/teaser_cpp_ply.cc)
@@ -310,6 +292,13 @@ target_link_libraries(registration_examples
 
 # add_executable(correspondence_grouping src/devel/correspondence_grouping.cpp)
 # target_link_libraries(correspondence_grouping ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+##########################################################
+## Nodes in developement for the SEAM_DETECTION package ##
+##########################################################
+# un-comment if you need to compile development nodes
+# these have not been compiled successfully since they have been moved into /devel
+# NOTE: move these back to src/ if they will not compile in src/devel
 
 ################################################################
 ## Archived nodes previously used with SEAM_DETECTION package ##
