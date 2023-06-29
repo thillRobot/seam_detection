@@ -492,9 +492,11 @@ chmod o+w seam_detection/<SUBDIR>
 
 #### Things To Do (priority top to bottom):
 
-- [ ] test icp registration from several tracked starting locations to avoid getting stuck in local minimum, compare scores of each result and lowest should be correct 
+- [x] test icp registration from several tracked starting locations to avoid getting stuck in local minimum, compare scores of each result and lowest should be correct
+    -> first pass at this seems to work, four positions were tested and the correct position can be identified with the fitness score 
+    -> code only works for ICP, not TEASER or TEASER_FPFH yet
 
-- [ ] test working data sets from recent scans with Overlap Predator
+- [ ] test working data sets from recent scans with Overlap Predator, this is being tested in a different repo
 
 - [ ] test new LiDAR sensor from lightware, capture new 3D scans for comparison
 
