@@ -13,6 +13,7 @@ Panels:
         - /PointCloud24
         - /MarkerArray1
         - /MarkerArray2
+        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.5105262994766235
     Tree Height: 1163
@@ -246,7 +247,7 @@ Visualization Manager:
         base_link:
           Value: true
         map:
-          Value: true
+          Value: false
       Marker Alpha: 1
       Marker Scale: 0.25
       Name: TF
@@ -314,7 +315,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.8434954881668091
+      Distance: 0.6137597560882568
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -322,17 +323,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.06813469529151917
-        Y: 0.0214766263961792
-        Z: -0.05780386924743652
+        X: -0.03111412562429905
+        Y: 0.03232463449239731
+        Z: -0.04086720198392868
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5597970485687256
+      Pitch: 0.6397969722747803
       Target Frame: <Fixed Frame>
-      Yaw: 5.194742202758789
+      Yaw: 4.80973482131958
     Saved: ~
 Window Geometry:
   Displays:

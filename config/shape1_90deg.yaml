@@ -2,7 +2,7 @@
 scene_name: "shape1_60deg"
 source_file: "pcd_images/shape1_shape2/shape1_90deg_filtered.pcd"
 part1_name: "shape1"
-target_file: "pcd_images/shape1_shape2/shape1_180deg.pcd"
+target_file: "pcd_images/shape1_shape2/shape1.pcd"
 aligned_file: "pcd_images/shape1_shape2/shape1_90deg_filtered_aligned.pcd"
 part1_type: "square_tube"
 part2_name: "none"

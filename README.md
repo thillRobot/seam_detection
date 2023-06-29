@@ -492,6 +492,12 @@ chmod o+w seam_detection/<SUBDIR>
 
 #### Things To Do (priority top to bottom):
 
+- [ ] test icp registration from several tracked starting locations to avoid getting stuck in local minimum, compare scores of each result and lowest should be correct 
+
+- [ ] test working data sets from recent scans with Overlap Predator
+
+- [ ] test new LiDAR sensor from lightware, capture new 3D scans for comparison
+
 - [ ] update and document config file system to allow for iterative (cascaded) registration, this should be doable without major modifications to the source code
 
 - [ ] test iterative registration on current and previous experimental data sets

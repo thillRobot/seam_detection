@@ -2,7 +2,7 @@
 scene_name: "shape1_60deg"
 source_file: "pcd_images/shape1_shape2/shape1_60deg_filtered.pcd"
 part1_name: "shape1"
-target_file: "pcd_images/shape1_shape2/shape1_180deg.pcd"
+target_file: "pcd_images/shape1_shape2/shape1.pcd"
 aligned_file: "pcd_images/shape1_shape2/shape1_60deg_filtered_aligned.pcd"
 part1_type: "square_tube"
 part2_name: "none"
@@ -11,6 +11,7 @@ save_part1_segment: false
 save_part2_segment: false
 use_teaser: false
 use_teaser_fpfh: false
+save_aligned: true
 
 filter_box: [0.0, 0.5, -0.9, -0.4, -0.01, 0.23] # bounding box limits
 

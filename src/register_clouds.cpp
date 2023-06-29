@@ -15,6 +15,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <boost/thread/thread.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Core>
+#include <math.h>
 
 #include <pcl/pcl_config.h>
 #include <pcl/console/parse.h>
@@ -78,7 +79,7 @@ typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double ran_rej_thrsh, double e_results[],double c_offset[])
+double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double ran_rej_thrsh, double e_results[],double c_offset[])
 {
  
   // get size of inputs clouds
@@ -106,6 +107,7 @@ void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTrans
   // Set the transformation epsilon (criterion 2)
   icp.setTransformationEpsilon (trns_epsl);
   // Set the euclidean distance difference epsilon (criterion 3)
+
   icp.setEuclideanFitnessEpsilon (ecld_fitn_epsl);
   // Set the RANSAC Outlier Rejection Threshold
   icp.setRANSACOutlierRejectionThreshold (ran_rej_thrsh);
@@ -124,12 +126,16 @@ void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTrans
 
   T_result=icp.getFinalTransformation(); // get the resutls of ICP
   T_inverse=T_result.inverse();          // also store the inverse transformation
-
-  std::cout << "ICP COMPLETED" << std::endl;
-  std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
-  std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
+  
+  double fit_score;
+  fit_score=icp.getFitnessScore(); // record fitness score
+  //std::cout << "ICP completed with fitness score: " << fit_score << std::endl;
+  //std::cout << "ICP COMPLETED" << std::endl;
+  //std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
+  std::cout << "ICP has converged:" << icp.hasConverged() << ", score: " << icp.getFitnessScore() << std::endl;
   std::cout << "transformation: " << std::endl<< T_result << std::endl;
   std::cout << "inverse: "<< std::endl << T_inverse << std::endl;
+
   //std::cout << "ICP Algorithm Information: " << std::endl;
   //std::cout <<  icp.getSearchMethodTarget() << std::endl;
 
@@ -181,6 +187,7 @@ void register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTrans
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
+  return fit_score;
   std::cout << "END OF REGISTER_CLOUD_ICP FUNCTION" << std::endl;
 }
 
@@ -595,6 +602,7 @@ int main(int argc, char** argv)
 
   // instantiate cloud objects
   PointCloud::Ptr source_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
+  PointCloud::Ptr source_cloud_alt (new pcl::PointCloud<pcl::PointXYZ>);  // alternate source cloud
   PointCloud::Ptr target_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud
   PointCloud::Ptr corrs_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // correspondence cloud   
   PointCloud::Ptr aligned_cloud_T10 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
@@ -624,6 +632,7 @@ int main(int argc, char** argv)
 
   tf::StampedTransform *T_01 (new tf::StampedTransform);    // these are from the old 'TF'
   tf::StampedTransform *T_10 (new tf::StampedTransform);    // they are stil used for pcl_ros::transformPointCloud
+  tf::StampedTransform *T_zyx (new tf::StampedTransform);  // transform to alternate starting location  
 
   static tf2_ros::StaticTransformBroadcaster static_broadcaster; // this is the new 'TF2' way to broadcast tfs
   geometry_msgs::TransformStamped *T_01_msg (new geometry_msgs::TransformStamped);
@@ -641,38 +650,80 @@ int main(int argc, char** argv)
   EigenCor cor_src_pts, cor_tgt_pts;
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
 
-  if (use_teaser){
-    // Perform TEASER++ cloud registration
-    double teaser_params[3]={1,2,3}; // temporary place holder 
-    register_cloud_teaser(*source_cloud,*target_cloud,  *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
-  }else if(use_teaser_fpfh){
-    // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
-    double teaser_params[3]={1,2,3}; // temporary place holder 
-    teaser::FPFHEstimation features;   
 
-    //std::vector<std::pair<int, int>> corrs;
-    //Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
-    corrs=register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+  double fscore; // fitness score (lower is better)
+  double fscore_min=1;
+
+  double alphas[4]={0, 90, 180, 270}; // array of starting angles
+  int N=4; // number of values
+
+  // set rotation and origin of a quaternion for the tf transform object
+  double alpha, beta, gamma, dtr;
+  dtr=M_PI/180.0;
+
+  // repeat registration for each starting value
   
-    //std::cout << corrs_cloud->size() << std::endl;
-    //std::cout << corrs.size() << std::endl; 
-    //for (const auto& point: *corrs_cloud)
-    //  std::cout << "    " << point.x
-    //            << " "    << point.y
-    //            << " "    << point.z << std::endl;
-    //std::cout<<*source_cloud.point.x<<std::endl;
-    std::cout<<"register_cloud_teaser_fpfh() correspondences"<<std::endl;
-    std::cout<<"size: "<<corrs.size()<<std::endl;
-    //std::cout<<"size: "<<corrs<<std::endl;
-  }else{
-    // Perform ICP Cloud Registration to find location and orientation of part of interest
-    register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results,calibration_offset);
-  }
+  for (int i=0;i<N;i++){
 
-  // now align the source cloud using the resulting transformation
-  pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud_T01, *T_01);
-  pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud_T10, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
-  std::cout << "Cloud aligned using resulting transformation." << std::endl;
+    // rotation angles for yaw pitch roll
+    alpha=alphas[i]*dtr;beta=0*dtr;gamma=0*dtr; 
+
+    // rotation matrix for Yaw Pitch Roll by alpha gamma beta
+    tf::Matrix3x3 Rzyx(cos(alpha)*cos(beta), cos(alpha)*sin(beta)*sin(gamma)-sin(alpha)*cos(gamma), cos(alpha)*sin(beta)*cos(gamma)+sin(alpha)*sin(gamma),
+                       sin(alpha)*cos(beta), sin(alpha)*sin(beta)*sin(gamma)+cos(alpha)*cos(gamma), sin(alpha)*sin(beta)*cos(gamma)-cos(alpha)*sin(gamma),
+                       -sin(beta)          , cos(beta)*sin(gamma)                                 , cos(beta)*cos(gamma) );  
+    // quaternion for previous rotation matrix
+    tf::Quaternion q_zyx;
+    Rzyx.getRotation(q_zyx);
+
+    T_zyx->setRotation(q_zyx);
+    T_zyx->setOrigin(tf::Vector3(0, 0, 0));
+    
+    // transform source cloud to alternate position 
+    pcl_ros::transformPointCloud(*source_cloud, *source_cloud, *T_zyx);
+
+    if (use_teaser){
+      // Perform TEASER++ cloud registration
+      double teaser_params[3]={1,2,3}; // temporary place holder 
+      register_cloud_teaser(*source_cloud,*target_cloud,  *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+    }else if(use_teaser_fpfh){
+      // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
+      double teaser_params[3]={1,2,3}; // temporary place holder 
+      teaser::FPFHEstimation features;   
+
+      //std::vector<std::pair<int, int>> corrs;
+      //Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
+      corrs=register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+    
+      //std::cout << corrs_cloud->size() << std::endl;
+      //std::cout << corrs.size() << std::endl; 
+      //for (const auto& point: *corrs_cloud)
+      //  std::cout << "    " << point.x
+      //            << " "    << point.y
+      //            << " "    << point.z << std::endl;
+      //std::cout<<*source_cloud.point.x<<std::endl;
+      std::cout<<"register_cloud_teaser_fpfh() correspondences"<<std::endl;
+      std::cout<<"size: "<<corrs.size()<<std::endl;
+      //std::cout<<"size: "<<corrs<<std::endl;
+    }else{
+      // Perform ICP Cloud Registration 
+      fscore=register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results, calibration_offset);
+      std::cout << "ICP completed with fitness score: " << fscore << std::endl;
+    }
+    
+    if (fscore<fscore_min){
+      fscore_min=fscore;
+
+      // align the source cloud using the resulting transformation only if fscore has improved
+      pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud_T01, *T_01);
+      pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud_T10, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+      std::cout << "Cloud aligned from starting position "<< i << " using registration results." << std::endl;
+
+    }else{
+      std::cout << "Score not improved, alignment skipped." << std::endl;
+    }
+
+  }
 
   // save alinged cloud in PCD file
   if(save_aligned){
