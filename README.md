@@ -14,18 +14,17 @@ IDETC/CIE2022 August 14-17, 2022, St. Louis, MO
 
 #### Requirements:
 ##### Operating System:
-- Ubuntu 18.04 - tested and working best
-- Ubuntu 20.04 - testing now, working but not converging
+- Ubuntu 20.04 - current 
+- Ubuntu 18.04 - previous (see tag v1.x)
 ##### ROS Version (linked to OS):
-- ROS Melodic
-- ROS Noetic
+- ROS Noetic - current 
+- ROS Melodic - previous
 ##### Hardware
 - no hardware requirements identified currently
+- RTX 3070 - GPU required to run seam_detection in Docker  
 ##### Graphics
-- `nvidia-460`
-- `nvidia-455` working currently
-- `nvidia-340` was not supported but older card worked with `Nouveau`
-- intel embededded graphics `Kaby Lake` and others
+- `nvidia-525` current 
+- `nvidia-4xx` previous
 
 
 #### Step 1 - Setup ROS workspace
@@ -251,7 +250,7 @@ roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_01"
 roslaunch seam_detection seam_detection.launch scene:="table_plate_tee_clamps_c1_blndr"
 ```
 
-###### current test scenes
+###### simualated test scenes
 
    - [x] fillet weld: lidarfile= `plate_round_tube_01.ply(.pcd)`, cadfile=`round_tube_01.ply(.pcd)` tested and working
    - [x] fillet weld: lidarfile= `plate_round_tube_02.ply(.pcd)`, cadfile=`round_tube_02.ply(.pcd)` tested and working
@@ -347,7 +346,7 @@ NEW! test mode 2: LiDAR based taget cloud and different LiDAR scan based source 
 example:
 
 ```
-roslaunch seam_detection registration_examples.launch scene:="shape2_45deg_60deg"
+roslaunch seam_detection registration_examples.launch scene:="shape2_45deg_60deg"cd
 ```
 
 
@@ -360,7 +359,11 @@ roslaunch seam_detection registration_examples.launch scene:="shape2_45deg_60deg
 
 - registration using a CAD model based target cloud (fixed) and a LiDAR based source cloud (transformed) not always successful. Shape 1 is not successful in this mode, but shape 2 is successful with ICP in several examples.  Some examples have minor alignment error. TEASER and TEASER_FPFH are not successful in this mode.
 
+- shape 1 is not successful in the examples in which alignment requires more than 180 of z rotation. This may be because the alignment must pass through a local minimum where both planes are parallel but offset which occurs at a 180 offset because the object is rectangular. This is somewhat confirmed by the fact that registration is successful if the source orientation is within X degs of target - X needs to be determined 
+
 - Dr. Canfield suggested comparing LiDAR scan clouds to different LiDAR scan clouds. I do not know why we have not tried this yet. This mode seems to be more successful. Registration is successful using ICP and TEASER_FPFH (needs more testing) in several shape1 and shape2 examples. 
+
+- re-registration with ICP does not produce improved results - this is not suprising because iteration is built into the routine, max iterations is a parameter
 
 
 
@@ -399,19 +402,11 @@ New Stuff! - While invesigating the 3DsmoothNet author Zan Gojcic(zgojcic@github
 Predator comes from the Photogrammetry and Remote Sensing Lab: https://github.com/prs-eth
 
 
-
-
-
-
-
-
-
 ### running in Docker
 
-Use docker and docker compose to stand up the entire application in a single line. 
+It is possible to stand up the entire application in a single line using docker and docker compose. This is not required. 
 
-
-Create a source directory and set environment variable $CATKIN_WS_PATH 
+Create a source directory and set the environment variable $CATKIN_WS_PATH 
 
 ```
 mkdir -p ~/catkin_ws/src
@@ -426,7 +421,7 @@ git clone git@github.com:thillrobot/seam_detection
 ```
 
 
-Disable xauth access control 
+Modify xauth access control 
 ```
 xhost local:root
 ```
@@ -445,17 +440,14 @@ cd seam_detection/docker
 docker compose run seam_detection
 ```
 
-Note: if you want generate files in the container, for example when using `cad_cloud` to make PCDs, you must set the permissions of the workspace directory or sub directory on the host to give the docker container write access which would be an 'other' in this case.
+Note: if you want to generate files in the container, for example when using `cad_cloud` to make PCDs, you must set the permissions of the workspace directory or sub directory on the host to give the docker container write access which would be an 'other' in this case.
 
 ```
 chmod o+w seam_detection/<SUBDIR>
 ````
 
-
-
-
 ### Changelog
-#### Versions
+#### Tagged Versions
 - v1.0 (stable - tagged 12/07/2020)
 - v1.1 (stable - tagged 12/26/2020)
   - added `round_tube` or `square_tube` segmentation option for part1
@@ -485,61 +477,60 @@ chmod o+w seam_detection/<SUBDIR>
   - added files to run in docker container  
   - successfully tested in `ros:noetic-robot-focal` container, first time successfully testing in 20.04
   - updated example launch commands in this README
-  - testing TEASER++ registration, rotation estimation not working yet 
+  - testing TEASER++ registration, very sensitive to size of input data 
+- v1.7 (development - main/devel - tagged 06/22/2023)
+  - added new experimental test scans from RPLiDAR A2 + Aubo i10 - `shape1_shape2`
+  - added separate source code for `filter_cloud()` and `registration_examples()` to simpify testing 
+  - added functions: `register_cloud_icp()`, `register_cloud_teaser()`, `register_cloud_teaser_fpfh()` to simplify testing
+  - successfully tested in `registration_examples.cpp` with ideal data, results look good
+  - added configuration files for filtering - all configs need documentation
+  - testing registration of clouds without pre-segmentation  
+  - testing new registration mode: LiDAR scan to LiDAR scan - see `shape1_shape2` examples
+  - added bounding box to config files to allow for hand cropping input data
+  - create ideal data sets `rect_block_02_blndr` and `rect_block_02`  for testing different registration algorithms- needs better docs
+  
 
+#### Things To Do (priority top to bottom):
 
-#### Things To Do: 
+- [ ] test icp registration from several tracked starting locations to avoid getting stuck in local minimum, compare scores of each result and lowest should be correct 
+
+- [ ] test working data sets from recent scans with Overlap Predator
+
+- [ ] test new LiDAR sensor from lightware, capture new 3D scans for comparison
+
+- [ ] update and document config file system to allow for iterative (cascaded) registration, this should be doable without major modifications to the source code
+
+- [ ] test iterative registration on current and previous experimental data sets
+
+- [ ] clean up README and test archived and older examples  - update old config files with new parameters lists, maybe we should wait until we finish changing lol
+
+- [ ] implement `overlap_predator` registration on experimental data for performance comparision, this might solve orientation issues
+
+- [ ] add separate code for cloud_segmentation to complete separation of steps 
+
+- [ ] use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated!
+
+- [ ] re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
 
 - [ ] continue investigating the affects of cloud density on the performance of ICP. It is apparant that this effects the proper convergence of ICP. 
-
-- [ ] consider improving the CAD->Cloud process to address the pixel density issue
 
 - [ ] investigate and demonstrate the affect of the voxel filter
 
 - [ ] investigate different segmentation models - progress made with multiple planes and `SAC_PERPENDICULAR_PLANE` 
 
-- [ ] develope processing multiple parts, two parts work now
+- [ ] develope processing multiple parts, two parts only for now
 
-- [ ] continiue to develop description of the weld seam - lists for seam points are setup in the config file
-
-- [ ] add description of the seam to the model - i have begun by creating seam *.pcd* files
+- [ ] add description of the seam to the model - i have begun by creating seam *.pcd* files - lists for seam points are setup in the config file
 
 - [ ] calculate a *measure of accuracy* - i started this in `analyse_results` then moved this to `register_cloud_icp` in a hurry, needs to go back now
-
-- [ ] update all old config files in archive with new parameters lists, maybe we should wait until we finish changing 
-
-- [x] solve large file repo mess issue! -git-lfs? solution: dont commit large files, use .gitignore
 
 - [ ] The tf migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
 - [ ] Improve conversion from `ICP::` to `TF::` in REGISTER_CLOUD_ICP function in `seam_detection.cpp`. Currently it is clunky and overbloated, but it works.
 
-- [ ] use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated!
-
 - [ ] improve efficiecy of `seam_detection.cpp` by redcucing the number of extra copies of cloud objects used in the main workflow. Many of these were only used for debugging purposes. 
 
-- [ ] re-do Experimental Application A and B with calibrated scans from Aubo i5
+- [ ] document data colletion and calibration process using 3D LiDAR system - update `scan2cloud` package and docs
 
-- [ ] document calibration process of 3D LiDAR system - update `scan2cloud` package
+- [?] prepare a manuscript for ASME IDETC2024 or alternate venue
 
-- [x] complete workpeice localization with TEASER as substitute for ICP and/or RANSAC - implemented in `seam_detection.cpp`
-
-- [x] troubleshoot teaser rotation estimation, experiment with input cloud density and bounds 
-  - [x] test TEASER with two point clouds from same source to verify idea about required correspondence   
-  - [x] Hand select/crop better realistic data, TEASER (no features) works with relatively dense _overlapping_ data. I think the later part is the key
-  - [x] re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
-  - [x] tested TEASER_FPFH with realistic mostly overlapping data, rotation still not close to correct
-
-- [x] test additional C++ example from TEASER: `teaser_cpp_fpfh.cpp`
-  - [x] add TEASER C++ library installation to Dockerfile
-  - [x] successfully tested in `registration_examples.cpp` with ideal data, results look good
-  - [x] teaser tested on synthetic point clouds with partial overlap - rotation solving but not correct
-  - [x] improve this data set, create synthetic target cloud with complete overlap, rotation not correct
-
-- [x] temporarily separate the segmentation and registration code to ease testing of new algorithms
-  - added new script `registration_examples.cpp`, still needs to be cleaned up and trimmed down
-
-- [x] create and save best case ideal data set for testing different registration algorithms
-  -  scenes `rect_block_02_blndr` and `rect_block_02` should provide a good base line data set. They have been tested with ICP and TEASER in `registration_examples.cpp`
-
-- [!] prepare a manuscript for ASME IDETC2023, submissions due: 2023-03-13
-  - read the TEASER paper again, learn overview of algorithm
+- [ ] prune this list

@@ -11,7 +11,7 @@ services:
       - ~/.Xauthority:/root/.Xauthority
       - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
 
-  registration-examples: 
+  register-clouds: 
     build: .
     command: roslaunch seam_detection registration_examples.launch scene:="shape1_60deg"
     #command: roslaunch seam_detection registration_examples.launch scene:="table_8in10in_tee_x4y24_45_part1"
@@ -25,9 +25,9 @@ services:
 
   cad-cloud: 
     build: .
-    command: roslaunch seam_detection cad_cloud.launch n_samples:=1800 leaf_size:=.00025
-             if:=$(find seam_detection)/ply_images/table_tee/8in10in_tee_01_blndr.ply
-             of:=$(find seam_detection)/pcd_images/table_tee/8in10in_tee_01_blndr.pcd
+    command: roslaunch seam_detection cad_cloud.launch n_samples:=4000 leaf_size:=.00025
+             if:=$(find seam_detection)/ply_images/shape1_shape2/shape1_180deg.ply
+             of:=$(find seam_detection)/pcd_images/shape1_shape2/shape1_180deg.pcd
     environment:
       DISPLAY: $DISPLAY
     volumes:
