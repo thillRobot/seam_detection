@@ -30,12 +30,17 @@ The big picture goal is to develop a product that uses 3D sensing on a robot arm
 	Products > Mech Eye (Camera) 
 
 		Model: Nano
-
 			dimensions: 145mmx51mmx85mm
 			weight:     0.7kg	
 			communication: ethernet
-			sensor: CMOS
-			  	 	
+			sensor: Sony CMOS
+
+		Model: Pro XS
+			dimensions: 160mmx52mmx87mm 	
+			weight: ~0.8 kg
+			communication: ethernet
+			sensor: other CMOS
+
 			> Mech Vision (Software)	
 
 				> Various Typical Vision Algorithms - 3D model creating and matching, 2D matching, special algorithms for trajectory and measurement
