@@ -3,7 +3,12 @@
 // A .pcd file is read as input and a new .pcd file is written as output
 // Tristan Hill - 06/21/2023
 
-see README.md or https://github.com/thillRobot/seam_detection for documentation
+// see README.md or https://github.com/thillRobot/seam_detection for documentation
+
+// this code is based on PCL example code: 
+// https://pcl.readthedocs.io/en/latest/passthrough.html
+// https://pcl.readthedocs.io/en/latest/cluster_extraction.html
+
 */
 
 #include <iostream>
@@ -40,6 +45,15 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
 
+#include <pcl/ModelCoefficients.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/search/kdtree.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/segmentation/extract_clusters.h>
+#include <iomanip> // for setw, setfill
+ 
 #include "ros/package.h"
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
@@ -132,9 +146,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
   pass.setFilterFieldName ("z");
   pass.setFilterLimits(box[4],box[5]);
   pass.filter (*cloud);
-  
-
-  
+    
   std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
 
   // Apply Voxel Filter 
@@ -177,6 +189,49 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
 
 }
 
+void cluster_cloud(PointCloud &input, PointCloud &output){
+
+
+  PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
+  pcl::copyPointCloud(input,*cloud);
+
+  // Creating the KdTree object for the search method of the extraction
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+  tree->setInputCloud (cloud);
+
+  std::vector<pcl::PointIndices> cluster_indices;
+  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
+  ec.setClusterTolerance (0.02); // 2cm
+  ec.setMinClusterSize (100);
+  ec.setMaxClusterSize (25000);
+  ec.setSearchMethod (tree);
+  ec.setInputCloud (cloud);
+  ec.extract (cluster_indices);
+ 
+  int j = 0;
+  for (const auto& cluster : cluster_indices) 
+  {
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+    for (const auto& idx : cluster.indices) {
+      cloud_cluster->push_back((*cloud)[idx]);
+    } //*
+    cloud_cluster->width = cloud_cluster->size ();
+    cloud_cluster->height = 1;
+    cloud_cluster->is_dense = true;
+
+    if (j==0){ // save the first cluster for now
+      pcl::copyPointCloud(*cloud_cluster,output);
+    }
+
+    std::cout << "PointCloud representing the Cluster: " << cloud_cluster->size () << " data points." << std::endl;
+    std::stringstream ss;
+    ss << std::setw(4) << std::setfill('0') << j;
+    //writer.write<pcl::PointXYZ> ("cloud_cluster_" + ss.str () + ".pcd", *cloud_cluster, false); //*
+    j++;
+  }
+
+}
+
 int main(int argc, char** argv)
 {
 
@@ -184,8 +239,8 @@ int main(int argc, char** argv)
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
-  std::cout<<"===================================== ==============================="<<endl;
-  std::cout<<"                     Filter Cloud v1.6                               "<<endl;
+  std::cout<<"===================================================================="<<endl;
+  std::cout<<"                     Filter Cloud v1.6                              "<<endl;
   std::cout<<"===================================================================="<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
@@ -242,6 +297,7 @@ int main(int argc, char** argv)
   // instantiate some clouds
   PointCloud::Ptr cloud_input (new pcl::PointCloud<pcl::PointXYZ>); 
   PointCloud::Ptr cloud_output (new pcl::PointCloud<pcl::PointXYZ>); 
+  PointCloud::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>); 
 
   //std::cout<<"Debug1"<<endl;
 
@@ -266,6 +322,9 @@ int main(int argc, char** argv)
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
   filter_cloud(*cloud_input,*cloud_output, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
 
+  // find clusters in filtered cloud
+  cluster_cloud(*cloud_output, *cloud_cluster);
+
   // save filtered cloud 
   if(save_output){
     pcl::io::savePCDFileASCII (output_path, *cloud_output);
@@ -283,10 +342,12 @@ int main(int argc, char** argv)
 
   ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1) ;
   ros::Publisher pub_output = node.advertise<PointCloud> ("/cloud_output", 1) ;
+  ros::Publisher pub_cluster = node.advertise<PointCloud> ("/cloud_cluster", 1) ;
 
 
   cloud_input->header.frame_id = "base_link";
   cloud_output->header.frame_id = "base_link";
+  cloud_cluster->header.frame_id = "base_link";
 
 
   std::cout<<"===================================================================="<<endl;
@@ -299,6 +360,7 @@ int main(int argc, char** argv)
 
       pub_input.publish(cloud_input);
       pub_output.publish(cloud_output);
+      pub_cluster.publish(cloud_cluster);
 
       ros::spinOnce();
       loop_rate.sleep();
