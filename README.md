@@ -498,6 +498,15 @@ chmod o+w seam_detection/<SUBDIR>
 
 - [ ] test working data sets from recent scans with Overlap Predator, this is being tested in a different repo
 
+    -> Overlap Predator demo was working fine at some point June 29, then the `sh scripts/download_data_weight.sh ` started failing to connect. I do not think this was on my end, but I an not sure. I can test that from the office if it still will not connect tomorrow. Hopefully, they did not kick me out. WOW! Just as I wrote this it finally started working so I guess it was magic or they are spying on me.
+
+    -> MinkowskiEngine Demos seem to be working with visualizations, run `cd MinkowskiEngine` and `python -m examples.indoor` in the docker container to see the segmentation demo
+
+    -> FCGF demo seems to be working, but the visualizations are not. I have tried to use the same environment that is successfully working with MinkowskiEngine, but that has not solved the visualization code yet. I was debugging this with print statements. Wow, writing notes must really be magic. As I was about to walk away, the example finally worked in docker with the visualizations. Good, if nothing else you can run other peoples examples. Keep up the amazing work lol.
+
+    -> these tests are not documented well, and dockerfiles are not in repos so they will be hard to transfer across machines and there is no cloud backup. I would just put them in the forked repos, but .... wait why dont we do that??? why are they in the parent directory anyway? hmmm....
+
+
 - [ ] test new LiDAR sensor from lightware, capture new 3D scans for comparison
 
 - [ ] update and document config file system to allow for iterative (cascaded) registration, this should be doable without major modifications to the source code

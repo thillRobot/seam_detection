@@ -34,6 +34,8 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/registration/correspondence_rejection_surface_normal.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
+#include <pcl/common/centroid.h>
+
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
@@ -73,7 +75,7 @@ typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 // this function applies a bounding box and a voxel filter to the input cloud
-void filter_cloud(PointCloud &input, PointCloud &output, double box[], double leaf_size, bool translate_output)
+void filter_cloud(PointCloud &input, PointCloud &output, double box[], double leaf_size, bool translate_output, bool auto_bounds)
 {
 
   //double xmin, xmax, ymin, ymax, zmin, zmax;; // this could be done without these copies
@@ -87,10 +89,36 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
 
   std::cout<<"BEGINNING CLOUD FILTERING" << std::endl;
   std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
+  
+
+  double box_length, box_width, box_height;
+  box_length=0.25;
+  box_width=0.25;     
+  box_height=0.25;
+
+  if (auto_bounds){
+ 
+    Eigen::Vector4f centroid;
+    Eigen::Vector4f min;
+    Eigen::Vector4f max;  
+
+    pcl::compute3DCentroid(*cloud, centroid);
+    std::cout<<"The centroid of the points was found at: ["<<centroid[0]<<","<<centroid[1]<<","<<centroid[2]<<"]"<<std::endl; 
+
+    box[0]=centroid[0]-box_length/2;  // xmin
+    box[1]=centroid[0]+box_length/2;  // xmax
+    box[2]=centroid[1]-box_width/2;   // ymin
+    box[3]=centroid[1]+box_width/2;   // ymax
+    box[4]=centroid[2]-box_height/2;  // zmin
+    box[5]=centroid[2]+box_height/2;  // zmax
+
+    std::cout<<"Using automatic bounding box limits: "<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"]"<< std::endl;
+  }else{
+    std::cout<<"Using bounding box limits: "<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"] from config file"<< std::endl;
+  }
 
   //Apply Bounding Box Filter
-
-  pcl::PassThrough<pcl::PointXYZ> pass; //cloud_input,
+  pcl::PassThrough<pcl::PointXYZ> pass; //cloud_input
   pass.setInputCloud(cloud);
 
   pass.setFilterFieldName ("x");
@@ -104,8 +132,9 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
   pass.setFilterFieldName ("z");
   pass.setFilterLimits(box[4],box[5]);
   pass.filter (*cloud);
+  
 
-  std::cout<<"Bounding Box Filter Limits: [" <<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"]"<< std::endl;
+  
   std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
 
   // Apply Voxel Filter 
@@ -172,9 +201,10 @@ int main(int argc, char** argv)
 
   
   // boolen parameters 
-  bool save_output, translate_output;
+  bool save_output, translate_output, automatic_bounds;
   node.getParam("save_output", save_output);
   node.getParam("translate_output", translate_output);
+  node.getParam("automatic_bounds", automatic_bounds);
 
   // parameters that contain strings  
   std::string input_path, output_path, input_file, output_file; 
@@ -234,7 +264,7 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<endl<<endl;
 
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
-  filter_cloud(*cloud_input,*cloud_output, filter_box, voxel_leaf_size, translate_output); 
+  filter_cloud(*cloud_input,*cloud_output, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
 
   // save filtered cloud 
   if(save_output){
