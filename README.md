@@ -508,7 +508,7 @@ chmod o+w seam_detection/<SUBDIR>
     -> synthetic data with clamps 
     -> to be collected new scans
 
-- [] collect new scan data from auboi10 and rplidar and/or lightware 
+- [ ] collect new scan data from auboi10 and rplidar and/or lightware 
     -> with extra objects and without
     -> with clamps and without
     -> consider collection 3D camera data general purpose research
