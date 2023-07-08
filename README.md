@@ -492,6 +492,28 @@ chmod o+w seam_detection/<SUBDIR>
 
 #### Things To Do (priority top to bottom):
 
+- [ ] use PCL Euclidean cluster extraction to replace segmentation or manual bounding box preparation of lidar scans
+    -> proof of concept shown in `filter_cloud.cpp`, robot body is successfully separated from workpeice, clusters shown in rviz
+    -> this needs testing for robustness and documentation, 
+
+- [ ] test clustering with workpeice plus separated objects on table and consider a selection algorithm to determine which cluster is the correct workpeice, cluster size is not a robust metric for selection if the workpeice size varies. The workpeice size will vary.
+
+- [ ] test clustering with workpeice and clamps
+    -> older scans 
+    -> synthetic data with clamps 
+    -> to be collected new scans
+
+- [ ] re-test registration with workpeice compared to workpeice with clamps
+    -> older scans 
+    -> synthetic data with clamps 
+    -> to be collected new scans
+
+- [] collect new scan data from auboi10 and rplidar and/or lightware 
+    -> with extra objects and without
+    -> with clamps and without
+    -> consider collection 3D camera data general purpose research
+    -> carefully consider design of experiments  
+
 - [x] test icp registration from several tracked starting locations to avoid getting stuck in local minimum, compare scores of each result and lowest should be correct
     -> first pass at this seems to work, four positions were tested and the correct position can be identified with the fitness score 
     -> code only works for ICP, not TEASER or TEASER_FPFH yet
@@ -508,10 +530,13 @@ chmod o+w seam_detection/<SUBDIR>
 
 
 - [ ] test new LiDAR sensor from lightware, capture new 3D scans for comparison
+    -> test in progress
 
-- [ ] update and document config file system to allow for iterative (cascaded) registration, this should be doable without major modifications to the source code
+- [x] update and document config file system to allow for iterative (cascaded) registration, this should be doable without major modifications to the source code
+    -> iteratiion is typically built into registration methods, also it does not seem to produce improved results when interation is performed manually
 
-- [ ] test iterative registration on current and previous experimental data sets
+- [x] test iterative registration on current and previous experimental data sets
+    -> no significant results shown, you have learned this once again so maybe this time you will remember it
 
 - [ ] clean up README and test archived and older examples  - update old config files with new parameters lists, maybe we should wait until we finish changing lol
 
@@ -540,7 +565,7 @@ chmod o+w seam_detection/<SUBDIR>
 
 - [ ] improve efficiecy of `seam_detection.cpp` by redcucing the number of extra copies of cloud objects used in the main workflow. Many of these were only used for debugging purposes. 
 
-- [ ] document data colletion and calibration process using 3D LiDAR system - update `scan2cloud` package and docs
+- [ ] document data collection and calibration process using 3D LiDAR system - update `scan2cloud` package and docs - TAKE NOTE NEXT TIME !
 
 - [?] prepare a manuscript for ASME IDETC2024 or alternate venue
 
