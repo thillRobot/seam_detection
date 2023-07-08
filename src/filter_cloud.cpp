@@ -189,7 +189,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
 
 }
 
-void cluster_cloud(PointCloud &input, PointCloud &output){
+void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, PointCloud &output2 ){
 
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
@@ -219,9 +219,14 @@ void cluster_cloud(PointCloud &input, PointCloud &output){
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
 
-    if (j==0){ // save the first cluster for now
-      pcl::copyPointCloud(*cloud_cluster,output);
+    if (j==0){ // save the first three clusters for now
+      pcl::copyPointCloud(*cloud_cluster,output0);
+    }else if(j==1){
+      pcl::copyPointCloud(*cloud_cluster,output1);
+    }else if(j==2){
+      pcl::copyPointCloud(*cloud_cluster,output2);
     }
+
 
     std::cout << "PointCloud representing the Cluster: " << cloud_cluster->size () << " data points." << std::endl;
     std::stringstream ss;
@@ -297,7 +302,9 @@ int main(int argc, char** argv)
   // instantiate some clouds
   PointCloud::Ptr cloud_input (new pcl::PointCloud<pcl::PointXYZ>); 
   PointCloud::Ptr cloud_output (new pcl::PointCloud<pcl::PointXYZ>); 
-  PointCloud::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>); 
+  PointCloud::Ptr cloud_cluster0 (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr cloud_cluster1 (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr cloud_cluster2 (new pcl::PointCloud<pcl::PointXYZ>); 
 
   //std::cout<<"Debug1"<<endl;
 
@@ -323,7 +330,7 @@ int main(int argc, char** argv)
   filter_cloud(*cloud_input,*cloud_output, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
 
   // find clusters in filtered cloud
-  cluster_cloud(*cloud_output, *cloud_cluster);
+  cluster_cloud(*cloud_output, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2);
 
   // save filtered cloud 
   if(save_output){
@@ -342,12 +349,16 @@ int main(int argc, char** argv)
 
   ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1) ;
   ros::Publisher pub_output = node.advertise<PointCloud> ("/cloud_output", 1) ;
-  ros::Publisher pub_cluster = node.advertise<PointCloud> ("/cloud_cluster", 1) ;
+  ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/cloud_cluster0", 1) ;
+  ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/cloud_cluster1", 1) ;
+  ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/cloud_cluster2", 1) ;
 
 
   cloud_input->header.frame_id = "base_link";
   cloud_output->header.frame_id = "base_link";
-  cloud_cluster->header.frame_id = "base_link";
+  cloud_cluster0->header.frame_id = "base_link";
+  cloud_cluster1->header.frame_id = "base_link";
+  cloud_cluster2->header.frame_id = "base_link";
 
 
   std::cout<<"===================================================================="<<endl;
@@ -360,7 +371,9 @@ int main(int argc, char** argv)
 
       pub_input.publish(cloud_input);
       pub_output.publish(cloud_output);
-      pub_cluster.publish(cloud_cluster);
+      pub_cluster0.publish(cloud_cluster0);
+      pub_cluster1.publish(cloud_cluster1);
+      pub_cluster2.publish(cloud_cluster2);
 
       ros::spinOnce();
       loop_rate.sleep();
