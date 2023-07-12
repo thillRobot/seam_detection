@@ -189,7 +189,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
 
 }
 
-void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, PointCloud &output2 ){
+void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, PointCloud &output2, PointCloud &output3, PointCloud &output4 ){
 
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
@@ -219,12 +219,16 @@ void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, 
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
 
-    if (j==0){ // save the first three clusters for now
+    if (j==0){ // save the first five clusters for now, this could be improved
       pcl::copyPointCloud(*cloud_cluster,output0);
     }else if(j==1){
       pcl::copyPointCloud(*cloud_cluster,output1);
     }else if(j==2){
       pcl::copyPointCloud(*cloud_cluster,output2);
+    }else if(j==3){
+      pcl::copyPointCloud(*cloud_cluster,output3);
+    }else if(j==4){
+      pcl::copyPointCloud(*cloud_cluster,output4);
     }
 
 
@@ -304,7 +308,9 @@ int main(int argc, char** argv)
   PointCloud::Ptr cloud_output (new pcl::PointCloud<pcl::PointXYZ>); 
   PointCloud::Ptr cloud_cluster0 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_cluster1 (new pcl::PointCloud<pcl::PointXYZ>);
-  PointCloud::Ptr cloud_cluster2 (new pcl::PointCloud<pcl::PointXYZ>); 
+  PointCloud::Ptr cloud_cluster2 (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr cloud_cluster3 (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr cloud_cluster4 (new pcl::PointCloud<pcl::PointXYZ>);  
 
   //std::cout<<"Debug1"<<endl;
 
@@ -330,14 +336,13 @@ int main(int argc, char** argv)
   filter_cloud(*cloud_input,*cloud_output, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
 
   // find clusters in filtered cloud
-  cluster_cloud(*cloud_output, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2);
+  cluster_cloud(*cloud_output, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
 
   // save filtered cloud 
   if(save_output){
     pcl::io::savePCDFileASCII (output_path, *cloud_output);
     std::cout<<"Filtered cloud written to:"<< output_path <<std::endl;
   }
-
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                   Pointcloud Processing Complete                   "<<endl;
@@ -352,6 +357,8 @@ int main(int argc, char** argv)
   ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/cloud_cluster0", 1) ;
   ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/cloud_cluster1", 1) ;
   ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/cloud_cluster2", 1) ;
+  ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/cloud_cluster3", 1) ;
+  ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/cloud_cluster4", 1) ;
 
 
   cloud_input->header.frame_id = "base_link";
@@ -359,6 +366,8 @@ int main(int argc, char** argv)
   cloud_cluster0->header.frame_id = "base_link";
   cloud_cluster1->header.frame_id = "base_link";
   cloud_cluster2->header.frame_id = "base_link";
+  cloud_cluster3->header.frame_id = "base_link";
+  cloud_cluster4->header.frame_id = "base_link";
 
 
   std::cout<<"===================================================================="<<endl;
@@ -374,6 +383,8 @@ int main(int argc, char** argv)
       pub_cluster0.publish(cloud_cluster0);
       pub_cluster1.publish(cloud_cluster1);
       pub_cluster2.publish(cloud_cluster2);
+      pub_cluster3.publish(cloud_cluster3);
+      pub_cluster4.publish(cloud_cluster4);
 
       ros::spinOnce();
       loop_rate.sleep();

@@ -47,7 +47,7 @@ services:
 
   filter-cloud: 
     build: .
-    command: roslaunch seam_detection filter_cloud.launch filter_config:="shape1_45deg_test"
+    command: roslaunch seam_detection filter_cloud.launch filter_config:="shape3_60deg_1alum"
     environment:
       DISPLAY: $DISPLAY
     volumes:
