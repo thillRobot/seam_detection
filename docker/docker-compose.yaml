@@ -13,9 +13,11 @@ services:
 
   register-clouds: 
     build: .
-    command: roslaunch seam_detection register_clouds.launch scene:="shape1_45deg"
-    #command: roslaunch seam_detection register-clouds.launch scene:="table_8in10in_tee_x4y24_45_part1"
-    #command: roslaunch seam_detection register-clouds.launch scene:="rect_block_02_blndr"
+    #command: roslaunch seam_detection register_clouds.launch scene:="shape3_0deg"
+    #command: roslaunch seam_detection register_clouds.launch scene:="shape2_60deg"
+    #command: roslaunch seam_detection register_clouds.launch scene:="shape1_45deg"
+    command: roslaunch seam_detection register_clouds.launch scene:="table_8in10in_tee_x4y24_45_part1"
+    #command: roslaunch seam_detection register_clouds.launch scene:="rect_block_02_blndr"
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -47,7 +49,7 @@ services:
 
   filter-cloud: 
     build: .
-    command: roslaunch seam_detection filter_cloud.launch filter_config:="shape3_60deg_1alum"
+    command: roslaunch seam_detection filter_cloud.launch filter_config:="shape3_60deg_filter"
     environment:
       DISPLAY: $DISPLAY
     volumes:
