@@ -22,6 +22,8 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <pcl/common/centroid.h>
+#include <pcl/common/common.h>
 
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/filters/extract_indices.h>
@@ -39,12 +41,6 @@
 #include <pcl/registration/correspondence_rejection_surface_normal.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
-#include <pcl/common/centroid.h>
-
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.h>
-#include <pcl_ros/point_cloud.h>
-
 #include <pcl/ModelCoefficients.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/search/kdtree.h>
@@ -52,16 +48,21 @@
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
-#include <iomanip> // for setw, setfill
+#include <iomanip> 
+
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/transforms.h>
+#include <pcl_ros/point_cloud.h>
  
 #include "ros/package.h"
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/PointStamped.h>
-#include <visualization_msgs/Marker.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
@@ -241,6 +242,49 @@ void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, 
 
 }
 
+// this function finds the minimum bounding box of cloud using PCA
+// algorithm and code adapted from http://codextechnicanum.blogspot.com/2015/04/find-minimum-oriented-bounding-box-of.html
+void pcabox_cloud(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen::Vector3f& bbox_transform, Eigen::Vector3f& bbox_dimensions){
+
+  PointCloud::Ptr cloud (new PointCloud); //make working copy of the input cloud
+  pcl::copyPointCloud(input,*cloud);
+
+  // Compute principal directions
+  Eigen::Vector4f pcaCentroid;
+  pcl::compute3DCentroid(*cloud, pcaCentroid);
+  Eigen::Matrix3f covariance;
+  computeCovarianceMatrixNormalized(*cloud, pcaCentroid, covariance);
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
+  Eigen::Matrix3f eigenVectorsPCA = eigen_solver.eigenvectors();
+  eigenVectorsPCA.col(2) = eigenVectorsPCA.col(0).cross(eigenVectorsPCA.col(1));
+
+  // Transform the original cloud to the origin where the principal components correspond to the axes.
+  Eigen::Matrix4f projectionTransform(Eigen::Matrix4f::Identity());
+  projectionTransform.block<3,3>(0,0) = eigenVectorsPCA.transpose();
+  projectionTransform.block<3,1>(0,3) = -1.f * (projectionTransform.block<3,3>(0,0) * pcaCentroid.head<3>());
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPointsProjected (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::transformPointCloud(*cloud, *cloudPointsProjected, projectionTransform);
+  // Get the minimum and maximum points of the transformed cloud.
+  pcl::PointXYZ minPoint, maxPoint;
+  pcl::getMinMax3D(*cloudPointsProjected, minPoint, maxPoint);
+  const Eigen::Vector3f meanDiagonal = 0.5f*(maxPoint.getVector3fMap() + minPoint.getVector3fMap());
+
+  // Final transform
+  const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA); //Quaternions are a way to do rotations https://www.youtube.com/watch?v=mHVwd8gYLnI
+  const Eigen::Vector3f bboxTransform = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
+  
+  bbox_dimensions[0]=maxPoint.x-minPoint.x;
+  bbox_dimensions[1]=maxPoint.y-minPoint.y;
+  bbox_dimensions[2]=maxPoint.z-minPoint.z;
+
+  bbox_quaternion=bboxQuaternion;
+  bbox_transform=bboxTransform;
+
+  return;
+
+}
+
+
 int main(int argc, char** argv)
 {
 
@@ -326,8 +370,6 @@ int main(int argc, char** argv)
   std::cout << "Loaded image file: "<< input_path <<std::endl<<
       cloud_input->width * cloud_input->height << " Data points from "<< input_path << std::endl;
 
-
-    
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    Processing Pointcloud Data                      "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
@@ -337,6 +379,20 @@ int main(int argc, char** argv)
 
   // find clusters in filtered cloud
   cluster_cloud(*cloud_output, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
+
+  // find the minimum bounding box for a single cluster
+  Eigen::Quaternionf pcabox_quaternion0, pcabox_quaternion1, pcabox_quaternion2, pcabox_quaternion3, marker_quaternion;
+  Eigen::Vector3f pcabox_translation0, pcabox_translation1, pcabox_translation2, pcabox_translation3, marker_translation;
+  Eigen::Vector3f pcabox_dimensions0, pcabox_dimensions1, pcabox_dimensions2, pcabox_dimensions3, marker_dimensions;
+
+  pcabox_cloud(*cloud_cluster0, pcabox_quaternion0, pcabox_translation0, pcabox_dimensions0);
+  pcabox_cloud(*cloud_cluster1, pcabox_quaternion1, pcabox_translation1, pcabox_dimensions1);
+  pcabox_cloud(*cloud_cluster2, pcabox_quaternion2, pcabox_translation2, pcabox_dimensions2);
+  pcabox_cloud(*cloud_cluster3, pcabox_quaternion3, pcabox_translation3, pcabox_dimensions3); 
+
+  std::cout<<"pcabox quaternion 0: "<<pcabox_quaternion0.w()<<std::endl;
+  std::cout<<"pcabox rotation quaternion 0: "<<pcabox_quaternion0.vec()[0]<<","<<pcabox_quaternion0.vec()[1]<<","<<pcabox_quaternion0.vec()[2]<<","<<std::endl;
+  std::cout<<"pcabox translation 0: "<<pcabox_translation0<<std::endl;
 
   // save filtered cloud 
   if(save_output){
@@ -360,7 +416,6 @@ int main(int argc, char** argv)
   ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/cloud_cluster3", 1) ;
   ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/cloud_cluster4", 1) ;
 
-
   cloud_input->header.frame_id = "base_link";
   cloud_output->header.frame_id = "base_link";
   cloud_cluster0->header.frame_id = "base_link";
@@ -369,6 +424,58 @@ int main(int argc, char** argv)
   cloud_cluster3->header.frame_id = "base_link";
   cloud_cluster4->header.frame_id = "base_link";
 
+  ros::Publisher pcabox_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "pcabox_markers", 0 );
+  visualization_msgs::MarkerArray pcabox_markers;
+  visualization_msgs::Marker pcabox_marker;
+
+  pcabox_marker.header.frame_id = "base_link";
+  pcabox_marker.header.stamp = ros::Time();
+  pcabox_marker.type = visualization_msgs::Marker::CUBE;
+  pcabox_marker.action = visualization_msgs::Marker::ADD;
+
+  pcabox_marker.color.a = 0.15; // Don't forget to set the alpha!
+  pcabox_marker.color.r = 255.0/255.0;
+  pcabox_marker.color.g = 0.0/255.0;
+  pcabox_marker.color.b = 255.0/255.0;
+  
+  for(size_t i = 0; i < 4; i++){  
+
+    if (i==0){
+      marker_quaternion=pcabox_quaternion0;
+      marker_translation=pcabox_translation0;
+      marker_dimensions=pcabox_dimensions0;
+    }else if(i==1){
+      marker_quaternion=pcabox_quaternion1;
+      marker_translation=pcabox_translation1;
+      marker_dimensions=pcabox_dimensions1;
+    }else if(i==2){
+      marker_quaternion=pcabox_quaternion2;
+      marker_translation=pcabox_translation2;
+      marker_dimensions=pcabox_dimensions2;
+    }else if(i==3){
+      marker_quaternion=pcabox_quaternion3;
+      marker_translation=pcabox_translation3;
+      marker_dimensions=pcabox_dimensions3;
+    }
+
+    pcabox_marker.id = i;
+
+    pcabox_marker.pose.orientation.x = marker_quaternion.vec()[0];
+    pcabox_marker.pose.orientation.y = marker_quaternion.vec()[1];
+    pcabox_marker.pose.orientation.z = marker_quaternion.vec()[2];
+    pcabox_marker.pose.orientation.w = marker_quaternion.w();
+
+    pcabox_marker.scale.x = marker_dimensions[0];
+    pcabox_marker.scale.y = marker_dimensions[1];
+    pcabox_marker.scale.z = marker_dimensions[2];
+
+    pcabox_marker.pose.position.x = marker_translation[0];
+    pcabox_marker.pose.position.y = marker_translation[1];
+    pcabox_marker.pose.position.z = marker_translation[2];
+
+    pcabox_markers.markers.push_back(pcabox_marker); // add the marker to the marker array   
+  }
+  
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                        seam_detection Complete                     "<<endl;
@@ -385,6 +492,7 @@ int main(int argc, char** argv)
       pub_cluster2.publish(cloud_cluster2);
       pub_cluster3.publish(cloud_cluster3);
       pub_cluster4.publish(cloud_cluster4);
+      pcabox_markers_pub.publish(pcabox_markers);
 
       ros::spinOnce();
       loop_rate.sleep();

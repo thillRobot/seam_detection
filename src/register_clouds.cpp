@@ -725,7 +725,7 @@ int main(int argc, char** argv)
 
   }
 
-  // save alinged cloud in PCD file
+  // save aligned cloud in PCD file
   if(save_aligned){
     std::cout<<"Writing aligned cloud to:"<< aligned_cloud_path <<std::endl;
     //pcl::io::savePCDFileASCII (aligned_cloud_path, *aligned_cloud_T01);
