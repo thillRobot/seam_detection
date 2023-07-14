@@ -20,6 +20,7 @@
 #include <boost/thread/thread.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Core>
+#include <math.h>
 
 #include <pcl/pcl_config.h>
 #include <pcl/console/parse.h>
@@ -85,7 +86,6 @@
 #include <teaser/registration.h>
 #include <teaser/matcher.h>
 //#include <teaser/point_cloud.h>
-
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -278,10 +278,99 @@ void pcabox_cloud(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen:
   bbox_dimensions[1]=maxPoint.y-minPoint.y;
   bbox_dimensions[2]=maxPoint.z-minPoint.z;
 
+  double bbox_volume, bbox_aspect_ratio;
+  bbox_volume=bbox_dimensions[1]*bbox_dimensions[2]*bbox_dimensions[2]; // calculate volume as product of dimensions
+  bbox_aspect_ratio=bbox_dimensions.maxCoeff()/bbox_dimensions.minCoeff(); // calculate aspect ratio as max dimension / min dimension
+
+  std::cout<<"volume: "<<bbox_volume<<std::endl;
+  std::cout<<"aspect ratio: "<<bbox_aspect_ratio<<std::endl;
+
   bbox_quaternion=bboxQuaternion;
   bbox_transform=bboxTransform;
 
   return;
+
+}
+
+// this function finds the minimum oriented bounding box of a cloud using principle component analysis
+double score_cluster(PointCloud &input, PointCloud &target){
+
+  PointCloud::Ptr input_cloud (new PointCloud); //make working copy of the input cloud
+  pcl::copyPointCloud(input,*input_cloud);
+  PointCloud::Ptr target_cloud (new PointCloud); //make working copy of the target cloud
+  pcl::copyPointCloud(target,*target_cloud);
+
+  // Compute principal directions
+  Eigen::Vector4f inputCentroid, targetCentroid;
+  pcl::compute3DCentroid(*input_cloud, inputCentroid);
+  pcl::compute3DCentroid(*target_cloud, targetCentroid);
+  Eigen::Matrix3f input_covariance, target_covariance;
+  computeCovarianceMatrixNormalized(*input_cloud, inputCentroid, input_covariance);
+  computeCovarianceMatrixNormalized(*target_cloud, targetCentroid, target_covariance);
+
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> input_eigen_solver(input_covariance, Eigen::ComputeEigenvectors);
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> target_eigen_solver(target_covariance, Eigen::ComputeEigenvectors);
+
+  Eigen::Matrix3f input_eigenVectorsPCA = input_eigen_solver.eigenvectors();
+  Eigen::Matrix3f target_eigenVectorsPCA = target_eigen_solver.eigenvectors();
+
+  input_eigenVectorsPCA.col(2) = input_eigenVectorsPCA.col(0).cross(input_eigenVectorsPCA.col(1));
+  target_eigenVectorsPCA.col(2) = target_eigenVectorsPCA.col(0).cross(target_eigenVectorsPCA.col(1));
+
+  // Transform the original cloud to the origin where the principal components correspond to the axes.
+  Eigen::Matrix4f input_projectionTransform(Eigen::Matrix4f::Identity());
+  Eigen::Matrix4f target_projectionTransform(Eigen::Matrix4f::Identity());
+
+  input_projectionTransform.block<3,3>(0,0) = input_eigenVectorsPCA.transpose();
+  input_projectionTransform.block<3,1>(0,3) = -1.f * (input_projectionTransform.block<3,3>(0,0) * inputCentroid.head<3>());
+  
+  target_projectionTransform.block<3,3>(0,0) = target_eigenVectorsPCA.transpose();
+  target_projectionTransform.block<3,1>(0,3) = -1.f * (target_projectionTransform.block<3,3>(0,0) * targetCentroid.head<3>());
+    
+  pcl::PointCloud<pcl::PointXYZ>::Ptr inputPointsProjected (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr targetPointsProjected (new pcl::PointCloud<pcl::PointXYZ>);
+
+  pcl::transformPointCloud(*input_cloud, *inputPointsProjected, input_projectionTransform);
+  pcl::transformPointCloud(*target_cloud, *targetPointsProjected, target_projectionTransform);
+  // Get the minimum and maximum points of the transformed cloud.
+
+  pcl::PointXYZ input_minPoint, input_maxPoint, target_minPoint, target_maxPoint;
+  pcl::getMinMax3D(*inputPointsProjected, input_minPoint, input_maxPoint);
+  pcl::getMinMax3D(*targetPointsProjected, target_minPoint, target_maxPoint);
+  const Eigen::Vector3f input_meanDiagonal = 0.5f*(input_maxPoint.getVector3fMap() + input_minPoint.getVector3fMap());
+  const Eigen::Vector3f target_meanDiagonal = 0.5f*(target_maxPoint.getVector3fMap() + target_minPoint.getVector3fMap());
+
+  // Final transform
+  const Eigen::Quaternionf inputQuaternion(input_eigenVectorsPCA); 
+  const Eigen::Quaternionf targetQuaternion(target_eigenVectorsPCA); 
+  
+  const Eigen::Vector3f inputTransform = input_eigenVectorsPCA * input_meanDiagonal + inputCentroid.head<3>();
+  const Eigen::Vector3f targetTransform = target_eigenVectorsPCA * target_meanDiagonal + targetCentroid.head<3>();
+  
+  Eigen::Vector3f input_dimensions, target_dimensions;
+  input_dimensions[0]=input_maxPoint.x-input_minPoint.x;
+  input_dimensions[1]=input_maxPoint.y-input_minPoint.y;
+  input_dimensions[2]=input_maxPoint.z-input_minPoint.z;
+
+  target_dimensions[0]=target_maxPoint.x-target_minPoint.x;
+  target_dimensions[1]=target_maxPoint.y-target_minPoint.y;
+  target_dimensions[2]=target_maxPoint.z-target_minPoint.z;
+
+  double input_volume, input_aspect_ratio, target_volume, target_aspect_ratio, score;
+  input_volume=input_dimensions[0]*input_dimensions[1]*input_dimensions[2]; // calculate volume as product of dimensions
+  input_aspect_ratio=input_dimensions.maxCoeff()/input_dimensions.minCoeff(); // calculate aspect ratio as max dimension / min dimension
+  target_volume=target_dimensions[0]*target_dimensions[1]*target_dimensions[2]; // calculate volume as product of dimensions
+  target_aspect_ratio=target_dimensions.maxCoeff()/target_dimensions.minCoeff(); // calculate aspect ratio as max dimension / min dimension
+
+  score=pow( ( pow((input_volume-target_volume),2)+pow((input_aspect_ratio-target_aspect_ratio),2) ) , 0.5) ;
+
+  std::cout<<"input volume: "<<input_volume<<std::endl;
+  std::cout<<"input aspect ratio: "<<input_aspect_ratio<<std::endl;
+  std::cout<<"target volume: "<<target_volume<<std::endl;
+  std::cout<<"target aspect ratio: "<<target_aspect_ratio<<std::endl;
+  std::cout<<"input score: "<<score<<std::endl;
+  
+  return score;
 
 }
 
@@ -374,25 +463,67 @@ int main(int argc, char** argv)
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
   filter_cloud(*cloud_input,*cloud_output, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
   
-  // find the minimum bounding box for a single cluster
-  Eigen::Quaternionf pcabox_quaternion0, pcabox_quaternion1, pcabox_quaternion2, pcabox_quaternion3, pcabox_quaternion4, marker_quaternion, pcabox_quaternion_target;
-  Eigen::Vector3f pcabox_translation0, pcabox_translation1, pcabox_translation2, pcabox_translation3, pcabox_translation4, marker_translation, pcabox_translation_target;
-  Eigen::Vector3f pcabox_dimensions0, pcabox_dimensions1, pcabox_dimensions2, pcabox_dimensions3, pcabox_dimensions4, marker_dimensions, pcabox_dimensions_target;
+  Eigen::Quaternionf target_quaternion, cluster0_quaternion, cluster1_quaternion, cluster2_quaternion, cluster3_quaternion, cluster4_quaternion, marker_quaternion;
+  Eigen::Vector3f target_translation, cluster0_translation, cluster1_translation, cluster2_translation, cluster3_translation, cluster4_translation, marker_translation;
+  Eigen::Vector3f target_dimensions, cluster0_dimensions, cluster1_dimensions, cluster2_dimensions, cluster3_dimensions, cluster4_dimensions, marker_dimensions;
+  
+  //double target_volume, cluster0_volume, cluster1_volume, cluster2_volume, cluster3_volume, cluster4_volume;
+  //double target_aspect_ratio, cluster0_aspect_ratio, cluster1_aspect_ratio, cluster2_aspect_ratio, cluster3_aspect_ratio, cluster4_aspect_ratio;
+
   if(use_clustering){
+
     // find clusters in filtered cloud (five clusters hardcoded is messy, fix this somehow)
     cluster_cloud(*cloud_output, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
 
-    pcabox_cloud(*cloud_cluster0, pcabox_quaternion0, pcabox_translation0, pcabox_dimensions0);
-    pcabox_cloud(*cloud_cluster1, pcabox_quaternion1, pcabox_translation1, pcabox_dimensions1);
-    pcabox_cloud(*cloud_cluster2, pcabox_quaternion2, pcabox_translation2, pcabox_dimensions2);
-    pcabox_cloud(*cloud_cluster3, pcabox_quaternion3, pcabox_translation3, pcabox_dimensions3);
-    pcabox_cloud(*cloud_cluster4, pcabox_quaternion4, pcabox_translation4, pcabox_dimensions4);
+    // find the minimum bounding box for the target cluster
+    pcabox_cloud(*cloud_target, target_quaternion, target_translation, target_dimensions); 
 
-    pcabox_cloud(*cloud_target, pcabox_quaternion_target, pcabox_translation_target, pcabox_dimensions_target);  
-  }
+    // find the minimum bounding box for a five clusters
+    pcabox_cloud(*cloud_cluster0, cluster0_quaternion, cluster0_translation, cluster0_dimensions);
+    pcabox_cloud(*cloud_cluster1, cluster1_quaternion, cluster1_translation, cluster1_dimensions);
+    pcabox_cloud(*cloud_cluster2, cluster2_quaternion, cluster2_translation, cluster2_dimensions);
+    pcabox_cloud(*cloud_cluster3, cluster3_quaternion, cluster3_translation, cluster3_dimensions);
+    pcabox_cloud(*cloud_cluster4, cluster4_quaternion, cluster4_translation, cluster4_dimensions);
+
+    // get score for each cluster
+    double score0, score1, score2, score3, score4, score;
+    score=100;
+    score0=score_cluster(*cloud_cluster0, *cloud_target);
+    score1=score_cluster(*cloud_cluster1, *cloud_target);
+    score2=score_cluster(*cloud_cluster2, *cloud_target);
+    score3=score_cluster(*cloud_cluster3, *cloud_target);
+    score4=score_cluster(*cloud_cluster4, *cloud_target);
+
+    if (score0<score){
+     score=score0;
+     pcl::io::savePCDFileASCII (output_path, *cloud_cluster0);
+     std::cout<<"cluster0 written to:"<< output_path <<std::endl;
+    }
+    if (score1<score){
+      score=score1;
+      pcl::io::savePCDFileASCII (output_path, *cloud_cluster1);
+      std::cout<<"cluster1 cloud written to:"<< output_path <<std::endl;
+    }
+    if (score2<score){
+      score=score2;
+      pcl::io::savePCDFileASCII (output_path, *cloud_cluster2);
+      std::cout<<"cluster2 cloud written to:"<< output_path <<std::endl;
+    }
+    if (score3<score){
+      score=score3;
+      pcl::io::savePCDFileASCII (output_path, *cloud_cluster3);
+      std::cout<<"cluster3 cloud written to:"<< output_path <<std::endl;
+    }
+    if (score4<score){
+      score=score4;
+      pcl::io::savePCDFileASCII (output_path, *cloud_cluster4);
+      std::cout<<"cluster4 cloud written to:"<< output_path <<std::endl;
+    }
+    cout<<"the lowest score is:"<<score<<std::endl;
+  } 
 
   // save filtered cloud 
-  if(save_output){
+  if(save_output&&!use_clustering){
     pcl::io::savePCDFileASCII (output_path, *cloud_output);
     std::cout<<"Filtered cloud written to:"<< output_path <<std::endl;
   }
@@ -436,24 +567,24 @@ int main(int argc, char** argv)
     target_marker.action = visualization_msgs::Marker::ADD;
 
     target_marker.color.a = 0.15; 
-    target_marker.color.r = 220.0/255.0;
-    target_marker.color.g = 220.0/255.0;
-    target_marker.color.b = 220.0/255.0;
+    target_marker.color.r = 240.0/255.0;
+    target_marker.color.g = 240.0/255.0;
+    target_marker.color.b = 240.0/255.0;
 
     cluster_marker.id = 999;
 
-    target_marker.pose.orientation.x = pcabox_quaternion_target.vec()[0];
-    target_marker.pose.orientation.y = pcabox_quaternion_target.vec()[1];
-    target_marker.pose.orientation.z = pcabox_quaternion_target.vec()[2];
-    target_marker.pose.orientation.w = pcabox_quaternion_target.w();
+    target_marker.pose.orientation.x = target_quaternion.vec()[0];
+    target_marker.pose.orientation.y = target_quaternion.vec()[1];
+    target_marker.pose.orientation.z = target_quaternion.vec()[2];
+    target_marker.pose.orientation.w = target_quaternion.w();
 
-    target_marker.scale.x = pcabox_dimensions_target[0];
-    target_marker.scale.y = pcabox_dimensions_target[1];
-    target_marker.scale.z = pcabox_dimensions_target[2];
+    target_marker.scale.x = target_dimensions[0];
+    target_marker.scale.y = target_dimensions[1];
+    target_marker.scale.z = target_dimensions[2];
 
-    target_marker.pose.position.x = pcabox_translation_target[0];
-    target_marker.pose.position.y = pcabox_translation_target[1];
-    target_marker.pose.position.z = pcabox_translation_target[2];
+    target_marker.pose.position.x = target_translation[0];
+    target_marker.pose.position.y = target_translation[1];
+    target_marker.pose.position.z = target_translation[2];
 
     // array of markers for pointcloud clusters 
     cluster_marker.header.frame_id = "base_link";
@@ -469,25 +600,25 @@ int main(int argc, char** argv)
     for(size_t i = 0; i < 5; i++){  
 
       if (i==0){  // select which cluster result to copy pcabox objects from
-        marker_quaternion=pcabox_quaternion0;
-        marker_translation=pcabox_translation0;
-        marker_dimensions=pcabox_dimensions0;
+        marker_quaternion=cluster0_quaternion;
+        marker_translation=cluster0_translation;
+        marker_dimensions=cluster0_dimensions;
       }else if(i==1){
-        marker_quaternion=pcabox_quaternion1;
-        marker_translation=pcabox_translation1;
-        marker_dimensions=pcabox_dimensions1;
+        marker_quaternion=cluster1_quaternion;
+        marker_translation=cluster1_translation;
+        marker_dimensions=cluster1_dimensions;
       }else if(i==2){
-        marker_quaternion=pcabox_quaternion2;
-        marker_translation=pcabox_translation2;
-        marker_dimensions=pcabox_dimensions2;
+        marker_quaternion=cluster2_quaternion;
+        marker_translation=cluster2_translation;
+        marker_dimensions=cluster2_dimensions;
       }else if(i==3){
-        marker_quaternion=pcabox_quaternion3;
-        marker_translation=pcabox_translation3;
-        marker_dimensions=pcabox_dimensions3;
+        marker_quaternion=cluster3_quaternion;
+        marker_translation=cluster3_translation;
+        marker_dimensions=cluster3_dimensions;
       }else if(i==4){
-        marker_quaternion=pcabox_quaternion4;
-        marker_translation=pcabox_translation4;
-        marker_dimensions=pcabox_dimensions4;
+        marker_quaternion=cluster4_quaternion;
+        marker_translation=cluster4_translation;
+        marker_dimensions=cluster4_dimensions;
       }
 
       cluster_marker.id = i;

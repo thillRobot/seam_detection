@@ -1,6 +1,6 @@
 ---
-input_file: "pcd_images/shape1_shape2/shape2_0deg.pcd"
-output_file: "pcd_images/shape1_shape2/shape2_0deg_filtered.pcd"
+input_file: "pcd_images/shape1_shape2/shape2_45deg.pcd"
+output_file: "pcd_images/shape1_shape2/shape2_45deg_filtered.pcd"
 target_file: "pcd_images/shape1_shape2/shape2.pcd"
 save_output: true
 translate_output: false
@@ -8,5 +8,4 @@ automatic_bounds: false
 use_clustering: true
 
 filter_box: [-1.0, 1.0, -1.0, 0.0, 0.005, 0.5] # bounding box limits
-
 voxel_leaf_size: 0.001                           # voxel leaf size

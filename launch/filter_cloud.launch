@@ -3,9 +3,9 @@
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
   <!-- read value of arg -->
-  <param name="param" value="$(arg filter_config)"/> 
+  <param name="param" value="$(arg config)"/> 
   
-  <rosparam file="$(find seam_detection)/config/$(arg filter_config).yaml" />
+  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
 
   <!-- setup the transformations and frames for the system-->
   <node

@@ -3,7 +3,7 @@
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
   <!-- read value of arg -->
-  <param name="param" value="$(arg scene)"/> 
+  <param name="param" value="$(arg config)"/> 
 
   <!-- setup the transformations and frames for the system-->
   <node
@@ -13,8 +13,7 @@
     output="screen"
   />
 
-  <rosparam file="$(find seam_detection)/config/$(arg scene).yaml" />
-  <!-- <include file="$(find seam_detection)/config/$(arg scene).yaml" /> -->
+  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
   <!-- process the description of the seam and the welding scene - also I am testing some things here -->
 
   <!-- this node contains the primary processing of lidar data for seam detection -->

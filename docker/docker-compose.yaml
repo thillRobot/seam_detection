@@ -1,8 +1,8 @@
 services:
   seam-detection:
     build: .
-    #command: roslaunch seam_detection seam_detection.launch scene:="shape1_0deg"
-    command: roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x4y24_45B"
+    command: roslaunch seam_detection seam_detection.launch config:="shape1_0deg"
+    #command: roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x4y24_45B"
     #command: roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_02_dx100_rz30_blndr"
     environment:
       DISPLAY: $DISPLAY
@@ -13,10 +13,10 @@ services:
 
   register-clouds: 
     build: .
-    #command: roslaunch seam_detection register_clouds.launch scene:="shape3_0deg"
+    command: roslaunch seam_detection register_clouds.launch config:="register_clouds"
     #command: roslaunch seam_detection register_clouds.launch scene:="shape2_60deg"
     #command: roslaunch seam_detection register_clouds.launch scene:="shape1_45deg"
-    command: roslaunch seam_detection register_clouds.launch scene:="table_8in10in_tee_x4y24_45_part1"
+    #command: roslaunch seam_detection register_clouds.launch scene:="table_8in10in_tee_x4y24_45_part1"
     #command: roslaunch seam_detection register_clouds.launch scene:="rect_block_02_blndr"
     environment:
       DISPLAY: $DISPLAY
@@ -49,7 +49,7 @@ services:
 
   filter-cloud: 
     build: .
-    command: roslaunch seam_detection filter_cloud.launch filter_config:="shape2_45deg_filter"
+    command: roslaunch seam_detection filter_cloud.launch config:="filter_cloud"
     environment:
       DISPLAY: $DISPLAY
     volumes:
