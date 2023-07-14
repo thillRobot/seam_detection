@@ -14,6 +14,8 @@ Panels:
         - /PointCloud25
         - /PointCloud26
         - /PointCloud27
+        - /PointCloud28
+        - /Marker1
         - /MarkerArray1
         - /Axes1
       Splitter Ratio: 0.5
@@ -144,7 +146,7 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 255; 255; 255
+      Color: 0; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
@@ -275,9 +277,45 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0010000000474974513
+      Style: Flat Squares
+      Topic: /cloud_target
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /target_marker
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /pcabox_markers
+      Marker Topic: /cluster_markers
       Name: MarkerArray
       Namespaces:
         "": true
@@ -337,7 +375,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.564874291419983
+      Distance: 1.376744270324707
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -345,17 +383,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.07296405732631683
-        Y: 0.021057596430182457
-        Z: 0.12998075783252716
+        X: -0.10623448342084885
+        Y: -0.11556187272071838
+        Z: 0.027043841779232025
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.31979697942733765
+      Pitch: 0.42979687452316284
       Target Frame: <Fixed Frame>
-      Yaw: 5.511742115020752
+      Yaw: 5.4967427253723145
     Saved: ~
 Window Geometry:
   Displays:

@@ -1,7 +1,9 @@
 /*
-// This program applies a bounding box and voxel downsampling filter to a pointcloud
+// This program applies a series of filters and processes to the input pointcloud
+// to prepare for registration 
 // A .pcd file is read as input and a new .pcd file is written as output
-// Tristan Hill - 06/21/2023
+// A target .pcd file can also be input for cluster selection
+// Tristan Hill - 07/14/2023
 
 // see README.md or https://github.com/thillRobot/seam_detection for documentation
 
@@ -9,6 +11,8 @@
 // https://pcl.readthedocs.io/en/latest/passthrough.html
 // https://pcl.readthedocs.io/en/latest/cluster_extraction.html
 
+// PCA box example code algorithm adapted from:
+// http://codextechnicanum.blogspot.com/2015/04/find-minimum-oriented-bounding-box-of.html
 */
 
 #include <iostream>
@@ -105,7 +109,6 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
   std::cout<<"BEGINNING CLOUD FILTERING" << std::endl;
   std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
   
-
   double box_length, box_width, box_height;
   box_length=0.25;
   box_width=0.25;     
@@ -190,8 +193,8 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
 
 }
 
+// this function performs Euclidean cluster extraction to separate parts of the pointcloud 
 void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, PointCloud &output2, PointCloud &output3, PointCloud &output4 ){
-
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(input,*cloud);
@@ -232,7 +235,6 @@ void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, 
       pcl::copyPointCloud(*cloud_cluster,output4);
     }
 
-
     std::cout << "PointCloud representing the Cluster: " << cloud_cluster->size () << " data points." << std::endl;
     std::stringstream ss;
     ss << std::setw(4) << std::setfill('0') << j;
@@ -242,8 +244,7 @@ void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, 
 
 }
 
-// this function finds the minimum bounding box of cloud using PCA
-// algorithm and code adapted from http://codextechnicanum.blogspot.com/2015/04/find-minimum-oriented-bounding-box-of.html
+// this function finds the minimum oriented bounding box of a cloud using principle component analysis
 void pcabox_cloud(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen::Vector3f& bbox_transform, Eigen::Vector3f& bbox_dimensions){
 
   PointCloud::Ptr cloud (new PointCloud); //make working copy of the input cloud
@@ -284,7 +285,6 @@ void pcabox_cloud(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen:
 
 }
 
-
 int main(int argc, char** argv)
 {
 
@@ -307,21 +307,21 @@ int main(int argc, char** argv)
   // find the path to the this package (seam_detection)
   std::string packagepath = ros::package::getPath("seam_detection");
 
-  
   // boolen parameters 
-  bool save_output, translate_output, automatic_bounds;
+  bool save_output, translate_output, automatic_bounds, use_clustering;
   node.getParam("save_output", save_output);
   node.getParam("translate_output", translate_output);
   node.getParam("automatic_bounds", automatic_bounds);
+  node.getParam("use_clustering", use_clustering);
 
   // parameters that contain strings  
-  std::string input_path, output_path, input_file, output_file; 
+  std::string input_path, output_path, target_path, input_file, output_file, target_file; 
   node.getParam("input_file", input_file);
   input_path=packagepath+'/'+input_file;
-
   node.getParam("output_file", output_file);
   output_path=packagepath+'/'+output_file;
-
+  node.getParam("target_file", target_file);
+  target_path=packagepath+'/'+target_file;
 
   // parameters that contain doubles
   double voxel_leaf_size;
@@ -335,40 +335,37 @@ int main(int argc, char** argv)
     filter_box[i]=filter_box_vec[i]; // copy from vector to array 
   node.getParam("voxel_leaf_size", voxel_leaf_size);
 
-
-  // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
-  // static tf::TransformBroadcaster br_searchbox;
-  // tf::Transform tf_searchbox;
-
   std::cout<<"Debug0"<<endl;
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                     Preparing Pointcloud Data                      "<<endl;
   std::cout<<"===================================================================="<<endl;
-
   
-  // instantiate some clouds
+  // instantiate some cloud pointers
   PointCloud::Ptr cloud_input (new pcl::PointCloud<pcl::PointXYZ>); 
-  PointCloud::Ptr cloud_output (new pcl::PointCloud<pcl::PointXYZ>); 
+  PointCloud::Ptr cloud_output (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr cloud_target (new pcl::PointCloud<pcl::PointXYZ>); 
   PointCloud::Ptr cloud_cluster0 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_cluster1 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_cluster2 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_cluster3 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_cluster4 (new pcl::PointCloud<pcl::PointXYZ>);  
 
-  //std::cout<<"Debug1"<<endl;
-
-  std::cout << "Loading image file: "<< input_path <<std::endl;
-
-
-  // load the cloud from input file (.pcd)
+  std::cout << "Loading cloud files:" <<std::endl;
   if (pcl::io::loadPCDFile<pcl::PointXYZ> (input_path, *cloud_input) == -1)
   {
-      std::cout<<"Couldn't read image file:"<<input_path;
+      std::cout<<"Couldn't read cloud_input file:"<<input_path;
       return (-1);
   }
-  std::cout << "Loaded image file: "<< input_path <<std::endl<<
-      cloud_input->width * cloud_input->height << " Data points from "<< input_path << std::endl;
+  std::cout << "Loaded input cloud file: "<< input_path <<std::endl<<
+    cloud_input->width * cloud_input->height << " Data points from "<< input_path << std::endl;
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_path, *cloud_target) == -1)
+  {
+      std::cout<<"Couldn't read cloud_target file:"<<target_path;
+      return (-1);
+  }
+  std::cout << "Loaded image file: "<< target_path <<std::endl<<
+    cloud_target->width * cloud_target->height << " Data points from "<< target_path << std::endl;  
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    Processing Pointcloud Data                      "<<endl;
@@ -376,23 +373,23 @@ int main(int argc, char** argv)
 
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
   filter_cloud(*cloud_input,*cloud_output, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
-
-  // find clusters in filtered cloud
-  cluster_cloud(*cloud_output, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
-
+  
   // find the minimum bounding box for a single cluster
-  Eigen::Quaternionf pcabox_quaternion0, pcabox_quaternion1, pcabox_quaternion2, pcabox_quaternion3, marker_quaternion;
-  Eigen::Vector3f pcabox_translation0, pcabox_translation1, pcabox_translation2, pcabox_translation3, marker_translation;
-  Eigen::Vector3f pcabox_dimensions0, pcabox_dimensions1, pcabox_dimensions2, pcabox_dimensions3, marker_dimensions;
+  Eigen::Quaternionf pcabox_quaternion0, pcabox_quaternion1, pcabox_quaternion2, pcabox_quaternion3, pcabox_quaternion4, marker_quaternion, pcabox_quaternion_target;
+  Eigen::Vector3f pcabox_translation0, pcabox_translation1, pcabox_translation2, pcabox_translation3, pcabox_translation4, marker_translation, pcabox_translation_target;
+  Eigen::Vector3f pcabox_dimensions0, pcabox_dimensions1, pcabox_dimensions2, pcabox_dimensions3, pcabox_dimensions4, marker_dimensions, pcabox_dimensions_target;
+  if(use_clustering){
+    // find clusters in filtered cloud (five clusters hardcoded is messy, fix this somehow)
+    cluster_cloud(*cloud_output, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
 
-  pcabox_cloud(*cloud_cluster0, pcabox_quaternion0, pcabox_translation0, pcabox_dimensions0);
-  pcabox_cloud(*cloud_cluster1, pcabox_quaternion1, pcabox_translation1, pcabox_dimensions1);
-  pcabox_cloud(*cloud_cluster2, pcabox_quaternion2, pcabox_translation2, pcabox_dimensions2);
-  pcabox_cloud(*cloud_cluster3, pcabox_quaternion3, pcabox_translation3, pcabox_dimensions3); 
+    pcabox_cloud(*cloud_cluster0, pcabox_quaternion0, pcabox_translation0, pcabox_dimensions0);
+    pcabox_cloud(*cloud_cluster1, pcabox_quaternion1, pcabox_translation1, pcabox_dimensions1);
+    pcabox_cloud(*cloud_cluster2, pcabox_quaternion2, pcabox_translation2, pcabox_dimensions2);
+    pcabox_cloud(*cloud_cluster3, pcabox_quaternion3, pcabox_translation3, pcabox_dimensions3);
+    pcabox_cloud(*cloud_cluster4, pcabox_quaternion4, pcabox_translation4, pcabox_dimensions4);
 
-  std::cout<<"pcabox quaternion 0: "<<pcabox_quaternion0.w()<<std::endl;
-  std::cout<<"pcabox rotation quaternion 0: "<<pcabox_quaternion0.vec()[0]<<","<<pcabox_quaternion0.vec()[1]<<","<<pcabox_quaternion0.vec()[2]<<","<<std::endl;
-  std::cout<<"pcabox translation 0: "<<pcabox_translation0<<std::endl;
+    pcabox_cloud(*cloud_target, pcabox_quaternion_target, pcabox_translation_target, pcabox_dimensions_target);  
+  }
 
   // save filtered cloud 
   if(save_output){
@@ -410,6 +407,7 @@ int main(int argc, char** argv)
 
   ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1) ;
   ros::Publisher pub_output = node.advertise<PointCloud> ("/cloud_output", 1) ;
+  ros::Publisher pub_target = node.advertise<PointCloud> ("/cloud_target", 1) ;
   ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/cloud_cluster0", 1) ;
   ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/cloud_cluster1", 1) ;
   ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/cloud_cluster2", 1) ;
@@ -418,64 +416,99 @@ int main(int argc, char** argv)
 
   cloud_input->header.frame_id = "base_link";
   cloud_output->header.frame_id = "base_link";
+  cloud_target->header.frame_id = "base_link";
   cloud_cluster0->header.frame_id = "base_link";
   cloud_cluster1->header.frame_id = "base_link";
   cloud_cluster2->header.frame_id = "base_link";
   cloud_cluster3->header.frame_id = "base_link";
   cloud_cluster4->header.frame_id = "base_link";
 
-  ros::Publisher pcabox_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "pcabox_markers", 0 );
-  visualization_msgs::MarkerArray pcabox_markers;
-  visualization_msgs::Marker pcabox_marker;
+  ros::Publisher target_marker_pub = node.advertise<visualization_msgs::Marker>( "target_marker", 0 );
+  ros::Publisher cluster_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "cluster_markers", 0 );
+  visualization_msgs::MarkerArray cluster_markers;
+  visualization_msgs::Marker target_marker, cluster_marker;
+  if (use_clustering){
+    
+    // single marker cube for target cloud pcabox
+    target_marker.header.frame_id = "base_link";
+    target_marker.header.stamp = ros::Time();
+    target_marker.type = visualization_msgs::Marker::CUBE;
+    target_marker.action = visualization_msgs::Marker::ADD;
 
-  pcabox_marker.header.frame_id = "base_link";
-  pcabox_marker.header.stamp = ros::Time();
-  pcabox_marker.type = visualization_msgs::Marker::CUBE;
-  pcabox_marker.action = visualization_msgs::Marker::ADD;
+    target_marker.color.a = 0.15; 
+    target_marker.color.r = 220.0/255.0;
+    target_marker.color.g = 220.0/255.0;
+    target_marker.color.b = 220.0/255.0;
 
-  pcabox_marker.color.a = 0.15; // Don't forget to set the alpha!
-  pcabox_marker.color.r = 255.0/255.0;
-  pcabox_marker.color.g = 0.0/255.0;
-  pcabox_marker.color.b = 255.0/255.0;
-  
-  for(size_t i = 0; i < 4; i++){  
+    cluster_marker.id = 999;
 
-    if (i==0){
-      marker_quaternion=pcabox_quaternion0;
-      marker_translation=pcabox_translation0;
-      marker_dimensions=pcabox_dimensions0;
-    }else if(i==1){
-      marker_quaternion=pcabox_quaternion1;
-      marker_translation=pcabox_translation1;
-      marker_dimensions=pcabox_dimensions1;
-    }else if(i==2){
-      marker_quaternion=pcabox_quaternion2;
-      marker_translation=pcabox_translation2;
-      marker_dimensions=pcabox_dimensions2;
-    }else if(i==3){
-      marker_quaternion=pcabox_quaternion3;
-      marker_translation=pcabox_translation3;
-      marker_dimensions=pcabox_dimensions3;
+    target_marker.pose.orientation.x = pcabox_quaternion_target.vec()[0];
+    target_marker.pose.orientation.y = pcabox_quaternion_target.vec()[1];
+    target_marker.pose.orientation.z = pcabox_quaternion_target.vec()[2];
+    target_marker.pose.orientation.w = pcabox_quaternion_target.w();
+
+    target_marker.scale.x = pcabox_dimensions_target[0];
+    target_marker.scale.y = pcabox_dimensions_target[1];
+    target_marker.scale.z = pcabox_dimensions_target[2];
+
+    target_marker.pose.position.x = pcabox_translation_target[0];
+    target_marker.pose.position.y = pcabox_translation_target[1];
+    target_marker.pose.position.z = pcabox_translation_target[2];
+
+    // array of markers for pointcloud clusters 
+    cluster_marker.header.frame_id = "base_link";
+    cluster_marker.header.stamp = ros::Time();
+    cluster_marker.type = visualization_msgs::Marker::CUBE;
+    cluster_marker.action = visualization_msgs::Marker::ADD;
+
+    cluster_marker.color.a = 0.15; // Don't forget to set the alpha!
+    cluster_marker.color.r = 255.0/255.0;
+    cluster_marker.color.g = 0.0/255.0;
+    cluster_marker.color.b = 255.0/255.0;
+    
+    for(size_t i = 0; i < 5; i++){  
+
+      if (i==0){  // select which cluster result to copy pcabox objects from
+        marker_quaternion=pcabox_quaternion0;
+        marker_translation=pcabox_translation0;
+        marker_dimensions=pcabox_dimensions0;
+      }else if(i==1){
+        marker_quaternion=pcabox_quaternion1;
+        marker_translation=pcabox_translation1;
+        marker_dimensions=pcabox_dimensions1;
+      }else if(i==2){
+        marker_quaternion=pcabox_quaternion2;
+        marker_translation=pcabox_translation2;
+        marker_dimensions=pcabox_dimensions2;
+      }else if(i==3){
+        marker_quaternion=pcabox_quaternion3;
+        marker_translation=pcabox_translation3;
+        marker_dimensions=pcabox_dimensions3;
+      }else if(i==4){
+        marker_quaternion=pcabox_quaternion4;
+        marker_translation=pcabox_translation4;
+        marker_dimensions=pcabox_dimensions4;
+      }
+
+      cluster_marker.id = i;
+
+      cluster_marker.pose.orientation.x = marker_quaternion.vec()[0];
+      cluster_marker.pose.orientation.y = marker_quaternion.vec()[1];
+      cluster_marker.pose.orientation.z = marker_quaternion.vec()[2];
+      cluster_marker.pose.orientation.w = marker_quaternion.w();
+
+      cluster_marker.scale.x = marker_dimensions[0];
+      cluster_marker.scale.y = marker_dimensions[1];
+      cluster_marker.scale.z = marker_dimensions[2];
+
+      cluster_marker.pose.position.x = marker_translation[0];
+      cluster_marker.pose.position.y = marker_translation[1];
+      cluster_marker.pose.position.z = marker_translation[2];
+
+      cluster_markers.markers.push_back(cluster_marker); // add the marker to the marker array   
     }
 
-    pcabox_marker.id = i;
-
-    pcabox_marker.pose.orientation.x = marker_quaternion.vec()[0];
-    pcabox_marker.pose.orientation.y = marker_quaternion.vec()[1];
-    pcabox_marker.pose.orientation.z = marker_quaternion.vec()[2];
-    pcabox_marker.pose.orientation.w = marker_quaternion.w();
-
-    pcabox_marker.scale.x = marker_dimensions[0];
-    pcabox_marker.scale.y = marker_dimensions[1];
-    pcabox_marker.scale.z = marker_dimensions[2];
-
-    pcabox_marker.pose.position.x = marker_translation[0];
-    pcabox_marker.pose.position.y = marker_translation[1];
-    pcabox_marker.pose.position.z = marker_translation[2];
-
-    pcabox_markers.markers.push_back(pcabox_marker); // add the marker to the marker array   
   }
-  
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                        seam_detection Complete                     "<<endl;
@@ -487,13 +520,16 @@ int main(int argc, char** argv)
 
       pub_input.publish(cloud_input);
       pub_output.publish(cloud_output);
-      pub_cluster0.publish(cloud_cluster0);
-      pub_cluster1.publish(cloud_cluster1);
-      pub_cluster2.publish(cloud_cluster2);
-      pub_cluster3.publish(cloud_cluster3);
-      pub_cluster4.publish(cloud_cluster4);
-      pcabox_markers_pub.publish(pcabox_markers);
-
+      pub_target.publish(cloud_target);
+      if(use_clustering){
+        pub_cluster0.publish(cloud_cluster0);
+        pub_cluster1.publish(cloud_cluster1);
+        pub_cluster2.publish(cloud_cluster2);
+        pub_cluster3.publish(cloud_cluster3);
+        pub_cluster4.publish(cloud_cluster4);
+        target_marker_pub.publish(target_marker);
+        cluster_markers_pub.publish(cluster_markers);
+      }
       ros::spinOnce();
       loop_rate.sleep();
   }

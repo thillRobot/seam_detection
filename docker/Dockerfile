@@ -5,8 +5,6 @@ ENV NVIDIA_VISIBLE_DEVICES \
 ENV NVIDIA_DRIVER_CAPABILITIES \
     ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
 
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
-
 RUN apt update && apt upgrade -y && apt update && apt install -y apt-utils build-essential vim git wget
 
 RUN apt install -y python3-catkin-tools
@@ -32,9 +30,6 @@ RUN cd $SD_WS/src/TEASER-plusplus && mkdir build && cd build && \
     ldconfig
 RUN cd $SD_WS/src/TEASER-plusplus/examples/teaser_cpp_ply && mkdir build && cd build && \
     cmake .. && make
-
-
-#EXPOSE 11345
 
 COPY ./entrypoint.sh /
 
