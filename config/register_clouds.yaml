@@ -1,8 +1,8 @@
 ---
 scene_name: "shape2_45deg_60deg"
-source_file: "pcd_images/shape1_shape2/shape2_45deg_filtered.pcd"
+source_file: "pcd_images/shape1_shape2/shape2_90deg_filtered.pcd"
 part1_name: "shape2"
-target_file: "pcd_images/shape1_shape2/shape2_60deg_filtered.pcd"
+target_file: "pcd_images/shape1_shape2/shape2_0deg_filtered.pcd"
 part1_type: "square_tube"
 part2_name: "none"
 part2_type: "none"
@@ -21,7 +21,7 @@ ransac_dist_thrsh: 0.03  # RANSAC Distance Threshold
 ransac_k_srch: 50        # RANSAC KD Tree Parmeter(?)
 ransac_init_norm: [-1.0, 1.0, 0.0] # RANSAC init perpendicular vector
 
-icp_max_corr_dist: 0.2          # ICP Maximum Correspondence Distance
+icp_max_corr_dist: 1.0          # ICP Maximum Correspondence Distance
 icp_max_iter: 1000                # ICP Maximum Iterations
 icp_trns_epsl: 0.000000001        # ICP Transformation Epsilon
 icp_ecld_fitn_epsl: 0.000000001  # ICP Euclidean Distance Fitness Epsilon          

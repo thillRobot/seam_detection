@@ -1,6 +1,6 @@
 ---
-input_file: "pcd_images/shape1_shape2/shape2_45deg.pcd"
-output_file: "pcd_images/shape1_shape2/shape2_45deg_filtered.pcd"
+input_file: "pcd_images/shape1_shape2/shape2_90deg.pcd"
+output_file: "pcd_images/shape1_shape2/shape2_90deg_filtered.pcd"
 target_file: "pcd_images/shape1_shape2/shape2.pcd"
 save_output: true
 translate_output: false
