@@ -1,8 +1,8 @@
 ---
-scene_name: "shape2_45deg_60deg"
-source_file: "pcd_images/shape1_shape2/shape2_90deg_filtered.pcd"
-part1_name: "shape2"
-target_file: "pcd_images/shape1_shape2/shape2_0deg_filtered.pcd"
+scene_name: "shape1_45deg"
+source_file: "pcd_images/shape1_shape2/shape1_45deg_filtered.pcd"
+part1_name: "shape1"
+target_file: "pcd_images/shape1_shape2/shape1.pcd"
 part1_type: "square_tube"
 part2_name: "none"
 part2_type: "none"

@@ -1,7 +1,7 @@
 ---
-input_file: "pcd_images/shape1_shape2/shape2_90deg.pcd"
-output_file: "pcd_images/shape1_shape2/shape2_90deg_filtered.pcd"
-target_file: "pcd_images/shape1_shape2/shape2.pcd"
+input_file: "pcd_images/shape3/shape3_60deg_2large.pcd"
+output_file: "pcd_images/shape3/shape3_60deg_2large_filtered.pcd"
+target_file: "pcd_images/shape1_shape2/shape1.pcd"
 save_output: true
 translate_output: false
 automatic_bounds: false

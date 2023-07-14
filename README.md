@@ -140,6 +140,8 @@ These examples have the `round_tube` or a `square_tube` and the `plate`. There c
 
 
 Now you define all the file names and other parameters in a <scene>.yaml file. The .yaml files are saved in `config/`
+**Note:** the way config files are handled is being improved to streamline the process, see `filter_cloud.yaml` and `register_clouds.yaml`
+the launch arg has been renamed from `scene` to `config`, see `filter_cloud.launch` etc.
 
 ```
 ---
