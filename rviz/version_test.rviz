@@ -8,7 +8,6 @@ Panels:
         - /Status1
         - /TF1
         - /PointCloud21
-        - /PointCloud21/Status1
       Splitter Ratio: 0.5
     Tree Height: 1079
   - Class: rviz/Selection
@@ -63,11 +62,17 @@ Visualization Manager:
         All Enabled: true
         base_link:
           Value: true
-        camera_link:
+        camera_frame:
           Value: true
         laser_frame:
           Value: true
+        map:
+          Value: true
         sonar:
+          Value: true
+        source:
+          Value: true
+        target:
           Value: true
       Marker Alpha: 1
       Marker Scale: 1
@@ -76,13 +81,17 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        base_link:
-          camera_link:
-            {}
-          laser_frame:
-            {}
-          sonar:
-            {}
+        map:
+          {}
+        source:
+          target:
+            base_link:
+              camera_frame:
+                {}
+              laser_frame:
+                {}
+              sonar:
+                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -141,7 +150,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.6701574325561523
+      Distance: 2.035142660140991
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -149,17 +158,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.08684629201889038
-        Y: -0.06428876519203186
-        Z: 0.3784956634044647
+        X: -0.013088630512356758
+        Y: -0.8047128915786743
+        Z: 0.03859395533800125
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2953982353210449
+      Pitch: 0.34539806842803955
       Target Frame: <Fixed Frame>
-      Yaw: 1.0303977727890015
+      Yaw: 3.9685840606689453
     Saved: ~
 Window Geometry:
   Displays:

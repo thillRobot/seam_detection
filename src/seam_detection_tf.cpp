@@ -46,17 +46,21 @@ int main(int argc, char** argv){
     static tf2_ros::StaticTransformBroadcaster static_broadcaster;
     // make a 'zero' transform from 'base_link' to 'map' - this is a 'geometry msg'   // zero translation// zero rotation
     geometry_msgs::TransformStamped *T_base_link_map (new geometry_msgs::TransformStamped); // from 'base_link' to 'map'
+    geometry_msgs::TransformStamped *T_target_base_link (new geometry_msgs::TransformStamped); // from 'target' to 'base_link'
+    geometry_msgs::TransformStamped *T_source_target (new geometry_msgs::TransformStamped); // from 'source' to 'target'
 
     T_base_link_map->header.stamp = ros::Time::now();T_base_link_map->header.frame_id = "map";T_base_link_map->child_frame_id ="base_link";
+    T_base_link_map->transform.translation.x = 0; T_base_link_map->transform.translation.y = 0; T_base_link_map->transform.translation.z = 0;
+    T_base_link_map->transform.rotation.x = 0; T_base_link_map->transform.rotation.y = 0; T_base_link_map->transform.rotation.z = 0;T_base_link_map->transform.rotation.w = 1;
 
-    T_base_link_map->transform.translation.x = 0;
-    T_base_link_map->transform.translation.y = 0;
-    T_base_link_map->transform.translation.z = 0;
+    T_target_base_link->header.stamp = ros::Time::now();T_target_base_link->header.frame_id = "base_link";T_target_base_link->child_frame_id ="target";
+    T_target_base_link->transform.translation.x = 0; T_target_base_link->transform.translation.y = .5; T_target_base_link->transform.translation.z = .25;
+    T_target_base_link->transform.rotation.x = 0; T_target_base_link->transform.rotation.y = 0; T_target_base_link->transform.rotation.z = 0;T_target_base_link->transform.rotation.w = 1;
+   
+    T_source_target->header.stamp = ros::Time::now();T_source_target->header.frame_id = "target";T_source_target->child_frame_id ="source";
+    T_source_target->transform.translation.x = 0; T_source_target->transform.translation.y = .5; T_source_target->transform.translation.z = .25;
+    T_source_target->transform.rotation.x = 0; T_source_target->transform.rotation.y = 0; T_source_target->transform.rotation.z = 0;T_source_target->transform.rotation.w = 1;
 
-    T_base_link_map->transform.rotation.x = 0;
-    T_base_link_map->transform.rotation.y = 0;
-    T_base_link_map->transform.rotation.z = 0;
-    T_base_link_map->transform.rotation.w = 1;
 
     ros::spinOnce();
 
@@ -64,8 +68,15 @@ int main(int argc, char** argv){
     {
       T_base_link_map->header.stamp = ros::Time::now();
       static_broadcaster.sendTransform(*T_base_link_map);
+
+      T_target_base_link->header.stamp = ros::Time::now();
+      static_broadcaster.sendTransform(*T_target_base_link);
+
+      T_source_target->header.stamp = ros::Time::now();
+      static_broadcaster.sendTransform(*T_source_target);
+
         //ROS_INFO("Sending Transform with angle %f",angle);
-/*
+        /*
         broadcaster.sendTransform(
         tf::StampedTransform(
             tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
@@ -81,7 +92,6 @@ int main(int argc, char** argv){
             //tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0.0, 0.0)),
             ros::Time::now(),"base_link","laser"));
         */
-        //ROS_INFO("Transform Sent");
         r.sleep();
         ros::spinOnce();
     }

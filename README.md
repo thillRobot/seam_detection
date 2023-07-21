@@ -494,6 +494,10 @@ chmod o+w seam_detection/<SUBDIR>
 
 #### Things To Do (priority top to bottom):
 
+- [ ] design and test process with multi computer cross version setup on robot with LiDAR and RGBD camera
+    -> pointcloud and tf published by arm computer, vision computer subscribes
+    -> registration result tf published by vision computer, arm computer subscribes   
+
 - [ ] stream line filtering->clustering->registration for testing alongsisde robot
 
 - [x] use PCL Euclidean cluster extraction to replace segmentation or manual bounding box preparation of lidar scans
