@@ -1,0 +1,4 @@
+---
+output_file: "pcd_images/save_cloud_test.pcd"
+save_output: true
+translate_output: false
