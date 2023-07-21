@@ -494,11 +494,14 @@ chmod o+w seam_detection/<SUBDIR>
 
 #### Things To Do (priority top to bottom):
 
-- [ ] use PCL Euclidean cluster extraction to replace segmentation or manual bounding box preparation of lidar scans
+- [ ] stream line filtering->clustering->registration for testing alongsisde robot
+
+- [x] use PCL Euclidean cluster extraction to replace segmentation or manual bounding box preparation of lidar scans
     -> proof of concept shown in `filter_cloud.cpp`, robot body is successfully separated from workpeice, clusters shown in rviz
     -> this needs testing for robustness and documentation, 
+    -> volume + aspect ratio objective function used, improve this with weighted factors instead of summative
 
-- [ ] test clustering with workpeice plus separated objects on table and consider a selection algorithm to determine which cluster is the correct workpeice, cluster size is not a robust metric for selection if the workpeice size varies. The workpeice size will vary.
+- [x] test clustering with workpeice plus separated objects on table and consider a selection algorithm to determine which cluster is the correct workpeice, cluster size is not a robust metric for selection if the workpeice size varies. The workpeice size will vary.
 
 - [ ] test clustering with workpeice and clamps
     -> older scans 

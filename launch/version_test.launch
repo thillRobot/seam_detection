@@ -1,0 +1,10 @@
+<launch>
+
+<node
+  pkg="rviz"
+  type="rviz"
+  name="rviz"
+  args="-d $(find seam_detection)/rviz/version_test.rviz">
+</node>
+
+</launch>
