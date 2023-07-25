@@ -9,8 +9,8 @@ save_part2_segment: false
 use_teaser: false
 use_teaser_fpfh: false
 
-filter_box: [0.0, 0.5, -0.9, -0.4, -0.01, 0.23] # bounding box limits
-voxel_leaf_size: 0.005                           # voxel leaf size
+#filter_box: [0.0, 0.5, -0.9, -0.4, -0.01, 0.23] # bounding box limits
+#voxel_leaf_size: 0.005                           # voxel leaf size
 
 #ransac_norm_dist_wt: 0.1 # RANSAC Normal Distance Weight
 #ransac_max_iter: 100     # RANSAC Maximum Iterations

@@ -4,10 +4,9 @@
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
 
-  <!-- read value of arg for main configuration file-->
+  <!-- read arg value load the parameters from 'main' config file-->
   <arg name="main_config" default="main_lidar" />
   <param name="param" value="$(arg main_config)"/> 
-  <!-- load the parameters from config file -->
   <rosparam file="$(find seam_detection)/config/$(arg main_config).yaml" /> 
  
   <!-- setup the transformations and frames for the system-->
@@ -18,13 +17,12 @@
     output="screen">
   </node>
  
-  <!-- read value of arg for save configuration file-->
+  <!-- read arg value load the parameters from 'get' config file-->
   <arg name="get_config" default="get_cloud" />
   <param name="param" value="$(arg get_config)"/> 
-  <!-- load the parameters from config file -->
   <rosparam file="$(find seam_detection)/config/$(arg get_config).yaml" />
-  <!-- save the cloud published by the aubo robot arm -->
   
+  <!-- get the cloud published by the aubo robot arm -->
   <node                   
     pkg="seam_detection"          
     name="get_cloud"   
@@ -32,17 +30,30 @@
     output="screen">
   </node>
 
-  <!-- read value of arg for register configuration file-->
+  <!-- read arg value load the parameters from 'filter' config file-->
+  <arg name="filter_config" default="filter_cloud" />
+  <param name="param" value="$(arg filter_config)"/> 
+  <rosparam file="$(find seam_detection)/config/$(arg filter_config).yaml" />
+
+  <!-- save the cloud published by the aubo robot arm --> 
+  <node                   
+    pkg="seam_detection"          
+    name="filter_cloud"   
+    type="filter_cloud"
+    output="screen">
+  </node>
+
+  <!-- read arg value load the parameters from 'register' config file-->
   <arg name="register_config" default="register_clouds" />
   <param name="param" value="$(arg register_config)"/> 
-  <!-- load the parameters from config file -->
   <rosparam file="$(find seam_detection)/config/$(arg register_config).yaml" />
+  
   <!-- processing of lidar data for registration -->
   <node
     pkg="seam_detection"
     name="register_clouds"
     type="register_clouds"
-    output="screen">
+    output="log">
   </node>
 
   <!-- start RVIZ --> 
@@ -50,7 +61,7 @@
     name="rviz"
     pkg="rviz"
     type="rviz"
-    args="-d $(find seam_detection)/rviz/register_clouds.rviz">
+    args="-d $(find seam_detection)/rviz/main_lidar.rviz">
   </node>
 
 </launch>

@@ -107,7 +107,7 @@ void cloud_Callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
     //ROS_INFO("flag set, saving cloud");
     std::cout<<"===================================================================="<<endl;
-    std::cout<<"                   Saving Pointcloud Data                           "<<endl;
+    std::cout<<"                   get_cloud: saving pointcloud data                "<<endl;
     std::cout<<"===================================================================="<<endl<<endl;
     // save filtered cloud 
     try{
@@ -132,6 +132,7 @@ int main(int argc, char** argv)
   // setup subcribers for scan_state and cloud_out
   ros::Subscriber scan_state_sub = node.subscribe("/cr_weld/scan_state", 1000, scan_stateCallback);
   ros::Subscriber cloud_sub = node.subscribe("/cloud_out",10, cloud_Callback);
+
   // publisher for save_cloud_state
   ros::Publisher get_cloud_state_pub = node.advertise<std_msgs::Bool> ("/get_cloud/get_cloud_state", 1);
   
@@ -139,12 +140,12 @@ int main(int argc, char** argv)
   get_cloud_state_msg.data=cloud_saved;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     Get Cloud v1.x                              "<<endl;
+  std::cout<<"                     get_cloud v1.x                                 "<<endl;
   std::cout<<"===================================================================="<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                      Loading Configuration File                    "<<endl;
+  std::cout<<"                     get_cloud: loading configuration file          "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   // there is only one cmd line arg and it is the name of the config file
@@ -157,11 +158,11 @@ int main(int argc, char** argv)
   bool save_output, translate_output;
   node.getParam("save_output", save_output);
   node.getParam("translate_output", translate_output);
-  node.getParam("output_file", output_file);
+  node.getParam("get_cloud/output_file", output_file);
   output_path=packagepath+'/'+output_file;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     Loading Pointcloud Data                        "<<endl;
+  std::cout<<"                     get_cloud: loading pointcloud data             "<<endl;
   std::cout<<"===================================================================="<<endl;
 
   //publish forever
@@ -175,7 +176,7 @@ int main(int argc, char** argv)
   }
   
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                        get_cloud Complete                         "<<endl;
+  std::cout<<"                     get_cloud: complete                            "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
   return 0;
 }

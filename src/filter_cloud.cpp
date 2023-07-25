@@ -68,6 +68,7 @@
 #include <geometry_msgs/Twist.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <std_msgs/Bool.h>
 
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
@@ -93,6 +94,20 @@ typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
+bool get_cloud_complete=0;
+
+void get_cloud_stateCallback(const std_msgs::Bool::ConstPtr& msg)
+{
+  //ROS_INFO("I heard scan_state: [%d]", msg->data);
+  if (!msg->data){
+    ROS_INFO("get_cloud in progress, waiting to begin filtering ...");
+  }
+  else if (msg->data&&!get_cloud_complete){
+    ROS_INFO("get_cloud complete, beginning filtering");
+    get_cloud_complete=1;
+  }
+}
+
 // this function applies a bounding box and a voxel filter to the input cloud
 void filter_cloud(PointCloud &input, PointCloud &output, double box[], double leaf_size, bool translate_output, bool auto_bounds)
 {
@@ -106,7 +121,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(input,*cloud);
 
-  std::cout<<"BEGINNING CLOUD FILTERING" << std::endl;
+  std::cout<<"Beginning filter_cloud() function" << std::endl;
   std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
   
   double box_length, box_width, box_height;
@@ -380,14 +395,17 @@ int main(int argc, char** argv)
   ros::init(argc,argv,"seam_detection");
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
+  
+  // setup subcribers for get_cloud_state
+  ros::Subscriber get_cloud_state_sub = node.subscribe("/get_cloud/get_cloud_state", 1000, get_cloud_stateCallback);
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     Filter Cloud v1.6                              "<<endl;
+  std::cout<<"                     filter_cloud v1.6                              "<<endl;
   std::cout<<"===================================================================="<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                      Loading Configuration File                    "<<endl;
+  std::cout<<"                     filter_cloud: loading configuration file                    "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   // there is only one cmd line arg and it is the name of the config file
@@ -419,26 +437,33 @@ int main(int argc, char** argv)
   std::vector<double> filter_box_vec;
   double filter_box[6];
   
-  node.getParam("filter_box",  filter_box_vec);
+  node.getParam("filter_cloud/filter_box",  filter_box_vec);
   for(unsigned i=0; i < filter_box_vec.size(); i++)
     filter_box[i]=filter_box_vec[i]; // copy from vector to array 
-  node.getParam("voxel_leaf_size", voxel_leaf_size);
+  node.getParam("filter_cloud/voxel_leaf_size", voxel_leaf_size);
 
   std::cout<<"Debug0"<<endl;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     Preparing Pointcloud Data                      "<<endl;
+  std::cout<<"                     filter_cloud: preparing pointcloud data                      "<<endl;
   std::cout<<"===================================================================="<<endl;
   
   // instantiate some cloud pointers
   PointCloud::Ptr cloud_input (new pcl::PointCloud<pcl::PointXYZ>); 
-  PointCloud::Ptr cloud_output (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_target (new pcl::PointCloud<pcl::PointXYZ>); 
   PointCloud::Ptr cloud_cluster0 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_cluster1 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_cluster2 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_cluster3 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_cluster4 (new pcl::PointCloud<pcl::PointXYZ>);  
+
+  // wait for pointcloud from get_cloud
+  while(!get_cloud_complete){
+    ros::spinOnce(); // update topics while waiting
+  }
+  
+
 
   std::cout << "Loading cloud files:" <<std::endl;
   if (pcl::io::loadPCDFile<pcl::PointXYZ> (input_path, *cloud_input) == -1)
@@ -457,11 +482,11 @@ int main(int argc, char** argv)
     cloud_target->width * cloud_target->height << " Data points from "<< target_path << std::endl;  
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    Processing Pointcloud Data                      "<<endl;
+  std::cout<<"                    filter_cloud: processing pointcloud data                      "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
-  filter_cloud(*cloud_input,*cloud_output, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
+  filter_cloud(*cloud_input,*cloud_filtered, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
   
   Eigen::Quaternionf target_quaternion, cluster0_quaternion, cluster1_quaternion, cluster2_quaternion, cluster3_quaternion, cluster4_quaternion, marker_quaternion;
   Eigen::Vector3f target_translation, cluster0_translation, cluster1_translation, cluster2_translation, cluster3_translation, cluster4_translation, marker_translation;
@@ -473,7 +498,7 @@ int main(int argc, char** argv)
   if(use_clustering){
 
     // find clusters in filtered cloud (five clusters hardcoded is messy, fix this somehow)
-    cluster_cloud(*cloud_output, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
+    cluster_cloud(*cloud_filtered, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
 
     // find the minimum bounding box for the target cluster
     pcabox_cloud(*cloud_target, target_quaternion, target_translation, target_dimensions); 
@@ -524,20 +549,20 @@ int main(int argc, char** argv)
 
   // save filtered cloud 
   if(save_output&&!use_clustering){
-    pcl::io::savePCDFileASCII (output_path, *cloud_output);
+    pcl::io::savePCDFileASCII (output_path, *cloud_filtered);
     std::cout<<"Filtered cloud written to:"<< output_path <<std::endl;
   }
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                   Pointcloud Processing Complete                   "<<endl;
+  std::cout<<"                   filter_cloud: pointcloud processing complete     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                   Preparing Visualization                          "<<endl;
+  std::cout<<"                   filter_cloud: preparing visualization            "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1) ;
-  ros::Publisher pub_output = node.advertise<PointCloud> ("/cloud_output", 1) ;
+  ros::Publisher pub_output = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
   ros::Publisher pub_target = node.advertise<PointCloud> ("/cloud_target", 1) ;
   ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/cloud_cluster0", 1) ;
   ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/cloud_cluster1", 1) ;
@@ -546,7 +571,7 @@ int main(int argc, char** argv)
   ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/cloud_cluster4", 1) ;
 
   cloud_input->header.frame_id = "base_link";
-  cloud_output->header.frame_id = "base_link";
+  cloud_filtered->header.frame_id = "base_link";
   cloud_target->header.frame_id = "base_link";
   cloud_cluster0->header.frame_id = "base_link";
   cloud_cluster1->header.frame_id = "base_link";
@@ -640,9 +665,9 @@ int main(int argc, char** argv)
     }
 
   }
-
+    
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                        seam_detection Complete                     "<<endl;
+  std::cout<<"                        filter_cloud: complete                     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   //publish forever
@@ -650,7 +675,7 @@ int main(int argc, char** argv)
   {
 
       pub_input.publish(cloud_input);
-      pub_output.publish(cloud_output);
+      pub_output.publish(cloud_filtered);
       pub_target.publish(cloud_target);
       if(use_clustering){
         pub_cluster0.publish(cloud_cluster0);
