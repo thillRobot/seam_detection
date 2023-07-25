@@ -80,50 +80,46 @@ typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 bool scan_complete=0;
+bool cloud_saved=0; 
 
-// global parameters for callback access:w  
+// global parameters for callback access
 std::string output_path, output_file; 
 
 void scan_stateCallback(const std_msgs::Bool::ConstPtr& msg)
 {
-  ROS_INFO("I heard scan_state: [%d]", msg->data);
+  //ROS_INFO("I heard scan_state: [%d]", msg->data);
   if (msg->data){
-    ROS_INFO("Scan beginning");
+    ROS_INFO("Scan beginning, waiting to complete ...");
   }
   else if (!msg->data){
-    ROS_INFO("Scan complete, setting flag");
+    ROS_INFO("Scan complete, preparing to save file");
     scan_complete=1;
   }
-
 }
 
 void cloud_Callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
-
   PointCloud::Ptr cloud_in (new PointCloud);
   pcl::fromROSMsg(*cloud_msg,*cloud_in);
-  ROS_INFO("flag not set, waiting to save");
-  if(scan_complete){
+  //ROS_INFO("flag not set, waiting to save");
+  if(scan_complete&&!cloud_saved){
 
-    ROS_INFO("flag set, saving cloud");
-
+    //ROS_INFO("flag set, saving cloud");
+    std::cout<<"===================================================================="<<endl;
+    std::cout<<"                   Saving Pointcloud Data                           "<<endl;
+    std::cout<<"===================================================================="<<endl<<endl;
     // save filtered cloud 
     try{
       pcl::io::savePCDFileASCII (output_path, *cloud_in);
       std::cout<<"Cloud saved to: "<< output_path <<std::endl;
+      cloud_saved=1;
     }catch(...){
       std::cout<<"Cloud not saved."<<std::endl;
     }
   } 
 
-  //pub.publish(*cloud_out);
   ros::spinOnce();
-
 }
-
-
-
-
 
 int main(int argc, char** argv)
 {
@@ -131,12 +127,10 @@ int main(int argc, char** argv)
   ros::init(argc,argv,"save_cloud");
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
-
+  
+  // setup subcribers for scan_state and cloud_out
   ros::Subscriber scan_state_sub = node.subscribe("/cr_weld/scan_state", 1000, scan_stateCallback);
   ros::Subscriber cloud_sub = node.subscribe("/cloud_out",10, cloud_Callback);
-
-  //ros::Publisher pub;
-  //pub = node.advertise<PointCloud> ("/cloud_out", 10) ;
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                     Save Cloud v1.x                              "<<endl;
@@ -157,32 +151,12 @@ int main(int argc, char** argv)
   bool save_output, translate_output;
   node.getParam("save_output", save_output);
   node.getParam("translate_output", translate_output);
-
- 
-
   node.getParam("output_file", output_file);
   output_path=packagepath+'/'+output_file;
-
-  std::cout<<"Debug0"<<endl;
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                     Loading Pointcloud Data                        "<<endl;
   std::cout<<"===================================================================="<<endl;
-   
-  // add subscribe to pointcloud here
-  PointCloud::Ptr cloud_output (new pcl::PointCloud<pcl::PointXYZ>);
-
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                   Saving Pointcloud Data                           "<<endl;
-  std::cout<<"===================================================================="<<endl<<endl;
-
-
-
-
-
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                        save_cloud Complete                         "<<endl;
-  std::cout<<"===================================================================="<<endl<<endl;
 
   //publish forever
   while(ros::ok())
@@ -190,7 +164,10 @@ int main(int argc, char** argv)
     ros::spinOnce();
     loop_rate.sleep();
   }
-
+  
+  std::cout<<"===================================================================="<<endl;
+  std::cout<<"                        save_cloud Complete                         "<<endl;
+  std::cout<<"===================================================================="<<endl<<endl;
   return 0;
 }
 
