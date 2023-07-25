@@ -1,4 +1,4 @@
 ---
-output_file: "pcd_images/save_cloud_test.pcd"
+output_file: "pcd_images/aubo_i10/aubo_cloud_out.pcd"
 save_output: true
 translate_output: false

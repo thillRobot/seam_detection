@@ -608,23 +608,61 @@ int main(int argc, char** argv)
   PointCloud::Ptr aligned_cloud_T10 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
   PointCloud::Ptr aligned_cloud_T01 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration inverse results)
 
-  // load the cloud data from PCD files , files generated with src/cad_cloud.cpp
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (source_cloud_path, *source_cloud) == -1)
-  {
-    std::cout<<"Couldn't read image file:"<<source_cloud_path;
-    return (-1);
-  }else{
-    std::cout << "Loaded "<<source_cloud->size()<< " data points from "<< source_cloud_file <<std::endl;
-  }
-  // load the cloud from CAD file
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_cloud_path, *target_cloud) == -1)
-  {
-    std::cout<<"Couldn't read image file:"<<target_cloud_path;
-    return (-1);
-  }else{
-    std::cout << "Loaded "<<target_cloud->size()<< " data points from "<< target_cloud_file <<std::endl;
-  }
+  //bool source_available=0;
+  //bool target_available=0;
+  bool source_loaded=0;
+  bool target_loaded=0;
 
+  while (!(source_loaded&&target_loaded)){
+    // load the source cloud from PCD file, files generated with src/cad_cloud.cpp
+    
+    try{
+      if (pcl::io::loadPCDFile<pcl::PointXYZ> (source_cloud_path, *source_cloud) == -1)
+      {
+        //std::cout<<"Couldn't read image file:"<<source_cloud_path;
+        //return (-1);
+      }else if (!source_loaded){
+        std::cout << "Loaded "<<source_cloud->size()<< " data points from "<< source_cloud_file <<std::endl;
+        source_loaded=1;  
+      }
+      // load the target cloud from PCD file
+      if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_cloud_path, *target_cloud) == -1)
+      {
+        //std::cout<<"Couldn't read image file:"<<target_cloud_path;
+        //return (-1);
+      }else if(!target_loaded){
+        std::cout << "Loaded "<<target_cloud->size()<< " data points from "<< target_cloud_file <<std::endl;
+        target_loaded=1;
+      }
+    }catch(...){
+      std::cout<<"Could not read files"<<std::endl;
+      //source_loaded=0; 
+    }
+
+    
+    /* 
+    if (!source_loaded){
+      try{
+        pcl::io::loadPCDFile<pcl::PointXYZ> (source_cloud_path, *source_cloud);
+        std::cout << "Loaded "<<source_cloud->size()<< " data points from "<< source_cloud_file <<std::endl;
+        source_loaded=1;  
+      }catch(...){
+        std::cout<<"Couldn't read source image file:"<<source_cloud_path;
+        source_loaded=0;
+      }
+    }
+    if (!target_loaded){
+      try{
+        pcl::io::loadPCDFile<pcl::PointXYZ> (target_cloud_path, *target_cloud);
+        std::cout << "Loaded "<<target_cloud->size()<< " data points from "<< target_cloud_file <<std::endl;
+        target_loaded=1;  
+      }catch(...){
+        std::cout<<"Couldn't read target image file:"<<source_cloud_path;
+        target_loaded=0;
+      }
+    } 
+    */
+  }
   // for now each tf has three objects associated with it
   // 1) '<name>' (tf::transform)      // needed for transforms with pcl_ros
   // 2) '<name>_tf2' (tf2::transform) // not used
@@ -650,19 +688,17 @@ int main(int argc, char** argv)
   EigenCor cor_src_pts, cor_tgt_pts;
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
 
-
   double fscore; // fitness score (lower is better)
   double fscore_min=1;
 
   double alphas[4]={0, 90, 180, 270}; // array of starting angles
-  int N=4; // number of values
+  int N=4; // number of starting positions
 
   // set rotation and origin of a quaternion for the tf transform object
   double alpha, beta, gamma, dtr;
   dtr=M_PI/180.0;
 
   // repeat registration for each starting value
-  
   for (int i=0;i<N;i++){
 
     // rotation angles for yaw pitch roll
