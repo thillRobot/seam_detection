@@ -1,5 +1,5 @@
 /*
-// This program saves a pointcloud published by scan2cloud and merge_cloud
+// This program gets and saves a pointcloud published by aubo_control main_LIDAR.launch
 // Tristan Hill - 07/21/2023
 
 // see README.md or https://github.com/thillRobot/seam_detection for documentation
@@ -124,16 +124,22 @@ void cloud_Callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 int main(int argc, char** argv)
 {
 
-  ros::init(argc,argv,"save_cloud");
+  ros::init(argc,argv,"get_cloud");
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
   
   // setup subcribers for scan_state and cloud_out
   ros::Subscriber scan_state_sub = node.subscribe("/cr_weld/scan_state", 1000, scan_stateCallback);
   ros::Subscriber cloud_sub = node.subscribe("/cloud_out",10, cloud_Callback);
+  // publisher for save_cloud_state
+  ros::Publisher get_cloud_state_pub = node.advertise<std_msgs::Bool> ("/get_cloud/get_cloud_state", 1);
+  
+  std_msgs::Bool get_cloud_state_msg;
+  bool get_cloud_state=false;
+  get_cloud_state_msg.data=get_cloud_state;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     Save Cloud v1.x                              "<<endl;
+  std::cout<<"                     Get Cloud v1.x                              "<<endl;
   std::cout<<"===================================================================="<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
@@ -161,12 +167,15 @@ int main(int argc, char** argv)
   //publish forever
   while(ros::ok())
   {
+
+    get_cloud_state_pub.publish(get_cloud_state_msg);
+
     ros::spinOnce();
     loop_rate.sleep();
   }
   
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                        save_cloud Complete                         "<<endl;
+  std::cout<<"                        get_cloud Complete                         "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
   return 0;
 }

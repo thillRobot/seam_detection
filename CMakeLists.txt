@@ -276,9 +276,9 @@ target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(filter_cloud src/filter_cloud.cpp)
 target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# save_cloud
-add_executable(save_cloud src/save_cloud.cpp)
-target_link_libraries(save_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# get_cloud
+add_executable(get_cloud src/get_cloud.cpp)
+target_link_libraries(get_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 ################################################################
 ## Teaser Nodes

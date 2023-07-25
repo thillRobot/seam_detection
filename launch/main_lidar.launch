@@ -1,15 +1,15 @@
 <launch>
-
+  
   <!-- launch file for processing pointclouds from aubo_control main_LIDAR.launch -->
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
-  <!-- read value of arg for configuration file-->
+
+  <!-- read value of arg for main configuration file-->
   <arg name="main_config" default="main_lidar" />
   <param name="param" value="$(arg main_config)"/> 
-   
   <!-- load the parameters from config file -->
   <rosparam file="$(find seam_detection)/config/$(arg main_config).yaml" /> 
-
+ 
   <!-- setup the transformations and frames for the system-->
   <node
     pkg="seam_detection"
@@ -18,28 +18,25 @@
     output="screen">
   </node>
  
-  <!-- read value of arg for configuration file-->
-  <arg name="save_config" default="save_cloud" />
-  <param name="param" value="$(arg save_config)"/> 
-   
+  <!-- read value of arg for save configuration file-->
+  <arg name="get_config" default="get_cloud" />
+  <param name="param" value="$(arg get_config)"/> 
   <!-- load the parameters from config file -->
-  <rosparam file="$(find seam_detection)/config/$(arg save_config).yaml" />
-  
+  <rosparam file="$(find seam_detection)/config/$(arg get_config).yaml" />
   <!-- save the cloud published by the aubo robot arm -->
-  <node                     
+  
+  <node                   
     pkg="seam_detection"          
-    name="save_cloud"   
-    type="save_cloud"
-    output="screen">  
+    name="get_cloud"   
+    type="get_cloud"
+    output="screen">
   </node>
 
-  <!-- read value of arg for configuration file-->
+  <!-- read value of arg for register configuration file-->
   <arg name="register_config" default="register_clouds" />
   <param name="param" value="$(arg register_config)"/> 
-   
   <!-- load the parameters from config file -->
   <rosparam file="$(find seam_detection)/config/$(arg register_config).yaml" />
- 
   <!-- processing of lidar data for registration -->
   <node
     pkg="seam_detection"

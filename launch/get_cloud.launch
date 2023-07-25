@@ -2,8 +2,8 @@
 
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
-  <!-- read value of arg -->
-  <arg name="config" default="save_cloud" />
+  <!-- read value of arg for configuration file-->
+  <arg name="config" default="get_cloud" />
   <param name="param" value="$(arg config)"/> 
   
   <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
@@ -16,9 +16,9 @@
 
   <node                     
     pkg="seam_detection"          
-    name="save_cloud"   
-    type="save_cloud"
+    name="get_cloud"   
+    type="get_cloud"
     output="screen"  
-   />
+  />
    
 </launch>
