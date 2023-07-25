@@ -80,7 +80,8 @@ typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 bool scan_complete=0;
-bool cloud_saved=0; 
+bool cloud_saved=0;
+//bool get_cloud_state=false; 
 
 // global parameters for callback access
 std::string output_path, output_file; 
@@ -135,8 +136,7 @@ int main(int argc, char** argv)
   ros::Publisher get_cloud_state_pub = node.advertise<std_msgs::Bool> ("/get_cloud/get_cloud_state", 1);
   
   std_msgs::Bool get_cloud_state_msg;
-  bool get_cloud_state=false;
-  get_cloud_state_msg.data=get_cloud_state;
+  get_cloud_state_msg.data=cloud_saved;
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                     Get Cloud v1.x                              "<<endl;
@@ -167,7 +167,7 @@ int main(int argc, char** argv)
   //publish forever
   while(ros::ok())
   {
-
+    get_cloud_state_msg.data=cloud_saved;
     get_cloud_state_pub.publish(get_cloud_state_msg);
 
     ros::spinOnce();
