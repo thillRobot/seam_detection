@@ -53,7 +53,7 @@
     pkg="seam_detection"
     name="register_clouds"
     type="register_clouds"
-    output="log">
+    output="screen">
   </node>
 
   <!-- start RVIZ --> 

@@ -52,6 +52,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <std_msgs/Bool.h>
 
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
@@ -77,6 +78,20 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
+bool filter_cloud_complete=0;
+bool registration_complete=0;
+
+void filter_cloud_stateCallback(const std_msgs::Bool::ConstPtr& msg)
+{
+  //ROS_INFO("I heard scan_state: [%d]", msg->data);
+  if (!msg->data){
+    ROS_INFO("filter_cloud in progress, waiting to begin registration ...");
+  }
+  else if (msg->data&&!filter_cloud_complete){
+    ROS_INFO("filter_cloud complete, beginning registration");
+    filter_cloud_complete=1;
+  }
+}
 
 // This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
 double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double ran_rej_thrsh, double e_results[],double c_offset[])
@@ -515,13 +530,16 @@ int main(int argc, char** argv)
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
+  // setup subcribers for filter_cloud_state
+  ros::Subscriber filter_cloud_state_sub = node.subscribe("/filter_cloud/filter_cloud_state", 1000, filter_cloud_stateCallback);
+
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    Register Clouds v1.7                            "<<endl;
+  std::cout<<"                    register_clouds v1.7                            "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    Loading Configuration File                      "<<endl;
+  std::cout<<"                    register_clouds: loading configuration file     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   // there is only one cmd line arg and it is the name of the config file
@@ -597,7 +615,7 @@ int main(int argc, char** argv)
   std::cout<<"Debug0"<<endl;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    Preparing Pointcloud Data                       "<<endl;
+  std::cout<<"                    register_clouds: preparing pointcloud data      "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   // instantiate cloud objects
@@ -607,6 +625,11 @@ int main(int argc, char** argv)
   PointCloud::Ptr corrs_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // correspondence cloud   
   PointCloud::Ptr aligned_cloud_T10 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
   PointCloud::Ptr aligned_cloud_T01 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration inverse results)
+
+  // wait for pointclouds from filter_cloud
+  while(!filter_cloud_complete){
+    ros::spinOnce(); // update topics while waiting
+  }
 
   //bool source_available=0;
   //bool target_available=0;
@@ -680,7 +703,7 @@ int main(int argc, char** argv)
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    Processing Pointcloud Data                      "<<endl;
+  std::cout<<"                    register_clouds: processing pointcloud data     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   
@@ -770,7 +793,7 @@ int main(int argc, char** argv)
   }
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    Analyzing Results                                "<<endl;
+  std::cout<<"                    register_clouds: analyzing results              "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   analyze_results(*T_10, expected_results);
@@ -781,7 +804,7 @@ int main(int argc, char** argv)
 
   
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    Preparing Visualization                         "<<endl;
+  std::cout<<"                    register_clouds: preparing visualization        "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   ros::Publisher source_pub = node.advertise<PointCloud> ("/source_cloud", 1);
@@ -871,7 +894,7 @@ int main(int argc, char** argv)
   */
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    Register Clouds Complete                        "<<endl;
+  std::cout<<"                    register_clouds: register clouds complete       "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   //publish forever
