@@ -431,11 +431,11 @@ int main(int argc, char** argv)
 
   // parameters that contain strings  
   std::string input_path, output_path, target_path, input_file, output_file, target_file; 
-  node.getParam("input_file", input_file);
+  node.getParam("filter_cloud/input_file", input_file);
   input_path=packagepath+'/'+input_file;
-  node.getParam("output_file", output_file);
+  node.getParam("filter_cloud/output_file", output_file);
   output_path=packagepath+'/'+output_file;
-  node.getParam("target_file", target_file);
+  node.getParam("filter_cloud/target_file", target_file);
   target_path=packagepath+'/'+target_file;
 
   // parameters that contain doubles

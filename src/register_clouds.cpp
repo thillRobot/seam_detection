@@ -556,13 +556,13 @@ int main(int argc, char** argv)
   // parameters that contain strings  
   std::string source_cloud_path, target_cloud_path, aligned_cloud_path, source_cloud_file, target_cloud_file, aligned_cloud_file;
 
-  node.getParam("source_file", source_cloud_file);
+  node.getParam("register_clouds/source_file", source_cloud_file);
   source_cloud_path=packagepath+'/'+source_cloud_file;
 
-  node.getParam("target_file", target_cloud_file);
+  node.getParam("register_clouds/target_file", target_cloud_file);
   target_cloud_path=packagepath+'/'+target_cloud_file;
 
-  node.getParam("aligned_file", aligned_cloud_file);
+  node.getParam("register_clouds/aligned_file", aligned_cloud_file);
   aligned_cloud_path=packagepath+'/'+aligned_cloud_file;
 
 
@@ -574,10 +574,10 @@ int main(int argc, char** argv)
   std::vector<double> xs, ys, zs, filter_box_vec, ransac_init_norm_vec, expected_results_vec, calibration_offset_vec, seam1_points_x_vec, seam1_points_y_vec, seam1_points_z_vec;
   double filter_box[6],ransac_init_norm[3],icp_params[4],expected_results[6],calibration_offset[6],seam1_points_x[4],seam1_points_y[4],seam1_points_z[4];
   
-  node.getParam("filter_box",  filter_box_vec);
+  node.getParam("register_clouds/filter_box",  filter_box_vec);
   for(unsigned i=0; i < filter_box_vec.size(); i++)
     filter_box[i]=filter_box_vec[i]; // copy from vector to array 
-  node.getParam("voxel_leaf_size", voxel_leaf_size);
+  node.getParam("register_clouds/voxel_leaf_size", voxel_leaf_size);
 
   node.getParam("ransac_norm_dist_wt",ransac_norm_dist_wt);  
   node.getParam("ransac_max_iter",ransac_max_iter);  
@@ -599,6 +599,7 @@ int main(int argc, char** argv)
     calibration_offset[i]=calibration_offset_vec[i]; // copy into an array 
   }
   
+  /*
   node.getParam("seam1_points_x",seam1_points_x_vec);
   node.getParam("seam1_points_y",seam1_points_y_vec);
   node.getParam("seam1_points_z",seam1_points_z_vec);
@@ -606,7 +607,7 @@ int main(int argc, char** argv)
     seam1_points_x[i]=seam1_points_x_vec[i]; // copy into arrays
     seam1_points_y[i]=seam1_points_y_vec[i]; 
     seam1_points_z[i]=seam1_points_z_vec[i];
-  }
+  }*/
 
   // setup a tf for a 'searchbox' marker so we we can see it in RVIZ - maybe someday...
   // static tf::TransformBroadcaster br_searchbox;
