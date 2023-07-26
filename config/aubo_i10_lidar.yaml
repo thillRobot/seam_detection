@@ -21,7 +21,7 @@ filter_cloud/voxel_leaf_size: 0.001                           # voxel leaf size
 # register_clouds params
 
 scene_name: "main_lidar" # change this to config_name ?
-register_clouds/source_file: "pcd_images/aubo_i10/aubo_cloud_out.pcd"
+register_clouds/source_file: "pcd_images/aubo_i10/aubo_cloud_out_filtered.pcd"
 register_clouds/target_file: "pcd_images/shape1_shape2/shape1.pcd"
 register_clouds/aligned_file: "pcd_images/shape1_shape2/source_aligned.pcd"
 part1_name: "shape1"

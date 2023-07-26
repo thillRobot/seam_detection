@@ -740,12 +740,12 @@ int main(int argc, char** argv)
     T_zyx->setOrigin(tf::Vector3(0, 0, 0));
     
     // transform source cloud to alternate position 
-    pcl_ros::transformPointCloud(*source_cloud, *source_cloud, *T_zyx);
+    pcl_ros::transformPointCloud(*source_cloud, *source_cloud_alt, *T_zyx);
 
     if (use_teaser){
       // Perform TEASER++ cloud registration
       double teaser_params[3]={1,2,3}; // temporary place holder 
-      register_cloud_teaser(*source_cloud,*target_cloud,  *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+      register_cloud_teaser(*source_cloud_alt,*target_cloud,  *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
     }else if(use_teaser_fpfh){
       // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
       double teaser_params[3]={1,2,3}; // temporary place holder 
@@ -753,7 +753,7 @@ int main(int argc, char** argv)
 
       //std::vector<std::pair<int, int>> corrs;
       //Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
-      corrs=register_cloud_teaser_fpfh(*source_cloud, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+      corrs=register_cloud_teaser_fpfh(*source_cloud_alt, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
     
       //std::cout << corrs_cloud->size() << std::endl;
       //std::cout << corrs.size() << std::endl; 
@@ -767,16 +767,18 @@ int main(int argc, char** argv)
       //std::cout<<"size: "<<corrs<<std::endl;
     }else{
       // Perform ICP Cloud Registration 
-      fscore=register_cloud_icp(*source_cloud,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results, calibration_offset);
+      fscore=register_cloud_icp(*source_cloud_alt,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results, calibration_offset);
       std::cout << "ICP completed with fitness score: " << fscore << std::endl;
     }
     
     if (fscore<fscore_min){
       fscore_min=fscore;
+      // backout alternate starting point transformation here
+      //T_01->setRotation(q);
 
       // align the source cloud using the resulting transformation only if fscore has improved
-      pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud_T01, *T_01);
-      pcl_ros::transformPointCloud(*source_cloud, *aligned_cloud_T10, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+      pcl_ros::transformPointCloud(*source_cloud_alt, *aligned_cloud_T01, *T_01);
+      pcl_ros::transformPointCloud(*source_cloud_alt, *aligned_cloud_T10, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
       std::cout << "Cloud aligned from starting position "<< i << " using registration results." << std::endl;
 
     }else{
@@ -809,11 +811,13 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<endl<<endl;
 
   ros::Publisher source_pub = node.advertise<PointCloud> ("/source_cloud", 1);
+  ros::Publisher source_alt_pub = node.advertise<PointCloud> ("/source_cloud_alt", 1);
   ros::Publisher target_pub = node.advertise<PointCloud> ("/target_cloud", 1);
   ros::Publisher aligned_T01_pub = node.advertise<PointCloud> ("/aligned_cloud_T01", 1);
   ros::Publisher aligned_T10_pub = node.advertise<PointCloud> ("/aligned_cloud_T10", 1);
   
   source_cloud->header.frame_id = "base_link";
+  source_cloud_alt->header.frame_id = "base_link";
   target_cloud->header.frame_id = "base_link";
   aligned_cloud_T01->header.frame_id = "base_link";
   aligned_cloud_T10->header.frame_id = "base_link";
@@ -906,6 +910,7 @@ int main(int argc, char** argv)
       T_10_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_msg);
 
       source_pub.publish(source_cloud);
+      source_alt_pub.publish(source_cloud_alt);
       target_pub.publish(target_cloud);
       aligned_T01_pub.publish(aligned_cloud_T01);
       aligned_T10_pub.publish(aligned_cloud_T10);
