@@ -694,7 +694,8 @@ int main(int argc, char** argv)
 
   tf::StampedTransform *T_01 (new tf::StampedTransform);    // these are from the old 'TF'
   tf::StampedTransform *T_10 (new tf::StampedTransform);    // they are stil used for pcl_ros::transformPointCloud
-  tf::StampedTransform *T_zyx (new tf::StampedTransform);  // transform to alternate starting location  
+  tf::StampedTransform *T_zyx (new tf::StampedTransform);  // transform to alternate starting location
+  tf::StampedTransform *T_zyx_inv (new tf::StampedTransform);  // inverse transform to alternate starting location  
 
   static tf2_ros::StaticTransformBroadcaster static_broadcaster; // this is the new 'TF2' way to broadcast tfs
   geometry_msgs::TransformStamped *T_01_msg (new geometry_msgs::TransformStamped);
@@ -732,9 +733,16 @@ int main(int argc, char** argv)
     tf::Matrix3x3 Rzyx(cos(alpha)*cos(beta), cos(alpha)*sin(beta)*sin(gamma)-sin(alpha)*cos(gamma), cos(alpha)*sin(beta)*cos(gamma)+sin(alpha)*sin(gamma),
                        sin(alpha)*cos(beta), sin(alpha)*sin(beta)*sin(gamma)+cos(alpha)*cos(gamma), sin(alpha)*sin(beta)*cos(gamma)-cos(alpha)*sin(gamma),
                        -sin(beta)          , cos(beta)*sin(gamma)                                 , cos(beta)*cos(gamma) );  
+    
+    // rotation matrix for Yaw Pitch Roll by alpha gamma beta
+    tf::Matrix3x3 Rzyx_inv, Rtmp;
+    Rzyx_inv=Rzyx.inverse();
+
     // quaternion for previous rotation matrix
-    tf::Quaternion q_zyx;
+    tf::Quaternion q_zyx, q_zyx_inv, q_tmp;
     Rzyx.getRotation(q_zyx);
+    q_zyx_inv=q_zyx.inverse();
+    T_zyx_inv->setRotation(q_zyx_inv);
 
     T_zyx->setRotation(q_zyx);
     T_zyx->setOrigin(tf::Vector3(0, 0, 0));
@@ -774,8 +782,17 @@ int main(int argc, char** argv)
     if (fscore<fscore_min){
       fscore_min=fscore;
       // backout alternate starting point transformation here
-      //T_01->setRotation(q);
+      // use quaternions 
+      //T_01->setRotation(T_zyx_inv->getRotation()*T_01->getRotation());
 
+      // or use transformation matrices
+      Rtmp=Rzyx.inverse()*T_01->getBasis();
+      Rtmp.getRotation(q_tmp);
+      T_01->setRotation(q_tmp);
+
+      Rtmp=Rzyx.inverse()*T_10->getBasis();
+      Rtmp.getRotation(q_tmp);
+      T_10->setRotation(q_tmp);
       // align the source cloud using the resulting transformation only if fscore has improved
       pcl_ros::transformPointCloud(*source_cloud_alt, *aligned_cloud_T01, *T_01);
       pcl_ros::transformPointCloud(*source_cloud_alt, *aligned_cloud_T10, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
