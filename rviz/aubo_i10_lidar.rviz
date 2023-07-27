@@ -454,7 +454,7 @@ Visualization Manager:
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         T_01:
           Value: true
         T_01_alt:
@@ -470,9 +470,9 @@ Visualization Manager:
         map:
           Value: true
         source:
-          Value: true
+          Value: false
         target:
-          Value: true
+          Value: false
       Marker Alpha: 1
       Marker Scale: 0.25
       Name: TF
