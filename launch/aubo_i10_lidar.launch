@@ -45,7 +45,7 @@
     name="rviz"
     pkg="rviz"
     type="rviz"
-    args="-d $(find seam_detection)/rviz/main_lidar.rviz">
+    args="-d $(find seam_detection)/rviz/aubo_i10_lidar.rviz">
   </node>
 
 </launch>

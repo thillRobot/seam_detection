@@ -22,7 +22,6 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
-
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
@@ -30,7 +29,6 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/sample_consensus/sac_model_sphere.h>
-
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/registration/icp.h>
@@ -65,7 +63,6 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
-//#include <tf/TransformStamped.h>
 
 #include <teaser/ply_io.h>
 #include <teaser/registration.h>
@@ -622,6 +619,7 @@ int main(int argc, char** argv)
   // instantiate cloud objects
   PointCloud::Ptr source_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
   PointCloud::Ptr source_cloud_alt (new pcl::PointCloud<pcl::PointXYZ>);  // alternate source cloud
+  PointCloud::Ptr source_cloud_alt_min (new pcl::PointCloud<pcl::PointXYZ>);  // min fscore alternate source cloud
   PointCloud::Ptr target_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud
   PointCloud::Ptr corrs_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // correspondence cloud   
   PointCloud::Ptr aligned_cloud_T10 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
@@ -662,7 +660,6 @@ int main(int argc, char** argv)
       std::cout<<"Could not read files"<<std::endl;
       //source_loaded=0; 
     }
-
     
     /* 
     if (!source_loaded){
@@ -694,27 +691,42 @@ int main(int argc, char** argv)
 
   tf::StampedTransform *T_01 (new tf::StampedTransform);    // these are from the old 'TF'
   tf::StampedTransform *T_10 (new tf::StampedTransform);    // they are stil used for pcl_ros::transformPointCloud
-  tf::StampedTransform *T_zyx (new tf::StampedTransform);  // transform to alternate starting location
-  tf::StampedTransform *T_zyx_inv (new tf::StampedTransform);  // inverse transform to alternate starting location  
+  //tf::StampedTransform *T_01_min (new tf::StampedTransform);    
+  //tf::StampedTransform *T_10_min (new tf::StampedTransform);
+
+  tf::StampedTransform *T_alt (new tf::StampedTransform);  // transform to alternate starting location
+
+  tf::StampedTransform *T_01_alt (new tf::StampedTransform);
+  tf::StampedTransform *T_10_alt (new tf::StampedTransform);     
+  
+  //tf::StampedTransform *T_zyx_inv (new tf::StampedTransform);  // inverse transform to alternate starting location  
 
   static tf2_ros::StaticTransformBroadcaster static_broadcaster; // this is the new 'TF2' way to broadcast tfs
+  
   geometry_msgs::TransformStamped *T_01_msg (new geometry_msgs::TransformStamped);
   T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01";
-
   geometry_msgs::TransformStamped *T_10_msg (new geometry_msgs::TransformStamped);
   T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
+
+  geometry_msgs::TransformStamped *T_alt_msg (new geometry_msgs::TransformStamped);
+  T_alt_msg->header.frame_id = "base_link"; T_alt_msg->child_frame_id = "T_alt"; 
+  
+  geometry_msgs::TransformStamped *T_01_alt_msg (new geometry_msgs::TransformStamped);
+  T_01_alt_msg->header.frame_id = "T_alt"; T_01_alt_msg->child_frame_id = "T_01_alt";
+  geometry_msgs::TransformStamped *T_10_alt_msg (new geometry_msgs::TransformStamped);
+  T_10_alt_msg->header.frame_id = "T_alt"; T_10_alt_msg->child_frame_id = "T_10_alt";
+
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: processing pointcloud data     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
-  
   int N_cor=100;
   EigenCor cor_src_pts, cor_tgt_pts;
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
 
   double fscore; // fitness score (lower is better)
-  double fscore_min=1;
+  double fscore_min=100;
 
   double alphas[4]={0, 90, 180, 270}; // array of starting angles
   int N=4; // number of starting positions
@@ -724,32 +736,34 @@ int main(int argc, char** argv)
   dtr=M_PI/180.0;
 
   // repeat registration for each starting value
+  int i_min;
   for (int i=0;i<N;i++){
 
     // rotation angles for yaw pitch roll
     alpha=alphas[i]*dtr;beta=0*dtr;gamma=0*dtr; 
 
     // rotation matrix for Yaw Pitch Roll by alpha gamma beta
-    tf::Matrix3x3 Rzyx(cos(alpha)*cos(beta), cos(alpha)*sin(beta)*sin(gamma)-sin(alpha)*cos(gamma), cos(alpha)*sin(beta)*cos(gamma)+sin(alpha)*sin(gamma),
+    tf::Matrix3x3 R_alt(cos(alpha)*cos(beta), cos(alpha)*sin(beta)*sin(gamma)-sin(alpha)*cos(gamma), cos(alpha)*sin(beta)*cos(gamma)+sin(alpha)*sin(gamma),
                        sin(alpha)*cos(beta), sin(alpha)*sin(beta)*sin(gamma)+cos(alpha)*cos(gamma), sin(alpha)*sin(beta)*cos(gamma)-cos(alpha)*sin(gamma),
                        -sin(beta)          , cos(beta)*sin(gamma)                                 , cos(beta)*cos(gamma) );  
-    
+
     // rotation matrix for Yaw Pitch Roll by alpha gamma beta
-    tf::Matrix3x3 Rzyx_inv, Rtmp;
-    Rzyx_inv=Rzyx.inverse();
+    //tf::Matrix3x3 R_zyx_inv, R_tmp;
+    //R_zyx_inv=R_zyx.inverse();
 
     // quaternion for previous rotation matrix
-    tf::Quaternion q_zyx, q_zyx_inv, q_tmp;
-    Rzyx.getRotation(q_zyx);
-    q_zyx_inv=q_zyx.inverse();
-    T_zyx_inv->setRotation(q_zyx_inv);
+    tf::Quaternion q_alt;
+    R_alt.getRotation(q_alt); // sets quaternion q_zyx with rotation from R_zyx
+    //q_zyx_inv=q_zyx.inverse();
+    //T_zyx_inv->setRotation(q_zyx_inv);
 
-    T_zyx->setRotation(q_zyx);
-    T_zyx->setOrigin(tf::Vector3(0, 0, 0));
+    T_alt->setRotation(q_alt);
+    T_alt->setOrigin(tf::Vector3(0, 0, 0)); // no translation component of the transformation
     
-    // transform source cloud to alternate position 
-    pcl_ros::transformPointCloud(*source_cloud, *source_cloud_alt, *T_zyx);
+    // transform source cloud to alternate starting position 
+    pcl_ros::transformPointCloud(*source_cloud, *source_cloud_alt, *T_alt);
 
+    // perform registration starting from alternate starting position
     if (use_teaser){
       // Perform TEASER++ cloud registration
       double teaser_params[3]={1,2,3}; // temporary place holder 
@@ -758,52 +772,83 @@ int main(int argc, char** argv)
       // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
       double teaser_params[3]={1,2,3}; // temporary place holder 
       teaser::FPFHEstimation features;   
-
-      //std::vector<std::pair<int, int>> corrs;
-      //Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
       corrs=register_cloud_teaser_fpfh(*source_cloud_alt, *target_cloud, *corrs_cloud, *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
-    
-      //std::cout << corrs_cloud->size() << std::endl;
-      //std::cout << corrs.size() << std::endl; 
-      //for (const auto& point: *corrs_cloud)
-      //  std::cout << "    " << point.x
-      //            << " "    << point.y
-      //            << " "    << point.z << std::endl;
-      //std::cout<<*source_cloud.point.x<<std::endl;
       std::cout<<"register_cloud_teaser_fpfh() correspondences"<<std::endl;
       std::cout<<"size: "<<corrs.size()<<std::endl;
-      //std::cout<<"size: "<<corrs<<std::endl;
     }else{
       // Perform ICP Cloud Registration 
-      fscore=register_cloud_icp(*source_cloud_alt,*target_cloud,*T_10, *T_01, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results, calibration_offset);
+      fscore=register_cloud_icp(*source_cloud_alt,*target_cloud,*T_10_alt, *T_01_alt, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results, calibration_offset);
       std::cout << "ICP completed with fitness score: " << fscore << std::endl;
     }
     
+    /*
+    // backout alternate starting point transformation her, asdf asdf asdf
+    tf::Quaternion q_01_alt, q_10_alt;
+    tf::Matrix3x3 R_01_alt, R_10_alt;
+    tf::Vector3 o_01_alt, o_10_alt;
+
+    R_01_alt=T_01_alt->getBasis();
+    R_10_alt=T_10_alt->getBasis();
+
+    o_01[0]=T_01_alt->getOrigin().getX();
+    o_01[1]=T_01_alt->getOrigin().getY();
+    o_01[2]=T_01_alt->getOrigin().getZ();
+
+    o_10[0]=T_10_alt->getOrigin().getX();
+    o_10[1]=T_10_alt->getOrigin().getY();
+    o_10[2]=T_10_alt->getOrigin().getZ();
+
+    o_01=R_alt.inverse()*o_01; 
+    o_10=R_alt.inverse()*o_10; 
+   
+    T_01->setOrigin(o_01);
+    T_10->setOrigin(o_10);
+
+    R_01=R_zyx.inverse()*R_01;
+    R_10=R_zyx.inverse()*R_10;
+    
+    R_01.getRotation(q_01);
+    R_10.getRotation(q_10);
+
+    T_01->setRotation(q_01);
+    T_10->setRotation(q_10);
+    */
+
     if (fscore<fscore_min){
       fscore_min=fscore;
-      // backout alternate starting point transformation here
-      // use quaternions 
-      //T_01->setRotation(T_zyx_inv->getRotation()*T_01->getRotation());
+      //T_01_min=T_01;
+      //T_10_min=T_10;
+      i_min=i;
 
-      // or use transformation matrices
-      Rtmp=Rzyx.inverse()*T_01->getBasis();
-      Rtmp.getRotation(q_tmp);
-      T_01->setRotation(q_tmp);
-
-      Rtmp=Rzyx.inverse()*T_10->getBasis();
-      Rtmp.getRotation(q_tmp);
-      T_10->setRotation(q_tmp);
       // align the source cloud using the resulting transformation only if fscore has improved
-      pcl_ros::transformPointCloud(*source_cloud_alt, *aligned_cloud_T01, *T_01);
-      pcl_ros::transformPointCloud(*source_cloud_alt, *aligned_cloud_T10, *T_10); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
-      std::cout << "Cloud aligned from starting position "<< i << " using registration results." << std::endl;
+      pcl_ros::transformPointCloud(*source_cloud_alt, *aligned_cloud_T01, *T_01_alt);
+      pcl_ros::transformPointCloud(*source_cloud_alt, *aligned_cloud_T10, *T_10_alt); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+     
+      pcl_ros::transformPointCloud(*source_cloud, *source_cloud_alt_min, *T_alt);
 
+      // update the messages to be published after updating transforms
+      //tf::transformStampedTFToMsg(*T_01_min, *T_01_msg);
+      //tf::transformStampedTFToMsg(*T_10_min, *T_10_msg);
+      tf::transformStampedTFToMsg(*T_alt, *T_alt_msg);
+      tf::transformStampedTFToMsg(*T_01_alt, *T_01_alt_msg);
+      tf::transformStampedTFToMsg(*T_10_alt, *T_10_alt_msg);
+
+      std::cout << "Score improved from starting position "<< i << " recording registration results" << std::endl;
     }else{
-      std::cout << "Score not improved, alignment skipped." << std::endl;
+      std::cout << "Score not improved, skipping" << std::endl;
     }
-
   }
 
+  std::cout << "Cloud aligned from starting position "<< i_min << " using best registration results" << std::endl;
+   
+  // set relative frame references (this seems like it is repeated, check on this)
+
+  T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01";
+  T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
+  T_alt_msg->header.frame_id = "base_link"; T_alt_msg->child_frame_id = "T_alt";
+  T_01_alt_msg->header.frame_id = "T_alt"; T_01_alt_msg->child_frame_id = "T_01_alt";
+  T_10_alt_msg->header.frame_id = "T_alt"; T_10_alt_msg->child_frame_id = "T_10_alt";
+  
   // save aligned cloud in PCD file
   if(save_aligned){
     std::cout<<"Writing aligned cloud to:"<< aligned_cloud_path <<std::endl;
@@ -819,25 +864,22 @@ int main(int argc, char** argv)
   analyze_results(*T_10, expected_results);
   analyze_results(*T_01, expected_results);
 
-  T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01";
-  T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
-
-  
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: preparing visualization        "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   ros::Publisher source_pub = node.advertise<PointCloud> ("/source_cloud", 1);
-  ros::Publisher source_alt_pub = node.advertise<PointCloud> ("/source_cloud_alt", 1);
+  ros::Publisher source_alt_min_pub = node.advertise<PointCloud> ("/source_cloud_alt_min", 1);
   ros::Publisher target_pub = node.advertise<PointCloud> ("/target_cloud", 1);
+
   ros::Publisher aligned_T01_pub = node.advertise<PointCloud> ("/aligned_cloud_T01", 1);
   ros::Publisher aligned_T10_pub = node.advertise<PointCloud> ("/aligned_cloud_T10", 1);
   
   source_cloud->header.frame_id = "base_link";
-  source_cloud_alt->header.frame_id = "base_link";
+  source_cloud_alt_min->header.frame_id = "base_link";
   target_cloud->header.frame_id = "base_link";
-  aligned_cloud_T01->header.frame_id = "base_link";
-  aligned_cloud_T10->header.frame_id = "base_link";
+  aligned_cloud_T01->header.frame_id = "T_alt";
+  aligned_cloud_T10->header.frame_id = "T_alt";
   
   //ros::Publisher marker_pub = node.advertise<visualization_msgs::Marker>( "corrs_marker", 0 );
   
@@ -925,14 +967,20 @@ int main(int argc, char** argv)
       // this is the new 'TF2' way of broadcasting tfs
       T_01_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_msg);
       T_10_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_msg);
+      T_alt_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_alt_msg);
+      T_01_alt_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_alt_msg);
+      T_10_alt_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_alt_msg);
+      
 
       source_pub.publish(source_cloud);
-      source_alt_pub.publish(source_cloud_alt);
+      source_alt_min_pub.publish(source_cloud_alt_min);
+      
       target_pub.publish(target_cloud);
       aligned_T01_pub.publish(aligned_cloud_T01);
       aligned_T10_pub.publish(aligned_cloud_T10);
-      source_markers_pub.publish( source_markers );
-      target_markers_pub.publish( target_markers );
+
+      source_markers_pub.publish(source_markers);
+      target_markers_pub.publish(target_markers);
 
       ros::spinOnce();
       loop_rate.sleep();

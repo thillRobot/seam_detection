@@ -82,6 +82,7 @@ typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 bool scan_complete=0;
 bool cloud_saved=0;
 //bool get_cloud_state=false; 
+bool new_scan;
 
 // global parameters for callback access
 std::string output_path, output_file; 
@@ -103,6 +104,7 @@ void cloud_Callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   PointCloud::Ptr cloud_in (new PointCloud);
   pcl::fromROSMsg(*cloud_msg,*cloud_in);
   //ROS_INFO("flag not set, waiting to save");
+
   if(scan_complete&&!cloud_saved){
 
     //ROS_INFO("flag set, saving cloud");
@@ -158,8 +160,16 @@ int main(int argc, char** argv)
   bool save_output, translate_output;
   node.getParam("save_output", save_output);
   node.getParam("translate_output", translate_output);
+  node.getParam("get_cloud/new_scan", new_scan);
+
   node.getParam("get_cloud/output_file", output_file);
   output_path=packagepath+'/'+output_file;
+
+  // by pass wait for new scan
+  if(!new_scan){
+    std::cout<<"Using previous scan from file: "<< output_path <<std::endl;
+    cloud_saved=1;
+  }
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                     get_cloud: loading pointcloud data             "<<endl;
