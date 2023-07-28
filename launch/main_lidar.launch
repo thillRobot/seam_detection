@@ -3,7 +3,6 @@
   <!-- launch file for processing pointclouds from aubo_control main_LIDAR.launch -->
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
-
   <!-- read arg value load the parameters from 'main' config file-->
   <arg name="main_config" default="main_lidar" />
   <param name="param" value="$(arg main_config)"/> 
