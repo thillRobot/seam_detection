@@ -42,7 +42,7 @@
 
   <!-- start RVIZ --> 
   <node 
-    name="rviz"
+    name="rviz20"
     pkg="rviz"
     type="rviz"
     args="-d $(find seam_detection)/rviz/aubo_i10_lidar.rviz">

@@ -16,20 +16,7 @@
 #include "std_msgs/Float32.h"
 #include <tf/transform_datatypes.h>
 #include <tf2_ros/static_transform_broadcaster.h>
-//#include "Vector3.h"
-//#include "Quaternion.h"
-//#include <Matrix3x3.h>
 
-// tf setup does not need a callback, for now.
-/*
-void dataCallback1(const std_msgs::Float32::ConstPtr& msg)
-{
-    ROS_INFO("CALLBACK!");
-    ROS_INFO("I heard: [%f]", msg->data);
-    //angle1=-(65-msg->data)*(3.14159/180.0);
-    angle1=-(90-msg->data)*(3.14159/180.0);
-}
-*/
 int main(int argc, char** argv){
 
 
@@ -46,52 +33,27 @@ int main(int argc, char** argv){
     static tf2_ros::StaticTransformBroadcaster static_broadcaster;
     // make a 'zero' transform from 'base_link' to 'map' - this is a 'geometry msg'   // zero translation// zero rotation
     geometry_msgs::TransformStamped *T_base_link_map (new geometry_msgs::TransformStamped); // from 'base_link' to 'map'
-    geometry_msgs::TransformStamped *T_target_base_link (new geometry_msgs::TransformStamped); // from 'target' to 'base_link'
-    geometry_msgs::TransformStamped *T_source_target (new geometry_msgs::TransformStamped); // from 'source' to 'target'
+    geometry_msgs::TransformStamped *T_map_world (new geometry_msgs::TransformStamped); // from 'map' to 'world'
 
     T_base_link_map->header.stamp = ros::Time::now();T_base_link_map->header.frame_id = "map";T_base_link_map->child_frame_id ="base_link";
     T_base_link_map->transform.translation.x = 0; T_base_link_map->transform.translation.y = 0; T_base_link_map->transform.translation.z = 0;
     T_base_link_map->transform.rotation.x = 0; T_base_link_map->transform.rotation.y = 0; T_base_link_map->transform.rotation.z = 0;T_base_link_map->transform.rotation.w = 1;
 
-    T_target_base_link->header.stamp = ros::Time::now();T_target_base_link->header.frame_id = "base_link";T_target_base_link->child_frame_id ="target";
-    T_target_base_link->transform.translation.x = 0; T_target_base_link->transform.translation.y = .5; T_target_base_link->transform.translation.z = .25;
-    T_target_base_link->transform.rotation.x = 0; T_target_base_link->transform.rotation.y = 0; T_target_base_link->transform.rotation.z = 0;T_target_base_link->transform.rotation.w = 1;
-   
-    T_source_target->header.stamp = ros::Time::now();T_source_target->header.frame_id = "target";T_source_target->child_frame_id ="source";
-    T_source_target->transform.translation.x = 0; T_source_target->transform.translation.y = .5; T_source_target->transform.translation.z = .25;
-    T_source_target->transform.rotation.x = 0; T_source_target->transform.rotation.y = 0; T_source_target->transform.rotation.z = 0;T_source_target->transform.rotation.w = 1;
-
+    T_map_world->header.stamp = ros::Time::now();T_map_world->header.frame_id = "world";T_map_world->child_frame_id ="map";
+    T_map_world->transform.translation.x = 0; T_map_world->transform.translation.y = 0; T_map_world->transform.translation.z = 0;
+    T_map_world->transform.rotation.x = 0; T_map_world->transform.rotation.y = 0; T_map_world->transform.rotation.z = 0;T_map_world->transform.rotation.w = 1;
 
     ros::spinOnce();
 
     while(n.ok())
     {
+
       T_base_link_map->header.stamp = ros::Time::now();
       static_broadcaster.sendTransform(*T_base_link_map);
 
-      T_target_base_link->header.stamp = ros::Time::now();
-      static_broadcaster.sendTransform(*T_target_base_link);
-
-      T_source_target->header.stamp = ros::Time::now();
-      static_broadcaster.sendTransform(*T_source_target);
-
-        //ROS_INFO("Sending Transform with angle %f",angle);
-        /*
-        broadcaster.sendTransform(
-        tf::StampedTransform(
-            tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
-            //tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.0)),
-            ros::Time::now(),"map","base_link"));
-            */
-       /*// The 'laser' link is not currently used by 'seam_detection'
-       broadcaster.sendTransform(
-          tf::StampedTransform(
-            tf::Transform(tf::createQuaternionFromRPY(0,angle1,angle2), tf::Vector3(0.0, 0.0, 0.0)),
-            //tf::Transform(mat, tf::Vector3(0.0, 0.0, 0.0)),
-
-            //tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0.0, 0.0)),
-            ros::Time::now(),"base_link","laser"));
-        */
+      T_map_world->header.stamp = ros::Time::now();
+      static_broadcaster.sendTransform(*T_map_world);
+ 
         r.sleep();
         ros::spinOnce();
     }
