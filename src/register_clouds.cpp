@@ -654,25 +654,38 @@ int main(int argc, char** argv)
 
   tf::StampedTransform *T_01 (new tf::StampedTransform);    // these are from the old 'TF'
   tf::StampedTransform *T_10 (new tf::StampedTransform);    // they are stil used for pcl_ros::transformPointCloud
-  //tf::StampedTransform *T_01_min (new tf::StampedTransform);    
-  //tf::StampedTransform *T_10_min (new tf::StampedTransform);
+  tf::StampedTransform *T_01_min (new tf::StampedTransform);    
+  tf::StampedTransform *T_10_min (new tf::StampedTransform);
   tf::StampedTransform *T_intr (new tf::StampedTransform);  // transform to intermediate starting location
+  //tf::StampedTransform *T_intr_min (new tf::StampedTransform);  // transform to intermediate starting location with min registration score
   tf::StampedTransform *T_01_intr (new tf::StampedTransform);
   tf::StampedTransform *T_10_intr (new tf::StampedTransform);     
+  //tf::StampedTransform *T_01_intr_min (new tf::StampedTransform);
+  //tf::StampedTransform *T_10_intr_min (new tf::StampedTransform); 
 
   static tf2_ros::StaticTransformBroadcaster static_broadcaster; // this is the new 'TF2' way to broadcast tfs
   
   geometry_msgs::TransformStamped *T_01_msg (new geometry_msgs::TransformStamped);      // frames with parent frame base_link
-  T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01";
+  T_01_msg->header.frame_id = "T_intr_min"; T_01_msg->child_frame_id = "T_01";
   geometry_msgs::TransformStamped *T_10_msg (new geometry_msgs::TransformStamped);
-  T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
-  geometry_msgs::TransformStamped *T_intr_msg (new geometry_msgs::TransformStamped);
-  T_intr_msg->header.frame_id = "base_link"; T_intr_msg->child_frame_id = "T_intr"; 
+  T_10_msg->header.frame_id = "T_intr_min"; T_10_msg->child_frame_id = "T_10";
+  
+  //geometry_msgs::TransformStamped *T_intr_msg (new geometry_msgs::TransformStamped);
+  //T_intr_msg->header.frame_id = "base_link"; T_intr_msg->child_frame_id = "T_intr";
+  
+  geometry_msgs::TransformStamped *T_intr_min_msg (new geometry_msgs::TransformStamped);
+  T_intr_min_msg->header.frame_id = "base_link"; T_intr_min_msg->child_frame_id = "T_intr_min";
 
-  geometry_msgs::TransformStamped *T_01_intr_msg (new geometry_msgs::TransformStamped);  // frames with parent frame T_intr 
-  T_01_intr_msg->header.frame_id = "T_intr"; T_01_intr_msg->child_frame_id = "T_01_intr";
+  geometry_msgs::TransformStamped *T_01_intr_msg (new geometry_msgs::TransformStamped);  // frames with parent frame T_intr_min
+  T_01_intr_msg->header.frame_id = "base_link"; T_01_intr_msg->child_frame_id = "T_01_intr";
   geometry_msgs::TransformStamped *T_10_intr_msg (new geometry_msgs::TransformStamped);
-  T_10_intr_msg->header.frame_id = "T_intr"; T_10_intr_msg->child_frame_id = "T_10_intr";
+  T_10_intr_msg->header.frame_id = "base_link"; T_10_intr_msg->child_frame_id = "T_10_intr";
+
+   geometry_msgs::TransformStamped *T_01_intr_min_msg (new geometry_msgs::TransformStamped);  
+  T_01_intr_min_msg->header.frame_id = "base_link"; T_01_intr_min_msg->child_frame_id = "T_01_intr_min";
+  geometry_msgs::TransformStamped *T_10_intr_min_msg (new geometry_msgs::TransformStamped);
+  T_10_intr_min_msg->header.frame_id = "base_link"; T_10_intr_min_msg->child_frame_id = "T_10_intr_min";
+
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: processing pointcloud data     "<<endl;
@@ -702,15 +715,16 @@ int main(int argc, char** argv)
     // rotation matrix for Yaw Pitch Roll by alpha gamma beta
     tf::Matrix3x3 R_intr(cos(alpha)*cos(beta), cos(alpha)*sin(beta)*sin(gamma)-sin(alpha)*cos(gamma), cos(alpha)*sin(beta)*cos(gamma)+sin(alpha)*sin(gamma),
                          sin(alpha)*cos(beta), sin(alpha)*sin(beta)*sin(gamma)+cos(alpha)*cos(gamma), sin(alpha)*sin(beta)*cos(gamma)-cos(alpha)*sin(gamma),
-                         -sin(beta)          , cos(beta)*sin(gamma)                                 , cos(beta)*cos(gamma) );  
+                         -sin(beta)          , cos(beta)*sin(gamma)                                 , cos(beta)*cos(gamma));  
 
     // quaternion for previous rotation matrix
     tf::Quaternion q_intr;
-    R_intr.getRotation(q_intr); // sets quaternion q_zyx with rotation from R_zyx
+    R_intr.getRotation(q_intr); // sets quaternion q_zyx with rotation from R_zyx (returns normalized quaternion?, check on this)
 
     T_intr->setRotation(q_intr);
     T_intr->setOrigin(tf::Vector3(0, 0, 0)); // no translation component of the transformation
-    
+    // need to normalize quaternion here?
+
     // transform source cloud to ith intermediate starting position 
     pcl_ros::transformPointCloud(*source_cloud, *source_cloud_intr, *T_intr);
 
@@ -728,47 +742,18 @@ int main(int argc, char** argv)
       std::cout<<"size: "<<corrs.size()<<std::endl;
     }else{
       // Perform ICP Cloud Registration 
-      fscore=register_cloud_icp(*source_cloud_intr,*target_cloud,*T_10_intr, *T_01_intr, *T_10_msg, *T_01_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results, calibration_offset);
+      fscore=register_cloud_icp(*source_cloud_intr,*target_cloud,*T_10_intr, *T_01_intr, *T_10_intr_msg, *T_01_intr_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results, calibration_offset);
       std::cout << "ICP completed with fitness score: " << fscore << std::endl;
     }
     
-    /*
-    // backout intermediate starting point transformation her, revisit this soon, or let sz do it...
-    tf::Quaternion q_01_intr, q_10_intr;
-    tf::Matrix3x3 R_01_intr, R_10_intr;
-    tf::Vector3 o_01_intr, o_10_intr;
+    // backout intermediate starting point transformation here, revisit this soon, or let sz do it...
 
-    R_01_intr=T_01_intr->getBasis();
-    R_10_intr=T_10_intr->getBasis();
-
-    o_01[0]=T_01_intr->getOrigin().getX();
-    o_01[1]=T_01_intr->getOrigin().getY();
-    o_01[2]=T_01_intr->getOrigin().getZ();
-
-    o_10[0]=T_10_intr->getOrigin().getX();
-    o_10[1]=T_10_intr->getOrigin().getY();
-    o_10[2]=T_10_intr->getOrigin().getZ();
-
-    o_01=R_intr.inverse()*o_01; 
-    o_10=R_intr.inverse()*o_10; 
-   
-    T_01->setOrigin(o_01);
-    T_10->setOrigin(o_10);
-
-    R_01=R_zyx.inverse()*R_01;
-    R_10=R_zyx.inverse()*R_10;
-  
-    R_01.getRotation(q_01);
-    R_10.getRotation(q_10);
-
-    T_01->setRotation(q_01);
-    T_10->setRotation(q_10);
-    */
-
+    // find intermediate starting position which gives lowest registration score
     if (fscore<fscore_min){
       fscore_min=fscore;
-      //T_01_min=T_01;
-      //T_10_min=T_10;
+      //T_intr_min=T_intr;   // dont copy the pointers directly, this will break the minimization routine
+      //T_01_intr_min=T_01_intr;
+      //T_10_intr_min=T_10_intr;
       i_min=i;
 
       // align the source cloud using the resulting transformation only if fscore has improved
@@ -776,27 +761,49 @@ int main(int argc, char** argv)
       pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_cloud_T10, *T_10_intr); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
       pcl_ros::transformPointCloud(*source_cloud, *source_cloud_intr_min, *T_intr);
 
-      // update the messages to be published after updating transforms
-      tf::transformStampedTFToMsg(*T_01_intr, *T_01_intr_msg);
-      tf::transformStampedTFToMsg(*T_10_intr, *T_10_intr_msg);
-      tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
-      //tf::transformStampedTFToMsg(*T_01_min, *T_01_msg);
-      //tf::transformStampedTFToMsg(*T_10_min, *T_10_msg);
+      // update the messages to be published after updating transforms upon finding minimum
+      //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
+      tf::transformStampedTFToMsg(*T_intr, *T_intr_min_msg);
+      tf::transformStampedTFToMsg(*T_01_intr, *T_01_intr_min_msg);
+      tf::transformStampedTFToMsg(*T_10_intr, *T_10_intr_min_msg);
 
-      std::cout << "Score improved from starting position "<< i << " recording registration results" << std::endl;
+      tf::transformStampedTFToMsg(*T_01_intr, *T_01_msg);
+      tf::transformStampedTFToMsg(*T_10_intr, *T_10_msg);
+
+      std::cout << "Score improved from starting position "<< i << ", recording registration results" << std::endl;
     }else{
-      std::cout << "Score not improved, skipping" << std::endl;
+      std::cout << "Score not improved from starting position "<< i << ", skipping" << std::endl;
     }
   }
+
+  // update the messages to be published after updating transforms
+  //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
+  //tf::transformStampedTFToMsg(*T_intr_min, *T_intr_min_msg);
+  //tf::transformStampedTFToMsg(*T_01_intr_min, *T_01_intr_min_msg);
+  //tf::transformStampedTFToMsg(*T_10_intr_min, *T_10_intr_min_msg);
+  //tf::transformStampedTFToMsg(*T_01_intr, *T_01_intr_msg);
+  //tf::transformStampedTFToMsg(*T_10_intr, *T_10_intr_msg);
 
   std::cout << "Cloud aligned from starting position "<< i_min << " using best registration results" << std::endl;
    
   // set relative frame references (this seems like it is repeated, check on this)
-  T_01_msg->header.frame_id = "base_link"; T_01_msg->child_frame_id = "T_01"; // frames with parent frame base_link
-  T_10_msg->header.frame_id = "base_link"; T_10_msg->child_frame_id = "T_10";
-  T_intr_msg->header.frame_id = "base_link"; T_intr_msg->child_frame_id = "T_intr"; 
-  T_01_intr_msg->header.frame_id = "T_intr"; T_01_intr_msg->child_frame_id = "T_01_intr"; // frames with parent frame T_intr
-  T_10_intr_msg->header.frame_id = "T_intr"; T_10_intr_msg->child_frame_id = "T_10_intr";
+  
+  T_01_msg->header.frame_id = "T_intr_min"; T_01_msg->child_frame_id = "T_01"; // frames with parent frame base_link
+  T_10_msg->header.frame_id = "T_intr_min"; T_10_msg->child_frame_id = "T_10";
+  
+  //T_01_min_msg->header.frame_id = "base_link"; T_01_min_msg->child_frame_id = "T_01_min"; // frames with parent frame base_link
+  //T_10_min_msg->header.frame_id = "base_link"; T_10_min_msg->child_frame_id = "T_10_min";
+
+  //T_intr_msg->header.frame_id = "base_link"; T_intr_msg->child_frame_id = "T_intr";
+  T_intr_min_msg->header.frame_id = "base_link"; T_intr_min_msg->child_frame_id = "T_intr_min"; 
+
+  //T_01_intr_msg->header.frame_id = "T_intr_min"; T_01_intr_msg->child_frame_id = "T_01_intr"; // frames with parent frame T_intr
+  //T_10_intr_msg->header.frame_id = "T_intr_min"; T_10_intr_msg->child_frame_id = "T_10_intr";
+
+  T_01_intr_min_msg->header.frame_id = "base_link"; T_01_intr_min_msg->child_frame_id = "T_01_intr_min";
+  T_10_intr_min_msg->header.frame_id = "base_link"; T_10_intr_min_msg->child_frame_id = "T_10_intr_min";
+
+
   
   // save aligned cloud in PCD file (alignment still needs some work, revisit next!)
   if(save_aligned){
@@ -827,8 +834,8 @@ int main(int argc, char** argv)
   source_cloud->header.frame_id = "base_link";
   source_cloud_intr_min->header.frame_id = "base_link";
   target_cloud->header.frame_id = "base_link";
-  aligned_cloud_T01->header.frame_id = "T_intr"; // should be base link or T_intr?
-  aligned_cloud_T10->header.frame_id = "T_intr";
+  aligned_cloud_T01->header.frame_id = "base_link"; // should be base link or T_intr?
+  aligned_cloud_T10->header.frame_id = "base_link";
   
   ros::Publisher source_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "source_markers", 0 );
   visualization_msgs::MarkerArray source_markers;
@@ -897,9 +904,18 @@ int main(int argc, char** argv)
       // this is the new 'TF2' way of broadcasting tfs
       T_01_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_msg);
       T_10_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_msg);
-      T_intr_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_intr_msg);
-      T_01_intr_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_intr_msg);
-      T_10_intr_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_intr_msg);
+      
+      //T_01_min_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_min_msg);
+      //T_10_min_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_min_msg);
+      
+      //T_intr_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_intr_msg);
+      T_intr_min_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_intr_min_msg);
+
+      //T_01_intr_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_intr_msg);
+      //T_10_intr_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_intr_msg);
+
+      T_01_intr_min_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_intr_min_msg);
+      T_10_intr_min_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_intr_min_msg);
       
       source_pub.publish(source_cloud);
       source_intr_min_pub.publish(source_cloud_intr_min);
