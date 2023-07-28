@@ -657,7 +657,8 @@ int main(int argc, char** argv)
   tf::StampedTransform *T_01_min (new tf::StampedTransform);    
   tf::StampedTransform *T_10_min (new tf::StampedTransform);
   tf::StampedTransform *T_intr (new tf::StampedTransform);  // transform to intermediate starting location
-  //tf::StampedTransform *T_intr_min (new tf::StampedTransform);  // transform to intermediate starting location with min registration score
+  tf::StampedTransform *T_intr_inv (new tf::StampedTransform);  //inverse transform to intermediate starting location
+  
   tf::StampedTransform *T_01_intr (new tf::StampedTransform);
   tf::StampedTransform *T_10_intr (new tf::StampedTransform);     
   //tf::StampedTransform *T_01_intr_min (new tf::StampedTransform);
@@ -695,6 +696,7 @@ int main(int argc, char** argv)
   EigenCor cor_src_pts, cor_tgt_pts;
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
 
+
   double fscore; // fitness score (lower is better)
   double fscore_min=100;
 
@@ -719,11 +721,13 @@ int main(int argc, char** argv)
 
     // quaternion for previous rotation matrix
     tf::Quaternion q_intr;
-    R_intr.getRotation(q_intr); // sets quaternion q_zyx with rotation from R_zyx (returns normalized quaternion?, check on this)
+    R_intr.getRotation(q_intr); // sets quaternion q_intr with rotation from R_intr (returns normalized quaternion?, check on this)
 
     T_intr->setRotation(q_intr);
-    T_intr->setOrigin(tf::Vector3(0, 0, 0)); // no translation component of the transformation
+    T_intr->setOrigin(tf::Vector3(0, 0, 0)); // no translation component of the transformation (is 0,0,0 default?)
     // need to normalize quaternion here?
+
+    T_intr_inv->setData(T_intr->inverse()); // get the inverse intermediate transformation, use setData() to copy from pointer to pointer
 
     // transform source cloud to ith intermediate starting position 
     pcl_ros::transformPointCloud(*source_cloud, *source_cloud_intr, *T_intr);
@@ -763,7 +767,7 @@ int main(int argc, char** argv)
 
       // update the messages to be published after updating transforms upon finding minimum
       //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
-      tf::transformStampedTFToMsg(*T_intr, *T_intr_min_msg);
+      tf::transformStampedTFToMsg(*T_intr_inv, *T_intr_min_msg);
       tf::transformStampedTFToMsg(*T_01_intr, *T_01_intr_min_msg);
       tf::transformStampedTFToMsg(*T_10_intr, *T_10_intr_min_msg);
 
