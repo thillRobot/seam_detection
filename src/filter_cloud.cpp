@@ -379,14 +379,14 @@ double score_cluster(PointCloud &input, PointCloud &target){
   // volume diff needs large weight to offset order of magnitude difference in units btwn volume and aspect ratio (1000:1 -> equal weight) 
 
   // weights successfully tested shape1.pcd vs aubo_cloud_out_00-09.pcd
-  score= 1000*abs(input_volume-target_volume)
-        +1.0*abs(input_aspect_ratio-target_aspect_ratio)
-        +0.0*abs(input_dimensions.maxCoeff()-target_dimensions.maxCoeff());
-  
-  // weights successfully tested shape2.pcd vs aubo_cloud_out_09-15.pcd
   //score= 1000*abs(input_volume-target_volume)
   //      +1.0*abs(input_aspect_ratio-target_aspect_ratio)
-  //      +1000.0*abs(input_dimensions.maxCoeff()-target_dimensions.maxCoeff());
+  //      +0.0*abs(input_dimensions.maxCoeff()-target_dimensions.maxCoeff());
+  
+  // weights successfully tested shape2.pcd vs aubo_cloud_out_09-15.pcd
+  score= 100000*abs(input_volume-target_volume)
+        +1.0*abs(input_aspect_ratio-target_aspect_ratio)
+        +1000.0*abs(input_dimensions.maxCoeff()-target_dimensions.maxCoeff());
 
   std::cout<<"input volume: "<<input_volume<<std::endl;
   std::cout<<"input aspect ratio: "<<input_aspect_ratio<<std::endl;
