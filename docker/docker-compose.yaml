@@ -32,8 +32,8 @@ services:
   cad-cloud: 
     build: .
     command: roslaunch seam_detection cad_cloud.launch n_samples:=4000 leaf_size:=.00025
-             if:=$(find seam_detection)/ply_images/shape1_shape2/shape1_180deg.ply
-             of:=$(find seam_detection)/pcd_images/shape1_shape2/shape1_180deg.pcd
+             if:=$(find seam_detection)/ply_images/shape1_shape2/shape2.ply
+             of:=$(find seam_detection)/pcd_images/shape1_shape2/shape2.pcd
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -61,3 +61,12 @@ services:
       - ~/.Xauthority:/root/.Xauthority
       - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
    
+  bash: 
+    build: .
+    command: bash
+    environment:
+      DISPLAY: $DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src 

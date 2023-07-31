@@ -375,19 +375,18 @@ double score_cluster(PointCloud &input, PointCloud &target){
   target_volume=target_dimensions[0]*target_dimensions[1]*target_dimensions[2]; // calculate volume as product of dimensions
   target_aspect_ratio=target_dimensions.maxCoeff()/target_dimensions.minCoeff(); // calculate aspect ratio as max dimension / min dimension
 
-  //score=pow( ( 1.0*pow((input_volume-target_volume),2)+1.0*pow((input_aspect_ratio-target_aspect_ratio),2) ) , 0.5) ;
+  //score=pow((pow((input_volume-target_volume),2)*pow((input_aspect_ratio-target_aspect_ratio),2)) , 0.5) ;
   // volume diff needs large weight to offset order of magnitude difference in units btwn volume and aspect ratio (1000:1 -> equal weight) 
-   
-  //std::cout<< (input_volume-target_volume)<<std::endl;
-  //std::cout<< pow(1.0*(input_volume-target_volume),2)<<std::endl;
-  
+
+  // weights successfully tested shape1.pcd vs aubo_cloud_out_00-09.pcd
   score= 1000*abs(input_volume-target_volume)
         +1.0*abs(input_aspect_ratio-target_aspect_ratio)
-        +50.0*abs(input_dimensions.maxCoeff()-target_dimensions.maxCoeff());
-
-  //score=pow(100000.0*(input_volume-target_volume),2)+pow(0.0*(input_aspect_ratio-target_aspect_ratio),2); // (20,000:1 -> 20:1)
-
-  //score=pow((pow((input_volume-target_volume),2)*pow((input_aspect_ratio-target_aspect_ratio),2)) , 0.5) ;
+        +0.0*abs(input_dimensions.maxCoeff()-target_dimensions.maxCoeff());
+  
+  // weights successfully tested shape2.pcd vs aubo_cloud_out_09-15.pcd
+  //score= 1000*abs(input_volume-target_volume)
+  //      +1.0*abs(input_aspect_ratio-target_aspect_ratio)
+  //      +1000.0*abs(input_dimensions.maxCoeff()-target_dimensions.maxCoeff());
 
   std::cout<<"input volume: "<<input_volume<<std::endl;
   std::cout<<"input aspect ratio: "<<input_aspect_ratio<<std::endl;
