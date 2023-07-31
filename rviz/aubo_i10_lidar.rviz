@@ -10,7 +10,6 @@ Panels:
         - /PointCloud28
         - /PointCloud29
         - /MarkerArray1
-        - /MarkerArray1/Status1
         - /TF1/Frames1
       Splitter Ratio: 0.42806604504585266
     Tree Height: 1168
@@ -472,19 +471,19 @@ Visualization Manager:
         T_01:
           Value: true
         T_01_intr_min:
-          Value: false
+          Value: true
         T_10:
-          Value: false
+          Value: true
         T_10_intr_min:
-          Value: false
+          Value: true
         T_intr_min:
-          Value: false
+          Value: true
         base_link:
-          Value: false
+          Value: true
         map:
-          Value: false
+          Value: true
         world:
-          Value: false
+          Value: true
       Marker Alpha: 1
       Marker Scale: 0.5
       Name: TF
@@ -582,9 +581,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.389797180891037
+      Pitch: 0.03479742258787155
       Target Frame: <Fixed Frame>
-      Yaw: 6.079719543457031
+      Yaw: 0.03153303638100624
     Saved: ~
 Window Geometry:
   Displays:

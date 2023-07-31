@@ -377,7 +377,15 @@ double score_cluster(PointCloud &input, PointCloud &target){
 
   //score=pow( ( 1.0*pow((input_volume-target_volume),2)+1.0*pow((input_aspect_ratio-target_aspect_ratio),2) ) , 0.5) ;
   // volume diff needs large weight to offset order of magnitude difference in units btwn volume and aspect ratio (1000:1 -> equal weight) 
-  score=pow(5000.0*(input_volume-target_volume),2)+pow(1.0*(input_aspect_ratio-target_aspect_ratio),2);
+   
+  //std::cout<< (input_volume-target_volume)<<std::endl;
+  //std::cout<< pow(1.0*(input_volume-target_volume),2)<<std::endl;
+  
+  score= 1000*abs(input_volume-target_volume)
+        +1.0*abs(input_aspect_ratio-target_aspect_ratio)
+        +50.0*abs(input_dimensions.maxCoeff()-target_dimensions.maxCoeff());
+
+  //score=pow(100000.0*(input_volume-target_volume),2)+pow(0.0*(input_aspect_ratio-target_aspect_ratio),2); // (20,000:1 -> 20:1)
 
   //score=pow((pow((input_volume-target_volume),2)*pow((input_aspect_ratio-target_aspect_ratio),2)) , 0.5) ;
 
@@ -385,7 +393,7 @@ double score_cluster(PointCloud &input, PointCloud &target){
   std::cout<<"input aspect ratio: "<<input_aspect_ratio<<std::endl;
   std::cout<<"target volume: "<<target_volume<<std::endl;
   std::cout<<"target aspect ratio: "<<target_aspect_ratio<<std::endl;
-  std::cout<<"comparison score: "<<score<<std::endl;
+  std::cout<<"comparison score: "<<score<<std::endl<<std::endl;
   
   return score;
 
@@ -519,18 +527,20 @@ int main(int argc, char** argv)
 
     // get score for each cluster
     double score0, score1, score2, score3, score4, score;
-    score=100;
+    //score=100;
     score0=score_cluster(*cloud_cluster0, *cloud_filtered_target);
     score1=score_cluster(*cloud_cluster1, *cloud_filtered_target);
     score2=score_cluster(*cloud_cluster2, *cloud_filtered_target);
     score3=score_cluster(*cloud_cluster3, *cloud_filtered_target);
     score4=score_cluster(*cloud_cluster4, *cloud_filtered_target);
 
-    if (score0<score){
+    score=score0; // assume first score is the lowest, always save
+    //if (score0<score){
      score=score0;
      pcl::io::savePCDFileASCII (output_path, *cloud_cluster0);
      std::cout<<"cluster0 written to:"<< output_path <<std::endl;
-    }
+    //}
+    
     if (score1<score){
       score=score1;
       pcl::io::savePCDFileASCII (output_path, *cloud_cluster1);
