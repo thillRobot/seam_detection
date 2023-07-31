@@ -235,11 +235,11 @@ void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, 
     for (const auto& idx : cluster.indices) {
       cloud_cluster->push_back((*cloud)[idx]);
     } //*
-    cloud_cluster->width = cloud_cluster->size ();
+    cloud_cluster->width = cloud_cluster->size();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
 
-    if (j==0){ // save the first five clusters for now, this could be improved
+    if (j==0){ // save the first five clusters for now, this could be improved with iteration
       pcl::copyPointCloud(*cloud_cluster,output0);
     }else if(j==1){
       pcl::copyPointCloud(*cloud_cluster,output1);
@@ -251,10 +251,7 @@ void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, 
       pcl::copyPointCloud(*cloud_cluster,output4);
     }
 
-    std::cout << "PointCloud representing the Cluster: " << cloud_cluster->size () << " data points." << std::endl;
-    std::stringstream ss;
-    ss << std::setw(4) << std::setfill('0') << j;
-    //writer.write<pcl::PointXYZ> ("cloud_cluster_" + ss.str () + ".pcd", *cloud_cluster, false); //*
+    std::cout << "PointCloud representing cluster"<<j<<" has "<< cloud_cluster->size() << " data points." << std::endl;
     j++;
   }
 
@@ -295,7 +292,7 @@ void pcabox_cloud(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen:
   bbox_dimensions[2]=maxPoint.z-minPoint.z;
 
   double bbox_volume, bbox_aspect_ratio;
-  bbox_volume=bbox_dimensions[1]*bbox_dimensions[2]*bbox_dimensions[2]; // calculate volume as product of dimensions
+  bbox_volume=bbox_dimensions[0]*bbox_dimensions[1]*bbox_dimensions[2]; // calculate volume as product of dimensions
   bbox_aspect_ratio=bbox_dimensions.maxCoeff()/bbox_dimensions.minCoeff(); // calculate aspect ratio as max dimension / min dimension
 
   std::cout<<"volume: "<<bbox_volume<<std::endl;
@@ -378,13 +375,17 @@ double score_cluster(PointCloud &input, PointCloud &target){
   target_volume=target_dimensions[0]*target_dimensions[1]*target_dimensions[2]; // calculate volume as product of dimensions
   target_aspect_ratio=target_dimensions.maxCoeff()/target_dimensions.minCoeff(); // calculate aspect ratio as max dimension / min dimension
 
-  score=pow( ( pow((input_volume-target_volume),2)+pow((input_aspect_ratio-target_aspect_ratio),2) ) , 0.5) ;
+  //score=pow( ( 1.0*pow((input_volume-target_volume),2)+1.0*pow((input_aspect_ratio-target_aspect_ratio),2) ) , 0.5) ;
+  // volume diff needs large weight to offset order of magnitude difference in units btwn volume and aspect ratio (1000:1 -> equal weight) 
+  score=pow(5000.0*(input_volume-target_volume),2)+pow(1.0*(input_aspect_ratio-target_aspect_ratio),2);
+
+  //score=pow((pow((input_volume-target_volume),2)*pow((input_aspect_ratio-target_aspect_ratio),2)) , 0.5) ;
 
   std::cout<<"input volume: "<<input_volume<<std::endl;
   std::cout<<"input aspect ratio: "<<input_aspect_ratio<<std::endl;
   std::cout<<"target volume: "<<target_volume<<std::endl;
   std::cout<<"target aspect ratio: "<<target_aspect_ratio<<std::endl;
-  std::cout<<"input score: "<<score<<std::endl;
+  std::cout<<"comparison score: "<<score<<std::endl;
   
   return score;
 

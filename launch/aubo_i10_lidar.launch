@@ -41,10 +41,7 @@
   </node>
 
 
-  <!-- start aubo i10 model (this breaks tf) -->
-  <arg name="model" default="$(find aubo_description)/urdf/aubo_i10.urdf"/>
-  <param name="robot_description" command="$(find xacro)/xacro --inorder $(arg model)" /> 
-
+ 
   <!-- start RVIZ --> 
   <node 
     name="rviz20"
