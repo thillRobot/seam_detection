@@ -6,7 +6,7 @@ save_output: true
 translate_output: false
 
 # filter_cloud params
-filter_cloud/input_file: "pcd_images/aubo_i10/aubo_cloud_out_10.pcd"
+filter_cloud/input_file: "pcd_images/aubo_i10/aubo_cloud_out_09.pcd"
 filter_cloud/output_file: "pcd_images/aubo_i10/aubo_cloud_out_filtered.pcd"
 filter_cloud/target_file: "pcd_images/shape1_shape2/shape2.pcd"
 save_output: true
