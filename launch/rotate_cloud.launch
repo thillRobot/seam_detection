@@ -1,0 +1,31 @@
+<launch>
+
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
+  
+  <!-- read value of arg -->
+  <arg name="config" default="rotate_cloud" />
+  <param name="param" value="$(arg config)"/> 
+  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
+
+  <!-- setup the transformations and frames for the system-->
+  <node
+    pkg="seam_detection"
+    name="seam_detection_tf"
+    type="seam_detection_tf"
+    output="screen"
+  />                      
+  
+  <node name="rviz" 
+    pkg="rviz" 
+    type="rviz" 
+    args="-d $(find seam_detection)/rviz/rotate_cloud.rviz">
+  </node>
+
+  <node                     
+    pkg="seam_detection"          
+    name="rotate_cloud"   
+    type="rotate_cloud"
+    output="screen"  
+   />
+   
+</launch>

@@ -280,6 +280,10 @@ target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(get_cloud src/get_cloud.cpp)
 target_link_libraries(get_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+# rotate_cloud
+add_executable(rotate_cloud src/rotate_cloud.cpp)
+target_link_libraries(rotate_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 ################################################################
 ## Teaser Nodes
 ################################################################
