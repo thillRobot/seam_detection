@@ -765,6 +765,34 @@ int main(int argc, char** argv)
       pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_cloud_T10, *T_10_intr); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
       pcl_ros::transformPointCloud(*source_cloud, *source_cloud_intr_min, *T_intr);
 
+      // align weld seam points using transformation
+
+      // copy the tranform from pointer      
+      tf::StampedTransform T_intr_tmp(*T_intr);
+      tf::StampedTransform T_01_intr_tmp(*T_01_intr);
+
+      tf::Vector3 P0_target(0, 0, 0);   // weld points in inches
+      tf::Vector3 P1_target(0, 2, 4.5);
+      tf::Vector3 P2_target(12.5, 2, 4.5);
+      
+      P0_target=P0_target*0.0254;       // convert to meters 
+      P1_target=P1_target*0.0254;
+      P2_target=P2_target*0.0254;
+
+      tf::Vector3 P0_source, P1_source, P2_source;
+      P0_source=T_intr_tmp*T_01_intr_tmp*P0_target;
+      P1_source=T_intr_tmp*T_01_intr_tmp*P1_target;
+      P2_source=T_intr_tmp*T_01_intr_tmp*P2_target;
+
+      std::cout<<"P0_target: ["<<P0_target.x()<<","<<P0_target.y()<<","<<P0_target.z()<<"]"<<std::endl;
+      std::cout<<"P0_source: ["<<P0_source.x()<<","<<P0_source.y()<<","<<P0_source.z()<<"]"<<std::endl;
+      
+      std::cout<<"P1_target: ["<<P1_target.x()<<","<<P1_target.y()<<","<<P1_target.z()<<"]"<<std::endl;
+      std::cout<<"P1_source: ["<<P1_source.x()<<","<<P1_source.y()<<","<<P1_source.z()<<"]"<<std::endl;
+
+      std::cout<<"P2_target: ["<<P2_target.x()<<","<<P2_target.y()<<","<<P2_target.z()<<"]"<<std::endl;
+      std::cout<<"P2_source: ["<<P2_source.x()<<","<<P2_source.y()<<","<<P2_source.z()<<"]"<<std::endl;
+
       // update the messages to be published after updating transforms upon finding minimum
       //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
       tf::transformStampedTFToMsg(*T_intr_inv, *T_intr_min_msg);
