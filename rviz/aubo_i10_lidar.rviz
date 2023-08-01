@@ -10,6 +10,7 @@ Panels:
         - /PointCloud28
         - /PointCloud29
         - /MarkerArray1
+        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.42806604504585266
     Tree Height: 802
@@ -471,65 +472,65 @@ Visualization Manager:
         T_01:
           Value: true
         T_01_intr_min:
-          Value: true
+          Value: false
         T_10:
-          Value: true
+          Value: false
         T_10_intr_min:
-          Value: true
+          Value: false
         T_intr_min:
-          Value: true
+          Value: false
         Torch:
-          Value: true
+          Value: false
         base_Link:
-          Value: true
+          Value: false
         base_link:
-          Value: true
+          Value: false
         ee_Link:
-          Value: true
+          Value: false
         eef:
-          Value: true
+          Value: false
         f1_Link:
-          Value: true
+          Value: false
         foreArm_Link:
-          Value: true
+          Value: false
         joystick:
-          Value: true
+          Value: false
         laser:
-          Value: true
+          Value: false
         map:
-          Value: true
+          Value: false
         rviz_cam:
-          Value: true
+          Value: false
         s_Link:
-          Value: true
+          Value: false
         shoulder_Link:
-          Value: true
+          Value: false
         tool0:
-          Value: true
+          Value: false
         tool1:
-          Value: true
+          Value: false
         tool_joy:
-          Value: true
+          Value: false
         u_Link:
-          Value: true
+          Value: false
         upperArm_Link:
-          Value: true
+          Value: false
         w1_Link:
-          Value: true
+          Value: false
         w2_Link:
-          Value: true
+          Value: false
         weave_frame:
-          Value: true
+          Value: false
         wire_tip:
-          Value: true
+          Value: false
         world:
-          Value: true
+          Value: false
         wrist1_Link:
-          Value: true
+          Value: false
         wrist2_Link:
-          Value: true
+          Value: false
         wrist3_Link:
-          Value: true
+          Value: false
       Marker Alpha: 1
       Marker Scale: 0.5
       Name: TF
@@ -538,49 +539,49 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
+          base_link:
+            T_01_intr_min:
+              {}
+            T_10_intr_min:
+              {}
+            T_intr_min:
+              T_01:
+                {}
+              T_10:
+                {}
+            base_Link:
+              foreArm_Link:
+                u_Link:
+                  {}
+              shoulder_Link:
+                s_Link:
+                  {}
+              upperArm_Link:
+                f1_Link:
+                  {}
+              wrist1_Link:
+                w1_Link:
+                  {}
+              wrist2_Link:
+                w2_Link:
+                  {}
+              wrist3_Link:
+                ee_Link:
+                  Torch:
+                    {}
+                  eef:
+                    {}
+                  laser:
+                    {}
+                  tool_joy:
+                    joystick:
+                      {}
+                  wire_tip:
+                    weave_frame:
+                      tool0:
+                        tool1:
+                          {}
           map:
-            base_link:
-              T_01_intr_min:
-                {}
-              T_10_intr_min:
-                {}
-              T_intr_min:
-                T_01:
-                  {}
-                T_10:
-                  {}
-              base_Link:
-                foreArm_Link:
-                  u_Link:
-                    {}
-                shoulder_Link:
-                  s_Link:
-                    {}
-                upperArm_Link:
-                  f1_Link:
-                    {}
-                wrist1_Link:
-                  w1_Link:
-                    {}
-                wrist2_Link:
-                  w2_Link:
-                    {}
-                wrist3_Link:
-                  ee_Link:
-                    Torch:
-                      {}
-                    eef:
-                      {}
-                    laser:
-                      {}
-                    tool_joy:
-                      joystick:
-                        {}
-                    wire_tip:
-                      weave_frame:
-                        tool0:
-                          tool1:
-                            {}
             rviz_cam:
               {}
       Update Interval: 0
@@ -696,7 +697,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.298811912536621
+      Distance: 2.2724111080169678
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -704,17 +705,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.004431858658790588
-        Y: -0.27470165491104126
-        Z: 0.15494108200073242
+        X: 0.013889912515878677
+        Y: -0.3008626699447632
+        Z: 0.06285171210765839
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.03479742258787155
+      Pitch: 0.5497972965240479
       Target Frame: <Fixed Frame>
-      Yaw: 0.03153303638100624
+      Yaw: 6.174717903137207
     Saved: ~
 Window Geometry:
   Displays:
