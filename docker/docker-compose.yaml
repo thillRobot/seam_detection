@@ -32,8 +32,8 @@ services:
   cad-cloud: 
     build: .
     command: roslaunch seam_detection cad_cloud.launch n_samples:=4000 leaf_size:=.00025
-             if:=$(find seam_detection)/ply_images/shape1_shape2/shape2.ply
-             of:=$(find seam_detection)/pcd_images/shape1_shape2/shape2.pcd
+             if:=$(find seam_detection)/ply_images/shape3/shape3_wweld.ply
+             of:=$(find seam_detection)/pcd_images/shape3/shape3_wweld.pcd
     environment:
       DISPLAY: $DISPLAY
     volumes:
