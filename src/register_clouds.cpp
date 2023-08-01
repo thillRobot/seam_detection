@@ -9,8 +9,10 @@ v1.0 - 2022-12-20
 
 see README.md or https://github.com/thillRobot/seam_detection for documentation
 */
-
+  
+// basic file operations
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <boost/thread/thread.hpp>
 #include <Eigen/Dense>
@@ -704,8 +706,9 @@ int main(int argc, char** argv)
   int N=4; // number of starting positions
 
   // set rotation and origin of a quaternion for the tf transform object
-  double alpha, beta, gamma, dtr;
-  dtr=M_PI/180.0;
+  double alpha, beta, gamma, dtr, intm;
+  dtr=M_PI/180.0; // degrees to radians
+  intm=0.0254;  // inches to meters
 
   // repeat registration for each starting value
   int i_min;
@@ -771,27 +774,56 @@ int main(int argc, char** argv)
       tf::StampedTransform T_intr_tmp(*T_intr);
       tf::StampedTransform T_01_intr_tmp(*T_01_intr);
 
-      tf::Vector3 P0_target(0, 0, 0);   // weld points in inches
-      tf::Vector3 P1_target(0, 2, 4.5);
-      tf::Vector3 P2_target(12.5, 2, 4.5);
-      
-      P0_target=P0_target*0.0254;       // convert to meters 
-      P1_target=P1_target*0.0254;
-      P2_target=P2_target*0.0254;
+      tf::Vector3 P0_target, P1_target, P2_target,
+                  P0_source, P1_source, P2_source,
+                  P0_source_inches, P1_source_inches, P2_source_inches;
 
-      tf::Vector3 P0_source, P1_source, P2_source;
-      P0_source=T_intr_tmp*T_01_intr_tmp*P0_target;
-      P1_source=T_intr_tmp*T_01_intr_tmp*P1_target;
-      P2_source=T_intr_tmp*T_01_intr_tmp*P2_target;
+      // points for shape3
+      //tf::Vector3 P0_target_inches(0, 0, 0-6);   // weld points in inches
+      //tf::Vector3 P1_target_inches(0, 2, 4.5-6);
+      //tf::Vector3 P2_target_inches(12.5, 2, 4.5-6);
+
+      // points for shape2
+      tf::Vector3 P0_target_inches(0, 0, 0-9);   // weld points in inches
+      tf::Vector3 P1_target_inches(0, 0, 2-9);
+      tf::Vector3 P2_target_inches(14, 0, 2-9);
+      
+      P0_target=P0_target_inches*intm;       // convert to meters 
+      P1_target=P1_target_inches*intm;
+      P2_target=P2_target_inches*intm;
+
+      P0_source=T_intr_tmp.inverse()*T_01_intr_tmp*P0_target;
+      P1_source=T_intr_tmp.inverse()*T_01_intr_tmp*P1_target;
+      P2_source=T_intr_tmp.inverse()*T_01_intr_tmp*P2_target;
+
+      P0_source_inches=P0_source/intm;       // convert to inches
+      P1_source_inches=P1_source/intm;
+      P2_source_inches=P2_source/intm;
 
       std::cout<<"P0_target: ["<<P0_target.x()<<","<<P0_target.y()<<","<<P0_target.z()<<"]"<<std::endl;
       std::cout<<"P0_source: ["<<P0_source.x()<<","<<P0_source.y()<<","<<P0_source.z()<<"]"<<std::endl;
-      
       std::cout<<"P1_target: ["<<P1_target.x()<<","<<P1_target.y()<<","<<P1_target.z()<<"]"<<std::endl;
       std::cout<<"P1_source: ["<<P1_source.x()<<","<<P1_source.y()<<","<<P1_source.z()<<"]"<<std::endl;
-
       std::cout<<"P2_target: ["<<P2_target.x()<<","<<P2_target.y()<<","<<P2_target.z()<<"]"<<std::endl;
       std::cout<<"P2_source: ["<<P2_source.x()<<","<<P2_source.y()<<","<<P2_source.z()<<"]"<<std::endl;
+
+      std::cout<<"P0_target_inches: ["<<P0_target_inches.x()<<","<<P0_target_inches.y()<<","<<P0_target_inches.z()<<"]"<<std::endl;
+      std::cout<<"P0_source_inches: ["<<P0_source_inches.x()<<","<<P0_source_inches.y()<<","<<P0_source_inches.z()<<"]"<<std::endl;
+      std::cout<<"P1_target_inches: ["<<P1_target_inches.x()<<","<<P1_target_inches.y()<<","<<P1_target_inches.z()<<"]"<<std::endl;
+      std::cout<<"P1_source_inches: ["<<P1_source_inches.x()<<","<<P1_source_inches.y()<<","<<P1_source_inches.z()<<"]"<<std::endl;
+      std::cout<<"P2_target_inches: ["<<P2_target_inches.x()<<","<<P2_target_inches.y()<<","<<P2_target_inches.z()<<"]"<<std::endl;
+      std::cout<<"P2_source_inches: ["<<P2_source_inches.x()<<","<<P2_source_inches.y()<<","<<P2_source_inches.z()<<"]"<<std::endl;
+
+      // write the points to a gcode file called 'move_P1_P2', the source points will be used
+      
+      ofstream outfile;
+      outfile.open (packagepath+"/"+"/gcode/move_P1_P2.txt");
+      outfile <<"G1 X"<<P1_source_inches.x()<<" Y"<<P1_source_inches.y()<<" Z"<<P1_source_inches.z()
+              <<" A60 B10 C175 F200"<<std::endl;
+      outfile <<"G4 P0.2"<<std::endl;        
+      outfile << "G1 X"<<P2_source_inches.x()<<" Y"<<P2_source_inches.y()<<" Z"<<P2_source_inches.z()
+              <<" A60 B10 C175 F150"<<std::endl;
+      outfile.close();
 
       // update the messages to be published after updating transforms upon finding minimum
       //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
