@@ -1,6 +1,6 @@
 ---
 # get_cloud params 
-get_cloud/new_scan: false
+get_cloud/new_scan: true
 get_cloud/output_file: "pcd_images/aubo_i10/aubo_cloud_out.pcd"
 save_output: true
 translate_output: false

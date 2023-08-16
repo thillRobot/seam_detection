@@ -135,11 +135,11 @@ int main(int argc, char** argv)
   ros::Subscriber scan_state_sub = node.subscribe("/cr_weld/scan_state", 1000, scan_stateCallback);
   ros::Subscriber cloud_sub = node.subscribe("/cloud_out",10, cloud_Callback);
 
-  // publisher for save_cloud_state
-  ros::Publisher get_cloud_state_pub = node.advertise<std_msgs::Bool> ("/get_cloud/get_cloud_state", 1);
+  // publisher for get_target_state
+  ros::Publisher get_target_state_pub = node.advertise<std_msgs::Bool> ("/get_target/get_target_state", 1);
   
-  std_msgs::Bool get_cloud_state_msg;
-  get_cloud_state_msg.data=cloud_saved;
+  std_msgs::Bool get_target_state_msg;
+  get_target_state_msg.data=cloud_saved;
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                     get_cloud v1.x                                 "<<endl;
@@ -188,8 +188,8 @@ int main(int argc, char** argv)
   //publish forever
   while(ros::ok())
   {
-    get_cloud_state_msg.data=cloud_saved;
-    get_cloud_state_pub.publish(get_cloud_state_msg);
+    get_target_state_msg.data=cloud_saved;
+    get_target_state_pub.publish(get_target_state_msg);
 
     ros::spinOnce();
     loop_rate.sleep();

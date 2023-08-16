@@ -280,6 +280,24 @@ target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(get_cloud src/get_cloud.cpp)
 target_link_libraries(get_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+
+# filter_target
+add_executable(filter_target src/filter_target.cpp)
+target_link_libraries(filter_target ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# get_target
+add_executable(get_target src/get_target.cpp)
+target_link_libraries(get_target ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# filter_source
+add_executable(filter_source src/filter_source.cpp)
+target_link_libraries(filter_source ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# get_source
+add_executable(get_source src/get_source.cpp)
+target_link_libraries(get_source ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+
 # rotate_cloud
 add_executable(rotate_cloud src/rotate_cloud.cpp)
 target_link_libraries(rotate_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})

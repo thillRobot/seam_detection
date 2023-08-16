@@ -4,7 +4,7 @@
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
   <!-- read arg value load the parameters from 'main' config file-->
-  <arg name="config" default="aubo_i10_lidar" />
+  <arg name="config" default="aubo_i10_target_source" />
   <param name="param" value="$(arg config)"/> 
   <rosparam file="$(find seam_detection)/config/$(arg config).yaml" /> 
  
@@ -15,27 +15,53 @@
     type="seam_detection_tf"
     output="screen">
   </node>
+
+
+  <!-- set params to save target -->
+  <rosparam param="saving_target">True</rosparam>
+  <rosparam param="saving_source">False</rosparam>
+
+  <rosparam param="filter_cloud/output_file">"pcd_images/aubo_i10/aubo_cloud_out_target.pcd"</rosparam>
     
-  <!-- get the cloud published by the aubo robot arm -->
+  <!-- get the target cloud published by the aubo robot arm -->
   <node                   
     pkg="seam_detection"          
-    name="get_cloud"   
-    type="get_cloud"
+    type="get_target"
+    name="get_target"
     output="screen">
   </node>
 
-  <rosparam param="saving_target">True</rosparam>
-  <rosparam param="saving_source">False</rosparam>
- 
-  <rosparam param="filter_cloud/output_file">"pcd_images/aubo_i10/aubo_cloud_out_target.pcd"</rosparam>
- 
+  <!-- save the target cloud published by the aubo robot arm --> 
+  <node                   
+    pkg="seam_detection"          
+    type="filter_target"
+    name="filter_target"   
+    output="screen">
+  </node>
+
+
+  <!-- set params to save source -->
+  <rosparam param="saving_target">False</rosparam>
+  <rosparam param="saving_source">True</rosparam>
+  <rosparam param="filter_cloud/output_file">"pcd_images/aubo_i10/aubo_cloud_out_source.pcd"</rosparam>
+    
+  <!-- get the cloud published by the aubo robot arm -->
+  <node                   
+    pkg="seam_detection"             
+    type="get_source"
+    name="get_source"
+    output="screen">
+    args
+  </node>
+
   <!-- save the cloud published by the aubo robot arm --> 
   <node                   
     pkg="seam_detection"          
-    name="filter_cloud"   
-    type="filter_cloud"
+    type="filter_source"   
+    name="filter_source"
     output="screen">
   </node>
+
 
   <!-- processing of lidar data for registration -->
   <node
