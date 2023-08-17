@@ -16,7 +16,6 @@
     output="screen">
   </node>
 
-
   <!-- set params to save target -->
   <rosparam param="saving_target">True</rosparam>
   <rosparam param="saving_source">False</rosparam>
@@ -39,7 +38,6 @@
     output="screen">
   </node>
 
-
   <!-- set params to save source -->
   <rosparam param="saving_target">False</rosparam>
   <rosparam param="saving_source">True</rosparam>
@@ -61,7 +59,6 @@
     name="filter_source"
     output="screen">
   </node>
-
 
   <!-- processing of lidar data for registration -->
   <node

@@ -81,7 +81,7 @@ typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 bool scan_complete=0;
 bool cloud_saved=0;
-//bool get_cloud_state=false; 
+//bool get_target_state=false; 
 bool new_scan;
 
 // global parameters for callback access
@@ -109,7 +109,7 @@ void cloud_Callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
     //ROS_INFO("flag set, saving cloud");
     std::cout<<"===================================================================="<<endl;
-    std::cout<<"                   get_cloud: saving pointcloud data                "<<endl;
+    std::cout<<"                   get_target: saving pointcloud data                "<<endl;
     std::cout<<"===================================================================="<<endl<<endl;
     // save filtered cloud 
     try{
@@ -127,7 +127,7 @@ void cloud_Callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 int main(int argc, char** argv)
 {
 
-  ros::init(argc,argv,"get_cloud");
+  ros::init(argc,argv,"get_target");
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
   
@@ -142,12 +142,12 @@ int main(int argc, char** argv)
   get_target_state_msg.data=cloud_saved;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     get_cloud v1.x                                 "<<endl;
+  std::cout<<"                     get_target v1.x                                 "<<endl;
   std::cout<<"===================================================================="<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     get_cloud: loading configuration file          "<<endl;
+  std::cout<<"                     get_target: loading configuration file          "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   // there is only one cmd line arg and it is the name of the config file
@@ -160,9 +160,9 @@ int main(int argc, char** argv)
   bool save_output, translate_output;
   node.getParam("save_output", save_output);
   node.getParam("translate_output", translate_output);
-  node.getParam("get_cloud/new_scan", new_scan);
+  node.getParam("get_target/new_scan", new_scan);
 
-  node.getParam("get_cloud/output_file", output_file);
+  node.getParam("get_target/output_file", output_file);
   output_path=packagepath+'/'+output_file;
 
   // get additional parameters set in launch file
@@ -182,7 +182,7 @@ int main(int argc, char** argv)
   }
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     get_cloud: loading pointcloud data             "<<endl;
+  std::cout<<"                     get_target: loading pointcloud data             "<<endl;
   std::cout<<"===================================================================="<<endl;
 
   //publish forever
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
   }
   
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     get_cloud: complete                            "<<endl;
+  std::cout<<"                     get_target: complete                            "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
   return 0;
 }

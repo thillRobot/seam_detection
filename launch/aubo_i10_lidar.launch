@@ -23,11 +23,6 @@
     type="get_cloud"
     output="screen">
   </node>
-
-  <rosparam param="saving_target">True</rosparam>
-  <rosparam param="saving_source">False</rosparam>
- 
-  <rosparam param="filter_cloud/output_file">"pcd_images/aubo_i10/aubo_cloud_out_target.pcd"</rosparam>
  
   <!-- save the cloud published by the aubo robot arm --> 
   <node                   
