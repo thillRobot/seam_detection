@@ -1,4 +1,4 @@
 ---
 rotate_cloud/input_file: "pcd_images/shape3/shape3.pcd"
-rotate_cloud/output_file: "pcd_images/shape3/shape3_rotated.pcd"
+rotate_cloud/output_file: "pcd_images/shape3/shape3_test.pcd"
 rotate_cloud/save_output: true
