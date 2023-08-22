@@ -1,26 +1,26 @@
 ---
 # get_cloud params 
-get_cloud/new_scan: true
-get_cloud/output_file: "pcd_images/aubo_i10/aubo_cloud_out.pcd"
+get_cloud/new_scan: false
+get_cloud/output_file: "pcd_images/aubo_i10/aubo_cloud_out_05.pcd"
 save_output: true
 translate_output: false
 
 # filter_cloud params
-filter_cloud/input_file: "pcd_images/aubo_i10/aubo_cloud_out.pcd"
+filter_cloud/input_file: "pcd_images/aubo_i10/aubo_cloud_out_05.pcd"
 filter_cloud/output_file: "pcd_images/aubo_i10/aubo_cloud_out_filtered.pcd"
-filter_cloud/target_file: "pcd_images/shape1_shape2/shape2.pcd"
+filter_cloud/target_file: "pcd_images/shape1_shape2/shape1.pcd"
 save_output: true
 translate_output: false
 automatic_bounds: false
 use_clustering: true
 
-filter_cloud/filter_box: [-1.0, 1.0, -1.0, 0.0, 0.002, 0.5] # bounding box limits
+filter_cloud/filter_box: [-1.0, 1.0, -1.0, 0.0, 0.0045, 0.5] # bounding box limits
 filter_cloud/voxel_leaf_size: 0.001                           # voxel leaf size
 
 # register_clouds params
 scene_name: "aubo_i10_lidar" # change this to config_name ?
 register_clouds/source_file: "pcd_images/aubo_i10/aubo_cloud_out_filtered.pcd"
-register_clouds/target_file: "pcd_images/shape1_shape2/shape2.pcd"
+register_clouds/target_file: "pcd_images/shape1_shape2/shape1.pcd"
 register_clouds/aligned_file: "pcd_images/shape1_shape2/source_aligned.pcd"
 part1_name: "shape1"
 part1_type: "square_tube"
