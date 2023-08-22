@@ -15,91 +15,30 @@
 // http://codextechnicanum.blogspot.com/2015/04/find-minimum-oriented-bounding-box-of.html
 */
 
-#include <iostream>
-#include <string>
-#include <boost/thread/thread.hpp>
-#include <Eigen/Dense>
 #include <Eigen/Core>
-#include <math.h>
-
-#include <pcl/pcl_config.h>
-#include <pcl/console/parse.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-#include <pcl/point_cloud.h>
-#include <pcl/common/centroid.h>
 #include <pcl/common/common.h>
-
-#include <pcl/visualization/pcl_visualizer.h>
-#include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/passthrough.h>
-#include <pcl/sample_consensus/ransac.h>
-#include <pcl/sample_consensus/sac_model_plane.h>
-#include <pcl/sample_consensus/sac_model_sphere.h>
-
-#include <pcl/segmentation/sac_segmentation.h>
-#include <pcl/features/normal_3d.h>
 #include <pcl/registration/icp.h>
-#include <pcl/registration/correspondence_estimation.h>
-#include <pcl/registration/correspondence_rejection.h>
-#include <pcl/registration/correspondence_rejection_surface_normal.h>
-#include <pcl/visualization/pcl_visualizer.h>
-
-#include <pcl/ModelCoefficients.h>
-#include <pcl/features/normal_3d.h>
 #include <pcl/search/kdtree.h>
-#include <pcl/sample_consensus/method_types.h>
-#include <pcl/sample_consensus/model_types.h>
-#include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
-#include <iomanip> 
-
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
- 
 #include "ros/package.h"
 #include <ros/ros.h>
-#include <sensor_msgs/PointCloud.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <geometry_msgs/PointStamped.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <geometry_msgs/Twist.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <std_msgs/Bool.h>
 
-#include <tf/transform_broadcaster.h>
-#include <tf/transform_listener.h>
-#include <tf/LinearMath/Matrix3x3.h>
-#include <tf_conversions/tf_eigen.h>
 
-#include <tf2/convert.h>
-#include <tf2/LinearMath/Matrix3x3.h>
-#include <tf2/LinearMath/Transform.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/static_transform_broadcaster.h>
-#include <tf2_ros/transform_listener.h>
-//#include <tf/TransformStamped.h>
-
-#include <teaser/ply_io.h>
-#include <teaser/registration.h>
-#include <teaser/matcher.h>
-//#include <teaser/point_cloud.h>
-
-typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 
-typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 bool get_cloud_complete=0;
 bool filtered_cloud_saved=0;
 
 void get_cloud_stateCallback(const std_msgs::Bool::ConstPtr& msg)
 {
-  //ROS_INFO("I heard scan_state: [%d]", msg->data);
   if (!msg->data){
     ROS_INFO("get_cloud in progress, waiting to begin filtering ...");
   }
@@ -112,12 +51,6 @@ void get_cloud_stateCallback(const std_msgs::Bool::ConstPtr& msg)
 // this function applies a bounding box and a voxel filter to the input cloud
 void filter_cloud(PointCloud &input, PointCloud &output, double box[], double leaf_size, bool translate_output, bool auto_bounds)
 {
-
-  //double xmin, xmax, ymin, ymax, zmin, zmax;; // this could be done without these copies
-  //xmin=box[0];xmax=box[1];                        // for now they are being used 
-  //ymin=box[2];ymax=box[3];
-  //zmin=box[4];zmax=box[5];
-  //leaf_size=params[6];
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(input,*cloud);
@@ -415,14 +348,14 @@ int main(int argc, char** argv)
   filter_cloud_state_msg.data=filtered_cloud_saved;
 
 
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     filter_cloud v1.6                              "<<endl;
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
+  std::cout<<"===================================================================="<<std::endl;
+  std::cout<<"                     filter_cloud v1.6                              "<<std::endl;
+  std::cout<<"===================================================================="<<std::endl;
+  std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     filter_cloud: loading configuration file                    "<<endl;
-  std::cout<<"===================================================================="<<endl<<endl;
+  std::cout<<"===================================================================="<<std::endl;
+  std::cout<<"                     filter_cloud: loading configuration file       "<<std::endl;
+  std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   // there is only one cmd line arg and it is the name of the config file
   // read the config file(yaml) feild to pick the data files and set parameters
@@ -458,11 +391,11 @@ int main(int argc, char** argv)
     filter_box[i]=filter_box_vec[i]; // copy from vector to array 
   node.getParam("filter_cloud/voxel_leaf_size", voxel_leaf_size);
 
-  std::cout<<"Debug0"<<endl;
+  std::cout<<"Debug0"<<std::endl;
 
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     filter_cloud: preparing pointcloud data        "<<endl;
-  std::cout<<"===================================================================="<<endl;
+  std::cout<<"===================================================================="<<std::endl;
+  std::cout<<"                     filter_cloud: preparing pointcloud data        "<<std::endl;
+  std::cout<<"===================================================================="<<std::endl;
   
   // instantiate some cloud pointers
   PointCloud::Ptr cloud_input (new pcl::PointCloud<pcl::PointXYZ>); 
@@ -495,9 +428,9 @@ int main(int argc, char** argv)
   std::cout << "Loaded image file: "<< target_path <<std::endl<<
     cloud_filtered_target->width * cloud_filtered_target->height << " Data points from "<< target_path << std::endl;  
 
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    filter_cloud: processing pointcloud data                      "<<endl;
-  std::cout<<"===================================================================="<<endl<<endl;
+  std::cout<<"===================================================================="<<std::endl;
+  std::cout<<"                    filter_cloud: processing pointcloud data        "<<std::endl;
+  std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
   filter_cloud(*cloud_input,*cloud_filtered, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
@@ -560,7 +493,7 @@ int main(int argc, char** argv)
       pcl::io::savePCDFileASCII (output_path, *cloud_cluster4);
       std::cout<<"cluster4 cloud written to:"<< output_path <<std::endl;
     }
-    cout<<"the lowest score is:"<<score<<std::endl;
+    std::cout<<"the lowest score is:"<<score<<std::endl;
   } 
 
   // save filtered cloud 
@@ -571,13 +504,13 @@ int main(int argc, char** argv)
   filtered_cloud_saved=1; // this should be moved?
 
 
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                   filter_cloud: pointcloud processing complete     "<<endl;
-  std::cout<<"===================================================================="<<endl<<endl;
+  std::cout<<"===================================================================="<<std::endl;
+  std::cout<<"                   filter_cloud: pointcloud processing complete     "<<std::endl;
+  std::cout<<"===================================================================="<<std::endl<<std::endl;
 
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                   filter_cloud: preparing visualization            "<<endl;
-  std::cout<<"===================================================================="<<endl<<endl;
+  std::cout<<"===================================================================="<<std::endl;
+  std::cout<<"                   filter_cloud: preparing visualization            "<<std::endl;
+  std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1) ;
   ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
@@ -684,9 +617,9 @@ int main(int argc, char** argv)
 
   }
     
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                        filter_cloud: complete                     "<<endl;
-  std::cout<<"===================================================================="<<endl<<endl;
+  std::cout<<"===================================================================="<<std::endl;
+  std::cout<<"                        filter_cloud: complete                     "<<std::endl;
+  std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   //publish forever
   while(ros::ok())
