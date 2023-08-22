@@ -27,11 +27,13 @@ void scan_stateCallback(const std_msgs::Bool::ConstPtr& msg)
   //ROS_INFO("I heard scan_state: [%d]", msg->data);
   if (msg->data){
     ROS_INFO("Scan beginning, waiting to complete ...");
-  }
+   }
   else if (!msg->data){
     ROS_INFO("Scan complete, preparing to save file");
     scan_complete=1;
+    //scan_complete=(saving_target&&target_ready)||(saving_source&&source_ready)
   }
+
 }
 
 void cloud_Callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
@@ -70,10 +72,12 @@ int main(int argc, char** argv)
   ros::Subscriber scan_state_sub = node.subscribe("/cr_weld/scan_state", 1000, scan_stateCallback);
   ros::Subscriber cloud_sub = node.subscribe("/cloud_out",10, cloud_Callback);
 
-  // publisher for save_cloud_state
+  // publisher for save_cloud_state, target_saved, source_saved
   ros::Publisher get_cloud_state_pub = node.advertise<std_msgs::Bool> ("/get_cloud/get_cloud_state", 1);
+  ros::Publisher target_saved_pub = node.advertise<std_msgs::Bool> ("/get_cloud/target_saved", 1);
+  ros::Publisher source_saved_pub = node.advertise<std_msgs::Bool> ("/get_cloud/source_saved", 1);
   
-  std_msgs::Bool get_cloud_state_msg;
+  std_msgs::Bool get_cloud_state_msg, target_saved, source_saved;
   get_cloud_state_msg.data=cloud_saved;
 
   std::cout<<"===================================================================="<<std::endl;
@@ -123,8 +127,15 @@ int main(int argc, char** argv)
   //publish forever
   while(ros::ok())
   {
+    
     get_cloud_state_msg.data=cloud_saved;
     get_cloud_state_pub.publish(get_cloud_state_msg);
+
+    target_saved.data=0;
+    target_saved_pub.publish(target_saved);
+
+    source_saved.data=0;
+    source_saved_pub.publish(source_saved);
 
     ros::spinOnce();
     loop_rate.sleep();
