@@ -16,6 +16,12 @@ typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 
 bool scan_complete=0;
 bool cloud_saved=0;
+bool target_saved=0;
+bool source_saved=0;
+
+bool target_scan=1; // target scan first
+bool source_scan=0; // source scan second 
+
 //bool get_cloud_state=false; 
 bool new_scan;
 
@@ -25,11 +31,15 @@ std::string output_path, output_file;
 void scan_stateCallback(const std_msgs::Bool::ConstPtr& msg)
 {
   //ROS_INFO("I heard scan_state: [%d]", msg->data);
-  if (msg->data){
-    ROS_INFO("Scan beginning, waiting to complete ...");
-   }
-  else if (!msg->data){
-    ROS_INFO("Scan complete, preparing to save file");
+  if (msg->data&&!target_saved){
+    ROS_INFO("Target scan beginning, waiting to complete ...");
+  } else if(msg->data&&target_saved){
+    ROS_INFO("Source scan beginning, waiting to complete ...");
+    scan_complete=0;
+    target_scan=0;
+    source_scan=1;
+  } else if (!msg->data&&!target_saved){
+    ROS_INFO("Target Scan complete, preparing to save file");
     scan_complete=1;
     //scan_complete=(saving_target&&target_ready)||(saving_source&&source_ready)
   }
@@ -42,17 +52,18 @@ void cloud_Callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pcl::fromROSMsg(*cloud_msg,*cloud_in);
   //ROS_INFO("flag not set, waiting to save");
 
-  if(scan_complete&&!cloud_saved){
+  if(scan_complete&&!target_saved&&target_scan){
 
     //ROS_INFO("flag set, saving cloud");
     std::cout<<"===================================================================="<<std::endl;
-    std::cout<<"                   get_cloud: saving pointcloud data                "<<std::endl;
+    std::cout<<"                   get_cloud: saving pointcloud data as target      "<<std::endl;
     std::cout<<"===================================================================="<<std::endl<<std::endl;
     // save filtered cloud 
     try{
       pcl::io::savePCDFileASCII (output_path, *cloud_in);
       std::cout<<"Cloud saved to: "<< output_path <<std::endl;
-      cloud_saved=1;
+      target_saved=1;
+ 
     }catch(...){
       std::cout<<"Cloud not saved."<<std::endl;
     }
@@ -121,8 +132,6 @@ int main(int argc, char** argv)
     std::cout<<"saving_source set: "<<saving_source<<" through cmd line"<<std::endl;
   }
 
-  
-  
   // by pass wait for new scan
   if(!new_scan){
     std::cout<<"Using previous scan from file: "<< output_path <<std::endl;

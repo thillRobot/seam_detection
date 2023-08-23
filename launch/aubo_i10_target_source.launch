@@ -16,28 +16,44 @@
     output="screen">
   </node>
 
-  <!-- set params to save target -->
-  <!-- <rosparam param="saving_target">True</rosparam> -->
-  <!-- <rosparam param="saving_source">False</rosparam> -->
-
+  <!-- this param will not stay here -->
   <rosparam param="filter_cloud/output_file">"pcd_images/aubo_i10/aubo_cloud_out_target.pcd"</rosparam>
     
-  <!-- get the target cloud published by the aubo robot arm -->
+  <!-- save the target cloud published by the aubo robot arm -->
   <node                   
     pkg="seam_detection"          
     type="get_cloud"
-    name="get_cloud"
+    name="get_target"
     output="screen"
     args="saving_target">
   </node>
 
-  <!-- save the target cloud published by the aubo robot arm --> 
+  <!-- filter the target cloud saved by get_cloud --> 
   <node                   
     pkg="seam_detection"          
     type="filter_cloud"
-    name="filter_cloud"   
-    output="screen"
+    name="filter_target"   
+    output="log"
     args="saving_target">
+  </node>
+
+  <!-- not repeat for the source cloud -->
+  <!-- save the target cloud published by the aubo robot arm -->
+  <node                   
+    pkg="seam_detection"          
+    type="get_cloud"
+    name="get_source"
+    output="log"
+    args="saving_source">
+  </node>
+
+  <!-- filter the target cloud saved by get_cloud --> 
+  <node                   
+    pkg="seam_detection"          
+    type="filter_cloud"
+    name="filter_source"   
+    output="log"
+    args="saving_source">
   </node>
 
   <!-- start RVIZ --> 
