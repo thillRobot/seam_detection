@@ -27,7 +27,8 @@
     pkg="seam_detection"          
     type="get_cloud"
     name="get_cloud"
-    output="screen">
+    output="screen"
+    args="saving_target">
   </node>
 
   <!-- save the target cloud published by the aubo robot arm --> 
@@ -35,7 +36,8 @@
     pkg="seam_detection"          
     type="filter_cloud"
     name="filter_cloud"   
-    output="screen">
+    output="screen"
+    args="saving_target">
   </node>
 
   <!-- start RVIZ --> 

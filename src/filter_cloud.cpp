@@ -358,6 +358,7 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   // there is only one cmd line arg and it is the name of the config file
+  // this is not true, the params are loaded in the launch file
   // read the config file(yaml) feild to pick the data files and set parameters
 
   // find the path to the this package (seam_detection)
@@ -391,7 +392,24 @@ int main(int argc, char** argv)
     filter_box[i]=filter_box_vec[i]; // copy from vector to array 
   node.getParam("filter_cloud/voxel_leaf_size", voxel_leaf_size);
 
-  std::cout<<"Debug0"<<std::endl;
+  // get additional parameters set in launch file
+  bool saving_source=0;
+  bool saving_target=0;
+  
+  //get flags saving_target, saving_source as command line args (not from config file)
+  if (argc>1){
+    std::string arg1(argv[1]);    
+    if (!arg1.compare("saving_target")){
+      saving_target=1;
+    }
+    if (!arg1.compare("saving_source")){
+      saving_source=1;
+    }
+    std::cout<<"saving_target set: "<<saving_target<<" through cmd line"<<std::endl;
+    std::cout<<"saving_source set: "<<saving_source<<" through cmd line"<<std::endl;
+  }
+
+  //std::cout<<"Debug0"<<std::endl;
 
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"                     filter_cloud: preparing pointcloud data        "<<std::endl;

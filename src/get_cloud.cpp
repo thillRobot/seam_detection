@@ -90,6 +90,7 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   // there is only one cmd line arg and it is the name of the config file
+  // no, this is not true, the config file is read in roslaunch, not by the node
   // read the config file(yaml) feild to pick the data files and set parameters
 
   // find the path to the this package (seam_detection)
@@ -100,7 +101,6 @@ int main(int argc, char** argv)
   node.getParam("save_output", save_output);
   node.getParam("translate_output", translate_output);
   node.getParam("get_cloud/new_scan", new_scan);
-
   node.getParam("get_cloud/output_file", output_file);
   output_path=packagepath+'/'+output_file;
 
@@ -108,11 +108,20 @@ int main(int argc, char** argv)
   bool saving_source=0;
   bool saving_target=0;
   
-  node.getParam("saving_source", saving_source);
-  node.getParam("saving_target", saving_target);
+  //get flags saving_target, saving_source as command line args (not from config file)
+  if (argc>1){
+    std::string arg1(argv[1]);    
+    if (!arg1.compare("saving_target")){
+      saving_target=1;
+    }
+    if (!arg1.compare("saving_source")){
+      saving_source=1;
+    }
+    std::cout<<"saving_target set: "<<saving_target<<" through cmd line"<<std::endl;
+    std::cout<<"saving_source set: "<<saving_source<<" through cmd line"<<std::endl;
+  }
 
-  std::cout<<"saving_target set: "<<saving_target<<" in launch file"<<std::endl;;
-  std::cout<<"saving_source set: "<<saving_source<<" in launch file"<<std::endl;;
+  
   
   // by pass wait for new scan
   if(!new_scan){
