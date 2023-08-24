@@ -15,9 +15,6 @@
     type="seam_detection_tf"
     output="screen">
   </node>
-
-  <!-- this param will not stay here -->
-  <rosparam param="filter_cloud/output_file">"pcd_images/aubo_i10/aubo_cloud_out_target.pcd"</rosparam>
     
   <!-- save the target cloud published by the aubo robot arm -->
   <node                   
@@ -37,13 +34,13 @@
     args="saving_target">
   </node>
 
-  <!-- not repeat for the source cloud -->
+  <!-- now repeat for the source cloud -->
   <!-- save the target cloud published by the aubo robot arm -->
   <node                   
     pkg="seam_detection"          
     type="get_cloud"
     name="get_source"
-    output="log"
+    output="screen"
     args="saving_source">
   </node>
 

@@ -16,43 +16,60 @@ typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 
 bool scan_complete=0;
 bool cloud_saved=0;
-bool target_saved=0;
-bool source_saved=0;
 
-bool target_scan=1; // target scan first
-bool source_scan=0; // source scan second 
+bool target_saved;
+bool source_saved;
+
+//bool target_scan=1; // target scan first
+//bool source_scan=0; // source scan second 
 
 //bool get_cloud_state=false; 
 bool new_scan;
 
+// get additional parameters set in launch file
+bool saving_source;
+bool saving_target;
+
 // global parameters for callback access
 std::string output_path, output_file; 
 
-void scan_stateCallback(const std_msgs::Bool::ConstPtr& msg)
+void scan_state_callback(const std_msgs::Bool::ConstPtr& msg)
 {
   //ROS_INFO("I heard scan_state: [%d]", msg->data);
-  if (msg->data&&!target_saved){
-    ROS_INFO("Target scan beginning, waiting to complete ...");
-  } else if(msg->data&&target_saved){
-    ROS_INFO("Source scan beginning, waiting to complete ...");
-    scan_complete=0;
-    target_scan=0;
-    source_scan=1;
-  } else if (!msg->data&&!target_saved){
-    ROS_INFO("Target Scan complete, preparing to save file");
+  if (msg->data&&!cloud_saved){
+    ROS_INFO("Scanning, waiting to complete ...");
+  } 
+  if (!msg->data&&!cloud_saved){ 
+    ROS_INFO("Scan complete, preparing to save file");
     scan_complete=1;
-    //scan_complete=(saving_target&&target_ready)||(saving_source&&source_ready)
+    ROS_INFO("cloud_saved: %i",cloud_saved);
+    ROS_INFO("target_saved: %i",target_saved);
+  }
+  if (!msg->data&&cloud_saved){
+    ROS_INFO("cloud saved previously, skipping");
   }
 
 }
 
-void cloud_Callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
+void target_saved_callback(const std_msgs::Bool::ConstPtr& msg)
+{
+  target_saved=msg->data;
+  //ROS_INFO("target_saved: ", target_saved);
+}
+
+void source_saved_callback(const std_msgs::Bool::ConstPtr& msg)
+{
+  source_saved=msg->data;
+  //ROS_INFO("source_saved: ", source_saved);
+}
+
+void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
   PointCloud::Ptr cloud_in (new PointCloud);
   pcl::fromROSMsg(*cloud_msg,*cloud_in);
   //ROS_INFO("flag not set, waiting to save");
 
-  if(scan_complete&&!target_saved&&target_scan){
+  if(scan_complete&&!cloud_saved&&saving_target){
 
     //ROS_INFO("flag set, saving cloud");
     std::cout<<"===================================================================="<<std::endl;
@@ -63,13 +80,31 @@ void cloud_Callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
       pcl::io::savePCDFileASCII (output_path, *cloud_in);
       std::cout<<"Cloud saved to: "<< output_path <<std::endl;
       target_saved=1;
+      cloud_saved=1;
+ 
+    }catch(...){
+      std::cout<<"Cloud not saved."<<std::endl;
+    } 
+
+  }else if(scan_complete&&!cloud_saved&&target_saved&&saving_source){
+
+    //ROS_INFO("flag set, saving cloud");
+    std::cout<<"===================================================================="<<std::endl;
+    std::cout<<"                   get_cloud: saving pointcloud data as source      "<<std::endl;
+    std::cout<<"===================================================================="<<std::endl<<std::endl;
+    // save filtered cloud 
+    try{
+      pcl::io::savePCDFileASCII (output_path, *cloud_in);
+      std::cout<<"Cloud saved to: "<< output_path <<std::endl;
+      source_saved=1;
+      cloud_saved=1;
  
     }catch(...){
       std::cout<<"Cloud not saved."<<std::endl;
     }
-  } 
-
-  ros::spinOnce();
+  }
+ 
+  //ros::spinOnce();
 }
 
 int main(int argc, char** argv)
@@ -77,19 +112,21 @@ int main(int argc, char** argv)
 
   ros::init(argc,argv,"get_cloud");
   ros::NodeHandle node;
-  ros::Rate loop_rate(2);
+  ros::Rate loop_rate(5);
   
   // setup subcribers for scan_state and cloud_out
-  ros::Subscriber scan_state_sub = node.subscribe("/cr_weld/scan_state", 1000, scan_stateCallback);
-  ros::Subscriber cloud_sub = node.subscribe("/cloud_out",10, cloud_Callback);
+  ros::Subscriber scan_state_sub = node.subscribe("/cr_weld/scan_state", 1000, scan_state_callback);
+  ros::Subscriber cloud_sub = node.subscribe("/cloud_out",10, cloud_callback);
+  ros::Subscriber target_saved_sub = node.subscribe("/get_cloud/target_saved",10, target_saved_callback);
+  ros::Subscriber source_saved_sub = node.subscribe("/get_cloud/source_saved",10, source_saved_callback);
 
   // publisher for save_cloud_state, target_saved, source_saved
   ros::Publisher get_cloud_state_pub = node.advertise<std_msgs::Bool> ("/get_cloud/get_cloud_state", 1);
   ros::Publisher target_saved_pub = node.advertise<std_msgs::Bool> ("/get_cloud/target_saved", 1);
   ros::Publisher source_saved_pub = node.advertise<std_msgs::Bool> ("/get_cloud/source_saved", 1);
   
-  std_msgs::Bool get_cloud_state_msg, target_saved, source_saved;
-  get_cloud_state_msg.data=cloud_saved;
+  std_msgs::Bool get_cloud_state_msg, target_saved_msg, source_saved_msg;
+  //get_cloud_state_msg.data=cloud_saved;
 
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"                     get_cloud v1.x                                 "<<std::endl;
@@ -116,8 +153,8 @@ int main(int argc, char** argv)
   output_path=packagepath+'/'+output_file;
 
   // get additional parameters set in launch file
-  bool saving_source=0;
-  bool saving_target=0;
+  //bool saving_source=0; // moved to global scope
+  //bool saving_target=0;
   
   //get flags saving_target, saving_source as command line args (not from config file)
   if (argc>1){
@@ -149,11 +186,11 @@ int main(int argc, char** argv)
     get_cloud_state_msg.data=cloud_saved;
     get_cloud_state_pub.publish(get_cloud_state_msg);
 
-    target_saved.data=0;
-    target_saved_pub.publish(target_saved);
+    target_saved_msg.data=target_saved;
+    target_saved_pub.publish(target_saved_msg);
 
-    source_saved.data=0;
-    source_saved_pub.publish(source_saved);
+    source_saved_msg.data=source_saved;
+    source_saved_pub.publish(source_saved_msg);
 
     ros::spinOnce();
     loop_rate.sleep();
