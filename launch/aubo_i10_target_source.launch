@@ -16,42 +16,40 @@
     output="screen">
   </node>
     
+  <!-- start the scan by publishing to the aubo robot arm -->
+  <remap from="target_gcode" to="android_gui/gcode_cmd"  />
+  <node                   
+    pkg="seam_detection"          
+    type="start_target_scan"
+    name="start_target_scan"
+    output="screen">
+  </node>
+
   <!-- save the target cloud published by the aubo robot arm -->
   <node                   
     pkg="seam_detection"          
-    type="get_cloud"
+    type="get_target"
     name="get_target"
-    output="screen"
-    args="saving_target">
+    output="screen">
   </node>
 
   <!-- filter the target cloud saved by get_cloud --> 
   <node                   
     pkg="seam_detection"          
-    type="filter_cloud"
+    type="filter_target"
     name="filter_target"   
-    output="log"
-    args="saving_target">
+    output="screen">
   </node>
 
   <!-- now repeat for the source cloud -->
-  <!-- save the target cloud published by the aubo robot arm -->
+  <!-- save the source cloud published by the aubo robot arm -->
   <node                   
     pkg="seam_detection"          
-    type="get_cloud"
+    type="get_source"
     name="get_source"
-    output="screen"
-    args="saving_source">
+    output="screen">
   </node>
 
-  <!-- filter the target cloud saved by get_cloud --> 
-  <node                   
-    pkg="seam_detection"          
-    type="filter_cloud"
-    name="filter_source"   
-    output="log"
-    args="saving_source">
-  </node>
 
   <!-- start RVIZ --> 
   <node 
