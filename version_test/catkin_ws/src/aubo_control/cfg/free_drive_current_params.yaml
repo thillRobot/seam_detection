@@ -1,0 +1,41 @@
+#kinetic mode params for J0-5
+
+# uncalibrated arm
+#Ki:            [  2,            1,         0.8,     0,     0,     0] # propotional to velocity
+#Kd:            [  0.5,        0.3,       0.3,       0,     0,     0] # constant
+#active_joints: [1,              1,         1,       1,     1,     1]
+
+#cmd_period: 200 #100
+#vel_tolerance: 0.2
+
+
+
+
+# calibrated arm
+#Ki:            [  2,            1,         1,     0,     0,     0] # propotional to velocity
+#Kd:            [  0.5,        0.3,       0.7,       0,     0,     0] # constant
+#active_joints: [1,              1,         1,       1,     1,     1]
+
+#cmd_period: 200 #100
+#vel_tolerance: 0.2
+
+
+# clement arm
+#Ki:            [  1.0,            1,         1,     0,     0,     0] # propotional to velocity
+#Kd:            [  0.5,        0.3,       0.8,      0,     0,     0] # constant
+#active_joints: [1,              1,         1,       1,     1,     1]
+
+#cmd_period: 200 #100
+#vel_tolerance: 0.12
+#max_vel: 0.5
+#assist_ramp: 0.1
+
+# weld testing
+Ki:            [  0,            0,         0,     0,     0,     0] # propotional to velocity
+Kd:            [  1.6,        0.5,       1.5,     0,     0.1,     0.1] # constant. //+ Kd[i]*direction   1.5,        0.4,       1.5,     -0.2,     -0.1,     0
+active_joints: [1,              1,         1,       1,     1,     1]
+
+cmd_period: 100 #200
+vel_tolerance: 0.12
+max_vel: 0.5
+assist_ramp: 0.1

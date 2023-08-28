@@ -1,0 +1,4 @@
+model_delay_buffer_size: 15 # this is:   avg_actual_torque_delay/telem_rate => 0.059/0.004=15
+
+
+velocity_avg_filter: 30 # avg filter window size for model velocity calculation

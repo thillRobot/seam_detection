@@ -1,0 +1,21 @@
+# note: this is the order they are applied
+
+
+# LOW PASS FILTER
+low_pass_filter_on: false
+alpha: 0.1  # 0.1 closer to 0 is smoother but more delay.
+
+
+
+
+# MEDIAN FILTER
+median_filter_on: true
+median_filter_window: 21 # 51 window: making this odd saves one calcualtion. 
+
+
+
+
+# AVERAGE FILTER
+average_filter_on: false
+average_filter_window: 11 # 21 window
+

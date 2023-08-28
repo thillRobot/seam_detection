@@ -1,0 +1,33 @@
+#PUBLICH PCD
+
+
+#ICP 
+#pcd_file_name: object_detection/model_files/scene/test_scans_10_29_18/scene1_keeps_driving # works. T. outside box.
+#pcd_file_name: object_detection/model_files/scene/test_scans_10_29_18/scene2_out_of_range # works. T.
+#pcd_file_name: object_detection/model_files/scene/test_scans_10_30_18/scene1
+#pcd_file_name: object_detection/model_files/scene/test_scans_10_30_18/run_away1 # had lspb error
+
+# FLAT BAR STIFFENER
+#pcd_file_name: scan2cloud/pcd_files/welding_lab_9_12_18_v1 # had lspb error
+
+# PLASMA BLAST
+#pcd_file_name: scan2cloud/pcd_files/plasma_blast_plane1
+
+
+# COMPARTMENT WELDS
+#pcd_file_name: scan2cloud/pcd_files/2_plane_scan
+#pcd_file_name: scan2cloud/pcd_files/plasma_blast_plane1
+#pcd_file_name: scan2cloud/pcd_files/compartment_segment
+
+# TRANSFORM THE POINT CLOUD (meters/degrees)
+#pcd_offset_x: -0.0762
+#pcd_offset_y: -0.3
+#pcd_offset_z: -0.13
+#pcd_offset_Yaw: 0 #-90
+#pcd_offset_Pitch: 0
+#pcd_offset_Roll: 0
+
+# notes:measured from front of crawler to front wall
+# 0.6 to far to reach seam1
+#0.5 works -0.2
+# 0.4 to close. scan hits crawler corner

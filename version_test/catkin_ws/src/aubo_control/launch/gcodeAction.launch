@@ -1,0 +1,5 @@
+<launch>
+    <arg name="topic_name" default="/test_topic" />
+    <arg name="message" default="scan_target" />
+    <node pkg="rostopic" type="rostopic" name="rostopic_pub_node" output="screen" args="pub $(arg topic_name) aubo_control/gcodeAction 'file_name: $(arg message)'" />
+</launch>
