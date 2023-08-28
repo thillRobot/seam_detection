@@ -1,0 +1,1 @@
+int32 current_line # starting with line 1

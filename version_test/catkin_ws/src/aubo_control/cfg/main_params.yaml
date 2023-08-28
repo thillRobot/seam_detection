@@ -1,0 +1,19 @@
+##############################
+### MAIN CONFIG ###
+##############################
+
+discritizing_on: false # have a point every this distance
+discritizing_interval: 0.01 #0.005 # discritize segments greater then this
+
+eta: 5 #5 # number to end points added to data to drive fit to match end slopes
+
+plot_goal_frames: true
+
+
+# seam scanning (corner detection)
+step_through_scan: false
+
+
+# SIMULATION
+simulate_3D_scan: true # publish PCD for simulation
+skip_simulation_scan: false # skip the scanning motion (just publish PCD immediately)

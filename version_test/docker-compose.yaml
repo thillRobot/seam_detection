@@ -1,0 +1,22 @@
+services:
+  version-test: 
+    build: .
+    command: bash
+    environment:
+      DISPLAY: $DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+      - $CATKIN_WS_PATH/src:/home/catkin_ws/src 
+    networks: 
+      net_ipv:
+        ipv4_address: 192.168.253.200
+
+#networks:
+#  net_ipv:
+#    driver: macvlan 
+#    ipam:
+#      driver: default
+#      config:
+#        - subnet: 192.168.253.253/24
+#          gateway: 192.168.253.253
