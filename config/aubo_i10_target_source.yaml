@@ -1,21 +1,39 @@
 ---
-# get_cloud params 
-get_cloud/new_scan: true
-get_cloud/output_file: "pcd_images/aubo_i10/aubo_cloud_out.pcd"
+# get_target params 
+get_target/new_scan: true
+get_target/output_file: "pcd_images/aubo_i10/aubo_target_out.pcd"
 save_output: true
 translate_output: false
 
-# filter_cloud params
-filter_cloud/input_file: "pcd_images/aubo_i10/aubo_cloud_out.pcd"
-filter_cloud/output_file: "pcd_images/aubo_i10/aubo_cloud_out_filtered.pcd"
-filter_cloud/target_file: "pcd_images/shape1_shape2/shape2.pcd"
+# filter_target params
+filter_target/input_file: "pcd_images/aubo_i10/aubo_target_out.pcd"
+filter_target/output_file: "pcd_images/aubo_i10/aubo_target_out_filtered.pcd"
+filter_target/target_file: "pcd_images/shape1_shape2/shape2.pcd"
 save_output: true
 translate_output: false
 automatic_bounds: false
 use_clustering: true
+filter_target/filter_box: [-1.0, 1.0, -1.0, 0.0, 0.002, 0.5] # bounding box limits
+filter_target/voxel_leaf_size: 0.001                           # voxel leaf size
 
-filter_cloud/filter_box: [-1.0, 1.0, -1.0, 0.0, 0.002, 0.5] # bounding box limits
-filter_cloud/voxel_leaf_size: 0.001                           # voxel leaf size
+# get_source params 
+get_source/new_scan: true
+get_source/output_file: "pcd_images/aubo_i10/aubo_source_out.pcd"
+save_output: true
+translate_output: false
+
+# filter_source params
+filter_source/input_file: "pcd_images/aubo_i10/aubo_source_out.pcd"
+filter_source/output_file: "pcd_images/aubo_i10/aubo_source_out_filtered.pcd"
+filter_source/target_file: "pcd_images/shape1_shape2/shape2.pcd"
+save_output: true
+translate_output: false
+automatic_bounds: false
+use_clustering: true
+filter_source/filter_box: [-1.0, 1.0, -1.0, 0.0, 0.002, 0.5] # bounding box limits
+filter_source/voxel_leaf_size: 0.001   
+
+
 
 # register_clouds params
 scene_name: "aubo_i10_lidar" # change this to config_name ?

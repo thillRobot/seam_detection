@@ -34,17 +34,17 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 
 
-bool get_cloud_complete=0;
-bool filtered_cloud_saved=0;
+bool get_target_complete=0;
+bool filtered_target_saved=0; 
 
-void get_cloud_stateCallback(const std_msgs::Bool::ConstPtr& msg)
+void get_target_state_callback(const std_msgs::Bool::ConstPtr& msg)
 {
   if (!msg->data){
-    ROS_INFO("get_cloud in progress, waiting to begin filtering ...");
+    ROS_INFO("get_target in progress, waiting to begin filtering ...");
   }
-  else if (msg->data&&!get_cloud_complete){
-    ROS_INFO("get_cloud complete, beginning filtering");
-    get_cloud_complete=1;
+  else if (msg->data&&!get_target_complete){
+    ROS_INFO("get_target complete, beginning filtering");
+    get_target_complete=1;
   }
 }
 
@@ -334,27 +334,27 @@ double score_cluster(PointCloud &input, PointCloud &target){
 int main(int argc, char** argv)
 {
 
-  ros::init(argc,argv,"seam_detection");
+  ros::init(argc,argv,"filter_target");
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
   
-  // setup subcribers for get_cloud_state
-  ros::Subscriber get_cloud_state_sub = node.subscribe("/get_cloud/get_cloud_state", 1000, get_cloud_stateCallback);
+  // setup subcribers for get_target_state
+  ros::Subscriber get_target_state_sub = node.subscribe("/get_target/get_target_state", 1000, get_target_state_callback);
 
-  // publisher for filter_cloud_state
-  ros::Publisher filter_cloud_state_pub = node.advertise<std_msgs::Bool> ("/filter_cloud/filter_cloud_state", 1);
+  // publisher for filter_target_state
+  ros::Publisher filter_target_state_pub = node.advertise<std_msgs::Bool> ("/filter_target/filter_target_state", 1);
   
-  std_msgs::Bool filter_cloud_state_msg;
-  filter_cloud_state_msg.data=filtered_cloud_saved;
+  std_msgs::Bool filter_target_state_msg;
+  filter_target_state_msg.data=filtered_target_saved;
 
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                     filter_cloud v1.6                              "<<std::endl;
+  std::cout<<"                     filter_target v1.6                              "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                     filter_cloud: loading configuration file       "<<std::endl;
+  std::cout<<"                     filter_target: loading configuration file       "<<std::endl;
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   // there is only one cmd line arg and it is the name of the config file
@@ -373,11 +373,11 @@ int main(int argc, char** argv)
 
   // parameters that contain strings  
   std::string input_path, output_path, target_path, input_file, output_file, target_file; 
-  node.getParam("filter_cloud/input_file", input_file);
+  node.getParam("filter_target/input_file", input_file);
   input_path=packagepath+'/'+input_file;
-  node.getParam("filter_cloud/output_file", output_file);
+  node.getParam("filter_target/output_file", output_file);
   output_path=packagepath+'/'+output_file;
-  node.getParam("filter_cloud/target_file", target_file);
+  node.getParam("filter_target/target_file", target_file);
   target_path=packagepath+'/'+target_file;
 
   // parameters that contain doubles
@@ -396,62 +396,48 @@ int main(int argc, char** argv)
   bool saving_source=0;
   bool saving_target=0;
   
-  //get flags saving_target, saving_source as command line args (not from config file)
-  if (argc>1){
-    std::string arg1(argv[1]);    
-    if (!arg1.compare("saving_target")){
-      saving_target=1;
-    }
-    if (!arg1.compare("saving_source")){
-      saving_source=1;
-    }
-    std::cout<<"saving_target set: "<<saving_target<<" through cmd line"<<std::endl;
-    std::cout<<"saving_source set: "<<saving_source<<" through cmd line"<<std::endl;
-  }
-
-  //std::cout<<"Debug0"<<std::endl;
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                     filter_cloud: preparing pointcloud data        "<<std::endl;
+  std::cout<<"                     filter_target: preparing pointcloud data        "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
   
   // instantiate some cloud pointers
-  PointCloud::Ptr cloud_input (new pcl::PointCloud<pcl::PointXYZ>); 
-  PointCloud::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
-  PointCloud::Ptr cloud_filtered_target (new pcl::PointCloud<pcl::PointXYZ>); 
-  PointCloud::Ptr cloud_cluster0 (new pcl::PointCloud<pcl::PointXYZ>);
-  PointCloud::Ptr cloud_cluster1 (new pcl::PointCloud<pcl::PointXYZ>);
-  PointCloud::Ptr cloud_cluster2 (new pcl::PointCloud<pcl::PointXYZ>);
-  PointCloud::Ptr cloud_cluster3 (new pcl::PointCloud<pcl::PointXYZ>);
-  PointCloud::Ptr cloud_cluster4 (new pcl::PointCloud<pcl::PointXYZ>);  
+  PointCloud::Ptr target_input (new pcl::PointCloud<pcl::PointXYZ>); 
+  PointCloud::Ptr target_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr target_filtered_target (new pcl::PointCloud<pcl::PointXYZ>); 
+  PointCloud::Ptr target_cluster0 (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr target_cluster1 (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr target_cluster2 (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr target_cluster3 (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr target_cluster4 (new pcl::PointCloud<pcl::PointXYZ>);  
 
-  // wait for pointcloud from get_cloud
-  while(!get_cloud_complete){
+  // wait for pointcloud from get_target
+  while(!get_target_complete){
     ros::spinOnce(); // update topics while waiting
   }
   
   std::cout << "Loading cloud files:" <<std::endl;
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (input_path, *cloud_input) == -1)
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (input_path, *target_input) == -1)
   {
       std::cout<<"Couldn't read cloud_input file:"<<input_path;
       return (-1);
   }
   std::cout << "Loaded input cloud file: "<< input_path <<std::endl<<
-    cloud_input->width * cloud_input->height << " Data points from "<< input_path << std::endl;
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_path, *cloud_filtered_target) == -1)
+    target_input->width * target_input->height << " Data points from "<< input_path << std::endl;
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_path, *target_filtered_target) == -1)
   {
       std::cout<<"Couldn't read cloud_target file:"<<target_path;
       return (-1);
   }
   std::cout << "Loaded image file: "<< target_path <<std::endl<<
-    cloud_filtered_target->width * cloud_filtered_target->height << " Data points from "<< target_path << std::endl;  
+    target_filtered_target->width * target_filtered_target->height << " Data points from "<< target_path << std::endl;  
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                    filter_cloud: processing pointcloud data        "<<std::endl;
+  std::cout<<"                    filter_target: processing pointcloud data        "<<std::endl;
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
-  filter_cloud(*cloud_input,*cloud_filtered, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
+  filter_cloud(*target_input,*target_filtered, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
   
   Eigen::Quaternionf target_quaternion, cluster0_quaternion, cluster1_quaternion, cluster2_quaternion, cluster3_quaternion, cluster4_quaternion, marker_quaternion;
   Eigen::Vector3f target_translation, cluster0_translation, cluster1_translation, cluster2_translation, cluster3_translation, cluster4_translation, marker_translation;
@@ -463,52 +449,52 @@ int main(int argc, char** argv)
   if(use_clustering){
 
     // find clusters in filtered cloud (five clusters hardcoded is messy, fix this somehow)
-    cluster_cloud(*cloud_filtered, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
+    cluster_cloud(*target_filtered, *target_cluster0, *target_cluster1, *target_cluster2, *target_cluster3, *target_cluster4);
 
     // find the minimum bounding box for the target cluster
-    pcabox_cloud(*cloud_filtered_target, target_quaternion, target_translation, target_dimensions); 
+    pcabox_cloud(*target_filtered_target, target_quaternion, target_translation, target_dimensions); 
 
     // find the minimum bounding box for a five clusters
-    pcabox_cloud(*cloud_cluster0, cluster0_quaternion, cluster0_translation, cluster0_dimensions);
-    pcabox_cloud(*cloud_cluster1, cluster1_quaternion, cluster1_translation, cluster1_dimensions);
-    pcabox_cloud(*cloud_cluster2, cluster2_quaternion, cluster2_translation, cluster2_dimensions);
-    pcabox_cloud(*cloud_cluster3, cluster3_quaternion, cluster3_translation, cluster3_dimensions);
-    pcabox_cloud(*cloud_cluster4, cluster4_quaternion, cluster4_translation, cluster4_dimensions);
+    pcabox_cloud(*target_cluster0, cluster0_quaternion, cluster0_translation, cluster0_dimensions);
+    pcabox_cloud(*target_cluster1, cluster1_quaternion, cluster1_translation, cluster1_dimensions);
+    pcabox_cloud(*target_cluster2, cluster2_quaternion, cluster2_translation, cluster2_dimensions);
+    pcabox_cloud(*target_cluster3, cluster3_quaternion, cluster3_translation, cluster3_dimensions);
+    pcabox_cloud(*target_cluster4, cluster4_quaternion, cluster4_translation, cluster4_dimensions);
 
     // get score for each cluster
     double score0, score1, score2, score3, score4, score;
     //score=100;
-    score0=score_cluster(*cloud_cluster0, *cloud_filtered_target);
-    score1=score_cluster(*cloud_cluster1, *cloud_filtered_target);
-    score2=score_cluster(*cloud_cluster2, *cloud_filtered_target);
-    score3=score_cluster(*cloud_cluster3, *cloud_filtered_target);
-    score4=score_cluster(*cloud_cluster4, *cloud_filtered_target);
+    score0=score_cluster(*target_cluster0, *target_filtered_target);
+    score1=score_cluster(*target_cluster1, *target_filtered_target);
+    score2=score_cluster(*target_cluster2, *target_filtered_target);
+    score3=score_cluster(*target_cluster3, *target_filtered_target);
+    score4=score_cluster(*target_cluster4, *target_filtered_target);
 
     score=score0; // assume first score is the lowest, always save
     //if (score0<score){
      score=score0;
-     pcl::io::savePCDFileASCII (output_path, *cloud_cluster0);
+     pcl::io::savePCDFileASCII (output_path, *target_cluster0);
      std::cout<<"cluster0 written to:"<< output_path <<std::endl;
     //}
     
     if (score1<score){
       score=score1;
-      pcl::io::savePCDFileASCII (output_path, *cloud_cluster1);
+      pcl::io::savePCDFileASCII (output_path, *target_cluster1);
       std::cout<<"cluster1 cloud written to:"<< output_path <<std::endl;
     }
     if (score2<score){
       score=score2;
-      pcl::io::savePCDFileASCII (output_path, *cloud_cluster2);
+      pcl::io::savePCDFileASCII (output_path, *target_cluster2);
       std::cout<<"cluster2 cloud written to:"<< output_path <<std::endl;
     }
     if (score3<score){
       score=score3;
-      pcl::io::savePCDFileASCII (output_path, *cloud_cluster3);
+      pcl::io::savePCDFileASCII (output_path, *target_cluster3);
       std::cout<<"cluster3 cloud written to:"<< output_path <<std::endl;
     }
     if (score4<score){
       score=score4;
-      pcl::io::savePCDFileASCII (output_path, *cloud_cluster4);
+      pcl::io::savePCDFileASCII (output_path, *target_cluster4);
       std::cout<<"cluster4 cloud written to:"<< output_path <<std::endl;
     }
     std::cout<<"the lowest score is:"<<score<<std::endl;
@@ -516,37 +502,37 @@ int main(int argc, char** argv)
 
   // save filtered cloud 
   if(save_output&&!use_clustering){
-    pcl::io::savePCDFileASCII (output_path, *cloud_filtered);
+    pcl::io::savePCDFileASCII (output_path, *target_filtered);
     std::cout<<"Filtered cloud written to:"<< output_path <<std::endl;
   }
-  filtered_cloud_saved=1; // this should be moved?
+  filtered_target_saved=1; // this should be moved?
 
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                   filter_cloud: pointcloud processing complete     "<<std::endl;
+  std::cout<<"                   filter_target: pointcloud processing complete     "<<std::endl;
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                   filter_cloud: preparing visualization            "<<std::endl;
+  std::cout<<"                   filter_target: preparing visualization            "<<std::endl;
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
-  ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1) ;
-  ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
-  ros::Publisher pub_filtered_target = node.advertise<PointCloud> ("/cloud_filtered_target", 1) ;
-  ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/cloud_cluster0", 1) ;
-  ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/cloud_cluster1", 1) ;
-  ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/cloud_cluster2", 1) ;
-  ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/cloud_cluster3", 1) ;
-  ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/cloud_cluster4", 1) ;
+  ros::Publisher pub_input = node.advertise<PointCloud> ("/target_input", 1) ;
+  ros::Publisher pub_filtered = node.advertise<PointCloud> ("/target_filtered", 1) ;
+  ros::Publisher pub_filtered_target = node.advertise<PointCloud> ("/target_filtered_target", 1) ;
+  ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/target_cluster0", 1) ;
+  ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/target_cluster1", 1) ;
+  ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/target_cluster2", 1) ;
+  ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/target_cluster3", 1) ;
+  ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/target_cluster4", 1) ;
 
-  cloud_input->header.frame_id = "base_link";
-  cloud_filtered->header.frame_id = "base_link";
-  cloud_filtered_target->header.frame_id = "base_link";
-  cloud_cluster0->header.frame_id = "base_link";
-  cloud_cluster1->header.frame_id = "base_link";
-  cloud_cluster2->header.frame_id = "base_link";
-  cloud_cluster3->header.frame_id = "base_link";
-  cloud_cluster4->header.frame_id = "base_link";
+  target_input->header.frame_id = "base_link";
+  target_filtered->header.frame_id = "base_link";
+  target_filtered_target->header.frame_id = "base_link";
+  target_cluster0->header.frame_id = "base_link";
+  target_cluster1->header.frame_id = "base_link";
+  target_cluster2->header.frame_id = "base_link";
+  target_cluster3->header.frame_id = "base_link";
+  target_cluster4->header.frame_id = "base_link";
 
   ros::Publisher target_marker_pub = node.advertise<visualization_msgs::Marker>( "target_marker", 0 );
   ros::Publisher cluster_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "cluster_markers", 0 );
@@ -636,25 +622,25 @@ int main(int argc, char** argv)
   }
     
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                        filter_cloud: complete                     "<<std::endl;
+  std::cout<<"                        filter_target: complete                     "<<std::endl;
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   //publish forever
   while(ros::ok())
   {
 
-      filter_cloud_state_msg.data=filtered_cloud_saved;
-      filter_cloud_state_pub.publish(filter_cloud_state_msg);
+      filter_target_state_msg.data=filtered_target_saved;
+      filter_target_state_pub.publish(filter_target_state_msg);
 
-      pub_input.publish(cloud_input);
-      pub_filtered.publish(cloud_filtered);
-      pub_filtered_target.publish(cloud_filtered_target);
+      pub_input.publish(target_input);
+      pub_filtered.publish(target_filtered);
+      pub_filtered_target.publish(target_filtered_target);
       if(use_clustering){
-        pub_cluster0.publish(cloud_cluster0);
-        pub_cluster1.publish(cloud_cluster1);
-        pub_cluster2.publish(cloud_cluster2);
-        pub_cluster3.publish(cloud_cluster3);
-        pub_cluster4.publish(cloud_cluster4);
+        pub_cluster0.publish(target_cluster0);
+        pub_cluster1.publish(target_cluster1);
+        pub_cluster2.publish(target_cluster2);
+        pub_cluster3.publish(target_cluster3);
+        pub_cluster4.publish(target_cluster4);
         target_marker_pub.publish(target_marker);
         cluster_markers_pub.publish(cluster_markers);
       }

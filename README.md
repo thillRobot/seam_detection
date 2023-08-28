@@ -448,6 +448,41 @@ Note: if you want to generate files in the container, for example when using `ca
 chmod o+w seam_detection/<SUBDIR>
 ````
 
+### troubleshoot with auborobot
+
+i see the following error when i try to publish to andriod_gui/gcode_cmd
+```
+[ERROR] [1692989638.343471973]: Client [/rostopic_17739_1692988617268] wants topic /android_gui/gcode_cmd to have datatype/md5sum [aubo_control/gcodeAction/8261e41e53803494ec669905817b139c], but our version has [aubo_control/gcodeAction/a83a0e1a726f23e73947f0f4e478e627]. Dropping connection.
+```
+
+i think this is a noetic-kinetic version mismatch but I am not sure. The custom message compiles and published on the local machine fine, neither remote machine can see the msg from the other computer
+
+the published message (noetic side) looks just fine
+
+```
+---
+header: 
+  seq: 304
+  stamp: 
+    secs: 0
+    nsecs:         0
+  frame_id: ''
+file_name: "scan_target"
+job_cycles: 0
+start_job: True
+loop: False
+start_atline: 0
+---
+```
+
+we might have to make a patch on the kinetic side to fix this.
+
+
+
+
+
+
+
 ### Changelog
 #### Tagged Versions
 - v1.0 (stable - tagged 12/07/2020)

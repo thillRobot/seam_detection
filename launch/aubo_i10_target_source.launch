@@ -15,28 +15,41 @@
     type="seam_detection_tf"
     output="screen">
   </node>
-
-  <!-- set params to save target -->
-  <!-- <rosparam param="saving_target">True</rosparam> -->
-  <!-- <rosparam param="saving_source">False</rosparam> -->
-
-  <rosparam param="filter_cloud/output_file">"pcd_images/aubo_i10/aubo_cloud_out_target.pcd"</rosparam>
     
-  <!-- get the target cloud published by the aubo robot arm -->
+  <!-- start the scan by publishing to the aubo robot arm -->
+  <remap from="target_gcode" to="android_gui/gcode_cmd"  />
   <node                   
     pkg="seam_detection"          
-    type="get_cloud"
-    name="get_cloud"
+    type="start_target_scan"
+    name="start_target_scan"
     output="screen">
   </node>
 
-  <!-- save the target cloud published by the aubo robot arm --> 
+  <!-- save the target cloud published by the aubo robot arm -->
   <node                   
     pkg="seam_detection"          
-    type="filter_cloud"
-    name="filter_cloud"   
+    type="get_target"
+    name="get_target"
     output="screen">
   </node>
+
+  <!-- filter the target cloud saved by get_cloud --> 
+  <node                   
+    pkg="seam_detection"          
+    type="filter_target"
+    name="filter_target"   
+    output="screen">
+  </node>
+
+  <!-- now repeat for the source cloud -->
+  <!-- save the source cloud published by the aubo robot arm -->
+  <node                   
+    pkg="seam_detection"          
+    type="get_source"
+    name="get_source"
+    output="screen">
+  </node>
+
 
   <!-- start RVIZ --> 
   <node 
