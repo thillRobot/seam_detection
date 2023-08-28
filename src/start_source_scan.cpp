@@ -1,5 +1,5 @@
 /*
-// This program publishes a topic to initiate the target scan
+// This program publishes a topic to initiate the source scan
 // Tristan Hill - 07/21/2023
 
 // see README.md or https://github.com/thillRobot/seam_detection for documentation
@@ -44,21 +44,21 @@ void scan_state_callback(const std_msgs::Bool::ConstPtr& msg)
 int main(int argc, char** argv)
 {
 
-  ros::init(argc,argv,"start_target_scan");
+  ros::init(argc,argv,"start_source_scan");
   ros::NodeHandle node;
   ros::Rate loop_rate(5);
   
   // setup subcribers for scan_state and source_out
   ros::Subscriber scan_state_sub = node.subscribe("/cr_weld/scan_state", 1000, scan_state_callback);
 
-  ros::Publisher start_target_scan_pub = node.advertise<std_msgs::Bool> ("/start_target_scan", 1);
+  ros::Publisher start_source_scan_pub = node.advertise<std_msgs::Bool> ("/start_source_scan", 1);
 
-  ros::Publisher gcode_action_pub = node.advertise<aubo_control::gcodeAction> ("/start_target_scan/target_gcode_action", 1);
+  ros::Publisher gcode_action_pub = node.advertise<aubo_control::gcodeAction> ("/start_source_scan/source_gcode_action", 1);
 
-  ros::Publisher gcode_string_pub = node.advertise<std_msgs::String> ("/start_target_scan/target_gcode_string", 1);
+  ros::Publisher gcode_string_pub = node.advertise<std_msgs::String> ("/start_source_scan/source_gcode_string", 1, true);
 
-  std_msgs::Bool start_target_scan_msg;
-  bool start_target_scan;
+  std_msgs::Bool start_source_scan_msg;
+  bool start_source_scan;
   bool scan_started;
 
   aubo_control::gcodeAction gcode_action_msg;
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
 
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                     start_target_scan v1.x                                 "<<std::endl;
+  std::cout<<"                     start_source_scan v1.x                                 "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
 
   // find the path to the this package (seam_detection)
@@ -75,20 +75,16 @@ int main(int argc, char** argv)
 
   // boolen parameters from config file
   bool save_output, translate_output;
-  node.getParam("start_target_scan", new_scan);
-
-  //std::cout<<"===================================================================="<<std::endl;
-  //std::cout<<"                     start_target_scan: publishing start topic      "<<std::endl;
-  //std::cout<<"===================================================================="<<std::endl;
+  node.getParam("start_source_scan", new_scan);
 
   start_target_scan=1;
   scan_started=0;
   int idx=0;
 
-  gcode_action_msg.file_name="scan_target";
+  gcode_action_msg.file_name="scan_source";
   gcode_action_msg.start_job=1;
 
-  gcode_string_msg.data="scan_target";
+  gcode_string_msg.data="scan_source";
 
   //publish forever
   while(ros::ok())

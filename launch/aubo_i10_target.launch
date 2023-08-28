@@ -1,0 +1,56 @@
+<launch>
+  
+  <!-- launch file for processing pointclouds from aubo_control main_LIDAR.launch -->
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
+
+  <!-- read arg value load the parameters from 'main' config file-->
+  <arg name="config" default="aubo_i10_target_source" />
+  <param name="param" value="$(arg config)"/> 
+  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" /> 
+ 
+  <!-- setup the transformations and frames for the system-->
+  <node
+    pkg="seam_detection"
+    name="seam_detection_tf"
+    type="seam_detection_tf"
+    output="screen">
+  </node>
+    
+  <!-- start the scan by publishing to the aubo robot arm -->
+  <remap from="target_gcode" to="android_gui/gcode_cmd"  />
+  <node                   
+    pkg="seam_detection"          
+    type="start_target_scan"
+    name="start_target_scan"
+    output="screen">
+  </node>
+
+  <!-- save the target cloud published by the aubo robot arm -->
+  <node                   
+    pkg="seam_detection"          
+    type="get_target"
+    name="get_target"
+    output="screen">
+  </node>
+
+  <!-- filter the target cloud saved by get_cloud --> 
+  <node                   
+    pkg="seam_detection"          
+    type="filter_target"
+    name="filter_target"   
+    output="screen">
+  </node>
+
+  <!-- start RVIZ --> 
+  <node 
+    name="rviz20"
+    pkg="rviz"
+    type="rviz"
+    args="-d $(find seam_detection)/rviz/aubo_i10_lidar.rviz">
+  </node>
+
+  <!-- load aubo i10 model from URDF with xacro -->
+  <param name="robot_description" command="xacro $(find aubo_description)/urdf/aubo_i10_robot.xacro" />
+
+</launch>
+

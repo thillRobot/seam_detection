@@ -387,10 +387,10 @@ int main(int argc, char** argv)
   std::vector<double> filter_box_vec;
   double filter_box[6];
   
-  node.getParam("filter_cloud/filter_box",  filter_box_vec);
+  node.getParam("filter_target/filter_box",  filter_box_vec);
   for(unsigned i=0; i < filter_box_vec.size(); i++)
     filter_box[i]=filter_box_vec[i]; // copy from vector to array 
-  node.getParam("filter_cloud/voxel_leaf_size", voxel_leaf_size);
+  node.getParam("filter_target/voxel_leaf_size", voxel_leaf_size);
 
   // get additional parameters set in launch file
   bool saving_source=0;
@@ -521,18 +521,18 @@ int main(int argc, char** argv)
   ros::Publisher pub_filtered_target = node.advertise<PointCloud> ("/target_filtered_target", 1) ;
   ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/target_cluster0", 1) ;
   ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/target_cluster1", 1) ;
-  ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/target_cluster2", 1) ;
-  ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/target_cluster3", 1) ;
-  ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/target_cluster4", 1) ;
+  //ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/target_cluster2", 1) ;
+  //ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/target_cluster3", 1) ;
+  //ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/target_cluster4", 1) ;
 
   target_input->header.frame_id = "base_link";
   target_filtered->header.frame_id = "base_link";
   target_filtered_target->header.frame_id = "base_link";
   target_cluster0->header.frame_id = "base_link";
   target_cluster1->header.frame_id = "base_link";
-  target_cluster2->header.frame_id = "base_link";
-  target_cluster3->header.frame_id = "base_link";
-  target_cluster4->header.frame_id = "base_link";
+  //target_cluster2->header.frame_id = "base_link";
+  //target_cluster3->header.frame_id = "base_link";
+  //target_cluster4->header.frame_id = "base_link";
 
   ros::Publisher target_marker_pub = node.advertise<visualization_msgs::Marker>( "target_marker", 0 );
   ros::Publisher cluster_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "cluster_markers", 0 );
@@ -587,7 +587,7 @@ int main(int argc, char** argv)
         marker_quaternion=cluster1_quaternion;
         marker_translation=cluster1_translation;
         marker_dimensions=cluster1_dimensions;
-      }else if(i==2){
+      }/*else if(i==2){
         marker_quaternion=cluster2_quaternion;
         marker_translation=cluster2_translation;
         marker_dimensions=cluster2_dimensions;
@@ -599,7 +599,7 @@ int main(int argc, char** argv)
         marker_quaternion=cluster4_quaternion;
         marker_translation=cluster4_translation;
         marker_dimensions=cluster4_dimensions;
-      }
+      }*/
 
       cluster_marker.id = i;
 
@@ -638,9 +638,9 @@ int main(int argc, char** argv)
       if(use_clustering){
         pub_cluster0.publish(target_cluster0);
         pub_cluster1.publish(target_cluster1);
-        pub_cluster2.publish(target_cluster2);
-        pub_cluster3.publish(target_cluster3);
-        pub_cluster4.publish(target_cluster4);
+        //pub_cluster2.publish(target_cluster2);
+        //pub_cluster3.publish(target_cluster3);
+        //pub_cluster4.publish(target_cluster4);
         target_marker_pub.publish(target_marker);
         cluster_markers_pub.publish(cluster_markers);
       }
