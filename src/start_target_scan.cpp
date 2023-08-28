@@ -53,9 +53,9 @@ int main(int argc, char** argv)
 
   ros::Publisher start_target_scan_pub = node.advertise<std_msgs::Bool> ("/start_target_scan", 1);
 
-  ros::Publisher gcode_action_pub = node.advertise<aubo_control::gcodeAction> ("/start_target_scan/target_gcode_action", 1);
+  ros::Publisher gcode_action_pub = node.advertise<aubo_control::gcodeAction> ("/gcode_action", 1);
 
-  ros::Publisher gcode_string_pub = node.advertise<std_msgs::String> ("/start_target_scan/target_gcode_string", 1);
+  ros::Publisher gcode_string_pub = node.advertise<std_msgs::String> ("/gcode_string", 1);
 
   std_msgs::Bool start_target_scan_msg;
   bool start_target_scan;

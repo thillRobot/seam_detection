@@ -53,9 +53,9 @@ int main(int argc, char** argv)
 
   ros::Publisher start_source_scan_pub = node.advertise<std_msgs::Bool> ("/start_source_scan", 1);
 
-  ros::Publisher gcode_action_pub = node.advertise<aubo_control::gcodeAction> ("/start_source_scan/source_gcode_action", 1);
+  ros::Publisher gcode_action_pub = node.advertise<aubo_control::gcodeAction> ("/gcode_action", 1);
 
-  ros::Publisher gcode_string_pub = node.advertise<std_msgs::String> ("/start_source_scan/source_gcode_string", 1, true);
+  ros::Publisher gcode_string_pub = node.advertise<std_msgs::String> ("/gcode_string", 1);
 
   std_msgs::Bool start_source_scan_msg;
   bool start_source_scan;
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
   bool save_output, translate_output;
   node.getParam("start_source_scan", new_scan);
 
-  start_target_scan=1;
+  start_source_scan=1;
   scan_started=0;
   int idx=0;
 
@@ -93,11 +93,11 @@ int main(int argc, char** argv)
     if (!scan_started&&idx<3)
     {
       std::cout<<"===================================================================="<<std::endl;
-      std::cout<<"                     start_target_scan: publishing gcode_string     "<<std::endl;
+      std::cout<<"                     start_source_scan: publishing gcode_string     "<<std::endl;
       std::cout<<"===================================================================="<<std::endl;
     
-      start_target_scan_msg.data=start_target_scan;
-      start_target_scan_pub.publish(start_target_scan_msg);
+      start_source_scan_msg.data=start_source_scan;
+      start_source_scan_pub.publish(start_source_scan_msg);
 
       gcode_action_pub.publish(gcode_action_msg);
       gcode_string_pub.publish(gcode_string_msg);
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
   }
   
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                     get_target: complete                            "<<std::endl;
+  std::cout<<"                     get_source: complete                           "<<std::endl;
   std::cout<<"===================================================================="<<std::endl<<std::endl;
   return 0;
 }

@@ -279,7 +279,6 @@ target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(get_cloud src/get_cloud.cpp)
 target_link_libraries(get_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-
 # start_target_scan
 add_executable(start_target_scan src/start_target_scan.cpp)
 target_link_libraries(start_target_scan ${catkin_LIBRARIES} ${PCL_LIBRARIES})
@@ -291,6 +290,10 @@ target_link_libraries(get_target ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # filter_target
 add_executable(filter_target src/filter_target.cpp)
 target_link_libraries(filter_target ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# start_source_scan
+add_executable(start_source_scan src/start_source_scan.cpp)
+target_link_libraries(start_source_scan ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # get_source
 add_executable(get_source src/get_source.cpp)
