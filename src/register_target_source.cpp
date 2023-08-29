@@ -13,7 +13,8 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 // basic file operations
 #include <iostream>
 #include <fstream>
-#include <string>
+#include <string> 
+#include <sstream>   
 #include <boost/thread/thread.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -52,7 +53,9 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/PoseArray.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/String.h>
 
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
@@ -72,6 +75,9 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 //#include <teaser/point_cloud.h>
 //#include <teaser/features.h>
 
+
+
+
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
@@ -79,6 +85,34 @@ typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 bool filter_source_complete=0;
 bool registration_complete=0;
+
+// points from teach pose in meters
+tf::Vector3 P0_target;   
+tf::Vector3 P1_target;
+tf::Vector3 P2_target;
+
+void teach_points_poses_callback(const geometry_msgs::PoseArray::ConstPtr& msg)
+{
+  //ROS_INFO("register target source: I heard : [%d]", msg->poses);
+    //source_saved=msg->data;
+  //ROS_INFO("teaching point: %i", idx);
+  ROS_INFO("teach points pose x: %f", msg->poses[0].position.x);
+  ROS_INFO("teach points pose y: %f", msg->poses[0].position.y);
+  ROS_INFO("teach points pose z: %f", msg->poses[0].position.z);
+
+  P0_target.setX(msg->poses[0].position.x);
+  P0_target.setY(msg->poses[0].position.y); 
+  P0_target.setZ(msg->poses[0].position.z);
+  P1_target.setX(msg->poses[1].position.x);
+  P1_target.setY(msg->poses[1].position.y); 
+  P1_target.setZ(msg->poses[1].position.z);
+  P2_target.setX(msg->poses[2].position.x);
+  P2_target.setY(msg->poses[2].position.y); 
+  P2_target.setZ(msg->poses[2].position.z);
+  //P1_target_inches=[msg->poses[1].position.x, msg->poses[1].position.y, msg->poses[1].position.z]
+  //P2_target_inches=[msg->poses[2].position.x, msg->poses[2].position.y, msg->poses[2].position.z]
+   
+}
 
 void filter_source_state_callback(const std_msgs::Bool::ConstPtr& msg)
 {
@@ -201,8 +235,8 @@ double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTra
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  return fit_score;
   std::cout << "END OF REGISTER_CLOUD_ICP FUNCTION" << std::endl;
+  return fit_score;
 }
 
 
@@ -248,6 +282,10 @@ int main(int argc, char** argv)
 
   // setup subcribers for filter_cloud_state
   ros::Subscriber filter_source_state_sub = node.subscribe("/filter_source/filter_source_state", 1000, filter_source_state_callback);
+  
+  ros::Subscriber teach_pose = node.subscribe("/teach_points/teach_points_poses", 1000, teach_points_poses_callback);
+
+  std::stringstream gcode; 
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_target_source v1.7                     "<<endl;
@@ -481,10 +519,11 @@ int main(int argc, char** argv)
       // copy the tranform from pointer      
       tf::StampedTransform T_intr_tmp(*T_intr);
       tf::StampedTransform T_01_intr_tmp(*T_01_intr);
+      tf::StampedTransform T_10_intr_tmp(*T_10_intr);
 
-      tf::Vector3 P0_target, P1_target, P2_target,
-                  P0_source, P1_source, P2_source,
-                  P0_source_inches, P1_source_inches, P2_source_inches;
+      //tf::Vector3 P0_target, P1_target, P2_target,
+      tf::Vector3  P0_source, P1_source, P2_source,
+                   P0_source_inches, P1_source_inches, P2_source_inches;
 
       // points for shape3
       //tf::Vector3 P0_target_inches(0, 0, 0-6);   // weld points in inches
@@ -492,17 +531,26 @@ int main(int argc, char** argv)
       //tf::Vector3 P2_target_inches(12.5, 2, 4.5-6);
 
       // points for shape2
-      tf::Vector3 P0_target_inches(0, 0, 0-9);   // weld points in inches
-      tf::Vector3 P1_target_inches(0, 0, 2-9);
-      tf::Vector3 P2_target_inches(14, 0, 2-9);
-      
-      P0_target=P0_target_inches*intm;       // convert to meters 
-      P1_target=P1_target_inches*intm;
-      P2_target=P2_target_inches*intm;
+      //tf::Vector3 P0_target_inches(0, 0, 0-9);   // weld points in inches
+      //tf::Vector3 P1_target_inches(0, 0, 2-9);
+      //tf::Vector3 P2_target_inches(14, 0, 2-9);
 
-      P0_source=T_intr_tmp.inverse()*T_01_intr_tmp*P0_target;
-      P1_source=T_intr_tmp.inverse()*T_01_intr_tmp*P1_target;
-      P2_source=T_intr_tmp.inverse()*T_01_intr_tmp*P2_target;
+      // points from teach pose - these moved to callback
+      //tf::Vector3 P0_target_inches(0, 0, 0-9);   // weld points in inches
+      //tf::Vector3 P1_target_inches(0, 0, 2-9);
+      //tf::Vector3 P2_target_inches(14, 0, 2-9);
+      
+      //P0_target=P0_target_inches*intm;       // convert to meters 
+      //P1_target=P1_target_inches*intm;       // teach points in meters
+      //P2_target=P2_target_inches*intm;
+
+      //P0_source=T_intr_tmp.inverse()*T_01_intr_tmp*P0_target; // tranformation used for CAD based target
+      //P1_source=T_intr_tmp.inverse()*T_01_intr_tmp*P1_target;
+      //P2_source=T_intr_tmp.inverse()*T_01_intr_tmp*P2_target;
+
+      P0_source=T_10_intr_tmp.inverse()*P0_target; // transformation for lidar based target
+      P1_source=T_10_intr_tmp.inverse()*P1_target;
+      P2_source=T_10_intr_tmp.inverse()*P2_target;
 
       P0_source_inches=P0_source/intm;       // convert to inches
       P1_source_inches=P1_source/intm;
@@ -515,13 +563,14 @@ int main(int argc, char** argv)
       std::cout<<"P2_target: ["<<P2_target.x()<<","<<P2_target.y()<<","<<P2_target.z()<<"]"<<std::endl;
       std::cout<<"P2_source: ["<<P2_source.x()<<","<<P2_source.y()<<","<<P2_source.z()<<"]"<<std::endl;
 
+      /*
       std::cout<<"P0_target_inches: ["<<P0_target_inches.x()<<","<<P0_target_inches.y()<<","<<P0_target_inches.z()<<"]"<<std::endl;
       std::cout<<"P0_source_inches: ["<<P0_source_inches.x()<<","<<P0_source_inches.y()<<","<<P0_source_inches.z()<<"]"<<std::endl;
       std::cout<<"P1_target_inches: ["<<P1_target_inches.x()<<","<<P1_target_inches.y()<<","<<P1_target_inches.z()<<"]"<<std::endl;
       std::cout<<"P1_source_inches: ["<<P1_source_inches.x()<<","<<P1_source_inches.y()<<","<<P1_source_inches.z()<<"]"<<std::endl;
       std::cout<<"P2_target_inches: ["<<P2_target_inches.x()<<","<<P2_target_inches.y()<<","<<P2_target_inches.z()<<"]"<<std::endl;
       std::cout<<"P2_source_inches: ["<<P2_source_inches.x()<<","<<P2_source_inches.y()<<","<<P2_source_inches.z()<<"]"<<std::endl;
-
+      */
       // write the points to a gcode file called 'move_P1_P2', the source points will be used
       
       ofstream outfile;
@@ -532,6 +581,15 @@ int main(int argc, char** argv)
       outfile << "G1 X"<<P2_source_inches.x()<<" Y"<<P2_source_inches.y()<<" Z"<<P2_source_inches.z()
               <<" A60 B10 C175 F150"<<std::endl;
       outfile.close();
+
+      //std::stringstream gcode;
+      gcode.str(""); // clear the buffer
+      gcode <<"G1 X"<<P0_source_inches.x()<<" Y"<<P0_source_inches.y()<<" Z"<<P0_source_inches.z()<<" A60 B10 C175 F200";
+      gcode <<"G4 P0.2";
+      gcode <<"G1 X"<<P1_source_inches.x()<<" Y"<<P1_source_inches.y()<<" Z"<<P1_source_inches.z()<<" A60 B10 C175 F150";
+      gcode <<"G4 P0.2";
+      gcode <<"G1 X"<<P2_source_inches.x()<<" Y"<<P2_source_inches.y()<<" Z"<<P2_source_inches.z()<<" A60 B10 C175 F150";
+
 
       // update the messages to be published after updating transforms upon finding minimum
       //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
@@ -603,6 +661,10 @@ int main(int argc, char** argv)
   ros::Publisher aligned_T01_pub = node.advertise<PointCloud> ("/aligned_source_T01", 1);
   ros::Publisher aligned_T10_pub = node.advertise<PointCloud> ("/aligned_source_T10", 1);
   
+  ros::Publisher gcode_pub = node.advertise<std_msgs::String> ("/register_target_source/gcode", 1);
+  std_msgs::String gcode_msg;
+
+
   source_cloud->header.frame_id = "base_link";
   source_cloud_intr_min->header.frame_id = "base_link";
   target_cloud->header.frame_id = "base_link";
@@ -649,7 +711,7 @@ int main(int argc, char** argv)
   target_marker.color.b = 240.0/255.0;
   
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    register_target_source: register target source complete       "<<endl;
+  std::cout<<"      register_target_source: register target source complete       "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
   //publish forever
@@ -680,6 +742,9 @@ int main(int argc, char** argv)
 
       source_markers_pub.publish(source_markers);
       target_markers_pub.publish(target_markers);
+
+      gcode_msg.data=gcode.str();
+      gcode_pub.publish(gcode_msg);
 
       ros::spinOnce();
       loop_rate.sleep();

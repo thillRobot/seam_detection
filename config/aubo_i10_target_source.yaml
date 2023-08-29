@@ -3,7 +3,7 @@
 teach_points/num_points: 3
 
 # get_target params 
-get_target/new_scan: false
+get_target/new_scan: true
 get_target/output_file: "pcd_images/aubo_i10/aubo_target_out.pcd"
 save_output: true
 translate_output: false
