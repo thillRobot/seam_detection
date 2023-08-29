@@ -251,6 +251,14 @@ target_link_libraries(register_clouds
   teaserpp::teaser_features
 )
 
+# register_target_source - Registration Algorithm Testing Node(s) ##
+add_executable(register_target_source src/register_target_source.cpp)
+target_link_libraries(register_target_source
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+)
+
 # seam_detection_RANSAC # this node needs updating
 add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
 target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})

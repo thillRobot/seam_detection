@@ -57,7 +57,7 @@ void source_saved_callback(const std_msgs::Bool::ConstPtr& msg)
 void start_source_scan_callback(const std_msgs::Bool::ConstPtr& msg)
 {
   start_source_scan=msg->data;
-  ROS_INFO("start_source_scan: %i", start_source_scan);
+  //ROS_INFO("start_source_scan: %i", start_source_scan);
 }
 
 void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)

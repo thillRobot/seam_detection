@@ -4,10 +4,23 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /PointCloud24
+        - /PointCloud25
+        - /PointCloud26
+        - /PointCloud27
+        - /PointCloud28
+        - /PointCloud29
+        - /PointCloud210
+        - /PointCloud211
+        - /PointCloud212
+        - /PointCloud213
         - /MarkerArray1
+        - /MarkerArray1/Status1
+        - /MarkerArray2
+        - /MarkerArray3
+        - /TF1
         - /TF1/Frames1
-      Splitter Ratio: 0.42806604504585266
+        - /Marker4/Status1
+      Splitter Ratio: 0.42524272203445435
     Tree Height: 802
   - Class: rviz/Selection
     Name: Selection
@@ -139,7 +152,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0020000000949949026
       Style: Points
-      Topic: /cloud_filtered
+      Topic: /target_filtered
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -184,7 +197,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -199,7 +212,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -210,6 +223,62 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 239; 41; 41
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0020000000949949026
+      Style: Points
+      Topic: /target_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 252; 175; 62
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0020000000949949026
+      Style: Points
+      Topic: /source_filtered
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 252; 233; 79
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
@@ -237,7 +306,7 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 252; 175; 62
+      Color: 138; 226; 52
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
@@ -265,7 +334,7 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 252; 233; 79
+      Color: 114; 159; 207
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
@@ -284,6 +353,34 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 0.75
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0020000000949949026
+      Style: Points
+      Topic: /source_cluster3
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -293,7 +390,7 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 138; 226; 52
+      Color: 85; 255; 127
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
@@ -321,7 +418,7 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 114; 159; 207
+      Color: 255; 95; 21
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
@@ -335,123 +432,11 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0020000000949949026
       Style: Points
-      Topic: /cloud_cluster4
+      Topic: /source_cloud
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Alpha: 0.75
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: PointCloud2
-      Position Transformer: ""
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.0020000000949949026
-      Style: Points
-      Topic: /source_cloud
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 0.75
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: PointCloud2
-      Position Transformer: ""
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.0020000000949949026
-      Style: Points
-      Topic: /source_cloud
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 85; 255; 127
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.0020000000949949026
-      Style: Points
-      Topic: /source_cloud_intr_min
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 95; 21
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.0020000000949949026
-      Style: Points
-      Topic: /aligned_cloud_T01
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -482,7 +467,7 @@ Visualization Manager:
       Value: false
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /cluster_markers
+      Marker Topic: /source_cluster_markers
       Name: MarkerArray
       Namespaces:
         "": true
@@ -490,10 +475,10 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /source_markers
+      Marker Topic: /cluster_markers
       Name: MarkerArray
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -520,58 +505,68 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        T_01:
+          Value: false
+        T_01_intr_min:
+          Value: false
+        T_10:
+          Value: false
+        T_10_intr_min:
+          Value: false
+        T_intr_min:
+          Value: false
         Torch:
-          Value: true
+          Value: false
         base_Link:
-          Value: true
+          Value: false
         base_link:
           Value: false
         ee_Link:
-          Value: true
+          Value: false
         eef:
-          Value: true
+          Value: false
         f1_Link:
-          Value: true
+          Value: false
         foreArm_Link:
-          Value: true
+          Value: false
         joystick:
-          Value: true
+          Value: false
         laser:
-          Value: true
+          Value: false
         map:
           Value: false
         rviz_cam:
-          Value: true
+          Value: false
         s_Link:
-          Value: true
+          Value: false
         shoulder_Link:
-          Value: true
+          Value: false
         tool0:
-          Value: true
+          Value: false
         tool1:
-          Value: true
+          Value: false
         tool_joy:
-          Value: true
+          Value: false
         u_Link:
-          Value: true
+          Value: false
         upperArm_Link:
-          Value: true
+          Value: false
         w1_Link:
-          Value: true
+          Value: false
         w2_Link:
-          Value: true
+          Value: false
         weave_frame:
-          Value: true
+          Value: false
         wire_tip:
-          Value: true
+          Value: false
         world:
           Value: false
         wrist1_Link:
-          Value: true
+          Value: false
         wrist2_Link:
-          Value: true
+          Value: false
         wrist3_Link:
-          Value: true
+          Value: false
       Marker Alpha: 1
       Marker Scale: 0.5
       Name: TF
@@ -581,6 +576,15 @@ Visualization Manager:
       Tree:
         world:
           base_link:
+            T_01_intr_min:
+              {}
+            T_10_intr_min:
+              {}
+            T_intr_min:
+              T_01:
+                {}
+              T_10:
+                {}
             base_Link:
               foreArm_Link:
                 u_Link:
@@ -643,64 +647,57 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: visualization_marker
       Name: Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        foreArm_Link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shoulder_Link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        upperArm_Link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wrist1_Link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wrist2_Link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wrist3_Link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
+    - Alpha: 0.75
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0020000000949949026
+      Style: Points
+      Topic: /target_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -729,7 +726,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.0891480445861816
+      Distance: 1.6860603094100952
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -737,17 +734,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.26225218176841736
-        Y: -0.13252192735671997
-        Z: 0.17681729793548584
+        X: -0.1080671101808548
+        Y: -0.19832608103752136
+        Z: -0.20754218101501465
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.28479769825935364
+      Pitch: 0.659797728061676
       Target Frame: <Fixed Frame>
-      Yaw: 5.429718494415283
+      Yaw: 4.9747161865234375
     Saved: ~
 Window Geometry:
   Displays:

@@ -33,5 +33,13 @@
     output="screen">
   </node>
 
+  <!-- processing of lidar data for registration -->
+  <node
+    pkg="seam_detection"
+    name="register_target_source"
+    type="register_target_source"
+    output="screen">
+  </node>
+
 </launch>
 

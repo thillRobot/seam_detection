@@ -35,11 +35,11 @@ filter_source/voxel_leaf_size: 0.001
 
 
 
-# register_clouds params
+# register_target_source params
 scene_name: "aubo_i10_lidar" # change this to config_name ?
-register_clouds/source_file: "pcd_images/aubo_i10/aubo_cloud_out_filtered.pcd"
-register_clouds/target_file: "pcd_images/shape1_shape2/shape2.pcd"
-register_clouds/aligned_file: "pcd_images/shape1_shape2/source_aligned.pcd"
+register_target_source/source_file: "pcd_images/aubo_i10/aubo_source_out_filtered.pcd"
+register_target_source/target_file: "pcd_images/aubo_i10/aubo_target_out_filtered.pcd"
+register_target_source/aligned_file: "pcd_images/aubo_i10/aubo_source_aligned.pcd"
 part1_name: "shape1"
 part1_type: "square_tube"
 part2_name: "none"
@@ -49,8 +49,8 @@ save_part2_segment: false
 use_teaser: false
 use_teaser_fpfh: false
 
-register_cloud/filter_box: [0.0, 0.5, -0.9, -0.4, -0.01, 0.23] # bounding box limits (!check that these are used!)
-register_cloud/voxel_leaf_size: 0.005                                         # voxel leaf size
+register_target_source/filter_box: [0.0, 0.5, -0.9, -0.4, -0.01, 0.23] # bounding box limits (!check that these are used!)
+register_target_source/voxel_leaf_size: 0.005                                         # voxel leaf size
 
 icp_max_corr_dist: 1.0          # ICP Maximum Correspondence Distance
 icp_max_iter: 1000                # ICP Maximum Iterations
