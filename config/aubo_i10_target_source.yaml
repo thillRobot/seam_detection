@@ -1,4 +1,7 @@
 ---
+# teach_points params
+teach_points/num_points: 3
+
 # get_target params 
 get_target/new_scan: false
 get_target/output_file: "pcd_images/aubo_i10/aubo_target_out.pcd"
@@ -33,8 +36,6 @@ use_clustering: true
 filter_source/filter_box: [-1.0, 1.0, -1.0, 0.0, 0.002, 0.5] # bounding box limits
 filter_source/voxel_leaf_size: 0.001   
 
-
-
 # register_target_source params
 scene_name: "aubo_i10_lidar" # change this to config_name ?
 register_target_source/source_file: "pcd_images/aubo_i10/aubo_source_out_filtered.pcd"
@@ -57,4 +58,3 @@ icp_max_iter: 1000                # ICP Maximum Iterations
 icp_trns_epsl: 0.000000001        # ICP Transformation Epsilon
 icp_ecld_fitn_epsl: 0.000000001  # ICP Euclidean Distance Fitness Epsilon          
 icp_ran_rej_thrsh: 1.5           # ICP RANSAC Outlier Rejection Threshold           
-

@@ -12,43 +12,42 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int8.h>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseArray.h>
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 
-
-bool scan_complete=0;
-bool cloud_saved=0;
-
-bool target_saved=0;
-bool source_saved=0;
-bool start_source_scan=0;
-
-bool new_scan;
+bool teach_points_state=0;
+int idx=0; // index for set of points
 
 // global parameters for callback access
 std::string output_path, output_file; 
 
 geometry_msgs::Pose current_pose;
+geometry_msgs::PoseArray teach_poses;
 
 // callback for tool pose simple
 void current_pose_callback(const geometry_msgs::Pose::ConstPtr& msg)
 {
   current_pose=*msg;
   //source_saved=msg->data;
-  ROS_INFO("current pose: %f", msg->position.x);
+  //ROS_INFO("current pose: %f", msg->position.x);
 }
 
 //callback for teach click
-void teach_callback(const std_msgs::Int8::ConstPtr& msg)
+void teach_pose_callback(const std_msgs::Int8::ConstPtr& msg)
 {
 
   //source_saved=msg->data;
-  ROS_INFO("teach: %i", msg->data);
+  ROS_INFO("teaching point: %i", idx);
   ROS_INFO("current_pose x: %f", current_pose.position.x);
   ROS_INFO("current_pose y: %f", current_pose.position.y);
   ROS_INFO("current_pose z: %f", current_pose.position.z);
 
+  teach_poses.poses.push_back(current_pose);
+
+  teach_points_state=1;
+  idx++;
 }
 
 
@@ -60,11 +59,11 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(5);
   
   ros::Subscriber current_pose_sub = node.subscribe("/aubo_robot/current_pose_tool0_basic",10, current_pose_callback);
-  ros::Subscriber teach_sub = node.subscribe("/cr_weld/teach_pose",10, teach_callback);
+  ros::Subscriber teach_pose_sub = node.subscribe("/cr_weld/teach_pose",10, teach_pose_callback);
 
+  ros::Publisher teach_points_state_pub = node.advertise<std_msgs::Bool> ("/teach_points/teach_points_state", 1);
   
-  //std_msgs::Bool get_source_state_msg, target_saved_msg, source_saved_msg;
-  //get_cloud_state_msg.data=cloud_saved;
+  std_msgs::Bool teach_points_state_msg;
 
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"                     teach_points v1.x                              "<<std::endl;
@@ -82,31 +81,33 @@ int main(int argc, char** argv)
   // find the path to the this package (seam_detection)
   std::string packagepath = ros::package::getPath("seam_detection");
 
-  // boolen parameters from config file
-  //bool save_output, translate_output;
-  //node.getParam("save_output", save_output);
-  //node.getParam("translate_output", translate_output);
-  //node.getParam("get_source/new_scan", new_scan);
-  //node.getParam("get_source/output_file", output_file);
-  //output_path=packagepath+'/'+output_file;
+  // get parameters from config file
+  int num_points;
+  node.getParam("teach_points/num_points", num_points);
 
+  std::cout<<"teach_points: preparing to teach "<<num_points<<" num_points"<<std::endl;
 
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"                     teach_points: setup complete                   "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
 
   //publish forever
-  while(ros::ok())
+  while(ros::ok()&&idx<num_points)
   {
     
-    //get_source_state_msg.data=cloud_saved;
-    //get_source_state_pub.publish(get_source_state_msg);
+    teach_points_state_msg.data=teach_points_state;
+    teach_points_state_pub.publish(teach_points_state_msg);
 
     //source_saved_msg.data=cloud_saved;
     //source_saved_pub.publish(source_saved_msg);
 
     ros::spinOnce();
     loop_rate.sleep();
+  }
+
+  std::cout<<"teach_points: poses taught "<<std::endl;
+  for(int i=0; i<num_points; i++){
+    std::cout<<"pose"<<i<<": ["<<teach_poses.poses[i].position.x<<","<<teach_poses.poses[i].position.y<<","<<teach_poses.poses[i].position.z<<"]"<<std::endl;
   }
   
   std::cout<<"===================================================================="<<std::endl;

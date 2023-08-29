@@ -15,6 +15,14 @@
     type="seam_detection_tf"
     output="screen">
   </node>
+
+  <!-- start the teach_points node to get reference for target" -->
+  <node
+    pkg="seam_detection"
+    name="teach_points"
+    type="teach_points"
+    output="screen">
+  </node>
     
   <!-- start the scan by publishing to the aubo robot arm -->
   <remap from="target_gcode" to="android_gui/gcode_cmd"  />
