@@ -409,7 +409,8 @@ int main(int argc, char** argv)
   PointCloud::Ptr source_cluster1 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr source_cluster2 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr source_cluster3 (new pcl::PointCloud<pcl::PointXYZ>);
-  PointCloud::Ptr source_cluster4 (new pcl::PointCloud<pcl::PointXYZ>);  
+  PointCloud::Ptr source_cluster4 (new pcl::PointCloud<pcl::PointXYZ>);
+  PointCloud::Ptr source_cluster_min (new pcl::PointCloud<pcl::PointXYZ>);   
 
   // wait for pointcloud from get_source
   while(!get_source_complete){
@@ -473,28 +474,33 @@ int main(int argc, char** argv)
     score=score0; // assume first score is the lowest, always save
     //if (score0<score){
      score=score0;
-     pcl::io::savePCDFileASCII (output_path, *source_cluster0);
+     pcl::copyPointCloud(*source_cluster0, *source_cluster_min);
+     pcl::io::savePCDFileASCII(output_path, *source_cluster0);
      std::cout<<"cluster0 written to:"<< output_path <<std::endl;
     //}
     
     if (score1<score){
       score=score1;
-      pcl::io::savePCDFileASCII (output_path, *source_cluster1);
+      pcl::copyPointCloud(*source_cluster1, *source_cluster_min);
+      pcl::io::savePCDFileASCII(output_path, *source_cluster1);
       std::cout<<"cluster1 cloud written to:"<< output_path <<std::endl;
     }
     if (score2<score){
       score=score2;
-      pcl::io::savePCDFileASCII (output_path, *source_cluster2);
+      pcl::copyPointCloud(*source_cluster2, *source_cluster_min);
+      pcl::io::savePCDFileASCII(output_path, *source_cluster2);
       std::cout<<"cluster2 cloud written to:"<< output_path <<std::endl;
     }
     if (score3<score){
       score=score3;
-      pcl::io::savePCDFileASCII (output_path, *source_cluster3);
+      pcl::copyPointCloud(*source_cluster3, *source_cluster_min);
+      pcl::io::savePCDFileASCII(output_path, *source_cluster3);
       std::cout<<"cluster3 cloud written to:"<< output_path <<std::endl;
     }
     if (score4<score){
       score=score4;
-      pcl::io::savePCDFileASCII (output_path, *source_cluster4);
+      pcl::copyPointCloud(*source_cluster4, *source_cluster_min);
+      pcl::io::savePCDFileASCII(output_path, *source_cluster4);
       std::cout<<"cluster4 cloud written to:"<< output_path <<std::endl;
     }
     std::cout<<"the lowest score is:"<<score<<std::endl;
@@ -502,7 +508,7 @@ int main(int argc, char** argv)
 
   // save filtered cloud 
   if(save_output&&!use_clustering){
-    pcl::io::savePCDFileASCII (output_path, *source_filtered);
+    pcl::io::savePCDFileASCII(output_path, *source_filtered);
     std::cout<<"Filtered cloud written to:"<< output_path <<std::endl;
   }
   filtered_source_saved=1; // this should be moved?
@@ -524,6 +530,7 @@ int main(int argc, char** argv)
   ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/source_cluster2", 1) ;
   ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/source_cluster3", 1) ;
   ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/source_cluster4", 1) ;
+  ros::Publisher pub_cluster_min = node.advertise<PointCloud> ("/source_cluster_min", 1) ;
 
   source_input->header.frame_id = "base_link";
   source_filtered->header.frame_id = "base_link";
@@ -533,6 +540,7 @@ int main(int argc, char** argv)
   source_cluster2->header.frame_id = "base_link";
   source_cluster3->header.frame_id = "base_link";
   source_cluster4->header.frame_id = "base_link";
+  source_cluster_min->header.frame_id = "base_link";
 
   ros::Publisher source_marker_pub = node.advertise<visualization_msgs::Marker>( "source_marker", 0 );
   ros::Publisher cluster_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "source_cluster_markers", 0 );
@@ -641,6 +649,7 @@ int main(int argc, char** argv)
         pub_cluster2.publish(source_cluster2);
         pub_cluster3.publish(source_cluster3);
         pub_cluster4.publish(source_cluster4);
+        pub_cluster_min.publish(source_cluster_min);
         source_marker_pub.publish(source_marker);
         cluster_markers_pub.publish(cluster_markers);
       }

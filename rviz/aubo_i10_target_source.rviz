@@ -4,12 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /PointCloud25
-        - /PointCloud212
-        - /PointCloud213
-        - /MarkerArray1
-        - /MarkerArray2
-        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.42524272203445435
     Tree Height: 802
@@ -213,6 +207,34 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
+      Color: 85; 255; 127
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0020000000949949026
+      Style: Points
+      Topic: /target_cluster_min
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
       Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
@@ -400,6 +422,34 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
+    - Alpha: 0.75
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0020000000949949026
+      Style: Points
+      Topic: /source_cluster_min
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -456,6 +506,22 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Class: rviz/Marker
+      Enabled: false
+      Marker Topic: /target_marker
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
+    - Class: rviz/Marker
+      Enabled: false
+      Marker Topic: /target_marker
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /target_cluster_markers
@@ -491,13 +557,13 @@ Visualization Manager:
         T_01:
           Value: true
         T_01_intr_min:
-          Value: false
+          Value: true
         T_10:
-          Value: false
+          Value: true
         T_10_intr_min:
-          Value: false
+          Value: true
         T_intr_min:
-          Value: false
+          Value: true
         Torch:
           Value: false
         base_Link:
@@ -558,85 +624,53 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          base_link:
-            T_01_intr_min:
-              {}
-            T_10_intr_min:
-              {}
-            T_intr_min:
-              T_01:
-                {}
-              T_10:
-                {}
-            base_Link:
-              foreArm_Link:
-                u_Link:
-                  {}
-              shoulder_Link:
-                s_Link:
-                  {}
-              upperArm_Link:
-                f1_Link:
-                  {}
-              wrist1_Link:
-                w1_Link:
-                  {}
-              wrist2_Link:
-                w2_Link:
-                  {}
-              wrist3_Link:
-                ee_Link:
-                  Torch:
-                    {}
-                  eef:
-                    {}
-                  laser:
-                    {}
-                  tool_joy:
-                    joystick:
-                      {}
-                  wire_tip:
-                    weave_frame:
-                      tool0:
-                        tool1:
-                          {}
           map:
+            base_link:
+              T_01_intr_min:
+                {}
+              T_10_intr_min:
+                {}
+              T_intr_min:
+                T_01:
+                  {}
+                T_10:
+                  {}
+              base_Link:
+                foreArm_Link:
+                  u_Link:
+                    {}
+                shoulder_Link:
+                  s_Link:
+                    {}
+                upperArm_Link:
+                  f1_Link:
+                    {}
+                wrist1_Link:
+                  w1_Link:
+                    {}
+                wrist2_Link:
+                  w2_Link:
+                    {}
+                wrist3_Link:
+                  ee_Link:
+                    Torch:
+                      {}
+                    eef:
+                      {}
+                    laser:
+                      {}
+                    tool_joy:
+                      joystick:
+                        {}
+                    wire_tip:
+                      weave_frame:
+                        tool0:
+                          tool1:
+                            {}
             rviz_cam:
               {}
       Update Interval: 0
       Value: true
-    - Class: rviz/Marker
-      Enabled: true
-      Marker Topic: /marker_pointslines
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /marker_plane
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /marker_cylinder
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: visualization_marker
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
@@ -653,34 +687,6 @@ Visualization Manager:
       Update Interval: 0
       Value: false
       Visual Enabled: true
-    - Alpha: 0.75
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.0020000000949949026
-      Style: Points
-      Topic: /target_cloud
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -709,7 +715,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.7548664808273315
+      Distance: 1.4751524925231934
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -717,17 +723,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.09216095507144928
-        Y: -0.29111286997795105
-        Z: -0.08970119059085846
+        X: -0.13914921879768372
+        Y: -0.33373069763183594
+        Z: -0.02773192897439003
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6347978711128235
+      Pitch: 0.6247979402542114
       Target Frame: <Fixed Frame>
-      Yaw: 4.764710903167725
+      Yaw: 5.2597126960754395
     Saved: ~
 Window Geometry:
   Displays:

@@ -26,13 +26,15 @@ bool start_source_scan=0;
 
 bool new_scan;
 
-
 // global parameters for callback access
 std::string output_path, output_file; 
+
+geometry_msgs::Pose current_pose;
 
 // callback for tool pose simple
 void current_pose_callback(const geometry_msgs::Pose::ConstPtr& msg)
 {
+  current_pose=*msg;
   //source_saved=msg->data;
   ROS_INFO("current pose: %f", msg->position.x);
 }
@@ -40,8 +42,13 @@ void current_pose_callback(const geometry_msgs::Pose::ConstPtr& msg)
 //callback for teach click
 void teach_callback(const std_msgs::Int8::ConstPtr& msg)
 {
+
   //source_saved=msg->data;
   ROS_INFO("teach: %i", msg->data);
+  ROS_INFO("current_pose x: %f", current_pose.position.x);
+  ROS_INFO("current_pose y: %f", current_pose.position.y);
+  ROS_INFO("current_pose z: %f", current_pose.position.z);
+
 }
 
 

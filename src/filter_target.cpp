@@ -409,7 +409,8 @@ int main(int argc, char** argv)
   PointCloud::Ptr target_cluster1 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr target_cluster2 (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr target_cluster3 (new pcl::PointCloud<pcl::PointXYZ>);
-  PointCloud::Ptr target_cluster4 (new pcl::PointCloud<pcl::PointXYZ>);  
+  PointCloud::Ptr target_cluster4 (new pcl::PointCloud<pcl::PointXYZ>); 
+  PointCloud::Ptr target_cluster_min (new pcl::PointCloud<pcl::PointXYZ>);  // cluster with the min score (best)
 
   // wait for pointcloud from get_target
   while(!get_target_complete){
@@ -473,27 +474,32 @@ int main(int argc, char** argv)
     score=score0; // assume first score is the lowest, always save
     //if (score0<score){
      score=score0;
+     pcl::copyPointCloud(*target_cluster0, *target_cluster_min);
      pcl::io::savePCDFileASCII (output_path, *target_cluster0);
      std::cout<<"cluster0 written to:"<< output_path <<std::endl;
     //}
     
     if (score1<score){
       score=score1;
+      pcl::copyPointCloud(*target_cluster1, *target_cluster_min);
       pcl::io::savePCDFileASCII (output_path, *target_cluster1);
       std::cout<<"cluster1 cloud written to:"<< output_path <<std::endl;
     }
     if (score2<score){
       score=score2;
+      pcl::copyPointCloud(*target_cluster2, *target_cluster_min);
       pcl::io::savePCDFileASCII (output_path, *target_cluster2);
       std::cout<<"cluster2 cloud written to:"<< output_path <<std::endl;
     }
     if (score3<score){
       score=score3;
+      pcl::copyPointCloud(*target_cluster3, *target_cluster_min);
       pcl::io::savePCDFileASCII (output_path, *target_cluster3);
       std::cout<<"cluster3 cloud written to:"<< output_path <<std::endl;
     }
     if (score4<score){
       score=score4;
+      pcl::copyPointCloud(*target_cluster4, *target_cluster_min);
       pcl::io::savePCDFileASCII (output_path, *target_cluster4);
       std::cout<<"cluster4 cloud written to:"<< output_path <<std::endl;
     }
@@ -524,6 +530,7 @@ int main(int argc, char** argv)
   //ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/target_cluster2", 1) ;
   //ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/target_cluster3", 1) ;
   //ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/target_cluster4", 1) ;
+  ros::Publisher pub_cluster_min = node.advertise<PointCloud> ("/target_cluster_min", 1) ;
 
   target_input->header.frame_id = "base_link";
   target_filtered->header.frame_id = "base_link";
@@ -533,6 +540,7 @@ int main(int argc, char** argv)
   //target_cluster2->header.frame_id = "base_link";
   //target_cluster3->header.frame_id = "base_link";
   //target_cluster4->header.frame_id = "base_link";
+  target_cluster_min->header.frame_id = "base_link";
 
   ros::Publisher target_marker_pub = node.advertise<visualization_msgs::Marker>( "target_marker", 0 );
   ros::Publisher cluster_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "target_cluster_markers", 0 );
@@ -641,7 +649,8 @@ int main(int argc, char** argv)
         //pub_cluster2.publish(target_cluster2);
         //pub_cluster3.publish(target_cluster3);
         //pub_cluster4.publish(target_cluster4);
-        target_marker_pub.publish(target_marker);
+        pub_cluster_min.publish(target_cluster_min);
+        target_marker_pub.publish(target_marker); // a marker around the target 
         cluster_markers_pub.publish(cluster_markers);
       }
       ros::spinOnce();
