@@ -536,8 +536,8 @@ int main(int argc, char** argv)
 
   ros::Publisher source_marker_pub = node.advertise<visualization_msgs::Marker>( "source_marker", 0 );
   ros::Publisher cluster_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "source_cluster_markers", 0 );
-  visualization_msgs::MarkerArray source_cluster_markers;
-  visualization_msgs::Marker source_marker, source_cluster_marker;
+  visualization_msgs::MarkerArray cluster_markers;
+  visualization_msgs::Marker source_marker, cluster_marker;
   if (use_clustering){
     
     // single marker cube for source cloud pcabox
@@ -546,12 +546,12 @@ int main(int argc, char** argv)
     source_marker.type = visualization_msgs::Marker::CUBE;
     source_marker.action = visualization_msgs::Marker::ADD;
 
-    source_marker.color.a = 0.15; 
-    source_marker.color.r = 240.0/255.0;
-    source_marker.color.g = 240.0/255.0;
-    source_marker.color.b = 240.0/255.0;
+    //source_marker.color.a = 0.15; 
+    //source_marker.color.r = 240.0/255.0;
+    //source_marker.color.g = 240.0/255.0;
+    //source_marker.color.b = 240.0/255.0;
 
-    source_cluster_marker.id = 999;
+    source_marker.id = 999;
 
     source_marker.pose.orientation.x = source_quaternion.vec()[0];
     source_marker.pose.orientation.y = source_quaternion.vec()[1];
@@ -566,16 +566,16 @@ int main(int argc, char** argv)
     source_marker.pose.position.y = source_translation[1];
     source_marker.pose.position.z = source_translation[2];
 
-    // array of markers for pointcloud clusters 
-    source_cluster_marker.header.frame_id = "base_link";
-    source_cluster_marker.header.stamp = ros::Time();
-    source_cluster_marker.type = visualization_msgs::Marker::CUBE;
-    source_cluster_marker.action = visualization_msgs::Marker::ADD;
+    // array of markers for pointcloud clusters  
+    cluster_marker.header.frame_id = "base_link";
+    cluster_marker.header.stamp = ros::Time();
+    cluster_marker.type = visualization_msgs::Marker::CUBE;
+    cluster_marker.action = visualization_msgs::Marker::ADD;
 
-    source_cluster_marker.color.a = 0.15; // Don't forget to set the alpha!
-    source_cluster_marker.color.r = 255.0/255.0;
-    source_cluster_marker.color.g = 0.0/255.0;
-    source_cluster_marker.color.b = 255.0/255.0;
+    cluster_marker.color.a = 0.15; // Don't forget to set the alpha!
+    cluster_marker.color.r = 255.0/255.0;
+    cluster_marker.color.g = 0.0/255.0;
+    cluster_marker.color.b = 255.0/255.0;
     
     for(size_t i = 0; i < 5; i++){  
 
@@ -601,22 +601,22 @@ int main(int argc, char** argv)
         marker_dimensions=cluster4_dimensions;
       }
 
-      source_cluster_marker.id = i;
+      cluster_marker.id = i;
 
-      source_cluster_marker.pose.orientation.x = marker_quaternion.vec()[0];
-      source_cluster_marker.pose.orientation.y = marker_quaternion.vec()[1];
-      source_cluster_marker.pose.orientation.z = marker_quaternion.vec()[2];
-      source_cluster_marker.pose.orientation.w = marker_quaternion.w();
+      cluster_marker.pose.orientation.x = marker_quaternion.vec()[0];
+      cluster_marker.pose.orientation.y = marker_quaternion.vec()[1];
+      cluster_marker.pose.orientation.z = marker_quaternion.vec()[2];
+      cluster_marker.pose.orientation.w = marker_quaternion.w();
 
-      source_cluster_marker.scale.x = marker_dimensions[0];
-      source_cluster_marker.scale.y = marker_dimensions[1];
-      source_cluster_marker.scale.z = marker_dimensions[2];
+      cluster_marker.scale.x = marker_dimensions[0];
+      cluster_marker.scale.y = marker_dimensions[1];
+      cluster_marker.scale.z = marker_dimensions[2];
 
-      source_cluster_marker.pose.position.x = marker_translation[0];
-      source_cluster_marker.pose.position.y = marker_translation[1];
-      source_cluster_marker.pose.position.z = marker_translation[2];
+      cluster_marker.pose.position.x = marker_translation[0];
+      cluster_marker.pose.position.y = marker_translation[1];
+      cluster_marker.pose.position.z = marker_translation[2];
 
-      source_cluster_markers.markers.push_back(source_cluster_marker); // add the marker to the marker array   
+      cluster_markers.markers.push_back(cluster_marker); // add the marker to the marker array   
     }
 
   }
@@ -642,7 +642,7 @@ int main(int argc, char** argv)
         pub_cluster3.publish(source_cluster3);
         pub_cluster4.publish(source_cluster4);
         source_marker_pub.publish(source_marker);
-        cluster_markers_pub.publish(source_cluster_markers);
+        cluster_markers_pub.publish(cluster_markers);
       }
       ros::spinOnce();
       loop_rate.sleep();

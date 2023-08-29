@@ -535,7 +535,7 @@ int main(int argc, char** argv)
   //target_cluster4->header.frame_id = "base_link";
 
   ros::Publisher target_marker_pub = node.advertise<visualization_msgs::Marker>( "target_marker", 0 );
-  ros::Publisher cluster_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "cluster_markers", 0 );
+  ros::Publisher cluster_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "target_cluster_markers", 0 );
   visualization_msgs::MarkerArray cluster_markers;
   visualization_msgs::Marker target_marker, cluster_marker;
   if (use_clustering){
@@ -551,7 +551,7 @@ int main(int argc, char** argv)
     target_marker.color.g = 240.0/255.0;
     target_marker.color.b = 240.0/255.0;
 
-    cluster_marker.id = 999;
+    target_marker.id = 999;
 
     target_marker.pose.orientation.x = target_quaternion.vec()[0];
     target_marker.pose.orientation.y = target_quaternion.vec()[1];

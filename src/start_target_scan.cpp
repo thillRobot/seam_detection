@@ -75,7 +75,9 @@ int main(int argc, char** argv)
 
   // boolen parameters from config file
   bool save_output, translate_output;
-  node.getParam("start_target_scan", new_scan);
+  //node.getParam("start_target_scan", new_scan);
+  node.getParam("get_target/new_scan", new_scan);
+
 
   //std::cout<<"===================================================================="<<std::endl;
   //std::cout<<"                     start_target_scan: publishing start topic      "<<std::endl;
@@ -94,7 +96,7 @@ int main(int argc, char** argv)
   while(ros::ok())
   {
 
-    if (!scan_started&&idx<3)
+    if (!scan_started&&idx<3&&new_scan)
     {
       std::cout<<"===================================================================="<<std::endl;
       std::cout<<"                     start_target_scan: publishing gcode_string     "<<std::endl;

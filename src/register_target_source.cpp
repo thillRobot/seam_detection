@@ -268,7 +268,7 @@ int main(int argc, char** argv)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   // parameters that contain strings  
-  std::string source_cloud_path, target_cloud_path, aligned_cloud_path, source_cloud_file, target_cloud_file, aligned_cloud_file;
+  std::string source_cloud_path, target_cloud_path, aligned_source_path, source_cloud_file, target_cloud_file, aligned_source_file;
 
   node.getParam("register_target_source/source_file", source_cloud_file);
   source_cloud_path=packagepath+'/'+source_cloud_file;
@@ -276,8 +276,8 @@ int main(int argc, char** argv)
   node.getParam("register_target_source/target_file", target_cloud_file);
   target_cloud_path=packagepath+'/'+target_cloud_file;
 
-  node.getParam("register_target_source/aligned_file", aligned_cloud_file);
-  aligned_cloud_path=packagepath+'/'+aligned_cloud_file;
+  node.getParam("register_target_source/aligned_file", aligned_source_file);
+  aligned_source_path=packagepath+'/'+aligned_source_file;
 
 
   // parameters that contain doubles
@@ -333,8 +333,8 @@ int main(int argc, char** argv)
   PointCloud::Ptr source_cloud_intr_min (new pcl::PointCloud<pcl::PointXYZ>);  // min fscore intermediate source cloud
   PointCloud::Ptr target_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud
   PointCloud::Ptr corrs_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // correspondence cloud   
-  PointCloud::Ptr aligned_cloud_T10 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
-  PointCloud::Ptr aligned_cloud_T01 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration inverse results)
+  PointCloud::Ptr aligned_source_T10 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
+  PointCloud::Ptr aligned_source_T01 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration inverse results)
 
   // wait for pointclouds from filter_cloud
   while(!filter_source_complete){
@@ -472,8 +472,8 @@ int main(int argc, char** argv)
       i_min=i;
 
       // align the source cloud using the resulting transformation only if fscore has improved
-      pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_cloud_T01, *T_01_intr);
-      pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_cloud_T10, *T_10_intr); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+      pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_source_T01, *T_01_intr);
+      pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_source_T10, *T_10_intr); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
       pcl_ros::transformPointCloud(*source_cloud, *source_cloud_intr_min, *T_intr);
 
       // align weld seam points using transformation
@@ -579,10 +579,10 @@ int main(int argc, char** argv)
   
   // save aligned cloud in PCD file (alignment still needs some work, revisit next!)
   if(save_aligned){
-    std::cout<<"Writing aligned cloud to:"<< aligned_cloud_path <<std::endl;
-    //pcl::io::savePCDFileASCII (aligned_cloud_path, *aligned_cloud_T01); // this one should be used, check this
-    pcl::io::savePCDFileASCII (aligned_cloud_path, *aligned_cloud_T10);
-    std::cout<<"Aligned cloud written to:"<< aligned_cloud_path <<std::endl;
+    std::cout<<"Writing aligned cloud to:"<< aligned_source_path <<std::endl;
+    //pcl::io::savePCDFileASCII (aligned_source_path, *aligned_source_T01); // this one should be used, check this
+    pcl::io::savePCDFileASCII (aligned_source_path, *aligned_source_T10);
+    std::cout<<"Aligned cloud written to:"<< aligned_source_path <<std::endl;
   }
 
   std::cout<<"===================================================================="<<endl;
@@ -600,14 +600,14 @@ int main(int argc, char** argv)
   ros::Publisher source_intr_min_pub = node.advertise<PointCloud> ("/source_cloud_intr_min", 1);
   ros::Publisher target_pub = node.advertise<PointCloud> ("/target_cloud", 1);
 
-  ros::Publisher aligned_T01_pub = node.advertise<PointCloud> ("/aligned_cloud_T01", 1);
-  ros::Publisher aligned_T10_pub = node.advertise<PointCloud> ("/aligned_cloud_T10", 1);
+  ros::Publisher aligned_T01_pub = node.advertise<PointCloud> ("/aligned_source_T01", 1);
+  ros::Publisher aligned_T10_pub = node.advertise<PointCloud> ("/aligned_source_T10", 1);
   
   source_cloud->header.frame_id = "base_link";
   source_cloud_intr_min->header.frame_id = "base_link";
   target_cloud->header.frame_id = "base_link";
-  aligned_cloud_T01->header.frame_id = "base_link"; // should be base link or T_intr?
-  aligned_cloud_T10->header.frame_id = "base_link";
+  aligned_source_T01->header.frame_id = "base_link"; // should be base link or T_intr?
+  aligned_source_T10->header.frame_id = "base_link";
   
   ros::Publisher source_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "source_markers", 0 );
   visualization_msgs::MarkerArray source_markers;
@@ -675,8 +675,8 @@ int main(int argc, char** argv)
       source_intr_min_pub.publish(source_cloud_intr_min);
       
       target_pub.publish(target_cloud);
-      aligned_T01_pub.publish(aligned_cloud_T01);
-      aligned_T10_pub.publish(aligned_cloud_T10);
+      aligned_T01_pub.publish(aligned_source_T01);
+      aligned_T10_pub.publish(aligned_source_T10);
 
       source_markers_pub.publish(source_markers);
       target_markers_pub.publish(target_markers);
