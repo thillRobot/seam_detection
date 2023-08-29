@@ -20,7 +20,7 @@ bool cloud_saved=0;
 
 bool target_saved=0;
 bool source_saved=0;
-bool source_scan_start=0;
+bool start_source_scan=0;
 
 bool new_scan;
 
@@ -31,10 +31,10 @@ std::string output_path, output_file;
 void scan_state_callback(const std_msgs::Bool::ConstPtr& msg)
 {
 
-  if (msg->data&&!cloud_saved&&!source_scan_start){
+  if (msg->data&&!cloud_saved&&!start_source_scan){
     ROS_INFO("Scanning, waiting for scan to complete  ...");
   } 
-  else if(!msg->data&&!cloud_saved&&source_scan_start){ 
+  else if(!msg->data&&!cloud_saved&&start_source_scan){ 
     ROS_INFO("Scan complete, preparing to save file");
     scan_complete=1;
 
@@ -54,10 +54,10 @@ void source_saved_callback(const std_msgs::Bool::ConstPtr& msg)
   //ROS_INFO("source_saved: ", source_saved);
 }
 
-void source_scan_start_callback(const std_msgs::Bool::ConstPtr& msg)
+void start_source_scan_callback(const std_msgs::Bool::ConstPtr& msg)
 {
-  source_scan_start=msg->data;
-  ROS_INFO("source_scan_start: %i", source_scan_start);
+  start_source_scan=msg->data;
+  ROS_INFO("start_source_scan: %i", start_source_scan);
 }
 
 void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
@@ -94,11 +94,10 @@ int main(int argc, char** argv)
   // setup subcribers for scan_state and source_out
   ros::Subscriber scan_state_sub = node.subscribe("/cr_weld/scan_state", 1000, scan_state_callback);
   ros::Subscriber cloud_sub = node.subscribe("/cloud_out",10, cloud_callback);
+
   ros::Subscriber target_saved_sub = node.subscribe("/get_target/target_saved",10, target_saved_callback);
   ros::Subscriber source_saved_sub = node.subscribe("/get_source/source_saved",10, source_saved_callback);
-
-  ros::Subscriber source_scan_start_sub = node.subscribe("/get_source/source_scan_start",10, source_scan_start_callback);
-
+  ros::Subscriber start_source_scan_sub = node.subscribe("start_source_scan",10, start_source_scan_callback);
 
   // publisher for save_source_state, source_saved, source_saved
   ros::Publisher get_source_state_pub = node.advertise<std_msgs::Bool> ("/get_source/get_source_state", 1);

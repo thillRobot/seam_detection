@@ -64,8 +64,6 @@ int main(int argc, char** argv)
   aubo_control::gcodeAction gcode_action_msg;
   std_msgs::String gcode_string_msg;
 
-
-
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"                     start_source_scan v1.x                                 "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
@@ -75,7 +73,7 @@ int main(int argc, char** argv)
 
   // boolen parameters from config file
   bool save_output, translate_output;
-  node.getParam("start_source_scan", new_scan);
+  node.getParam("new_scan", new_scan); // not used
 
   start_source_scan=1;
   scan_started=0;
@@ -96,8 +94,7 @@ int main(int argc, char** argv)
       std::cout<<"                     start_source_scan: publishing gcode_string     "<<std::endl;
       std::cout<<"===================================================================="<<std::endl;
     
-      start_source_scan_msg.data=start_source_scan;
-      start_source_scan_pub.publish(start_source_scan_msg);
+
 
       gcode_action_pub.publish(gcode_action_msg);
       gcode_string_pub.publish(gcode_string_msg);
@@ -107,6 +104,11 @@ int main(int argc, char** argv)
     }else if(!scan_started){
       scan_started=1;
     }
+
+
+    start_source_scan_msg.data=start_source_scan;
+    start_source_scan_pub.publish(start_source_scan_msg);
+
 
     ros::spinOnce();
     loop_rate.sleep();

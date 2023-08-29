@@ -46,7 +46,7 @@
     name="rviz20"
     pkg="rviz"
     type="rviz"
-    args="-d $(find seam_detection)/rviz/aubo_i10_lidar.rviz">
+    args="-d $(find seam_detection)/rviz/aubo_i10_target_source.rviz">
   </node>
 
   <!-- load aubo i10 model from URDF with xacro -->

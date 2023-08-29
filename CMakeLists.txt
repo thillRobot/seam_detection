@@ -300,8 +300,8 @@ add_executable(get_source src/get_source.cpp)
 target_link_libraries(get_source ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # filter_source
-#add_executable(filter_source src/filter_source.cpp)
-#target_link_libraries(filter_source ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(filter_source src/filter_source.cpp)
+target_link_libraries(filter_source ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # rotate_cloud
 add_executable(rotate_cloud src/rotate_cloud.cpp)
