@@ -315,15 +315,19 @@ target_link_libraries(filter_source ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(rotate_cloud src/rotate_cloud.cpp)
 target_link_libraries(rotate_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+# teach_points
+add_executable(teach_points src/teach_points.cpp)
+target_link_libraries(teach_points ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 
 # services tutorial
-add_executable(add_two_ints_server src/add_two_ints_server.cpp)
-target_link_libraries(add_two_ints_server ${catkin_LIBRARIES})
-add_dependencies(add_two_ints_server seam_detection_gencpp)
+#add_executable(add_two_ints_server src/add_two_ints_server.cpp)
+#target_link_libraries(add_two_ints_server ${catkin_LIBRARIES})
+#add_dependencies(add_two_ints_server seam_detection_gencpp)
 
-add_executable(add_two_ints_client src/add_two_ints_client.cpp)
-target_link_libraries(add_two_ints_client ${catkin_LIBRARIES})
-add_dependencies(add_two_ints_client seam_detection_gencpp)
+#add_executable(add_two_ints_client src/add_two_ints_client.cpp)
+#target_link_libraries(add_two_ints_client ${catkin_LIBRARIES})
+#add_dependencies(add_two_ints_client seam_detection_gencpp)
 
 
 
