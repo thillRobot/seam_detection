@@ -661,7 +661,7 @@ int main(int argc, char** argv)
   ros::Publisher aligned_T01_pub = node.advertise<PointCloud> ("/aligned_source_T01", 1);
   ros::Publisher aligned_T10_pub = node.advertise<PointCloud> ("/aligned_source_T10", 1);
   
-  ros::Publisher gcode_pub = node.advertise<std_msgs::String> ("/register_target_source/gcode", 1);
+  ros::Publisher gcode_pub = node.advertise<std_msgs::String> ("/register_target_source/gcode", 1,true);
   std_msgs::String gcode_msg;
 
 
@@ -714,6 +714,9 @@ int main(int argc, char** argv)
   std::cout<<"      register_target_source: register target source complete       "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
+  gcode_msg.data=gcode.str();
+  gcode_pub.publish(gcode_msg);
+
   //publish forever
   while(ros::ok())
   {
@@ -743,8 +746,8 @@ int main(int argc, char** argv)
       source_markers_pub.publish(source_markers);
       target_markers_pub.publish(target_markers);
 
-      gcode_msg.data=gcode.str();
-      gcode_pub.publish(gcode_msg);
+      //gcode_msg.data=gcode.str();
+      //gcode_pub.publish(gcode_msg);
 
       ros::spinOnce();
       loop_rate.sleep();

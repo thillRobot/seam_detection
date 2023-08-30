@@ -4,9 +4,15 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /PointCloud25
+        - /PointCloud26
+        - /PointCloud27
+        - /PointCloud28
+        - /PointCloud213
+        - /MarkerArray1
         - /TF1/Frames1
       Splitter Ratio: 0.42524272203445435
-    Tree Height: 802
+    Tree Height: 441
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -98,7 +104,7 @@ Visualization Manager:
       Color: 186; 189; 182
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -113,7 +119,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -238,7 +244,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -253,7 +259,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -294,7 +300,7 @@ Visualization Manager:
       Color: 252; 233; 79
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -309,7 +315,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -322,7 +328,7 @@ Visualization Manager:
       Color: 138; 226; 52
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -337,7 +343,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -350,7 +356,7 @@ Visualization Manager:
       Color: 114; 159; 207
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -365,7 +371,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 0.75
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -378,7 +384,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -393,7 +399,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -406,7 +412,7 @@ Visualization Manager:
       Color: 85; 255; 127
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -421,7 +427,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 0.75
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -462,7 +468,7 @@ Visualization Manager:
       Color: 105; 255; 70
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -477,7 +483,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -523,13 +529,13 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /target_cluster_markers
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /source_cluster_markers
@@ -548,74 +554,12 @@ Visualization Manager:
       Show Trail: false
       Value: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        T_01:
-          Value: true
-        T_01_intr_min:
-          Value: true
-        T_10:
-          Value: true
-        T_10_intr_min:
-          Value: true
-        T_intr_min:
-          Value: true
-        Torch:
-          Value: false
-        base_Link:
-          Value: false
-        base_link:
-          Value: false
-        ee_Link:
-          Value: false
-        eef:
-          Value: false
-        f1_Link:
-          Value: false
-        foreArm_Link:
-          Value: false
-        joystick:
-          Value: false
-        laser:
-          Value: false
-        map:
-          Value: false
-        rviz_cam:
-          Value: false
-        s_Link:
-          Value: false
-        shoulder_Link:
-          Value: false
-        tool0:
-          Value: false
-        tool1:
-          Value: false
-        tool_joy:
-          Value: false
-        u_Link:
-          Value: false
-        upperArm_Link:
-          Value: false
-        w1_Link:
-          Value: false
-        w2_Link:
-          Value: false
-        weave_frame:
-          Value: false
-        wire_tip:
-          Value: false
-        world:
-          Value: false
-        wrist1_Link:
-          Value: false
-        wrist2_Link:
-          Value: false
-        wrist3_Link:
-          Value: false
       Marker Alpha: 1
       Marker Scale: 0.5
       Name: TF
@@ -623,69 +567,59 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        world:
-          map:
-            base_link:
-              T_01_intr_min:
-                {}
-              T_10_intr_min:
-                {}
-              T_intr_min:
-                T_01:
-                  {}
-                T_10:
-                  {}
-              base_Link:
-                foreArm_Link:
-                  u_Link:
-                    {}
-                shoulder_Link:
-                  s_Link:
-                    {}
-                upperArm_Link:
-                  f1_Link:
-                    {}
-                wrist1_Link:
-                  w1_Link:
-                    {}
-                wrist2_Link:
-                  w2_Link:
-                    {}
-                wrist3_Link:
-                  ee_Link:
-                    Torch:
-                      {}
-                    eef:
-                      {}
-                    laser:
-                      {}
-                    tool_joy:
-                      joystick:
-                        {}
-                    wire_tip:
-                      weave_frame:
-                        tool0:
-                          tool1:
-                            {}
-            rviz_cam:
-              {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        foreArm_Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        shoulder_Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        upperArm_Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wrist1_Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wrist2_Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wrist3_Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
   Enabled: true
   Global Options:
@@ -715,7 +649,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.4751524925231934
+      Distance: 2.321181058883667
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -723,25 +657,25 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.13914921879768372
-        Y: -0.33373069763183594
-        Z: -0.02773192897439003
+        X: -0.009463345631957054
+        Y: -0.14259754121303558
+        Z: 0.09131848067045212
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6247979402542114
+      Pitch: 0.5097980499267578
       Target Frame: <Fixed Frame>
-      Yaw: 5.2597126960754395
+      Yaw: 5.394713878631592
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: false
-  Height: 1016
-  Hide Left Dock: false
+    collapsed: true
+  Height: 1013
+  Hide Left Dock: true
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000002050000035ffc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000005fb000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d0000035f000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000022100000378fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000002800000378000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000073800000039fc0100000002fb0000000800540069006d0065010000000000000738000003bc00fffffffb0000000800540069006d006501000000000000045000000000000000000000052d0000035f00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000002050000035cfc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000005fb000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000003d0000035c000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000022100000378fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000002800000378000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004e100000039fc0100000002fb0000000800540069006d00650100000000000004e1000003bc00fffffffb0000000800540069006d00650100000000000004500000000000000000000004e10000035c00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -750,6 +684,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 1848
-  X: 72
+  Width: 1249
+  X: 667
   Y: 27
