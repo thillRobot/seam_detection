@@ -28,7 +28,7 @@ IDETC/CIE2022 August 14-17, 2022, St. Louis, MO
 
 
 #### Step 1 - Setup ROS workspace
-If you want to use a catkin workspace that is already setup, then you can skip **Step 1** (you workspace must compile). If you do not, then create and build a catkin workspace before proceeding. Choose a location and insert a name for the workpace. Typically this is somewhere in `~/`.
+Create and build a catkin workspace before proceeding. Choose a location and insert a name for the workpace. Typically this is somewhere in `~/`.
 
 ```
 mkdir -p ~/<workspace-name>/src
@@ -36,17 +36,27 @@ cd ~/<workspace-name>
 catkin_make
 ```
 
-This will build your workspace for the first time. There should now be a `CMakeLists.txt` file and a few new directories in the workspace.
+Add the workspace path to `/.bashrc` so that ros can find your packages
+```
+echo "source ~/<workspace-name>/devel/setup.bash" >> ~/.bashrc
+```
 
-Also, you need to add the workspace path to `/.bashrc` so that ros can find your packages
+To use a catkin workspace that is already setup, skip **Step 1** (the workspace must compile with `catkin_make`).
+
 
 #### Step 2 - Download seam_detection Package
-Change to the source directory of the workapce and pull the package using git.
+Change to the source directory of the workapce and clone the package using git.
 
 ```
 cd ~/<workspace-name>/src
 git clone https://github.com/thillRobot/seam_detection.git
 ```
+
+or using SSH (used by thillrobot)
+```
+git clone git@github.com:thillrobot/seam_detection.git
+```
+
 #### Step 3 - Compile seam_detection in catkin workspace
 Change to top of workspace and compile.
 
@@ -327,8 +337,6 @@ PointCloud representing the planar component: 2993 data points.
 ```
 
 
-
-
 ###### new test scenes - generated 06/21/2023 - rplidar a2 on aubo i10
 
 two new steel objects: `shape1` and `shape2` (best names ever)
@@ -348,7 +356,7 @@ NEW! test mode 2: LiDAR based taget cloud and different LiDAR scan based source 
 example:
 
 ```
-roslaunch seam_detection registration_examples.launch scene:="shape2_45deg_60deg"cd
+roslaunch seam_detection registration_examples.launch scene:="shape2_45deg_60deg"
 ```
 
 
@@ -477,7 +485,25 @@ start_atline: 0
 
 we might have to make a patch on the kinetic side to fix this.
 
+### new scenes and launch files from Aubo i10, Summer 2023 at RTT
 
+launch files: 
+    - `aubo_i10_lidar.launch`             (used for collecting lidar scans from aubo, spring 2023)
+    - `aubo_i10_target.launch`            (used for collecting target scans from aubo lidar for registration)
+    - `aubo_i10_source.launch`            (used for collecting source scans from aubo lidar for registration)
+    - `aubo_i10_target_source.launch`     (mostly not used, can be removed?)
+
+
+The process from the summer 2023 season needs documentation!
+
+
+
+### new test scenes from ds435i depth camera
+pcd files in `pcd_images/ds435i_table_parts/`
+
+```
+roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
+```
 
 
 
@@ -529,9 +555,10 @@ we might have to make a patch on the kinetic side to fix this.
 
 #### Things To Do (priority top to bottom):
 
-- [ ] design and test process with multi computer cross version setup on robot with LiDAR and RGBD camera
+- [x] design and test process with multi computer cross version setup on robot with LiDAR and RGBD camera
     -> pointcloud and tf published by arm computer, vision computer subscribes
     -> registration result tf published by vision computer, arm computer subscribes   
+    [ ] document the process of interfacing with Aubo/RTT robot
 
 - [ ] stream line filtering->clustering->registration for testing alongsisde robot
 
@@ -552,9 +579,9 @@ we might have to make a patch on the kinetic side to fix this.
     -> synthetic data with clamps 
     -> to be collected new scans
 
-- [ ] collect new scan data from auboi10 and rplidar and/or lightware 
+- [x] collect new scan data from auboi10 and rplidar and/or lightware 
     -> with extra objects and without
-    -> with clamps and without
+    -> [ ] with clamps and without
     -> consider collection 3D camera data general purpose research
     -> carefully consider design of experiments  
 
@@ -573,7 +600,7 @@ we might have to make a patch on the kinetic side to fix this.
     -> these tests are not documented well, and dockerfiles are not in repos so they will be hard to transfer across machines and there is no cloud backup. I would just put them in the forked repos, but .... wait why dont we do that??? why are they in the parent directory anyway? hmmm....
 
 
-- [ ] test new LiDAR sensor from lightware, capture new 3D scans for comparison
+- [x] test new LiDAR sensor from lightware, capture new 3D scans for comparison
     -> test in progress
 
 - [x] update and document config file system to allow for iterative (cascaded) registration, this should be doable without major modifications to the source code

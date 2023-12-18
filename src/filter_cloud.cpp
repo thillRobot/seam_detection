@@ -4,6 +4,7 @@
 // A .pcd file is read as input and a new .pcd file is written as output
 // A target .pcd file can also be input for cluster selection
 // Tristan Hill - 07/14/2023
+// updated - 12/18/2023 for PCDs from ds435i depth camera
 
 // see README.md or https://github.com/thillRobot/seam_detection for documentation
 
