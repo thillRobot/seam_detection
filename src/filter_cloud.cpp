@@ -338,36 +338,28 @@ void transform_cloud(PointCloud &input, PointCloud &output)
   PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the target cloud
   pcl::copyPointCloud(input,*cloud);
 
-  // translate data by location of corner of bounding box
-  /*  METHOD #2: Using a Affine3f
-     This method is easier and less error prone
-   */
-
   float roll, pitch, yaw;
   roll=0.0;
-  pitch=M_PI/4.0;
+  pitch=M_PI;
   yaw=0.0;
 
-  //Eigen::Transform tz(Eigen::AngleAxis(roll,Vector3f::UnitZ()));
-
-  //Eigen::Transform<float,3,Affine> tz =  AngleAxisf(roll,Vector3f::UnitZ());
-
-  Eigen::Affine3f transform_2 = Eigen::Affine3f::Identity();
+  Eigen::Affine3f transform = Eigen::Affine3f::Identity();
  
   // Define a translation 
-  transform_2.translation() << 1.0, 1.0, 0.0;
-  //transform_2.rotation() << 0.0, 0.0, 0.0; 
-  transform_2.rotate (Eigen::AngleAxisf (pitch, Eigen::Vector3f::UnitY()));
+  transform.translation() << 0.0, 0.0, 32.0*0.0254;
+  // define three axis rotations (RPY)
+  transform.rotate (Eigen::AngleAxisf (roll, Eigen::Vector3f::UnitX()));
+  transform.rotate (Eigen::AngleAxisf (pitch, Eigen::Vector3f::UnitY()));
+  transform.rotate (Eigen::AngleAxisf (yaw, Eigen::Vector3f::UnitZ()));
 
   // Print the transformation
   //printf ("\nMethod #2: using an Affine3f\n");
   //std::cout << transform_2.matrix() << std::endl;
 
-  // Executing the transformation
+  // Execute the transformation
   pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZ> ());
-  // You can either apply transform_1 or transform_2; they are the same
 
-  pcl::transformPointCloud (*cloud, *transformed_cloud, transform_2); 
+  pcl::transformPointCloud (*cloud, *transformed_cloud, transform); 
    
   pcl::copyPointCloud(*transformed_cloud, output);
  
@@ -500,7 +492,7 @@ int main(int argc, char** argv)
 
   // pre-translate the cloud (this is a hack)
 
-  transform_cloud(*cloud_input, *cloud_transformed );
+  transform_cloud(*cloud_input, *cloud_transformed);
 
 
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
@@ -584,6 +576,7 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1) ;
+  ros::Publisher pub_transformed = node.advertise<PointCloud> ("/cloud_transformed", 1) ;
   ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
   ros::Publisher pub_filtered_target = node.advertise<PointCloud> ("/cloud_filtered_target", 1) ;
   ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/cloud_cluster0", 1) ;
@@ -593,6 +586,7 @@ int main(int argc, char** argv)
   ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/cloud_cluster4", 1) ;
 
   cloud_input->header.frame_id = "base_link";
+  cloud_transformed->header.frame_id = "base_link";
   cloud_filtered->header.frame_id = "base_link";
   cloud_filtered_target->header.frame_id = "base_link";
   cloud_cluster0->header.frame_id = "base_link";
@@ -700,6 +694,7 @@ int main(int argc, char** argv)
       filter_cloud_state_pub.publish(filter_cloud_state_msg);
 
       pub_input.publish(cloud_input);
+      pub_transformed.publish(cloud_transformed);
       pub_filtered.publish(cloud_filtered);
       pub_filtered_target.publish(cloud_filtered_target);
       if(use_clustering){

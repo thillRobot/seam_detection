@@ -9,5 +9,5 @@ use_clustering: true
 
 new_scan: false
 
-filter_cloud/filter_box: [-2.0, 2.0, -2.0, 2.0, -2.0, 2.0] # bounding box limits
+filter_cloud/filter_box: [-1.0, 1.0, -1.0, 1.0, 0.03, 0.5] # bounding box limits
 filter_cloud/voxel_leaf_size: 0.001                           # voxel leaf size
