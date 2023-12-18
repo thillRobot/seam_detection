@@ -1,12 +1,18 @@
 ---
-
-input_file: "pcd_images/shape1_shape2/shape1_45deg.pcd"
-output_file: "pcd_images/shape1_shape2/shape1_45deg_test.pcd"
+filter_cloud/input_file: "pcd_images/shape1_shape2/shape1_45deg.pcd"
+filter_cloud/output_file: "pcd_images/shape1_shape2/shape1_45deg_filtered.pcd"
+filter_cloud/target_file: "pcd_images/shape1_shape2/shape1.pcd"
 save_output: true
-translate_output: true
+translate_output: false
 automatic_bounds: false
+use_clustering: true
 
-filter_box: [-1, 1, -1, 1, -1, 1] # bounding box limits
-#filter_box: [-0.3, 0.0, -0.8, -0.5, 0.005, 0.25] # bounding box limits
+new_scan: false
+transform_input: false
 
-voxel_leaf_size: 0.001                          # voxel leaf size
+filter_cloud/pre_rotation:    [0.0, 0.0, 0.0]
+filter_cloud/pre_translation: [0.0, 0.0, 0.0]
+
+filter_cloud/filter_box: [-1, 1, -1, 1, -1, 1] # bounding box limits
+#filter_cloud/filter_box: [-0.3, 0.0, -0.8, -0.5, 0.005, 0.25] # bounding box limits
+filter_cloud/voxel_leaf_size: 0.001  
