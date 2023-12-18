@@ -1,6 +1,6 @@
 ---
-filter_cloud/input_file: "pcd_images/ds435i_table_parts/table_part1_part2_01.pcd"
-filter_cloud/output_file: "pcd_images/ds435i_table_parts/table_part1_part2_01_filtered.pcd"
+filter_cloud/input_file: "pcd_images/ds435i_table_parts/table_part1_part2_02.pcd"
+filter_cloud/output_file: "pcd_images/ds435i_table_parts/table_part1_part2_02_filtered.pcd"
 filter_cloud/target_file: "pcd_images/shape1_shape2/shape1.pcd"
 save_output: true
 translate_output: false
@@ -9,5 +9,5 @@ use_clustering: true
 
 new_scan: false
 
-filter_cloud/filter_box: [-1.0, 1.0, -1.0, 1.0, 0.03, 0.5] # bounding box limits
+filter_cloud/filter_box: [0.0, 1.0, -1.0, 1.0, 0.025, 0.5] # bounding box limits
 filter_cloud/voxel_leaf_size: 0.001                           # voxel leaf size

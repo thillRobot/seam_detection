@@ -156,7 +156,7 @@ void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, 
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
   ec.setClusterTolerance (0.02); // 2cm
   ec.setMinClusterSize (100);
-  ec.setMaxClusterSize (25000);
+  ec.setMaxClusterSize (250000);
   ec.setSearchMethod (tree);
   ec.setInputCloud (cloud);
   ec.extract (cluster_indices);
