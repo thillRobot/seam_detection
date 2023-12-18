@@ -10,8 +10,8 @@
   <!-- setup the transformations and frames for the system-->
   <node
     pkg="seam_detection"
-    name="seam_detection_tf"
-    type="seam_detection_tf"
+    name="filter_cloud_tf"
+    type="filter_cloud_tf"
     output="screen"
   />                      
   

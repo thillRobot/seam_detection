@@ -365,7 +365,7 @@ int main(int argc, char** argv)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   // boolen parameters 
-  bool save_output, translate_output, automatic_bounds, use_clustering;
+  bool save_output, translate_output, automatic_bounds, use_clustering, new_scan;
   node.getParam("save_output", save_output);
   node.getParam("translate_output", translate_output);
   node.getParam("automatic_bounds", automatic_bounds);

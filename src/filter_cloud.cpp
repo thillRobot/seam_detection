@@ -331,6 +331,50 @@ double score_cluster(PointCloud &input, PointCloud &target){
 
 }
 
+
+void transform_cloud(PointCloud &input, PointCloud &output)
+{
+
+  PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the target cloud
+  pcl::copyPointCloud(input,*cloud);
+
+  // translate data by location of corner of bounding box
+  /*  METHOD #2: Using a Affine3f
+     This method is easier and less error prone
+   */
+
+  float roll, pitch, yaw;
+  roll=0.0;
+  pitch=M_PI/4.0;
+  yaw=0.0;
+
+  //Eigen::Transform tz(Eigen::AngleAxis(roll,Vector3f::UnitZ()));
+
+  //Eigen::Transform<float,3,Affine> tz =  AngleAxisf(roll,Vector3f::UnitZ());
+
+  Eigen::Affine3f transform_2 = Eigen::Affine3f::Identity();
+ 
+  // Define a translation 
+  transform_2.translation() << 1.0, 1.0, 0.0;
+  //transform_2.rotation() << 0.0, 0.0, 0.0; 
+  transform_2.rotate (Eigen::AngleAxisf (pitch, Eigen::Vector3f::UnitY()));
+
+  // Print the transformation
+  //printf ("\nMethod #2: using an Affine3f\n");
+  //std::cout << transform_2.matrix() << std::endl;
+
+  // Executing the transformation
+  pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZ> ());
+  // You can either apply transform_1 or transform_2; they are the same
+
+  pcl::transformPointCloud (*cloud, *transformed_cloud, transform_2); 
+   
+  pcl::copyPointCloud(*transformed_cloud, output);
+ 
+}
+
+
+
 int main(int argc, char** argv)
 {
 
@@ -365,11 +409,12 @@ int main(int argc, char** argv)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   // boolen parameters 
-  bool save_output, translate_output, automatic_bounds, use_clustering;
+  bool save_output, translate_output, automatic_bounds, use_clustering, new_scan;
   node.getParam("save_output", save_output);
   node.getParam("translate_output", translate_output);
   node.getParam("automatic_bounds", automatic_bounds);
   node.getParam("use_clustering", use_clustering);
+  node.getParam("new_scan", new_scan);
 
   // parameters that contain strings  
   std::string input_path, output_path, target_path, input_file, output_file, target_file; 
@@ -417,6 +462,7 @@ int main(int argc, char** argv)
   
   // instantiate some cloud pointers
   PointCloud::Ptr cloud_input (new pcl::PointCloud<pcl::PointXYZ>); 
+  PointCloud::Ptr cloud_transformed (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
   PointCloud::Ptr cloud_filtered_target (new pcl::PointCloud<pcl::PointXYZ>); 
   PointCloud::Ptr cloud_cluster0 (new pcl::PointCloud<pcl::PointXYZ>);
@@ -426,32 +472,39 @@ int main(int argc, char** argv)
   PointCloud::Ptr cloud_cluster4 (new pcl::PointCloud<pcl::PointXYZ>);  
 
   // wait for pointcloud from get_cloud
-  while(!get_cloud_complete){
-    ros::spinOnce(); // update topics while waiting
+  while(!get_cloud_complete&&new_scan){
+    ros::spinOnce(); // update topics while waiting, only if getting a new scan
   }
   
-  std::cout << "Loading cloud files:" <<std::endl;
+  std::cout << "Loading cloud input file:" << input_path << std::endl;
   if (pcl::io::loadPCDFile<pcl::PointXYZ> (input_path, *cloud_input) == -1)
   {
-      std::cout<<"Couldn't read cloud_input file:"<<input_path;
+      std::cout<<"Couldn't read cloud input file:"<<input_path;
       return (-1);
   }
-  std::cout << "Loaded input cloud file: "<< input_path <<std::endl<<
+  std::cout << "Loaded cloud input file: "<< input_path <<std::endl<<
     cloud_input->width * cloud_input->height << " Data points from "<< input_path << std::endl;
+  
+  std::cout << "Loading cloud target file:" << input_path << std::endl;
   if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_path, *cloud_filtered_target) == -1)
   {
-      std::cout<<"Couldn't read cloud_target file:"<<target_path;
+      std::cout<<"Couldn't read cloud target file:"<<target_path;
       return (-1);
   }
-  std::cout << "Loaded image file: "<< target_path <<std::endl<<
+  std::cout << "Loaded cloud target file: "<< target_path <<std::endl<<
     cloud_filtered_target->width * cloud_filtered_target->height << " Data points from "<< target_path << std::endl;  
 
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"                    filter_cloud: processing pointcloud data        "<<std::endl;
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
+  // pre-translate the cloud (this is a hack)
+
+  transform_cloud(*cloud_input, *cloud_transformed );
+
+
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
-  filter_cloud(*cloud_input,*cloud_filtered, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
+  filter_cloud(*cloud_transformed,*cloud_filtered, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
   
   Eigen::Quaternionf target_quaternion, cluster0_quaternion, cluster1_quaternion, cluster2_quaternion, cluster3_quaternion, cluster4_quaternion, marker_quaternion;
   Eigen::Vector3f target_translation, cluster0_translation, cluster1_translation, cluster2_translation, cluster3_translation, cluster4_translation, marker_translation;

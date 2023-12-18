@@ -62,3 +62,5 @@ CATKIN_IGNORE
 pcd_images/plate_rect_block/archive
 pcd_images/table_tee/archive
 
+# ROS bag files
+*.bag
