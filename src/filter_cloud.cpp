@@ -80,9 +80,9 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
     box[4]=centroid[2]-box_height/2;  // zmin
     box[5]=centroid[2]+box_height/2;  // zmax
 
-    std::cout<<"Using automatic bounding box limits: "<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"]"<< std::endl;
+    std::cout<<"Using automatic bounding box limits: ["<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"]"<< std::endl;
   }else{
-    std::cout<<"Using bounding box limits: "<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"] from config file"<< std::endl;
+    std::cout<<"Using bounding box limits: ["<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"] from config file"<< std::endl;
   }
 
   //Apply Bounding Box Filter
@@ -333,25 +333,20 @@ double score_cluster(PointCloud &input, PointCloud &target){
 }
 
 
-void transform_cloud(PointCloud &input, PointCloud &output)
+void transform_cloud(PointCloud &input, PointCloud &output, Eigen::Vector3f rotation, Eigen::Vector3f translation)
 {
 
   PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the target cloud
   pcl::copyPointCloud(input,*cloud);
 
-  float roll, pitch, yaw;
-  roll=0.0;
-  pitch=M_PI;
-  yaw=0.0;
-
   Eigen::Affine3f transform = Eigen::Affine3f::Identity();
  
   // Define a translation 
-  transform.translation() << 0.0, 0.0, 32.0*0.0254;
+  transform.translation() << translation[0], translation[1], translation[2];
   // define three axis rotations (RPY)
-  transform.rotate (Eigen::AngleAxisf (roll, Eigen::Vector3f::UnitX()));
-  transform.rotate (Eigen::AngleAxisf (pitch, Eigen::Vector3f::UnitY()));
-  transform.rotate (Eigen::AngleAxisf (yaw, Eigen::Vector3f::UnitZ()));
+  transform.rotate (Eigen::AngleAxisf (rotation[0], Eigen::Vector3f::UnitX()));
+  transform.rotate (Eigen::AngleAxisf (rotation[1], Eigen::Vector3f::UnitY()));
+  transform.rotate (Eigen::AngleAxisf (rotation[2], Eigen::Vector3f::UnitZ()));
 
   // Print the transformation
   //printf ("\nMethod #2: using an Affine3f\n");
@@ -402,12 +397,13 @@ int main(int argc, char** argv)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   // boolen parameters 
-  bool save_output, translate_output, automatic_bounds, use_clustering, new_scan;
+  bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
   node.getParam("save_output", save_output);
   node.getParam("translate_output", translate_output);
   node.getParam("automatic_bounds", automatic_bounds);
   node.getParam("use_clustering", use_clustering);
   node.getParam("new_scan", new_scan);
+  node.getParam("transform_input", transform_input);
 
   // parameters that contain strings  
   std::string input_path, output_path, target_path, input_file, output_file, target_file; 
@@ -424,10 +420,22 @@ int main(int argc, char** argv)
   // parameters that contain vectors of doubles
   std::vector<double> filter_box_vec;
   double filter_box[6];
+
+  std::vector<double> pre_rotation_vec, pre_translation_vec;
+  Eigen::Vector3f pre_rotation, pre_translation;
+
+  node.getParam("filter_cloud/pre_rotation",  pre_rotation_vec);
+  node.getParam("filter_cloud/pre_translation",  pre_translation_vec);
   
+  for(unsigned i=0; i < pre_rotation_vec.size(); i++){
+    pre_rotation[i]=pre_rotation_vec[i]; // copy from std vector to eigen vector3f 
+    pre_translation[i]=pre_translation_vec[i]; 
+  }
+
   node.getParam("filter_cloud/filter_box",  filter_box_vec);
   for(unsigned i=0; i < filter_box_vec.size(); i++)
     filter_box[i]=filter_box_vec[i]; // copy from vector to array 
+  
   node.getParam("filter_cloud/voxel_leaf_size", voxel_leaf_size);
 
   // get additional parameters set in launch file
@@ -491,11 +499,20 @@ int main(int argc, char** argv)
   std::cout<<"                    filter_cloud: processing pointcloud data        "<<std::endl;
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
-  // pre-translate the cloud (this is a hack)
+  // pre-translate the cloud (this is a patch imo, but it is useful. Alternatively use rotate_cloud.cpp)
+  //Eigen::Vector3f pre_rotation, pre_translation; 
+  //pre_rotation << 0.0, M_PI, 0.0; 
+  //pre_translation << 0.0, 0.0, 32.0*0.0254; // the ds435i camera was 32 in. above the table for the initial test images
+  
+  if (transform_input){
+    transform_cloud(*cloud_input, *cloud_transformed, pre_rotation, pre_translation);
+    std::cout<< "pretransform complete" << std::endl;
+  }else{
+    pcl::copyPointCloud(*cloud_input, *cloud_transformed);
+    std::cout<< "pretransform skipped" << std::endl;
+   }
 
-  transform_cloud(*cloud_input, *cloud_transformed);
-
-
+  
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
   filter_cloud(*cloud_transformed,*cloud_filtered, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
   

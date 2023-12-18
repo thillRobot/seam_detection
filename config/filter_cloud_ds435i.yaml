@@ -8,6 +8,10 @@ automatic_bounds: false
 use_clustering: true
 
 new_scan: false
+transform_input: true
+
+filter_cloud/pre_rotation:    [0.0, 3.14159, 0.0]
+filter_cloud/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254
 
 filter_cloud/filter_box: [0.0, 1.0, -1.0, 1.0, 0.025, 0.5] # bounding box limits
 filter_cloud/voxel_leaf_size: 0.001                           # voxel leaf size
