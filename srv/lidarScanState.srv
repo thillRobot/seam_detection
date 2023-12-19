@@ -1,0 +1,4 @@
+bool start_lidar_scanning # starting a scan will clear the current cloud
+bool pause_lidar_scanning # pausing holds current cloud without adding to it
+---
+bool start_command_recieved

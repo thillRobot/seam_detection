@@ -69,7 +69,6 @@ find_package(PCL 1.10 REQUIRED) # COMPONENTS common features kdtree)
 ## Generate services in the 'srv' folder
  add_service_files(
    FILES
-   AddTwoInts.srv
  )
 
 ## Generate actions in the 'action' folder
@@ -323,16 +322,20 @@ add_executable(teach_points src/teach_points.cpp)
 target_link_libraries(teach_points ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 
-# services tutorial
-#add_executable(add_two_ints_server src/add_two_ints_server.cpp)
-#target_link_libraries(add_two_ints_server ${catkin_LIBRARIES})
-#add_dependencies(add_two_ints_server seam_detection_gencpp)
+# scan2cloud 
+#add_executable(scan2cloud src/scan2cloud.cpp)
+#add_dependencies(scan2cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) # from sz
+#target_link_libraries(scan2cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#install(TARGETS scan2cloud RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})           # from SZ
 
-#add_executable(add_two_ints_client src/add_two_ints_client.cpp)
-#target_link_libraries(add_two_ints_client ${catkin_LIBRARIES})
-#add_dependencies(add_two_ints_client seam_detection_gencpp)
+#add_executable(merge_cloud src/merge_cloud.cpp)
+#add_dependencies(merge_cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#target_link_libraries(merge_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#install(TARGETS merge_cloud RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})          # from SZ
 
-
+#add_executable(publish_pcd src/publish_pcd.cpp)
+#add_dependencies(publish_pcd ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) # from SZ
+#target_link_libraries(publish_pcd ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 
 ################################################################

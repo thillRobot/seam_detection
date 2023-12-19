@@ -1,0 +1,5 @@
+bool start_processing_seam
+float64[3] seam_start
+float64[3] seam_end
+---
+bool start_command_recieved

@@ -1,0 +1,6 @@
+bool start_processing_pointcloud
+---
+bool start_command_recieved
+float64[4] plane_x_coeffs
+float64[4] plane_y_coeffs
+float64[4] plane_z_coeffs

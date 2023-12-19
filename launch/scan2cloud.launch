@@ -1,0 +1,31 @@
+<launch>
+
+<!-- save point cloud rosrun pcl_ros pointcloud_to_pcd input:=/cloud_out -->
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/> 
+
+  <node                     
+    pkg="scan2cloud"          
+    name="scan2cloud"   
+    type="scan2cloud"
+    output="screen"   
+  />
+
+  <node                     
+    pkg="scan2cloud"          
+    name="merge_cloud"   
+    type="merge_cloud"
+    output="screen"   
+    respawn="true"
+  />
+ 
+ <!--
+   <node                     
+    pkg="scan2cloud"          
+    name="publish_pcd"   
+    type="publish_pcd"
+    output="screen"   
+    respawn="true"
+  />
+  -->
+
+</launch>
