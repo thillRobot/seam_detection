@@ -1,5 +1,5 @@
 # seam_detection
-This is a ROS package for weld seam detection from pointclouds using the point cloud library [PCL](https://pointclouds.org/).
+This is a ROS(1) package for weld seam detection from pointclouds using the point cloud library [PCL](https://pointclouds.org/).
 
 ## Publications:
 ```
@@ -70,7 +70,7 @@ The workspace and package should compile without errors.
 ### Using seam_detection
 
 #### Primary Nodes 
- (Early work 2020-2021, needs testing)
+ (Early work 2018-2021, needs testing)
  - `ransac_plane` - use RANSAC to fit models to a pointcloud
  - `segment_plane` - use RANSAC to separate a pointcloud into multiple planes 
  - `seam_detection_RANSAC` - use RANSAC and the intersection of planes to locate a seam 
@@ -79,7 +79,7 @@ The workspace and package should compile without errors.
  (Current work 2022-present)
  - `seam_detection` - use filtering, voxel downsamplings, RANSAC segmentation to prepare pointclouds for iterative closest point registration 
 
-#### Supporting Nodes 
+#### Supporting Nodes    
 
  - `scan2cloud` - generate pointclouds from lidar scans and poses (node missing from repo, coming back soon)   
  - `cad_cloud` - convert .ply file into .pcd file using pcl
@@ -152,7 +152,7 @@ Alternatively, you can use `cad_cloud_bulk.cpp` to convert an entire directory o
 rosrun seam_detection cad_cloud_bulk -n_samples 100000 -leaf_size .00025 -write_normals 1 -input_dir "ply_images/" -output_dir "pcd_images/"
 ```
 
-Sometimes the extensions get changed from .ply to .PLY and I do not know why. This causes errors and confusion because there can be duplicate files in the same location. To fix this issue delete any duplicates before running the following command.
+Sometimes the extensions get changed from .ply to .PLY and I do not know why. This causes errors and confusion because there can be duplicate files in the same location. To fix this issue delete any duplicates before running the following command to change all extensions to lower case.
 
 ```
 find . -name '*.*' -exec sh -c '
@@ -173,17 +173,13 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="lidar_cad_scenes
 
 ```
 
-Note: The code for seam_detection_icp.cpp was removed for clarity. Use the updated seam_detection.cpp node instead. 
+Note: The code for seam_detection_icp.cpp was removed to reduce confusion. Use the updated `seam_detection.cpp` node instead for the same functionality   . 
+
 
 #### RANSAC + ICP SEAM DETECTION 
 ##### Use RANSAC + ICP for weld seam detection. First segmen t with RANSAC(or other) then use ICP to locate the origin of the part.
 
 These examples have the `round_tube` or a `square_tube` and the `plate`. There can be variations in part1 one but you must choose `round_tube` or a `square_tube`for the segmentation to work properly. These work well, but there is some discrepancy along the length of the cylinder. All other dimensions match very well. This seems to be related to the amount of data that is avaialable about this dimension.
-
-
-Now define all the file names and other parameters in a <config>.yaml file. The .yaml files are saved in `config/`
-**Note:** the way config files are handled is being improved to streamline the process, see `filter_cloud.yaml` and `register_clouds.yaml`
-the launch arg has been renamed from `scene` to `config`, see `filter_cloud.launch` etc. The configs and docs are slowly being updated with the changes.
 
 ```
 ---
@@ -218,9 +214,6 @@ seam1_points_y: [20, 55, 22, 23]
 seam1_points_z: [30, 31, 54, 12]
 
 ```
-
-Pass the name of config when using seam_detection as shown below. This is much more convenient and allows for all nodes in the system access to parameters. Many of the old scene configs can be found in `config/scenes`
-
 
 ##### Simulated Application - source and target clouds from CAD (simulated LiDAR)
 
@@ -290,7 +283,7 @@ roslaunch seam_detection seam_detection.launch scene:="plate_square_tube_01"
 roslaunch seam_detection seam_detection.launch scene:="table_plate_tee_clamps_c1_blndr"
 ```
 
-###### simualated test scenes
+###### simulated test scenes
 
    - [x] fillet weld: lidarfile= `plate_round_tube_01.ply(.pcd)`, cadfile=`round_tube_01.ply(.pcd)` tested and working
    - [x] fillet weld: lidarfile= `plate_round_tube_02.ply(.pcd)`, cadfile=`round_tube_02.ply(.pcd)` tested and working
@@ -305,9 +298,6 @@ roslaunch seam_detection seam_detection.launch scene:="table_plate_tee_clamps_c1
    - [ ] fillet weld: `round tube to plate` - designed by RS - initial tests
 
 
-
-
-
 ##### Testing TEASER
 
 ##### Testing Model Recognition from PCL
@@ -317,7 +307,7 @@ rosrun seam_detection correspondence_grouping pcd_images/plate_rect_block/rect_b
 
 ```
 
-the correspondence grouping sample code compile and runs, but it only rfinds a model instance if I give it the same clouds...
+the correspondence grouping sample code compile and runs, but it only finds a model instance if I give it the same clouds...
 
 ```
 $ rosrun seam_detection correspondence_grouping pcd_images/table_tee/offset_tee_01.pcd pcd_images/table_tee/offset_tee_c1.pcd -c -k
@@ -370,6 +360,12 @@ PointCloud representing the planar component: 2993 data points.
 two new steel objects: `shape1` and `shape2` (best names ever)
 
 testing with `register_clouds.cpp` to compare ICP vs TEASER vs TEASER_FPFH (fast point feature histogram)
+
+
+
+```
+roslaunch seam_detection register_clouds.launch 
+```
 
 test mode 1: CAD model based target cloud (fixed) and a LiDAR based source cloud (transformed) - (what we previously have done)        
 
@@ -440,7 +436,17 @@ New Stuff! - While invesigating the 3DsmoothNet author Zan Gojcic(zgojcic@github
 Predator comes from the Photogrammetry and Remote Sensing Lab: https://github.com/prs-eth
 
 
+#### Config Files
+ 
+All the file names and parameters for each primary node are defined in a config file <node-nmae>.yaml saved in `config/`. Pass the name of config when using a node as shown below. The default config file sharing the node name will now be used if no config is specified. 
+
+**Note:** the way config files are has been improved to streamline the process and generalize across methods, see `filter_cloud.yaml` and `register_clouds.yaml` for updated examples.
+The launch arg has been renamed from `scene` to `config`, and the default config shares the node name. The older configs and docs are slowly being updated with the changes. Many of the old scene configs can be found in `config/scenes`. 
+
+
 ### running in Docker
+
+! this section needs to be updated/tested for the recent changes in config files names and args !
 
 It is possible to stand up the entire application in a single line using docker and docker compose. This is not required. 
 
@@ -531,24 +537,12 @@ This routine is designed to automate the selection/identification of the source 
 
 
 
-
-
-
-
-
-
-
-
-
 ### new test scenes from ds435i depth camera
 pcd files in `pcd_images/ds435i_table_parts/`
 
 ```
 roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
 ```
-
-
-
 
 
 ### Changelog
@@ -602,7 +596,8 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
     -> registration result tf published by vision computer, arm computer subscribes   
     [ ] document the process of interfacing with Aubo/RTT robot
 
-- [ ] stream line filtering->clustering->registration for testing alongsisde robot
+- [x] streamline filtering->clustering->registration for testing alongsisde robot
+    -> streamline might not be the best word for it, but this process has been tested 
 
 - [x] use PCL Euclidean cluster extraction to replace segmentation or manual bounding box preparation of lidar scans
     -> proof of concept shown in `filter_cloud.cpp`, robot body is successfully separated from workpeice, clusters shown in rviz
@@ -651,8 +646,6 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
 - [x] test iterative registration on current and previous experimental data sets
     -> no significant results shown, you have learned this once again so maybe this time you will remember it
 
-- [ ] clean up README and test archived and older examples  - update old config files with new parameters lists, maybe we should wait until we finish changing lol
-
 - [ ] implement `overlap_predator` registration on experimental data for performance comparision, this might solve orientation issues
 
 - [ ] add separate code for cloud_segmentation to complete separation of steps 
@@ -681,5 +674,7 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
 - [ ] document data collection and calibration process using 3D LiDAR system - update `scan2cloud` package and docs - TAKE NOTE NEXT TIME !
 
 - [?] prepare a manuscript for ASME IDETC2024 or alternate venue
+
+- [ ] clean up README and test archived and older examples  - update old config files with new parameters lists, maybe we should wait until we finish changing lol
 
 - [ ] prune this list
