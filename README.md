@@ -446,9 +446,7 @@ The launch arg has been renamed from `scene` to `config`, and the default config
 
 ### running in Docker
 
-! this section needs to be updated/tested for the recent changes in config files names and args !
-
-It is possible to stand up the entire application in a single line using docker and docker compose. This is not required. 
+Stand up the entire application in a single line using docker and docker compose. This is not required, but allows for portable testing. 
 
 Create a source directory and set the environment variable $CATKIN_WS_PATH 
 
@@ -477,11 +475,11 @@ cd seam_detection/docker
 docker compose up --build 
 ```
 
-Run a simple test, this calls one of the launch files from above.
+Run a simple test, this calls one of the launch files from above and uses the default config file.
 
 ```
 cd seam_detection/docker
-docker compose run seam_detection
+docker compose run seam-detection
 ```
 
 Note: if you want to generate files in the container, for example when using `cad_cloud` to make PCDs, you must set the permissions of the workspace directory or sub directory on the host to give the docker container write access which would be an 'other' in this case.
@@ -492,6 +490,10 @@ chmod o+w seam_detection/<SUBDIR>
 
 ### troubleshoot with auborobot
 
+To use this package with the aubo robot, uncomment and enable compiling of the aubo robot system node in `CMakeLists.txt`. These nodes will not compile by default to allow for use in docker and on other platforms. 
+
+
+#### issues
 i see the following error when i try to publish to andriod_gui/gcode_cmd
 ```
 [ERROR] [1692989638.343471973]: Client [/rostopic_17739_1692988617268] wants topic /android_gui/gcode_cmd to have datatype/md5sum [aubo_control/gcodeAction/8261e41e53803494ec669905817b139c], but our version has [aubo_control/gcodeAction/a83a0e1a726f23e73947f0f4e478e627]. Dropping connection.

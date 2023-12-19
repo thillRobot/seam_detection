@@ -1,7 +1,7 @@
 services:
   seam-detection:
     build: .
-    command: roslaunch seam_detection seam_detection.launch config:="shape1_0deg"
+    command: roslaunch seam_detection seam_detection.launch
     environment:
       DISPLAY: $DISPLAY
     volumes:
