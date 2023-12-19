@@ -64,10 +64,41 @@ Change to top of workspace and compile.
 cd ..
 catkin_make
 ```
-
 The workspace and package should compile without errors.
 
+
 ### Using seam_detection
+
+#### Primary Nodes 
+ (Early work 2020-2021, needs testing)
+ - `ransac_plane` - use RANSAC to fit models to a pointcloud
+ - `segment_plane` - use RANSAC to separate a pointcloud into multiple planes 
+ - `seam_detection_RANSAC` - use RANSAC and the intersection of planes to locate a seam 
+ - `seam_detection_icp` - ! this node has been removed and replaced with `seam_detection` !
+
+ (Current work 2022-present)
+ - `seam_detection` - use filtering, voxel downsamplings, RANSAC segmentation to prepare pointclouds for iterative closest point registration 
+
+#### Supporting Nodes 
+
+ - `scan2cloud` - generate pointclouds from lidar scans and poses (node missing from repo, coming back soon)   
+ - `cad_cloud` - convert .ply file into .pcd file using pcl
+ - `cad_cloud_bulk` - convert directory of .ply files into .pcd files using pcl
+ - `rotate_cloud` - apply homogenous transformation to pointcloud using pcl
+  
+#### Development Nodes
+  
+ - `register_clouds` - test different registration algorithms including icp and Teaser
+ (Summer 2023 - present)  
+ - `get_cloud` - get pointcloud from aubo robot system
+ - `get_target` - get pointcloud from aubo robot system and save as registration target
+ - `get_source` - get pointcloud from aubo robot system and save as registration source
+ - `register_target_source` - register target and source from aubo system (or file)
+
+Note: This project has been running for years, and it has seen a lot of recent changes. Some of the older methods may not run currently, but effort is being made to bring everthing up to date and improve documentation. Contact thillRobot if you have questions or run into problems. 
+
+
+#### Examples: 
 
 These examples require a pre-recorded pointcloud from a 3D Lidar and/or CAD. There are example scans here.
 This code is based on **PCL - Sample Consensus and RANSAC (SEGMENTATION)**
@@ -142,16 +173,17 @@ roslaunch seam_detection seam_detection_ICP.launch lidar_file:="lidar_cad_scenes
 
 ```
 
+Note: The code for seam_detection_icp.cpp was removed for clarity. Use the updated seam_detection.cpp node instead. 
 
-#### RANSAC + ICP SEAM DETECTION - In Development
-##### Use RANSAC + ICP for weld seam detection. First segmenmmt with RANSAC(or other) then use ICP to locate the origin of the part.
+#### RANSAC + ICP SEAM DETECTION 
+##### Use RANSAC + ICP for weld seam detection. First segmen t with RANSAC(or other) then use ICP to locate the origin of the part.
 
 These examples have the `round_tube` or a `square_tube` and the `plate`. There can be variations in part1 one but you must choose `round_tube` or a `square_tube`for the segmentation to work properly. These work well, but there is some discrepancy along the length of the cylinder. All other dimensions match very well. This seems to be related to the amount of data that is avaialable about this dimension.
 
 
-Now you define all the file names and other parameters in a <scene>.yaml file. The .yaml files are saved in `config/`
+Now define all the file names and other parameters in a <config>.yaml file. The .yaml files are saved in `config/`
 **Note:** the way config files are handled is being improved to streamline the process, see `filter_cloud.yaml` and `register_clouds.yaml`
-the launch arg has been renamed from `scene` to `config`, see `filter_cloud.launch` etc.
+the launch arg has been renamed from `scene` to `config`, see `filter_cloud.launch` etc. The configs and docs are slowly being updated with the changes.
 
 ```
 ---
@@ -187,43 +219,41 @@ seam1_points_z: [30, 31, 54, 12]
 
 ```
 
-Pass the name of scene when using seam_detection as shown below. This is much more convenient and allows for all nodes in the system access to parameters.  
+Pass the name of config when using seam_detection as shown below. This is much more convenient and allows for all nodes in the system access to parameters. Many of the old scene configs can be found in `config/scenes`
 
 
 ##### Simulated Application - source and target clouds from CAD (simulated LiDAR)
 
 **plate_rect_block**
+
 ```
-roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_c0_blndr"
-```
-```
-roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_c1_30_blndr"
+roslaunch seam_detection seam_detection.launch config:="scenes/plate_rect_block_02"
 ```
 ```
-roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_c1_blndr"
+roslaunch seam_detection seam_detection.launch config:="scenes/plate_rect_block_02_blndr"
 ```
 ```
-roslaunch seam_detection seam_detection.launch scene:="plate_rect_block_c2_blndr"
+roslaunch seam_detection seam_detection.launch config:="scenes/plate_rect_block_02_blndr"
+```
+```
+roslaunch seam_detection seam_detection.launch config:="scenes/plate_rect_block_02_dx100_rz30_blndr"
 ```
 
 **table_tee**
 
 add these here, this scene was used in the 2022 pub
-
-
+(table_tee simulated application is missing or was never completed, look into this)
 
 ##### Experimental Application A - LiDAR scans from RPLiDAR A2 on Aubo i5
 
 **table_8in10in_tee**
 
 ```
-roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x4y24_45"
+roslaunch seam_detection seam_detection.launch config:="scenes/table_8in10in_tee_x4y24_45"
 ```
 
-
 ```
-roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x0y24"
-
+roslaunch seam_detection seam_detection.launch config:="scenes/table_8in10in_tee_x0y24"
 ```
 
 
@@ -231,20 +261,18 @@ roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_x0y24"
 
 
 ```
-roslaunch seam_detection seam_detection.launch scene:="table_8in10in_tee_longclamps_x4y24_45"
-
+roslaunch seam_detection seam_detection.launch config:="scenes/table_8in10in_tee_longclamps_x4y24_45"
 ```
 
 ##### Experimental Application B - LiDAR scans from RPLiDAR A2 on Aubo i10 - recorded 06/21/2023
 
-```
-```
+add this 
 
 
 
 
 ##### archived examples 
-These examples will not run because the config files need to be updated to the new format
+These examples will not run because the config files need to be updated to the new format, do this soon
 
 **plate_round_tube_01** (not working)
 ```
@@ -341,14 +369,14 @@ PointCloud representing the planar component: 2993 data points.
 
 two new steel objects: `shape1` and `shape2` (best names ever)
 
-testing with `registration_examples.cpp` to compare ICP vs TEASER vs TEASER_FPFH (fast point feature histogram)
+testing with `register_clouds.cpp` to compare ICP vs TEASER vs TEASER_FPFH (fast point feature histogram)
 
 test mode 1: CAD model based target cloud (fixed) and a LiDAR based source cloud (transformed) - (what we previously have done)        
 
 example: 
 
 ```
-roslaunch seam_detection registration_examples.launch scene:="shape2_60deg"
+roslaunch seam_detection register_clouds.launch config:="scenes/shape2_60deg"
 ```
 
 NEW! test mode 2: LiDAR based taget cloud and different LiDAR scan based source cloud - as suggested by SC 
@@ -356,7 +384,7 @@ NEW! test mode 2: LiDAR based taget cloud and different LiDAR scan based source 
 example:
 
 ```
-roslaunch seam_detection registration_examples.launch scene:="shape2_45deg_60deg"
+roslaunch seam_detection registration_examples.launch config:="scenes/shape2_45deg_60deg"
 ```
 
 
@@ -495,6 +523,20 @@ launch files:
 
 
 The process from the summer 2023 season needs documentation!
+
+
+### filter_cloud 
+
+This routine is designed to automate the selection/identification of the source cloud to be used in registration 
+
+
+
+
+
+
+
+
+
 
 
 

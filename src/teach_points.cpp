@@ -52,9 +52,7 @@ void teach_pose_callback(const std_msgs::Int8::ConstPtr& msg)
     teach_points_state=1; 
   }
 
-
 }
-
 
 
 int main(int argc, char** argv)
@@ -77,7 +75,6 @@ int main(int argc, char** argv)
   bool free_drive;
 
 
-
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"                     teach_points v1.x                              "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
@@ -95,7 +92,6 @@ int main(int argc, char** argv)
   std::string packagepath = ros::package::getPath("seam_detection");
 
   // get parameters from config file
-  
   node.getParam("teach_points/num_points", num_points);
 
   std::cout<<"teach_points: preparing to teach "<<num_points<<" num_points"<<std::endl;
@@ -138,11 +134,6 @@ int main(int argc, char** argv)
     loop_rate.sleep();
   }
 
-  
-  
-  
- 
-  
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"                     teach_points: complete                         "<<std::endl;
   std::cout<<"===================================================================="<<std::endl<<std::endl;

@@ -1,6 +1,6 @@
 ---
-scene_name: "plate_rect_block_c0"
-source_file: "pcd_images/plate_rect_block/plate_rect_block_c0.pcd"
+scene_name: "plate_rect_block_02"
+source_file: "pcd_images/plate_rect_block/plate_rect_block_02.pcd"
 part1_name: "rect_block_02"
 target_file: "pcd_images/plate_rect_block/rect_block_02.pcd"
 part1_type: "square_tube"

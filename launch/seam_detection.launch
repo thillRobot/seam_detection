@@ -2,6 +2,8 @@
   <!-- This is the main launch file for the SEAM_DETECTION node and package -->
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
+  <arg name="config" default="seam_detection" />
+
   <!-- read value of arg -->
   <param name="param" value="$(arg config)"/> 
 
@@ -47,9 +49,9 @@
   <!-- args="$(find seam_detection)/pcd_images/$(arg cad_file) $(find seam_detection)/pcd_images/$(arg seam_file)" -->
 
   <node name="rviz"
-        pkg="rviz"
-        type="rviz"
-        args="-d $(find seam_detection)/rviz/seam_detection.rviz">
+    pkg="rviz"
+    type="rviz"
+    args="-d $(find seam_detection)/rviz/seam_detection.rviz">
   </node>
 
 </launch>

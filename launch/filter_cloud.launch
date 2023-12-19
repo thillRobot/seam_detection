@@ -2,6 +2,8 @@
 
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
+  <arg name="config" default="filter_cloud" />
+
   <!-- read value of arg -->
   <param name="param" value="$(arg config)"/> 
   

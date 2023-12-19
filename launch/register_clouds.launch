@@ -2,6 +2,8 @@
   <!-- This is the main launch file for REGISTER_CLOUDS node from SEAM_DETECTION package -->
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
+  <arg name="config" default="register_clouds" />
+
   <!-- read value of arg -->
   <param name="param" value="$(arg config)"/> 
 
