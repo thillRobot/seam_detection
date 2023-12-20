@@ -197,6 +197,8 @@ PointCloudVec cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &
       std::cout << "Point Cloud " << i << " has " << clusters[i]->size() << " Points " << std::endl;
   }
 
+  std::cout<< "clusters size: "<< clusters.size() <<std::endl;
+ 
   return clusters;
    
 }
@@ -242,10 +244,11 @@ void pcabox_cloud(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen:
   std::cout<<"volume: "<<bbox_volume<<std::endl;
   std::cout<<"aspect ratio: "<<bbox_aspect_ratio<<std::endl;
 
-  bbox_quaternion=bboxQuaternion;
+  bbox_quaternion=bboxQuaternion; // copy to the output variables, these lines crash now that I am passing in a vector
   bbox_transform=bboxTransform;
 
-  return;
+  std::cout<<"end of pcabox_cloud function "<<bbox_aspect_ratio<<std::endl;
+  //return;  // this empty return is not needed ?
 
 }
 
@@ -527,7 +530,7 @@ int main(int argc, char** argv)
   
   Eigen::Quaternionf target_quaternion, cluster0_quaternion, cluster1_quaternion, cluster2_quaternion, cluster3_quaternion, cluster4_quaternion, marker_quaternion;
   Eigen::Vector3f target_translation, cluster0_translation, cluster1_translation, cluster2_translation, cluster3_translation, cluster4_translation, marker_translation;
-  Eigen::Vector3f target_dimensions, cluster0_dimensions, cluster1_dimensions, cluster2_dimensions, cluster3_dimensions, cluster4_dimensions, marker_dimensions;
+  Eigen::Vector3f target_dimension, cluster0_dimension, cluster1_dimension, cluster2_dimension, cluster3_dimension, cluster4_dimension, marker_dimension;
   
   std::vector < Eigen::Quaternionf > cluster_quaternions; // vector of quaternions, maybe not the best solution... send me a better one, 2D array containing quats? eh...
   std::vector < Eigen::Vector3f > cluster_translations;   // these could be in a 2D array, but then the syntax would not match
@@ -543,31 +546,32 @@ int main(int argc, char** argv)
 
     std::cout<<"returned from cluster_cloud function"<<std::endl;
 
-    // It looks like the line below throws an error,  fix this
     // then pick back up here, use the vector of clusters, and bounding box data to find best cluster (min score) 
 
     // show the number points in each cluster, just to check  
     // and find the minimum bounding box for all clusters in vector clusters
-    std::cout<< "cloud_clusters  size"<< cloud_clusters.size() <<std::endl;
+    std::cout<< "cloud_clusters size: "<< cloud_clusters.size() <<std::endl;
 
     for (int i = 0; i < cloud_clusters.size(); i++){
       
+      // It looks like the line below throws an error,  fix this ! 
       // get the pose and size of the minimum bounding box for each cluster
-      pcabox_cloud(*cloud_clusters[i], cluster_quaternions[i], cluster_translations[i], cluster_dimensions[i]); 
+      //pcabox_cloud(*cloud_clusters[i], cluster0_quaternion, cluster0_translation, cluster0_dimension);     // works 
+      pcabox_cloud(*cloud_clusters[i], cluster_quaternions[i], cluster0_translation, cluster0_dimension);  // does not work (compiles but throws runtime error), pick up here! 
 
       std::cout << "Point Cloud " << i << "has" << cloud_clusters[i]->size() << " Points" << std::endl;
-      std::cout << "and minimum bounding box dimensions: "<< cluster_dimensions[i] << std::endl;
+      //std::cout << "and minimum bounding box dimensions: "<< cluster_dimensions[i] << std::endl;
     }
 
     // find the minimum bounding box for the target cluster
-    pcabox_cloud(*cloud_filtered_target, target_quaternion, target_translation, target_dimensions); 
+    pcabox_cloud(*cloud_filtered_target, target_quaternion, target_translation, target_dimension); 
 
     // find the minimum bounding box for a five clusters
-    pcabox_cloud(*cloud_cluster0, cluster0_quaternion, cluster0_translation, cluster0_dimensions);
-    pcabox_cloud(*cloud_cluster1, cluster1_quaternion, cluster1_translation, cluster1_dimensions);
-    pcabox_cloud(*cloud_cluster2, cluster2_quaternion, cluster2_translation, cluster2_dimensions);
-    pcabox_cloud(*cloud_cluster3, cluster3_quaternion, cluster3_translation, cluster3_dimensions);
-    pcabox_cloud(*cloud_cluster4, cluster4_quaternion, cluster4_translation, cluster4_dimensions);
+    pcabox_cloud(*cloud_cluster0, cluster0_quaternion, cluster0_translation, cluster0_dimension);
+    pcabox_cloud(*cloud_cluster1, cluster1_quaternion, cluster1_translation, cluster1_dimension);
+    pcabox_cloud(*cloud_cluster2, cluster2_quaternion, cluster2_translation, cluster2_dimension);
+    pcabox_cloud(*cloud_cluster3, cluster3_quaternion, cluster3_translation, cluster3_dimension);
+    pcabox_cloud(*cloud_cluster4, cluster4_quaternion, cluster4_translation, cluster4_dimension);
 
     
 
@@ -670,9 +674,9 @@ int main(int argc, char** argv)
     target_marker.pose.orientation.z = target_quaternion.vec()[2];
     target_marker.pose.orientation.w = target_quaternion.w();
 
-    target_marker.scale.x = target_dimensions[0];
-    target_marker.scale.y = target_dimensions[1];
-    target_marker.scale.z = target_dimensions[2];
+    target_marker.scale.x = target_dimension[0];
+    target_marker.scale.y = target_dimension[1];
+    target_marker.scale.z = target_dimension[2];
 
     target_marker.pose.position.x = target_translation[0];
     target_marker.pose.position.y = target_translation[1];
@@ -694,23 +698,23 @@ int main(int argc, char** argv)
       if (i==0){  // select which cluster result to copy pcabox objects from
         marker_quaternion=cluster0_quaternion;
         marker_translation=cluster0_translation;
-        marker_dimensions=cluster0_dimensions;
+        marker_dimension=cluster0_dimension;
       }else if(i==1){
         marker_quaternion=cluster1_quaternion;
         marker_translation=cluster1_translation;
-        marker_dimensions=cluster1_dimensions;
+        marker_dimension=cluster1_dimension;
       }else if(i==2){
         marker_quaternion=cluster2_quaternion;
         marker_translation=cluster2_translation;
-        marker_dimensions=cluster2_dimensions;
+        marker_dimension=cluster2_dimension;
       }else if(i==3){
         marker_quaternion=cluster3_quaternion;
         marker_translation=cluster3_translation;
-        marker_dimensions=cluster3_dimensions;
+        marker_dimension=cluster3_dimension;
       }else if(i==4){
         marker_quaternion=cluster4_quaternion;
         marker_translation=cluster4_translation;
-        marker_dimensions=cluster4_dimensions;
+        marker_dimension=cluster4_dimension;
       }
 
       cluster_marker.id = i;
@@ -720,9 +724,9 @@ int main(int argc, char** argv)
       cluster_marker.pose.orientation.z = marker_quaternion.vec()[2];
       cluster_marker.pose.orientation.w = marker_quaternion.w();
 
-      cluster_marker.scale.x = marker_dimensions[0];
-      cluster_marker.scale.y = marker_dimensions[1];
-      cluster_marker.scale.z = marker_dimensions[2];
+      cluster_marker.scale.x = marker_dimension[0];
+      cluster_marker.scale.y = marker_dimension[1];
+      cluster_marker.scale.z = marker_dimension[2];
 
       cluster_marker.pose.position.x = marker_translation[0];
       cluster_marker.pose.position.y = marker_translation[1];
