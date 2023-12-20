@@ -30,16 +30,15 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <std_msgs/Bool.h>
 
-
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
-
+typedef std::vector < PointCloudPtr, Eigen::aligned_allocator < PointCloudPtr > > PointCloudVec;
+// aligned_allocator - STL compatible allocator to use with types requiring a non-standard alignment 
 
 bool get_cloud_complete=0;
 bool filtered_cloud_saved=0;
 
-void get_cloud_stateCallback(const std_msgs::Bool::ConstPtr& msg)
-{
+void get_cloud_stateCallback(const std_msgs::Bool::ConstPtr& msg){
   if (!msg->data){
     ROS_INFO("get_cloud in progress, waiting to begin filtering ...");
   }
@@ -50,8 +49,7 @@ void get_cloud_stateCallback(const std_msgs::Bool::ConstPtr& msg)
 }
 
 // this function applies a bounding box and a voxel filter to the input cloud
-void filter_cloud(PointCloud &input, PointCloud &output, double box[], double leaf_size, bool translate_output, bool auto_bounds)
-{
+void filter_cloud(PointCloud &input, PointCloud &output, double box[], double leaf_size, bool translate_output, bool auto_bounds){
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(input,*cloud);
@@ -144,7 +142,8 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
 }
 
 // this function performs Euclidean cluster extraction to separate parts of the pointcloud 
-void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, PointCloud &output2, PointCloud &output3, PointCloud &output4 ){
+//void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, PointCloud &output2, PointCloud &output3, PointCloud &output4 ){
+PointCloudVec cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, PointCloud &output2, PointCloud &output3, PointCloud &output4){
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(input,*cloud);
@@ -162,13 +161,16 @@ void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, 
   ec.setInputCloud (cloud);
   ec.extract (cluster_indices);
  
+  // instatiate a std vector of pcl pointclouds with pcl PointXYZ points (see typedef above)
+  PointCloudVec clusters;
+
   int j = 0;
   for (const auto& cluster : cluster_indices) 
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-    for (const auto& idx : cluster.indices) {
+    for (const auto& idx : cluster.indices) { // add points to cluster cloud
       cloud_cluster->push_back((*cloud)[idx]);
-    } //*
+    } 
     cloud_cluster->width = cloud_cluster->size();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
@@ -185,10 +187,18 @@ void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, 
       pcl::copyPointCloud(*cloud_cluster,output4);
     }
 
-    std::cout << "PointCloud representing cluster"<<j<<" has "<< cloud_cluster->size() << " data points." << std::endl;
-    j++;
+    clusters.push_back(cloud_cluster); // add clusters to vector of clusters
+
+    //std::cout << "PointCloud representing cluster"<<j<<" has "<< cloud_cluster->size() << " data points " << std::endl;
+    j++; // increment the cluster counter
   }
 
+  for (int i = 0; i < clusters.size(); i++){
+      std::cout << "Point Cloud " << i << " has " << clusters[i]->size() << " Points " << std::endl;
+  }
+
+  return clusters;
+   
 }
 
 // this function finds the minimum oriented bounding box of a cloud using principle component analysis
@@ -362,7 +372,6 @@ void transform_cloud(PointCloud &input, PointCloud &output, Eigen::Vector3f rota
 }
 
 
-
 int main(int argc, char** argv)
 {
 
@@ -520,13 +529,35 @@ int main(int argc, char** argv)
   Eigen::Vector3f target_translation, cluster0_translation, cluster1_translation, cluster2_translation, cluster3_translation, cluster4_translation, marker_translation;
   Eigen::Vector3f target_dimensions, cluster0_dimensions, cluster1_dimensions, cluster2_dimensions, cluster3_dimensions, cluster4_dimensions, marker_dimensions;
   
+  std::vector < Eigen::Quaternionf > cluster_quaternions; // vector of quaternions, maybe not the best solution... send me a better one, 2D array containing quats? eh...
+  std::vector < Eigen::Vector3f > cluster_translations;   // these could be in a 2D array, but then the syntax would not match
+  std::vector < Eigen::Vector3f > cluster_dimensions;
+
   //double target_volume, cluster0_volume, cluster1_volume, cluster2_volume, cluster3_volume, cluster4_volume;
   //double target_aspect_ratio, cluster0_aspect_ratio, cluster1_aspect_ratio, cluster2_aspect_ratio, cluster3_aspect_ratio, cluster4_aspect_ratio;
 
   if(use_clustering){
+    PointCloudVec cloud_clusters;
+    // find clusters in filtered cloud (five clusters hardcoded is messy, working on this currently)
+    cloud_clusters=cluster_cloud(*cloud_filtered, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
 
-    // find clusters in filtered cloud (five clusters hardcoded is messy, fix this somehow)
-    cluster_cloud(*cloud_filtered, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
+    std::cout<<"returned from cluster_cloud function"<<std::endl;
+
+    // It looks like the line below throws an error,  fix this
+    // then pick back up here, use the vector of clusters, and bounding box data to find best cluster (min score) 
+
+    // show the number points in each cluster, just to check  
+    // and find the minimum bounding box for all clusters in vector clusters
+    std::cout<< "cloud_clusters  size"<< cloud_clusters.size() <<std::endl;
+
+    for (int i = 0; i < cloud_clusters.size(); i++){
+      
+      // get the pose and size of the minimum bounding box for each cluster
+      pcabox_cloud(*cloud_clusters[i], cluster_quaternions[i], cluster_translations[i], cluster_dimensions[i]); 
+
+      std::cout << "Point Cloud " << i << "has" << cloud_clusters[i]->size() << " Points" << std::endl;
+      std::cout << "and minimum bounding box dimensions: "<< cluster_dimensions[i] << std::endl;
+    }
 
     // find the minimum bounding box for the target cluster
     pcabox_cloud(*cloud_filtered_target, target_quaternion, target_translation, target_dimensions); 
@@ -537,6 +568,8 @@ int main(int argc, char** argv)
     pcabox_cloud(*cloud_cluster2, cluster2_quaternion, cluster2_translation, cluster2_dimensions);
     pcabox_cloud(*cloud_cluster3, cluster3_quaternion, cluster3_translation, cluster3_dimensions);
     pcabox_cloud(*cloud_cluster4, cluster4_quaternion, cluster4_translation, cluster4_dimensions);
+
+    
 
     // get score for each cluster
     double score0, score1, score2, score3, score4, score;

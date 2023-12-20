@@ -21,7 +21,7 @@ services:
 
   register-clouds: 
     build: .
-    command: roslaunch seam_detection register_clouds.launch config:="register_clouds"
+    command: roslaunch seam_detection register_clouds.launch
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -53,7 +53,7 @@ services:
 
   filter-cloud: 
     build: .
-    command: roslaunch seam_detection filter_cloud.launch config:="filter_cloud"
+    command: roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
     environment:
       DISPLAY: $DISPLAY
     volumes:
