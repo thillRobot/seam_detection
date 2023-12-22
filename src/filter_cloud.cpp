@@ -102,7 +102,6 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
   std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
 
   // Apply Voxel Filter 
-
   if (leaf_size>0)
   {
     pcl::VoxelGrid<pcl::PointXYZ> vox;
@@ -142,7 +141,6 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
 }
 
 // this function performs Euclidean cluster extraction to separate parts of the pointcloud 
-//void cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, PointCloud &output2, PointCloud &output3, PointCloud &output4 ){
 PointCloudVec cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, PointCloud &output2, PointCloud &output3, PointCloud &output4){
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
@@ -247,7 +245,6 @@ void pcabox_cloud(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen:
   bbox_quaternion=bboxQuaternion; // copy to the output variables, these lines crash now that I am passing in a vector
   bbox_transform=bboxTransform;
 
-  std::cout<<"end of pcabox_cloud function "<<bbox_aspect_ratio<<std::endl;
   //return;  // this empty return is not needed ?
 
 }
@@ -544,10 +541,7 @@ int main(int argc, char** argv)
     // find clusters in filtered cloud (five clusters hardcoded is messy, working on this currently)
     cloud_clusters=cluster_cloud(*cloud_filtered, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
 
-    std::cout<<"returned from cluster_cloud function"<<std::endl;
-
-    // then pick back up here, use the vector of clusters, and bounding box data to find best cluster (min score) 
-
+    // use the vector of clusters, and bounding box data to find best cluster (min score) 
     // show the number points in each cluster, just to check  
     // and find the minimum bounding box for all clusters in vector clusters
     std::cout<< "cloud_clusters size: "<< cloud_clusters.size() <<std::endl;
@@ -557,10 +551,25 @@ int main(int argc, char** argv)
       // It looks like the line below throws an error,  fix this ! 
       // get the pose and size of the minimum bounding box for each cluster
       //pcabox_cloud(*cloud_clusters[i], cluster0_quaternion, cluster0_translation, cluster0_dimension);     // works 
-      pcabox_cloud(*cloud_clusters[i], cluster_quaternions[i], cluster0_translation, cluster0_dimension);  // does not work (compiles but throws runtime error), pick up here! 
+      Eigen::Quaternionf cluster_quaternion; // this is a temp variable to get the eigen::quaternion from the function which will be added to quaternions vector
+      Eigen::Vector3f cluster_translation, cluster_dimension; // these are also temp vars for the same purpose, there is probably a better way to do this ... 
+      pcabox_cloud(*cloud_clusters[i], cluster_quaternion, cluster_translation, cluster_dimension);  // does not work (compiles but throws runtime error), pick up here! 
+      cluster_quaternions.push_back(cluster_quaternion);  // add the temp variable to the vectors
+      cluster_translations.push_back(cluster_translation); 
+      cluster_dimensions.push_back(cluster_dimension); 
 
-      std::cout << "Point Cloud " << i << "has" << cloud_clusters[i]->size() << " Points" << std::endl;
-      //std::cout << "and minimum bounding box dimensions: "<< cluster_dimensions[i] << std::endl;
+      // print cluster information to the terminal to test
+      std::cout << "cluster "<< i <<" number of points: " << cloud_clusters[i]->size() << std::endl;
+      std::cout << "cluster "<< i <<" PCA box quaternion: ["<< cluster_quaternions[i].x()<<","
+                                          << cluster_quaternions[i].y()<<","
+                                          << cluster_quaternions[i].z()<<","
+                                          << cluster_quaternions[i].w()<<"]"<<std::endl;                                    
+      std::cout << "cluster "<< i <<" PCA box translation: ["<< cluster_translations[i][0] << "," 
+                                          <<cluster_translations[i][1] << "," 
+                                          <<cluster_translations[i][2] << "]" <<std::endl;
+      std::cout << "cluster "<< i <<" PCA box dimension: ["<< cluster_dimensions[i][0] << "," 
+                                          <<cluster_dimensions[i][1] << "," 
+                                          <<cluster_dimensions[i][2] << "]" <<std::endl;
     }
 
     // find the minimum bounding box for the target cluster
