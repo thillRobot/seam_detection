@@ -533,6 +533,8 @@ int main(int argc, char** argv)
   std::vector < Eigen::Vector3f > cluster_translations;   // these could be in a 2D array, but then the syntax would not match
   std::vector < Eigen::Vector3f > cluster_dimensions;
 
+  std::vector <float> cluster_scores;
+
   //double target_volume, cluster0_volume, cluster1_volume, cluster2_volume, cluster3_volume, cluster4_volume;
   //double target_aspect_ratio, cluster0_aspect_ratio, cluster1_aspect_ratio, cluster2_aspect_ratio, cluster3_aspect_ratio, cluster4_aspect_ratio;
 
@@ -548,7 +550,6 @@ int main(int argc, char** argv)
 
     for (int i = 0; i < cloud_clusters.size(); i++){
       
-      // It looks like the line below throws an error,  fix this ! 
       // get the pose and size of the minimum bounding box for each cluster
       //pcabox_cloud(*cloud_clusters[i], cluster0_quaternion, cluster0_translation, cluster0_dimension);     // works 
       Eigen::Quaternionf cluster_quaternion; // this is a temp variable to get the eigen::quaternion from the function which will be added to quaternions vector
@@ -557,6 +558,11 @@ int main(int argc, char** argv)
       cluster_quaternions.push_back(cluster_quaternion);  // add the temp variable to the vectors
       cluster_translations.push_back(cluster_translation); 
       cluster_dimensions.push_back(cluster_dimension); 
+
+      // then get the score for each cluster
+      double score; // tmp var to get return from function
+      score=score_cluster(*cloud_clusters[i], *cloud_filtered_target);
+      cluster_scores.push_back(score);
 
       // print cluster information to the terminal to test
       std::cout << "cluster "<< i <<" number of points: " << cloud_clusters[i]->size() << std::endl;
@@ -570,6 +576,8 @@ int main(int argc, char** argv)
       std::cout << "cluster "<< i <<" PCA box dimension: ["<< cluster_dimensions[i][0] << "," 
                                           <<cluster_dimensions[i][1] << "," 
                                           <<cluster_dimensions[i][2] << "]" <<std::endl;
+      std::cout << "cluster "<< i <<" Score: " <<cluster_scores[i]<< std::endl;
+
     }
 
     // find the minimum bounding box for the target cluster
@@ -581,8 +589,6 @@ int main(int argc, char** argv)
     pcabox_cloud(*cloud_cluster2, cluster2_quaternion, cluster2_translation, cluster2_dimension);
     pcabox_cloud(*cloud_cluster3, cluster3_quaternion, cluster3_translation, cluster3_dimension);
     pcabox_cloud(*cloud_cluster4, cluster4_quaternion, cluster4_translation, cluster4_dimension);
-
-    
 
     // get score for each cluster
     double score0, score1, score2, score3, score4, score;
