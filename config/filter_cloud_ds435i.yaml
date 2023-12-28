@@ -1,7 +1,7 @@
 ---
 filter_cloud/input_file: "pcd_images/ds435i_table_parts/table_part1_part2_02.pcd"
 filter_cloud/output_file: "pcd_images/ds435i_table_parts/table_part1_part2_02_filtered.pcd"
-filter_cloud/target_file: "pcd_images/shape1_shape2/shape1.pcd"
+filter_cloud/target_file: "pcd_images/shape1_shape2/shape2.pcd"
 save_output: true
 translate_output: false
 automatic_bounds: false
@@ -13,5 +13,5 @@ transform_input: true
 filter_cloud/pre_rotation:    [0.0, 3.14159, 0.0]
 filter_cloud/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254
 
-filter_cloud/filter_box: [0.0, 1.0, -1.0, 1.0, 0.01, 0.5] # bounding box limits
+filter_cloud/filter_box: [0.0, 1.0, -1.0, 1.0, 0.015, 0.5] # bounding box limits
 filter_cloud/voxel_leaf_size: 0.001                           # voxel leaf size

@@ -537,16 +537,21 @@ int main(int argc, char** argv)
 
   //double target_volume, cluster0_volume, cluster1_volume, cluster2_volume, cluster3_volume, cluster4_volume;
   //double target_aspect_ratio, cluster0_aspect_ratio, cluster1_aspect_ratio, cluster2_aspect_ratio, cluster3_aspect_ratio, cluster4_aspect_ratio;
-
+ 
+  PointCloudVec cloud_clusters;
+  int m;
+ 
   if(use_clustering){
-    PointCloudVec cloud_clusters;
-    // find clusters in filtered cloud (five clusters hardcoded is messy, working on this currently)
+        // find clusters in filtered cloud (five clusters hardcoded is messy, working on this currently)
     cloud_clusters=cluster_cloud(*cloud_filtered, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
 
     // use the vector of clusters, and bounding box data to find best cluster (min score) 
     // show the number points in each cluster, just to check  
     // and find the minimum bounding box for all clusters in vector clusters
     std::cout<< "cloud_clusters size: "<< cloud_clusters.size() <<std::endl;
+    m=cloud_clusters.size();
+
+    double score0, score1, score2, score3, score4, score, score_min;
 
     for (int i = 0; i < cloud_clusters.size(); i++){
       
@@ -562,7 +567,7 @@ int main(int argc, char** argv)
       // then get the score for each cluster
       double score; // tmp var to get return from function
       score=score_cluster(*cloud_clusters[i], *cloud_filtered_target);
-      cluster_scores.push_back(score);
+      cluster_scores.push_back(score); // add it to the vector of scores
 
       // print cluster information to the terminal to test
       std::cout << "cluster "<< i <<" number of points: " << cloud_clusters[i]->size() << std::endl;
@@ -578,21 +583,35 @@ int main(int argc, char** argv)
                                           <<cluster_dimensions[i][2] << "]" <<std::endl;
       std::cout << "cluster "<< i <<" Score: " <<cluster_scores[i]<< std::endl;
 
+      if (i==0){ // always choose and save the first cluster
+        score_min=cluster_scores[0];
+        pcl::io::savePCDFileASCII (output_path, *cloud_clusters[0]);
+        std::cout<<"cluster cloud written to:"<< output_path <<std::endl;
+      }          // check all the rest for improved scores
+      else if (cluster_scores[i]<score_min){
+        score_min=cluster_scores[i];
+        pcl::io::savePCDFileASCII (output_path, *cloud_clusters[i]);
+        std::cout<<"cluster cloud written to:"<< output_path <<std::endl;
+      }
+
     }
 
+    std::cout<<"the lowest score is:"<<score_min<<std::endl;
+
     // find the minimum bounding box for the target cluster
-    pcabox_cloud(*cloud_filtered_target, target_quaternion, target_translation, target_dimension); 
+    //pcabox_cloud(*cloud_filtered_target, target_quaternion, target_translation, target_dimension); 
 
     // find the minimum bounding box for a five clusters
-    pcabox_cloud(*cloud_cluster0, cluster0_quaternion, cluster0_translation, cluster0_dimension);
-    pcabox_cloud(*cloud_cluster1, cluster1_quaternion, cluster1_translation, cluster1_dimension);
-    pcabox_cloud(*cloud_cluster2, cluster2_quaternion, cluster2_translation, cluster2_dimension);
-    pcabox_cloud(*cloud_cluster3, cluster3_quaternion, cluster3_translation, cluster3_dimension);
-    pcabox_cloud(*cloud_cluster4, cluster4_quaternion, cluster4_translation, cluster4_dimension);
+    //pcabox_cloud(*cloud_cluster0, cluster0_quaternion, cluster0_translation, cluster0_dimension);
+    //pcabox_cloud(*cloud_cluster1, cluster1_quaternion, cluster1_translation, cluster1_dimension);
+    //pcabox_cloud(*cloud_cluster2, cluster2_quaternion, cluster2_translation, cluster2_dimension);
+    //pcabox_cloud(*cloud_cluster3, cluster3_quaternion, cluster3_translation, cluster3_dimension);
+    //pcabox_cloud(*cloud_cluster4, cluster4_quaternion, cluster4_translation, cluster4_dimension);
 
     // get score for each cluster
-    double score0, score1, score2, score3, score4, score;
+    //double score0, score1, score2, score3, score4, score, score_min; // moved outside top of loop
     //score=100;
+    /*
     score0=score_cluster(*cloud_cluster0, *cloud_filtered_target);
     score1=score_cluster(*cloud_cluster1, *cloud_filtered_target);
     score2=score_cluster(*cloud_cluster2, *cloud_filtered_target);
@@ -626,12 +645,16 @@ int main(int argc, char** argv)
       pcl::io::savePCDFileASCII (output_path, *cloud_cluster4);
       std::cout<<"cluster4 cloud written to:"<< output_path <<std::endl;
     }
+
+
     std::cout<<"the lowest score is:"<<score<<std::endl;
+    */
+
   } 
 
   // save filtered cloud 
   if(save_output&&!use_clustering){
-    pcl::io::savePCDFileASCII (output_path, *cloud_filtered);
+    pcl::io::savePCDFileASCII (output_path, *cloud_filtered); // this might be the wrong file saved
     std::cout<<"Filtered cloud written to:"<< output_path <<std::endl;
   }
   filtered_cloud_saved=1; // this should be moved?
@@ -649,21 +672,34 @@ int main(int argc, char** argv)
   ros::Publisher pub_transformed = node.advertise<PointCloud> ("/cloud_transformed", 1) ;
   ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
   ros::Publisher pub_filtered_target = node.advertise<PointCloud> ("/cloud_filtered_target", 1) ;
+  
   ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/cloud_cluster0", 1) ;
   ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/cloud_cluster1", 1) ;
   ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/cloud_cluster2", 1) ;
   ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/cloud_cluster3", 1) ;
   ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/cloud_cluster4", 1) ;
+ // ros::Publisher pub_cluster5 = node.advertise<PointCloud> ("/cloud_cluster5", 1) ;
+ // ros::Publisher pub_cluster6 = node.advertise<PointCloud> ("/cloud_cluster6", 1) ;
+ // ros::Publisher pub_cluster7 = node.advertise<PointCloud> ("/cloud_cluster7", 1) ;
+ // ros::Publisher pub_cluster8 = node.advertise<PointCloud> ("/cloud_cluster8", 1) ;
+ // ros::Publisher pub_cluster9 = node.advertise<PointCloud> ("/cloud_cluster9", 1) ;
 
   cloud_input->header.frame_id = "base_link";
   cloud_transformed->header.frame_id = "base_link";
   cloud_filtered->header.frame_id = "base_link";
   cloud_filtered_target->header.frame_id = "base_link";
-  cloud_cluster0->header.frame_id = "base_link";
-  cloud_cluster1->header.frame_id = "base_link";
-  cloud_cluster2->header.frame_id = "base_link";
-  cloud_cluster3->header.frame_id = "base_link";
-  cloud_cluster4->header.frame_id = "base_link";
+  //cloud_cluster0->header.frame_id = "base_link";
+  //cloud_cluster1->header.frame_id = "base_link";
+  //cloud_cluster2->header.frame_id = "base_link";
+  //cloud_cluster3->header.frame_id = "base_link";
+  //cloud_cluster4->header.frame_id = "base_link";
+
+  for (int i=0; i<m; i++){
+    cloud_clusters[i]->header.frame_id = "base_link";
+  }
+
+
+
 
   ros::Publisher target_marker_pub = node.advertise<visualization_msgs::Marker>( "target_marker", 0 );
   ros::Publisher cluster_markers_pub = node.advertise<visualization_msgs::MarkerArray>( "cluster_markers", 0 );
@@ -703,13 +739,23 @@ int main(int argc, char** argv)
     cluster_marker.type = visualization_msgs::Marker::CUBE;
     cluster_marker.action = visualization_msgs::Marker::ADD;
 
-    cluster_marker.color.a = 0.15; // Don't forget to set the alpha!
+    //cluster_marker.color.a = 0.15; // Don't forget to set the alpha!
+    //cluster_marker.color.r = 255.0/255.0;
+    //cluster_marker.color.g = 0.0/255.0;
+    //cluster_marker.color.b = 255.0/255.0;
+
+    cluster_marker.color.a = 0.5; // Don't forget to set the alpha!
     cluster_marker.color.r = 255.0/255.0;
-    cluster_marker.color.g = 0.0/255.0;
+    cluster_marker.color.g = 255.0/255.0;
     cluster_marker.color.b = 255.0/255.0;
     
-    for(size_t i = 0; i < 5; i++){  
+    for(size_t i = 0; i < m; i++){   // this part should be easy to update for the vector of clusters
 
+      marker_quaternion=cluster_quaternions[i];
+      marker_translation=cluster_translations[i];
+      marker_dimension=cluster_dimensions[i];
+
+      /*
       if (i==0){  // select which cluster result to copy pcabox objects from
         marker_quaternion=cluster0_quaternion;
         marker_translation=cluster0_translation;
@@ -731,6 +777,7 @@ int main(int argc, char** argv)
         marker_translation=cluster4_translation;
         marker_dimension=cluster4_dimension;
       }
+      */
 
       cluster_marker.id = i;
 
@@ -768,11 +815,16 @@ int main(int argc, char** argv)
       pub_filtered.publish(cloud_filtered);
       pub_filtered_target.publish(cloud_filtered_target);
       if(use_clustering){
-        pub_cluster0.publish(cloud_cluster0);
-        pub_cluster1.publish(cloud_cluster1);
-        pub_cluster2.publish(cloud_cluster2);
-        pub_cluster3.publish(cloud_cluster3);
-        pub_cluster4.publish(cloud_cluster4);
+        pub_cluster0.publish(cloud_clusters[0]); // hardcode first ten from vector for now
+        pub_cluster1.publish(cloud_clusters[1]);
+        pub_cluster2.publish(cloud_clusters[2]);
+        pub_cluster3.publish(cloud_clusters[3]);
+        pub_cluster4.publish(cloud_clusters[4]);
+       // pub_cluster5.publish(cloud_clusters[5]); 
+       // pub_cluster6.publish(cloud_clusters[6]);
+       // pub_cluster7.publish(cloud_clusters[7]);
+       // pub_cluster8.publish(cloud_clusters[8]);
+       // pub_cluster9.publish(cloud_clusters[9]);
         target_marker_pub.publish(target_marker);
         cluster_markers_pub.publish(cluster_markers);
       }
