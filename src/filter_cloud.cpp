@@ -58,7 +58,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
   std::cout<<"Before filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
   
   double box_length, box_width, box_height;
-  box_length=0.25;
+  box_length=0.25; // default auto_bounds, smart auto bounds not implemented
   box_width=0.25;     
   box_height=0.25;
 
@@ -115,23 +115,20 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
   }
 
   // translate data by location of corner of bounding box
-  /*  METHOD #2: Using a Affine3f
-     This method is easier and less error prone
-   */
-   Eigen::Affine3f transform_2 = Eigen::Affine3f::Identity();
+  Eigen::Affine3f transform_2 = Eigen::Affine3f::Identity();
  
-   // Define a translation of 2.5 meters on the x axis.
-   transform_2.translation() << -box[0], -box[2], -box[4];
+  // Define a translation the x,y,z directions
+  transform_2.translation() << -box[0], -box[2], -box[4];
 
   // Print the transformation
-  printf ("\nMethod #2: using an Affine3f\n");
+  std::cout << "filter_cloud translate output transformation" << std::endl;
   std::cout << transform_2.matrix() << std::endl;
 
-  // Executing the transformation
+  // Execute the transformation
   pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZ> ());
-  // You can either apply transform_1 or transform_2; they are the same
   pcl::transformPointCloud (*cloud, *transformed_cloud, transform_2);
 
+  // save translated output or original output depending on config file
   if (translate_output){
     pcl::copyPointCloud(*transformed_cloud, output);
   }else{
@@ -141,7 +138,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
 }
 
 // this function performs Euclidean cluster extraction to separate parts of the pointcloud 
-PointCloudVec cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &output1, PointCloud &output2, PointCloud &output3, PointCloud &output4){
+PointCloudVec cluster_cloud(PointCloud &input){
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(input,*cloud);
@@ -152,7 +149,7 @@ PointCloudVec cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &
 
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance (0.02); // 2cm
+  ec.setClusterTolerance (0.005); // 2cm
   ec.setMinClusterSize (100);
   ec.setMaxClusterSize (250000);
   ec.setSearchMethod (tree);
@@ -172,18 +169,6 @@ PointCloudVec cluster_cloud(PointCloud &input, PointCloud &output0, PointCloud &
     cloud_cluster->width = cloud_cluster->size();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
-
-    if (j==0){ // save the first five clusters for now, this could be improved with iteration
-      pcl::copyPointCloud(*cloud_cluster,output0);
-    }else if(j==1){
-      pcl::copyPointCloud(*cloud_cluster,output1);
-    }else if(j==2){
-      pcl::copyPointCloud(*cloud_cluster,output2);
-    }else if(j==3){
-      pcl::copyPointCloud(*cloud_cluster,output3);
-    }else if(j==4){
-      pcl::copyPointCloud(*cloud_cluster,output4);
-    }
 
     clusters.push_back(cloud_cluster); // add clusters to vector of clusters
 
@@ -359,7 +344,6 @@ void transform_cloud(PointCloud &input, PointCloud &output, Eigen::Vector3f rota
   transform.rotate (Eigen::AngleAxisf (rotation[2], Eigen::Vector3f::UnitZ()));
 
   // Print the transformation
-  //printf ("\nMethod #2: using an Affine3f\n");
   //std::cout << transform_2.matrix() << std::endl;
 
   // Execute the transformation
@@ -509,10 +493,6 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<std::endl<<std::endl;
 
   // pre-translate the cloud (this is a patch imo, but it is useful. Alternatively use rotate_cloud.cpp)
-  //Eigen::Vector3f pre_rotation, pre_translation; 
-  //pre_rotation << 0.0, M_PI, 0.0; 
-  //pre_translation << 0.0, 0.0, 32.0*0.0254; // the ds435i camera was 32 in. above the table for the initial test images
-  
   if (transform_input){
     transform_cloud(*cloud_input, *cloud_transformed, pre_rotation, pre_translation);
     std::cout<< "pretransform complete" << std::endl;
@@ -521,42 +501,43 @@ int main(int argc, char** argv)
     std::cout<< "pretransform skipped" << std::endl;
    }
 
-  
   // Filter the LiDAR cloud with a bounding box and a voxel (downsampling)
   filter_cloud(*cloud_transformed,*cloud_filtered, filter_box, voxel_leaf_size, translate_output, automatic_bounds); 
   
-  Eigen::Quaternionf target_quaternion, cluster0_quaternion, cluster1_quaternion, cluster2_quaternion, cluster3_quaternion, cluster4_quaternion, marker_quaternion;
-  Eigen::Vector3f target_translation, cluster0_translation, cluster1_translation, cluster2_translation, cluster3_translation, cluster4_translation, marker_translation;
-  Eigen::Vector3f target_dimension, cluster0_dimension, cluster1_dimension, cluster2_dimension, cluster3_dimension, cluster4_dimension, marker_dimension;
+  //Eigen::Quaternionf target_quaternion, cluster0_quaternion, cluster1_quaternion, cluster2_quaternion, cluster3_quaternion, cluster4_quaternion, marker_quaternion;
+  //Eigen::Vector3f target_translation, cluster0_translation, cluster1_translation, cluster2_translation, cluster3_translation, cluster4_translation, marker_translation;
+  //Eigen::Vector3f target_dimension, cluster0_dimension, cluster1_dimension, cluster2_dimension, cluster3_dimension, cluster4_dimension, marker_dimension;
+  
+  Eigen::Quaternionf target_quaternion, marker_quaternion;
+  Eigen::Vector3f target_translation, marker_translation;
+  Eigen::Vector3f target_dimension, marker_dimension;
   
   std::vector < Eigen::Quaternionf > cluster_quaternions; // vector of quaternions, maybe not the best solution... send me a better one, 2D array containing quats? eh...
   std::vector < Eigen::Vector3f > cluster_translations;   // these could be in a 2D array, but then the syntax would not match
   std::vector < Eigen::Vector3f > cluster_dimensions;
 
-  std::vector <float> cluster_scores;
+  std::vector <float> cluster_scores;                     // vector of scores for each cluster
 
-  //double target_volume, cluster0_volume, cluster1_volume, cluster2_volume, cluster3_volume, cluster4_volume;
-  //double target_aspect_ratio, cluster0_aspect_ratio, cluster1_aspect_ratio, cluster2_aspect_ratio, cluster3_aspect_ratio, cluster4_aspect_ratio;
+  //double target_volume;
+  //double target_aspect_ratio;
  
-  PointCloudVec cloud_clusters;
-  int m;
+  PointCloudVec cloud_clusters;  // vector of pointclouds to store the separate clusters (see typedef above)
+  int m; // number of clusters found 
  
   if(use_clustering){
-        // find clusters in filtered cloud (five clusters hardcoded is messy, working on this currently)
-    cloud_clusters=cluster_cloud(*cloud_filtered, *cloud_cluster0, *cloud_cluster1, *cloud_cluster2, *cloud_cluster3, *cloud_cluster4);
-
+    
+    cloud_clusters=cluster_cloud(*cloud_filtered);
     // use the vector of clusters, and bounding box data to find best cluster (min score) 
     // show the number points in each cluster, just to check  
     // and find the minimum bounding box for all clusters in vector clusters
     std::cout<< "cloud_clusters size: "<< cloud_clusters.size() <<std::endl;
     m=cloud_clusters.size();
 
-    double score0, score1, score2, score3, score4, score, score_min;
+    double score, score_min;
 
     for (int i = 0; i < cloud_clusters.size(); i++){
       
       // get the pose and size of the minimum bounding box for each cluster
-      //pcabox_cloud(*cloud_clusters[i], cluster0_quaternion, cluster0_translation, cluster0_dimension);     // works 
       Eigen::Quaternionf cluster_quaternion; // this is a temp variable to get the eigen::quaternion from the function which will be added to quaternions vector
       Eigen::Vector3f cluster_translation, cluster_dimension; // these are also temp vars for the same purpose, there is probably a better way to do this ... 
       pcabox_cloud(*cloud_clusters[i], cluster_quaternion, cluster_translation, cluster_dimension);  // does not work (compiles but throws runtime error), pick up here! 
@@ -566,6 +547,7 @@ int main(int argc, char** argv)
 
       // then get the score for each cluster
       double score; // tmp var to get return from function
+       //score=100;
       score=score_cluster(*cloud_clusters[i], *cloud_filtered_target);
       cluster_scores.push_back(score); // add it to the vector of scores
 
@@ -598,58 +580,6 @@ int main(int argc, char** argv)
 
     std::cout<<"the lowest score is:"<<score_min<<std::endl;
 
-    // find the minimum bounding box for the target cluster
-    //pcabox_cloud(*cloud_filtered_target, target_quaternion, target_translation, target_dimension); 
-
-    // find the minimum bounding box for a five clusters
-    //pcabox_cloud(*cloud_cluster0, cluster0_quaternion, cluster0_translation, cluster0_dimension);
-    //pcabox_cloud(*cloud_cluster1, cluster1_quaternion, cluster1_translation, cluster1_dimension);
-    //pcabox_cloud(*cloud_cluster2, cluster2_quaternion, cluster2_translation, cluster2_dimension);
-    //pcabox_cloud(*cloud_cluster3, cluster3_quaternion, cluster3_translation, cluster3_dimension);
-    //pcabox_cloud(*cloud_cluster4, cluster4_quaternion, cluster4_translation, cluster4_dimension);
-
-    // get score for each cluster
-    //double score0, score1, score2, score3, score4, score, score_min; // moved outside top of loop
-    //score=100;
-    /*
-    score0=score_cluster(*cloud_cluster0, *cloud_filtered_target);
-    score1=score_cluster(*cloud_cluster1, *cloud_filtered_target);
-    score2=score_cluster(*cloud_cluster2, *cloud_filtered_target);
-    score3=score_cluster(*cloud_cluster3, *cloud_filtered_target);
-    score4=score_cluster(*cloud_cluster4, *cloud_filtered_target);
-
-    score=score0; // assume first score is the lowest, always save
-    //if (score0<score){
-     score=score0;
-     pcl::io::savePCDFileASCII (output_path, *cloud_cluster0);
-     std::cout<<"cluster0 written to:"<< output_path <<std::endl;
-    //}
-    
-    if (score1<score){
-      score=score1;
-      pcl::io::savePCDFileASCII (output_path, *cloud_cluster1);
-      std::cout<<"cluster1 cloud written to:"<< output_path <<std::endl;
-    }
-    if (score2<score){
-      score=score2;
-      pcl::io::savePCDFileASCII (output_path, *cloud_cluster2);
-      std::cout<<"cluster2 cloud written to:"<< output_path <<std::endl;
-    }
-    if (score3<score){
-      score=score3;
-      pcl::io::savePCDFileASCII (output_path, *cloud_cluster3);
-      std::cout<<"cluster3 cloud written to:"<< output_path <<std::endl;
-    }
-    if (score4<score){
-      score=score4;
-      pcl::io::savePCDFileASCII (output_path, *cloud_cluster4);
-      std::cout<<"cluster4 cloud written to:"<< output_path <<std::endl;
-    }
-
-
-    std::cout<<"the lowest score is:"<<score<<std::endl;
-    */
-
   } 
 
   // save filtered cloud 
@@ -673,27 +603,10 @@ int main(int argc, char** argv)
   ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
   ros::Publisher pub_filtered_target = node.advertise<PointCloud> ("/cloud_filtered_target", 1) ;
   
- // ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/cloud_cluster0", 1) ;
- // ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/cloud_cluster1", 1) ;
- // ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/cloud_cluster2", 1) ;
- // ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/cloud_cluster3", 1) ;
- // ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/cloud_cluster4", 1) ;
- // ros::Publisher pub_cluster5 = node.advertise<PointCloud> ("/cloud_cluster5", 1) ;
- // ros::Publisher pub_cluster6 = node.advertise<PointCloud> ("/cloud_cluster6", 1) ;
- // ros::Publisher pub_cluster7 = node.advertise<PointCloud> ("/cloud_cluster7", 1) ;
- // ros::Publisher pub_cluster8 = node.advertise<PointCloud> ("/cloud_cluster8", 1) ;
- // ros::Publisher pub_cluster9 = node.advertise<PointCloud> ("/cloud_cluster9", 1) ;
-
-
   cloud_input->header.frame_id = "base_link";
   cloud_transformed->header.frame_id = "base_link";
   cloud_filtered->header.frame_id = "base_link";
   cloud_filtered_target->header.frame_id = "base_link";
-  //cloud_cluster0->header.frame_id = "base_link";
-  //cloud_cluster1->header.frame_id = "base_link";
-  //cloud_cluster2->header.frame_id = "base_link";
-  //cloud_cluster3->header.frame_id = "base_link";
-  //cloud_cluster4->header.frame_id = "base_link";
 
   std::vector<ros::Publisher> pub_clusters;
   
@@ -750,13 +663,8 @@ int main(int argc, char** argv)
     cluster_marker.type = visualization_msgs::Marker::CUBE;
     cluster_marker.action = visualization_msgs::Marker::ADD;
 
-    //cluster_marker.color.a = 0.15; // Don't forget to set the alpha!
-    //cluster_marker.color.r = 255.0/255.0;
-    //cluster_marker.color.g = 0.0/255.0;
-    //cluster_marker.color.b = 255.0/255.0;
-
     cluster_marker.color.a = 0.5; // Don't forget to set the alpha!
-    cluster_marker.color.r = 255.0/255.0;
+    cluster_marker.color.r = 255.0/255.0; // white ish PCA boxes look decent
     cluster_marker.color.g = 255.0/255.0;
     cluster_marker.color.b = 255.0/255.0;
     
@@ -765,30 +673,6 @@ int main(int argc, char** argv)
       marker_quaternion=cluster_quaternions[i];
       marker_translation=cluster_translations[i];
       marker_dimension=cluster_dimensions[i];
-
-      /*
-      if (i==0){  // select which cluster result to copy pcabox objects from
-        marker_quaternion=cluster0_quaternion;
-        marker_translation=cluster0_translation;
-        marker_dimension=cluster0_dimension;
-      }else if(i==1){
-        marker_quaternion=cluster1_quaternion;
-        marker_translation=cluster1_translation;
-        marker_dimension=cluster1_dimension;
-      }else if(i==2){
-        marker_quaternion=cluster2_quaternion;
-        marker_translation=cluster2_translation;
-        marker_dimension=cluster2_dimension;
-      }else if(i==3){
-        marker_quaternion=cluster3_quaternion;
-        marker_translation=cluster3_translation;
-        marker_dimension=cluster3_dimension;
-      }else if(i==4){
-        marker_quaternion=cluster4_quaternion;
-        marker_translation=cluster4_translation;
-        marker_dimension=cluster4_dimension;
-      }
-      */
 
       cluster_marker.id = i;
 
@@ -817,7 +701,6 @@ int main(int argc, char** argv)
   //publish forever
   while(ros::ok())
   {
-
       filter_cloud_state_msg.data=filtered_cloud_saved;
       filter_cloud_state_pub.publish(filter_cloud_state_msg);
 
@@ -825,23 +708,15 @@ int main(int argc, char** argv)
       pub_transformed.publish(cloud_transformed);
       pub_filtered.publish(cloud_filtered);
       pub_filtered_target.publish(cloud_filtered_target);
+
       if(use_clustering){
-       //pub_cluster0.publish(cloud_clusters[0]); // hardcode first ten from vector for now
-       //pub_cluster1.publish(cloud_clusters[1]);
-       //pub_cluster2.publish(cloud_clusters[2]);
-       //pub_cluster3.publish(cloud_clusters[3]);
-       //pub_cluster4.publish(cloud_clusters[4]);
-       // pub_cluster5.publish(cloud_clusters[5]); 
-       // pub_cluster6.publish(cloud_clusters[6]);
-       // pub_cluster7.publish(cloud_clusters[7]);
-       // pub_cluster8.publish(cloud_clusters[8]);
-       // pub_cluster9.publish(cloud_clusters[9]);
         target_marker_pub.publish(target_marker);
         cluster_markers_pub.publish(cluster_markers);
         for (int i=0; i<m; i++){
           pub_clusters[i].publish(cloud_clusters[i]);
         }
       }
+
       ros::spinOnce();
       loop_rate.sleep();
   }
