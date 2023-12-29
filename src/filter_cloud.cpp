@@ -673,16 +673,17 @@ int main(int argc, char** argv)
   ros::Publisher pub_filtered = node.advertise<PointCloud> ("/cloud_filtered", 1) ;
   ros::Publisher pub_filtered_target = node.advertise<PointCloud> ("/cloud_filtered_target", 1) ;
   
-  ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/cloud_cluster0", 1) ;
-  ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/cloud_cluster1", 1) ;
-  ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/cloud_cluster2", 1) ;
-  ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/cloud_cluster3", 1) ;
-  ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/cloud_cluster4", 1) ;
+ // ros::Publisher pub_cluster0 = node.advertise<PointCloud> ("/cloud_cluster0", 1) ;
+ // ros::Publisher pub_cluster1 = node.advertise<PointCloud> ("/cloud_cluster1", 1) ;
+ // ros::Publisher pub_cluster2 = node.advertise<PointCloud> ("/cloud_cluster2", 1) ;
+ // ros::Publisher pub_cluster3 = node.advertise<PointCloud> ("/cloud_cluster3", 1) ;
+ // ros::Publisher pub_cluster4 = node.advertise<PointCloud> ("/cloud_cluster4", 1) ;
  // ros::Publisher pub_cluster5 = node.advertise<PointCloud> ("/cloud_cluster5", 1) ;
  // ros::Publisher pub_cluster6 = node.advertise<PointCloud> ("/cloud_cluster6", 1) ;
  // ros::Publisher pub_cluster7 = node.advertise<PointCloud> ("/cloud_cluster7", 1) ;
  // ros::Publisher pub_cluster8 = node.advertise<PointCloud> ("/cloud_cluster8", 1) ;
  // ros::Publisher pub_cluster9 = node.advertise<PointCloud> ("/cloud_cluster9", 1) ;
+
 
   cloud_input->header.frame_id = "base_link";
   cloud_transformed->header.frame_id = "base_link";
@@ -694,11 +695,21 @@ int main(int argc, char** argv)
   //cloud_cluster3->header.frame_id = "base_link";
   //cloud_cluster4->header.frame_id = "base_link";
 
+  std::vector<ros::Publisher> pub_clusters;
+  
+  std::cout<<"publisher instantiate complete"<<std::endl;
+ 
+
   for (int i=0; i<m; i++){
+
+    std::stringstream cluster_name;
+    cluster_name << "cloud_cluster" << i;
+    pub_clusters.push_back(node.advertise<PointCloud>(cluster_name.str(), 0));
     cloud_clusters[i]->header.frame_id = "base_link";
+  
   }
 
-
+  std::cout<<"publisher advertise complete"<<std::endl;
 
 
   ros::Publisher target_marker_pub = node.advertise<visualization_msgs::Marker>( "target_marker", 0 );
@@ -815,11 +826,11 @@ int main(int argc, char** argv)
       pub_filtered.publish(cloud_filtered);
       pub_filtered_target.publish(cloud_filtered_target);
       if(use_clustering){
-        pub_cluster0.publish(cloud_clusters[0]); // hardcode first ten from vector for now
-        pub_cluster1.publish(cloud_clusters[1]);
-        pub_cluster2.publish(cloud_clusters[2]);
-        pub_cluster3.publish(cloud_clusters[3]);
-        pub_cluster4.publish(cloud_clusters[4]);
+       //pub_cluster0.publish(cloud_clusters[0]); // hardcode first ten from vector for now
+       //pub_cluster1.publish(cloud_clusters[1]);
+       //pub_cluster2.publish(cloud_clusters[2]);
+       //pub_cluster3.publish(cloud_clusters[3]);
+       //pub_cluster4.publish(cloud_clusters[4]);
        // pub_cluster5.publish(cloud_clusters[5]); 
        // pub_cluster6.publish(cloud_clusters[6]);
        // pub_cluster7.publish(cloud_clusters[7]);
@@ -827,6 +838,9 @@ int main(int argc, char** argv)
        // pub_cluster9.publish(cloud_clusters[9]);
         target_marker_pub.publish(target_marker);
         cluster_markers_pub.publish(cluster_markers);
+        for (int i=0; i<m; i++){
+          pub_clusters[i].publish(cloud_clusters[i]);
+        }
       }
       ros::spinOnce();
       loop_rate.sleep();
