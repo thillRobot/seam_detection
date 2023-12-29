@@ -138,7 +138,7 @@ void filter_cloud(PointCloud &input, PointCloud &output, double box[], double le
 }
 
 // this function performs Euclidean cluster extraction to separate parts of the pointcloud 
-PointCloudVec cluster_cloud(PointCloud &input){
+PointCloudVec cluster_cloud(PointCloud &input,  int min_size, int max_size, double tolerance){
 
   PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
   pcl::copyPointCloud(input,*cloud);
@@ -149,9 +149,9 @@ PointCloudVec cluster_cloud(PointCloud &input){
 
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance (0.005); // 2cm
-  ec.setMinClusterSize (100);
-  ec.setMaxClusterSize (250000);
+  ec.setClusterTolerance (tolerance); // cluster parameters set in config file
+  ec.setMinClusterSize (min_size);
+  ec.setMaxClusterSize (max_size);
   ec.setSearchMethod (tree);
   ec.setInputCloud (cloud);
   ec.extract (cluster_indices);
@@ -407,8 +407,15 @@ int main(int argc, char** argv)
   node.getParam("filter_cloud/target_file", target_file);
   target_path=packagepath+'/'+target_file;
 
-  // parameters that contain doubles
-  double voxel_leaf_size;
+  // parameters that contain doubles 
+  double voxel_leaf_size, cluster_tolerance;
+  node.getParam("filter_cloud/voxel_leaf_size", voxel_leaf_size);
+  node.getParam("filter_cloud/cluster_tolerance", cluster_tolerance);
+
+  // parameters that contain ints
+  int cluster_min_size, cluster_max_size;
+  node.getParam("filter_cloud/cluster_min_size", cluster_min_size);
+  node.getParam("filter_cloud/cluster_max_size", cluster_max_size);
 
   // parameters that contain vectors of doubles
   std::vector<double> filter_box_vec;
@@ -429,8 +436,6 @@ int main(int argc, char** argv)
   for(unsigned i=0; i < filter_box_vec.size(); i++)
     filter_box[i]=filter_box_vec[i]; // copy from vector to array 
   
-  node.getParam("filter_cloud/voxel_leaf_size", voxel_leaf_size);
-
   // get additional parameters set in launch file
   bool saving_source=0;
   bool saving_target=0;
@@ -526,7 +531,7 @@ int main(int argc, char** argv)
  
   if(use_clustering){
     
-    cloud_clusters=cluster_cloud(*cloud_filtered);
+    cloud_clusters=cluster_cloud(*cloud_filtered, cluster_min_size, cluster_max_size, cluster_tolerance);
     // use the vector of clusters, and bounding box data to find best cluster (min score) 
     // show the number points in each cluster, just to check  
     // and find the minimum bounding box for all clusters in vector clusters

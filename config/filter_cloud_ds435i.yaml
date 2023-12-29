@@ -15,3 +15,7 @@ filter_cloud/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254
 
 filter_cloud/filter_box: [0.0, 1.0, -1.0, 1.0, 0.012, 0.5] # bounding box limits
 filter_cloud/voxel_leaf_size: 0.001                           # voxel leaf size
+
+filter_cloud/cluster_min_size: 100
+filter_cloud/cluster_max_size: 250000
+filter_cloud/cluster_tolerance: 0.002
