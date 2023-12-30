@@ -76,40 +76,52 @@ int main(int argc, char** argv)
   tree->setInputCloud (cloud_input);
 
   std::vector<pcl::PointIndices> cluster_indices;
+
+  pcl::PointIndices::Ptr indices_in (new pcl::PointIndices ());
+  
+  pcl::PointIndices::Ptr indices_out (new pcl::PointIndices ());
+  
   //pcl::SeededHueSegmentation<pcl::PointXYZRGB> shs;
   pcl::SeededHueSegmentation shs;
-  //shs.setClusterTolerance (tolerance); // cluster parameters set in config file
-  //shs.setSearchMethod (tree);
-  //shs.setInputCloud (cloud_input);
+  float tolerance=0.02;
+  shs.setClusterTolerance (tolerance); // cluster parameters set in config file
+  shs.setSearchMethod (tree);
+  shs.setInputCloud (cloud_input);
   //shs.extract (cluster_indices);
- 
+  shs.segment(*indices_in, *indices_out);
+
   // instatiate a std vector of pcl pointclouds with pcl PointXYZ points (see typedef above)
   //PointCloudVec clusters;
-
+  
   /*
   int j = 0;
-  for (const auto& cluster : cluster_indices) 
+  for (const auto& cluster : indices_out) 
   {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
     for (const auto& idx : cluster.indices) { // add points to cluster cloud
-      cloud_cluster->push_back((*cloud)[idx]);
+      cloud_cluster->push_back((*cloud_input)[idx]);
     } 
     cloud_cluster->width = cloud_cluster->size();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
 
-    clusters.push_back(cloud_cluster); // add clusters to vector of clusters
+    //clusters.push_back(cloud_cluster); // add clusters to vector of clusters
 
-    //std::cout << "PointCloud representing cluster"<<j<<" has "<< cloud_cluster->size() << " data points " << std::endl;
+    std::cout << "PointCloud representing cluster"<<j<<" has "<< cloud_cluster->size() << " data points " << std::endl;
     j++; // increment the cluster counter
   }
-
-  for (int i = 0; i < clusters.size(); i++){
-      std::cout << "Point Cloud " << i << " has " << clusters[i]->size() << " Points " << std::endl;
-  }
-
-  std::cout<< "clusters size: "<< clusters.size() <<std::endl;
   */
+  
+  //for (int i = 0; i < clusters.size(); i++){
+  //    std::cout << "Point Cloud " << i << " has " << clusters[i]->size() << " Points " << std::endl;
+  //}
+
+  //std::cout<< "clusters size: "<< clusters.size() <<std::endl;
+  
 
 
+
+  std::cout<<"===================================================================="<<std::endl;
+  std::cout<<"                        hue_segmentation: complete                  "<<std::endl;
+  std::cout<<"===================================================================="<<std::endl<<std::endl;
 }

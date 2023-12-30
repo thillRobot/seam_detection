@@ -9,31 +9,9 @@ services:
       - ~/.Xauthority:/root/.Xauthority
       - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
 
-  aubo-i10-lidar: 
+  hue-segmentation:   
     build: .
-    command: roslaunch seam_detection aubo_i10_lidar.launch
-    environment:
-      DISPLAY: $DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src    
-
-  register-clouds: 
-    build: .
-    command: roslaunch seam_detection register_clouds.launch
-    environment:
-      DISPLAY: $DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src      
-
-  cad-cloud: 
-    build: .
-    command: roslaunch seam_detection cad_cloud.launch n_samples:=4000 leaf_size:=.00025
-             if:=$(find seam_detection)/ply_images/shape3/shape3_wweld.ply
-             of:=$(find seam_detection)/pcd_images/shape3/shape3_wweld.pcd
+    command: roslaunch seam_detection hue_segmentation.launch
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -41,32 +19,64 @@ services:
       - ~/.Xauthority:/root/.Xauthority
       - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
 
-  cad-cloud-bulk: 
-    build: .
-    command: rosrun seam_detection cad_cloud_bulk -n_samples 4000 -leaf_size .00025 -write_normals 1 -input_dir "ply_images/shape1_shape2/" -output_dir "pcd_images/shape1_shape2/"
-    environment:
-      DISPLAY: $DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src  
+  # aubo-i10-lidar: 
+  #   build: .
+  #   command: roslaunch seam_detection aubo_i10_lidar.launch
+  #   environment:
+  #     DISPLAY: $DISPLAY
+  #   volumes:
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #     - ~/.Xauthority:/root/.Xauthority
+  #     - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src    
 
-  filter-cloud: 
-    build: .
-    command: roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
-    environment:
-      DISPLAY: $DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
+  # register-clouds: 
+  #   build: .
+  #   command: roslaunch seam_detection register_clouds.launch
+  #   environment:
+  #     DISPLAY: $DISPLAY
+  #   volumes:
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #     - ~/.Xauthority:/root/.Xauthority
+  #     - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src      
+
+  # cad-cloud: 
+  #   build: .
+  #   command: roslaunch seam_detection cad_cloud.launch n_samples:=4000 leaf_size:=.00025
+  #            if:=$(find seam_detection)/ply_images/shape3/shape3_wweld.ply
+  #            of:=$(find seam_detection)/pcd_images/shape3/shape3_wweld.pcd
+  #   environment:
+  #     DISPLAY: $DISPLAY
+  #   volumes:
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #     - ~/.Xauthority:/root/.Xauthority
+  #     - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
+
+  # cad-cloud-bulk: 
+  #   build: .
+  #   command: rosrun seam_detection cad_cloud_bulk -n_samples 4000 -leaf_size .00025 -write_normals 1 -input_dir "ply_images/shape1_shape2/" -output_dir "pcd_images/shape1_shape2/"
+  #   environment:
+  #     DISPLAY: $DISPLAY
+  #   volumes:
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #     - ~/.Xauthority:/root/.Xauthority
+  #     - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src  
+
+  #filter-cloud: 
+  #  build: .
+  #  command: roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
+  #  environment:
+  #    DISPLAY: $DISPLAY
+  #  volumes:
+  #    - /tmp/.X11-unix:/tmp/.X11-unix
+  #    - ~/.Xauthority:/root/.Xauthority
+  #    - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
    
-  bash: 
-    build: .
-    command: bash
-    environment:
-      DISPLAY: $DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src 
+  #bash: 
+  #  build: .
+  #  command: bash
+  #  environment:
+  #    DISPLAY: $DISPLAY
+  #  volumes:
+  #    - /tmp/.X11-unix:/tmp/.X11-unix
+  #    - ~/.Xauthority:/root/.Xauthority
+  #    - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src 

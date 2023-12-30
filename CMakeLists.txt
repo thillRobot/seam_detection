@@ -24,13 +24,15 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 find_package(teaserpp REQUIRED)
-find_package(Boost 1.58 REQUIRED)
+#find_package(Boost 1.58 REQUIRED)
 #find_package(Boost 1.81 REQUIRED)
-#find_package(Boost REQUIRED)
+find_package(Boost REQUIRED)
 #find_package(PCL 1.9 REQUIRED COMPONENTS common features kdtree)
-find_package(PCL 1.10 REQUIRED) 
-#find_package(PCL 1.13 REQUIRED)
+#find_package(PCL 1.10 REQUIRED) 
+#find_package(PCL 1.13 REQUIRED) 
 #find_package(PCL REQUIRED COMPONENTS common features kdtree)
+find_package(PCL REQUIRED)
+
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -274,6 +276,18 @@ target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES}
 add_executable(seam_detection_tf src/seam_detection_tf.cpp)
 target_link_libraries(seam_detection_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+# filter_cloud
+add_executable(filter_cloud src/filter_cloud.cpp)
+target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# filter_cloud_tf
+add_executable(filter_cloud_tf src/filter_cloud_tf.cpp)
+target_link_libraries(filter_cloud_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# hue_segmentation
+add_executable(hue_segmentation src/hue_segmentation.cpp)
+target_link_libraries(hue_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 # cad_cloud
 add_executable(cad_cloud src/cad_cloud.cpp)
 target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
@@ -282,15 +296,6 @@ target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
 target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# filter_cloud
-add_executable(filter_cloud src/filter_cloud.cpp)
-target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(filter_cloud_tf src/filter_cloud_tf.cpp)
-target_link_libraries(filter_cloud_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(hue_segmentation src/hue_segmentation.cpp)
-target_link_libraries(hue_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 ###########################################################
 ## Aubo Robot system interface nodes                     ## 
