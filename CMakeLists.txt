@@ -268,9 +268,11 @@ target_link_libraries(register_target_source
 add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
 target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-#####################################################
-## Supporting nodes for the SEAM_DETECTION package ##
-#####################################################
+######################################################
+## Supporting nodes for the SEAM_DETECTION package  ##
+## some may be commented out to save mem on compile ##
+## uncomment to enable compile                      ##
+######################################################
 
 # seam_detection_tf
 add_executable(seam_detection_tf src/seam_detection_tf.cpp)
@@ -288,13 +290,17 @@ target_link_libraries(filter_cloud_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(hue_segmentation src/hue_segmentation.cpp)
 target_link_libraries(hue_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+# crg_segmentation - color based region growing segmentation
+add_executable(crg_segmentation src/crg_segmentation.cpp)
+target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 # cad_cloud
-add_executable(cad_cloud src/cad_cloud.cpp)
-target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(cad_cloud src/cad_cloud.cpp)
+# target_link_libraries(cad_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # cad_cloud_bulk
-add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
-target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
+# target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 
 ###########################################################

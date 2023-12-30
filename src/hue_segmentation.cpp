@@ -93,10 +93,15 @@ int main(int argc, char** argv)
   // instatiate a std vector of pcl pointclouds with pcl PointXYZ points (see typedef above)
   //PointCloudVec clusters;
   
+  std::cout<<"indices_in size: "<<indices_in->indices.size()<<std::endl;
+  std::cout<<"indices_out size: "<<indices_out->indices.size()<<std::endl;
+
+
   /*
   int j = 0;
   for (const auto& cluster : indices_out) 
   {
+    
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZRGB>);
     for (const auto& idx : cluster.indices) { // add points to cluster cloud
       cloud_cluster->push_back((*cloud_input)[idx]);
@@ -108,6 +113,7 @@ int main(int argc, char** argv)
     //clusters.push_back(cloud_cluster); // add clusters to vector of clusters
 
     std::cout << "PointCloud representing cluster"<<j<<" has "<< cloud_cluster->size() << " data points " << std::endl;
+    
     j++; // increment the cluster counter
   }
   */
