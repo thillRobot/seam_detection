@@ -24,9 +24,13 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 find_package(teaserpp REQUIRED)
-find_package(Boost 1.58 REQUIRED)
+#find_package(Boost 1.58 REQUIRED)
+#find_package(Boost 1.81 REQUIRED)
+find_package(Boost REQUIRED)
 #find_package(PCL 1.9 REQUIRED COMPONENTS common features kdtree)
-find_package(PCL 1.10 REQUIRED) # COMPONENTS common features kdtree)
+#find_package(PCL 1.10 REQUIRED) # COMPONENTS common features kdtree)
+#find_package(PCL 1.13 REQUIRED) # COMPONENTS common features kdtree)
+find_package(PCL REQUIRED COMPONENTS common features kdtree)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -285,6 +289,8 @@ target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(filter_cloud_tf src/filter_cloud_tf.cpp)
 target_link_libraries(filter_cloud_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+add_executable(hue_segmentation src/hue_segmentation.cpp)
+target_link_libraries(hue_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 ###########################################################
 ## Aubo Robot system interface nodes                     ## 

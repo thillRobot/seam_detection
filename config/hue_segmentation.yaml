@@ -1,0 +1,8 @@
+---
+hue_segmentation/input_file: "pcd_images/ds435i_table_parts/table_part1_part2_02.pcd"
+
+hue_segmentation/pre_rotation:    [0.0, 0.0, 0.0]
+hue_segmentation/pre_translation: [0.0, 0.0, 0.0]
+
+hue_segmentation/filter_box: [-1.0, 1.0, -1.0, 0.0, 0.005, 0.5] # bounding box limits
+hue_segmentation/voxel_leaf_size: 0.001                           # voxel leaf size

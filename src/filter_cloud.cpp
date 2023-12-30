@@ -359,7 +359,7 @@ void transform_cloud(PointCloud &input, PointCloud &output, Eigen::Vector3f rota
 int main(int argc, char** argv)
 {
 
-  ros::init(argc,argv,"seam_detection");
+  ros::init(argc,argv,"filter_cloud");
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
   
