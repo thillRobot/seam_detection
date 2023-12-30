@@ -76,13 +76,21 @@ int main(int argc, char** argv)
   tree->setInputCloud (cloud_input);
 
   std::vector<pcl::PointIndices> cluster_indices;
+
+  pcl::PointIndices::Ptr indices_in (new pcl::PointIndices ());
+  
+  pcl::PointIndices::Ptr indices_out (new pcl::PointIndices ());
+  
   //pcl::SeededHueSegmentation<pcl::PointXYZRGB> shs;
   pcl::SeededHueSegmentation shs;
-  //shs.setClusterTolerance (tolerance); // cluster parameters set in config file
-  //shs.setSearchMethod (tree);
-  //shs.setInputCloud (cloud_input);
+  float tolerance=0.02;
+  shs.setClusterTolerance (tolerance); // cluster parameters set in config file
+  shs.setSearchMethod (tree);
+  shs.setInputCloud (cloud_input);
   //shs.extract (cluster_indices);
- 
+  shs.segment(*indices_in, *indices_out);
+
+
   // instatiate a std vector of pcl pointclouds with pcl PointXYZ points (see typedef above)
   //PointCloudVec clusters;
 
@@ -112,4 +120,8 @@ int main(int argc, char** argv)
   */
 
 
+
+  std::cout<<"===================================================================="<<std::endl;
+  std::cout<<"                        hue_segmentation: complete                  "<<std::endl;
+  std::cout<<"===================================================================="<<std::endl<<std::endl;
 }
