@@ -349,7 +349,7 @@ int main(int argc, char** argv)
 
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                     filter_source v1.6                              "<<std::endl;
+  std::cout<<"                     filter_source v1.8                              "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 

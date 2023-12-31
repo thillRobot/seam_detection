@@ -42,7 +42,7 @@ int main(int argc, char** argv)
   filter_cloud_state_msg.data=filtered_cloud_saved;
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                     rotate_cloud v1.x                              "<<std::endl;
+  std::cout<<"                     rotate_cloud v1.8                              "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 

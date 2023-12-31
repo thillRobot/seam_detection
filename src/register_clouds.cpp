@@ -520,7 +520,7 @@ void analyze_results(tf::Transform &tf_in,double e_results[])
 int main(int argc, char** argv)
 {
 
-  ros::init(argc,argv,"registration_examples");
+  ros::init(argc,argv,"register_clouds");
   ros::NodeHandle node;
   ros::Rate loop_rate(2);
 
@@ -528,7 +528,7 @@ int main(int argc, char** argv)
   ros::Subscriber filter_cloud_state_sub = node.subscribe("/filter_cloud/filter_cloud_state", 1000, filter_cloud_stateCallback);
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    register_clouds v1.7                            "<<endl;
+  std::cout<<"                    register_clouds v1.8                            "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 

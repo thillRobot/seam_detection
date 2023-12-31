@@ -108,7 +108,7 @@ int main(int argc, char** argv)
   //get_cloud_state_msg.data=cloud_saved;
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                     get_source v1.x                                 "<<std::endl;
+  std::cout<<"                     get_source v1.8                                 "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 

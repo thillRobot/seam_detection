@@ -288,7 +288,7 @@ int main(int argc, char** argv)
   std::stringstream gcode; 
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    register_target_source v1.7                     "<<endl;
+  std::cout<<"                    register_target_source v1.8                     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 

@@ -65,7 +65,7 @@ int main(int argc, char** argv)
   std_msgs::String gcode_string_msg;
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                     start_source_scan v1.x                                 "<<std::endl;
+  std::cout<<"                     start_source_scan v1.8                                 "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
 
   // find the path to the this package (seam_detection)
