@@ -234,6 +234,14 @@ add_definitions(${PCL_DEFINITIONS})
 ## primary nodes for the SEAM_DETECTION package
 ###############################################
 
+# seam-detection (class approach)
+add_executable(seam-detection src/seam-detection.cpp)
+target_link_libraries(seam-detection
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen  
+)
+
 # seam_detection
 add_executable(seam_detection src/seam_detection.cpp)
 target_link_libraries(seam_detection

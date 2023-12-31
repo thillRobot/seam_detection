@@ -69,6 +69,40 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 
 
+class SeamDetection {
+
+  public:
+
+    // default constructor
+    void SeamDetection(){
+    
+      std::cout<<"Seam Detection v1.9"<<std::endl;
+    
+    }
+
+    // function to copy PointCloud with XYZRGB points
+    void CopyCloud(PointCloud &input, PointCloud &output){
+
+      std::cout<<"the point cloud input has "<< input.size()<< " points"<<std::endl;
+      for (int i=0; i<input.size(); i++) { // add points to cluster cloud
+        output.push_back(input[i]);  
+      } 
+      std::cout<<"the point cloud output has "<< output.size()<< " points"<<std::endl;
+    
+    }
+
+
+
+  private:
+
+    const int ijk;
+
+
+
+}
+
+
+
 int main(int argc, char** argv)
 {
 
@@ -77,7 +111,7 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(2);
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     Seam Detection (Class) v1.8                    "<<endl;
+  std::cout<<"                     Seam Detection (Class) v1.9                    "<<endl;
   std::cout<<"===================================================================="<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
