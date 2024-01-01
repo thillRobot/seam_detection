@@ -64,9 +64,9 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <tf2_ros/transform_listener.h>
 //#include <tf/TransformStamped.h>
 
-typedef pcl::PointXYZ PointT;
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
-typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
+typedef pcl::PointXYZRGB PointT;
+typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
+typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
 
 
 class SeamDetection {
@@ -74,11 +74,52 @@ class SeamDetection {
   public:
 
     // default constructor
-    void SeamDetection(){
+    SeamDetection(){
     
       std::cout<<"Seam Detection v1.9"<<std::endl;
     
+      cloud_input = new PointCloud;
+
     }
+
+    // attributes
+    PointCloud *cloud_input;
+
+
+    int LoadCloud(void){
+
+      std::cout<<"===================================================================="<<std::endl;
+      std::cout<<"       SeamDetection::LoadCloud : loading configuration file       "<<std::endl;
+      std::cout<<"===================================================================="<<std::endl<<std::endl;
+
+      // there is only one cmd line arg and it is the name of the config file
+      // this is not true, the params are loaded in the launch file
+      // read the config file(yaml) feild to pick the data files and set parameters
+
+      // find the path to the this package (seam_detection)
+      std::string packagepath = ros::package::getPath("seam_detection");
+      std::string filepath = "pcd_images/ds435i_table_parts/table_part1_part2_02.pcd";
+      std::string input_path;
+
+      input_path=packagepath+'/'+filepath;
+
+      // instantiate cloud pointer
+      //PointCloud::Ptr cloud_input (new PointCloud); 
+      PointCloud::Ptr cloud (new PointCloud);      // working copy for this routine
+
+      std::cout << "Loading cloud input file:" << input_path << std::endl;
+      if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (input_path, *cloud_input) == -1)
+      {
+          std::cout<<"Couldn't read cloud input file:"<<input_path;
+          return (-1);
+      }
+      std::cout << "Loaded cloud input file: "<< input_path <<std::endl<<
+        cloud_input->width * cloud_input->height << " Data points from "<< input_path << std::endl;
+ 
+      return 0;  
+
+    }
+
 
     // function to copy PointCloud with XYZRGB points
     void CopyCloud(PointCloud &input, PointCloud &output){
@@ -92,14 +133,11 @@ class SeamDetection {
     }
 
 
-
   private:
 
-    const int ijk;
+    const int ijk=0;
 
-
-
-}
+};
 
 
 
@@ -111,18 +149,24 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(2);
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     Seam Detection (Class) v1.9                    "<<endl;
+  std::cout<<"                     SeamDetection v1.9                    "<<endl;
   std::cout<<"===================================================================="<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
-
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                      Loading Configuration File                    "<<endl;
-  std::cout<<"===================================================================="<<endl<<endl;
 
   // find the path to the this package (seam_detection)
   std::string packagepath = ros::package::getPath("seam_detection");
 
+  SeamDetection sd;
  
+  sd.LoadCloud();
+
+
+  PointCloud::Ptr cloud_a (new PointCloud);
+  PointCloud::Ptr cloud_b (new PointCloud);
+  
+  sd.CopyCloud(*cloud_a, *cloud_b);
+
+
   return 0;
 }
 

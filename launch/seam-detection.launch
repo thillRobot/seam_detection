@@ -2,7 +2,7 @@
   <!-- This is the main launch file for the SEAM_DETECTION node and package -->
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
-  <arg name="config" default="seam_detection" />
+  <arg name="config" default="seam-detection" />
 
   <!-- read value of arg -->
   <param name="param" value="$(arg config)"/> 
@@ -16,19 +16,19 @@
   />
 
   <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
-  
+ 
   <!-- this node contains the primary processing of lidar data for seam detection -->
   <node
     pkg="seam_detection"
     name="seam_detection"
-    type="seam_detection"
+    type="seam-detection"
     output="screen"
   />
 
   <node name="rviz"
     pkg="rviz"
     type="rviz"
-    args="-d $(find seam_detection)/rviz/seam_detection.rviz">
+    args="-d $(find seam_detection)/rviz/seam-detection.rviz">
   </node>
 
 </launch>

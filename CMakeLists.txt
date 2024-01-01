@@ -243,34 +243,34 @@ target_link_libraries(seam-detection
 )
 
 # seam_detection
-add_executable(seam_detection src/seam_detection.cpp)
-target_link_libraries(seam_detection
-  ${catkin_LIBRARIES} 
-  ${PCL_LIBRARIES} 
-  Eigen3::Eigen 
-  teaserpp::teaser_registration 
-  teaserpp::teaser_io
-  teaserpp::teaser_features
-)
+#add_executable(seam_detection src/seam_detection.cpp)
+#target_link_libraries(seam_detection
+#  ${catkin_LIBRARIES} 
+#  ${PCL_LIBRARIES} 
+#  Eigen3::Eigen 
+#  teaserpp::teaser_registration 
+#  teaserpp::teaser_io
+#  teaserpp::teaser_features
+#)
 
 # register_clouds - Registration Algorithm Testing Node(s) ##
-add_executable(register_clouds src/register_clouds.cpp)
-target_link_libraries(register_clouds 
-  ${catkin_LIBRARIES} 
-  ${PCL_LIBRARIES} 
-  Eigen3::Eigen 
-  teaserpp::teaser_registration 
-  teaserpp::teaser_io
-  teaserpp::teaser_features
-)
+#add_executable(register_clouds src/register_clouds.cpp)
+#target_link_libraries(register_clouds 
+#  ${catkin_LIBRARIES} 
+#  ${PCL_LIBRARIES} 
+#  Eigen3::Eigen 
+#  teaserpp::teaser_registration 
+#  teaserpp::teaser_io
+#  teaserpp::teaser_features
+#)
 
 # register_target_source - Registration Algorithm Testing Node(s) ##
-add_executable(register_target_source src/register_target_source.cpp)
-target_link_libraries(register_target_source
-  ${catkin_LIBRARIES} 
-  ${PCL_LIBRARIES} 
-  Eigen3::Eigen 
-)
+#add_executable(register_target_source src/register_target_source.cpp)
+#target_link_libraries(register_target_source
+#  ${catkin_LIBRARIES} 
+#  ${PCL_LIBRARIES} 
+#  Eigen3::Eigen 
+#)
 
 # seam_detection_RANSAC # this node needs updating
 add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
