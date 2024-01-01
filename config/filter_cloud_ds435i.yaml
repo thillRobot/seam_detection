@@ -6,7 +6,6 @@ save_output: true
 translate_output: false
 automatic_bounds: false
 use_clustering: true
-
 new_scan: false
 transform_input: true
 

@@ -85,6 +85,8 @@ class SeamDetection {
     // attributes
     PointCloud *cloud_input;
 
+    bool auto_bounds=0;
+
 
     int LoadCloud(void){
 
@@ -133,6 +135,65 @@ class SeamDetection {
     }
 
 
+    // function to apply bounding box to PointCloud with XYZRGB points
+    void BoundCloud(PointCloud &input, PointCloud &output, double box[]){
+
+      PointCloud::Ptr cloud (new PointCloud);      // working copy for this routine
+      for (int i=0; i<input.size(); i++) { // add points to cluster cloud
+        cloud->push_back(input[i]);  
+      } 
+
+      std::cout<<"Beginning BoundCloud() function" << std::endl;
+      //std::cout<<"Before bounding there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
+      std::cout<<"Before bounding there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
+      
+      double box_length, box_width, box_height;
+      box_length=0.25; // default auto_bounds, smart auto bounds not implemented
+      box_width=0.25;     
+      box_height=0.25;
+
+      if (auto_bounds){
+     
+        Eigen::Vector4f centroid;
+        Eigen::Vector4f min;
+        Eigen::Vector4f max;  
+
+        pcl::compute3DCentroid(*cloud, centroid);
+        std::cout<<"The centroid of the points was found at: ["<<centroid[0]<<","<<centroid[1]<<","<<centroid[2]<<"]"<<std::endl; 
+
+        box[0]=centroid[0]-box_length/2;  // xmin
+        box[1]=centroid[0]+box_length/2;  // xmax
+        box[2]=centroid[1]-box_width/2;   // ymin
+        box[3]=centroid[1]+box_width/2;   // ymax
+        box[4]=centroid[2]-box_height/2;  // zmin
+        box[5]=centroid[2]+box_height/2;  // zmax
+
+        std::cout<<"Using automatic bounding box limits: ["<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"]"<< std::endl;
+      }else{
+        std::cout<<"Using bounding box limits: ["<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"] from config file"<< std::endl;
+      }
+
+      //Apply Bounding Box Filter
+      pcl::PassThrough<PointT> pass; //cloud_input
+      pass.setInputCloud(cloud);
+
+      pass.setFilterFieldName ("x");
+      pass.setFilterLimits(box[0],box[1]);
+      pass.filter (*cloud);
+
+      pass.setFilterFieldName ("y");
+      pass.setFilterLimits(box[2],box[3]);
+      pass.filter (*cloud);
+
+      pass.setFilterFieldName ("z");
+      pass.setFilterLimits(box[4],box[5]);
+      pass.filter (*cloud);
+        
+      std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
+
+    }
+
+
   private:
 
     const int ijk=0;
@@ -164,7 +225,13 @@ int main(int argc, char** argv)
   PointCloud::Ptr cloud_a (new PointCloud);
   PointCloud::Ptr cloud_b (new PointCloud);
   
-  sd.CopyCloud(*cloud_a, *cloud_b);
+  sd.CopyCloud(*sd.cloud_input, *cloud_a);
+
+
+  double bounds[]={-2.0, 2.0, -2.0, 2.0, -2.0, 2.0};
+
+
+  sd.BoundCloud(*cloud_a, *cloud_b, bounds);
 
 
   return 0;
