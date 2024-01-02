@@ -593,6 +593,8 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
 
 #### Things To Do (priority top to bottom):
 
+- [~] use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated! - IN PROGRESS, see devel
+
 - [x] design and test process with multi computer cross version setup on robot with LiDAR and RGBD camera
     -> pointcloud and tf published by arm computer, vision computer subscribes
     -> registration result tf published by vision computer, arm computer subscribes   
@@ -651,8 +653,6 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
 - [ ] implement `overlap_predator` registration on experimental data for performance comparision, this might solve orientation issues
 
 - [ ] add separate code for cloud_segmentation to complete separation of steps 
-
-- [ ] use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated!
 
 - [ ] re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
 
