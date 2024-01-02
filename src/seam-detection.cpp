@@ -73,8 +73,10 @@ class SeamDetection {
 
   public:
 
+    // functions 
+    
     // default constructor
-    SeamDetection(){
+    SeamDetection():rate(5) {
 
       std::cout<<"===================================================================="<<std::endl;
       std::cout<<"                     SeamDetection v1.9                             "<<std::endl;
@@ -86,26 +88,9 @@ class SeamDetection {
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
-      
-    }
-
   
-    // public attributes
-    PointCloud *cloud_input;
-
-    bool auto_bounds=0;
-    bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
-    std::string package_path, input_path, output_path, target_path, input_file, output_file, target_file; 
-   
-    double bounding_box[6];
-    Eigen::Vector3f pre_rotation, pre_translation;
-
-
-    ros::NodeHandle node;
-    //ros::Rate loop_rate(2);
-
-
-    // public functions
+    }
+  
 
     // function to load the config file(yaml) to pick the data files and set parameters 
     int LoadConfig(void){
@@ -162,7 +147,6 @@ class SeamDetection {
         bounding_box[i]=bounding_box_vec[i]; // copy from vector to array 
     
       return 0;
-
     }
     
     
@@ -190,7 +174,6 @@ class SeamDetection {
         cloud_input->width * cloud_input->height << " Data points from "<< input_path << std::endl;
  
       return 0;  
-
     }
 
 
@@ -297,35 +280,43 @@ class SeamDetection {
       std::cout<<"       SeamDetection::ShowClouds - preparing visualization          "<<std::endl;
       std::cout<<"===================================================================="<<std::endl<<std::endl;
 
-      ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1) ;
+      ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1, true);
 
       cloud_input->header.frame_id = "base_link";
 
-      //publish forever
-      //while(ros::ok())
-      //{
+      pub_input.publish(*cloud_input);
+      ros::spin();
 
-      //pub_input.publish(cloud_input);
-
-      ros::spinOnce();
-      //    loop_rate.sleep();
-      //}
     }
+
+
+    // attributes
+    PointCloud *cloud_input;
+
+    bool auto_bounds=0;
+    bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
+    std::string package_path, input_path, output_path, target_path, input_file, output_file, target_file; 
+   
+    double bounding_box[6];
+    Eigen::Vector3f pre_rotation, pre_translation;
+
+    ros::NodeHandle node; // !!! many examples have node in 'private'
+    ros::Rate rate;       // node and rate might be useful in 'public' ...
 
 
   private:
 
+    // attributes
     const int ijk=0;
 
 };
-
 
 
 int main(int argc, char** argv)
 {
 
   ros::init(argc,argv,"seam_detection");
-  //ros::NodeHandle node;
+  //ros::NodeHandle node;  // moved to 
   //ros::Rate loop_rate(2);
 
   SeamDetection sd;
@@ -334,18 +325,25 @@ int main(int argc, char** argv)
 
   sd.LoadCloud(sd.input_file);
 
-  PointCloud::Ptr cloud_a (new PointCloud);
-  PointCloud::Ptr cloud_b (new PointCloud);
-  PointCloud::Ptr cloud_c (new PointCloud);
+  PointCloud::Ptr cloud_copy (new PointCloud);
+
+  sd.CopyCloud(*sd.cloud_input, *cloud_copy);
+
+  sd.TransformCloud(*cloud_copy, *cloud_copy, sd.pre_rotation, sd.pre_translation);
+
+  sd.BoundCloud(*cloud_copy, *cloud_copy, sd.bounding_box);
+
+  sd.ShowClouds();
+
+
+  // hang out forever
+  while(ros::ok())
+  {
+
+    ros::spinOnce();
+    sd.rate.sleep();
   
-  sd.CopyCloud(*sd.cloud_input, *cloud_a);
-
-  sd.TransformCloud(*cloud_a, *cloud_b, sd.pre_rotation, sd.pre_translation);
-
-  sd.BoundCloud(*cloud_b, *cloud_c, sd.bounding_box);
-
-
+  }
+  
   return 0;
 }
-
-
