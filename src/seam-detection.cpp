@@ -76,15 +76,17 @@ class SeamDetection {
     // functions 
     
     // default constructor
-    SeamDetection():rate(5) {
-
+    SeamDetection():rate(5) { // ROS::Rate rate(5) is in intializer list
+      
       std::cout<<"===================================================================="<<std::endl;
       std::cout<<"                     SeamDetection v1.9                             "<<std::endl;
       std::cout<<"===================================================================="<<std::endl;
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
-      // allocate memory for input pointcloud
+      // allocate memory for pointclouds
       cloud_input = new PointCloud;
+      cloud_transformed = new PointCloud;
+      cloud_bounded = new PointCloud;
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -244,6 +246,8 @@ class SeamDetection {
       pass.filter (*cloud);
         
       std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
+      // copy to the output cloud
+      pcl::copyPointCloud(*cloud, output);
 
     }
 
@@ -273,25 +277,49 @@ class SeamDetection {
      
     }
 
-    void ShowClouds(void)
+    // function to publish a single cloud (not working for multiple calls, blocking error)
+    void PublishCloud(PointCloud &cloud, std::string topic)
     {
 
       std::cout<<"===================================================================="<<std::endl;
-      std::cout<<"       SeamDetection::ShowClouds - preparing visualization          "<<std::endl;
+      std::cout<<"       SeamDetection::ShowCloud - preparing visualization           "<<std::endl;
       std::cout<<"===================================================================="<<std::endl<<std::endl;
 
-      ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1, true);
+      ros::Publisher pub = node.advertise<PointCloud> (topic, 1, true);
 
+      //cloud_input->header.frame_id = "base_link";
+      cloud.header.frame_id = "base_link";
+
+      pub.publish(cloud);
+      ros::spin();
+
+    }
+
+    // function to publish the input and other clouds to ROS for RVIZ 
+    void PublishClouds()
+    {
+
+      std::cout<<"===================================================================="<<std::endl;
+      std::cout<<"       SeamDetection::ShowClouds - preparing visualization           "<<std::endl;
+      std::cout<<"===================================================================="<<std::endl<<std::endl;
+
+
+      //cloud_input->header.frame_id = "base_link";
       cloud_input->header.frame_id = "base_link";
+      cloud_transformed->header.frame_id = "base_link";
+      cloud_bounded->header.frame_id = "base_link";
 
       pub_input.publish(*cloud_input);
+      pub_transformed.publish(*cloud_transformed);
+      pub_bounded.publish(*cloud_bounded);
+      
       ros::spin();
 
     }
 
 
     // attributes
-    PointCloud *cloud_input;
+    PointCloud *cloud_input, *cloud_transformed, *cloud_bounded;
 
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
@@ -309,16 +337,18 @@ class SeamDetection {
     // attributes
     const int ijk=0;
 
+    ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1, true);
+    ros::Publisher pub_transformed = node.advertise<PointCloud> ("cloud_transformed", 1, true);
+    ros::Publisher pub_bounded = node.advertise<PointCloud> ("cloud_bounded", 1, true);
+
 };
 
 
 int main(int argc, char** argv)
 {
-
+  // initialize ROS node
   ros::init(argc,argv,"seam_detection");
-  //ros::NodeHandle node;  // moved to 
-  //ros::Rate loop_rate(2);
-
+  
   SeamDetection sd;
  
   sd.LoadConfig();
@@ -326,24 +356,31 @@ int main(int argc, char** argv)
   sd.LoadCloud(sd.input_file);
 
   PointCloud::Ptr cloud_copy (new PointCloud);
+  //PointCloud::Ptr cloud_transformed (new PointCloud);
+  //PointCloud::Ptr cloud_bounded (new PointCloud);
 
   sd.CopyCloud(*sd.cloud_input, *cloud_copy);
 
-  sd.TransformCloud(*cloud_copy, *cloud_copy, sd.pre_rotation, sd.pre_translation);
-
-  sd.BoundCloud(*cloud_copy, *cloud_copy, sd.bounding_box);
-
-  sd.ShowClouds();
-
-
-  // hang out forever
-  while(ros::ok())
-  {
-
-    ros::spinOnce();
-    sd.rate.sleep();
+  sd.TransformCloud(*cloud_copy, *sd.cloud_transformed, sd.pre_rotation, sd.pre_translation);
   
-  }
+  sd.BoundCloud(*sd.cloud_transformed, *sd.cloud_bounded, sd.bounding_box);
+
+  //sd.PublishCloud(*sd.cloud_input, "/cloud_input");
+  //sd.PublishCloud(*cloud_transformed, "/cloud_transformed");
+  //sd.PublishCloud(*cloud_bounded, "/cloud_bounded");
+
+  sd.PublishClouds();
+
+  // loop forever
+  //while(ros::ok())
+  //{
+
+    //ros::spinOnce();
+    //sd.rate.sleep();
   
+  //}
+  
+  ros::spin();
+
   return 0;
 }
