@@ -593,7 +593,7 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
 
 #### Things To Do (priority top to bottom):
 
-- [~] use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated! - IN PROGRESS, see devel
+- [ ] IN PROGRESS - use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated! - see devel
 
 - [x] design and test process with multi computer cross version setup on robot with LiDAR and RGBD camera
     -> pointcloud and tf published by arm computer, vision computer subscribes
