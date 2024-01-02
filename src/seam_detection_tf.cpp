@@ -20,9 +20,9 @@
 int main(int argc, char** argv){
 
 
-    std::cout<<"*************************************************************"<<std::endl;
-    std::cout<<"***************** Seam Detection TF v1.8 ********************"<<std::endl;
-    std::cout<<"*************************************************************"<<std::endl;
+    std::cout<<"|--------------------------------------------|"<<std::endl;
+    std::cout<<"|---------- Seam Detection TF v1.9 ----------|"<<std::endl;
+    std::cout<<"|--------------------------------------------|"<<std::endl;
 
     ros::init(argc, argv, "seam_detection_tf");
     ros::NodeHandle n;

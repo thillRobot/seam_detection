@@ -1,5 +1,4 @@
 /*
-
 Seam Detection
 This source contains the cpp class for this project
 Created on 12/31/2023, Next year the project will be more organized!
