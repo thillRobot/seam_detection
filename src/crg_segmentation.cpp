@@ -206,7 +206,7 @@ int main(int argc, char** argv)
   reg.setDistanceThreshold (10);
   reg.setPointColorThreshold (6);
   reg.setRegionColorThreshold (5);
-  reg.setMinClusterSize (600);
+  reg.setMinClusterSize (200);
 
   std::vector <pcl::PointIndices> clusters;
   reg.extract (clusters);
