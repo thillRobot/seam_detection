@@ -75,35 +75,110 @@ class SeamDetection {
 
     // default constructor
     SeamDetection(){
-    
-      std::cout<<"Seam Detection v1.9"<<std::endl;
-    
+
+      std::cout<<"===================================================================="<<std::endl;
+      std::cout<<"                     SeamDetection v1.9                             "<<std::endl;
+      std::cout<<"===================================================================="<<std::endl;
+      std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
+
+      // allocate memory for input pointcloud
       cloud_input = new PointCloud;
 
+      // find the path to the this package (seam_detection)
+      package_path = ros::package::getPath("seam_detection");
+      
     }
 
-    // attributes
+  
+    // public attributes
     PointCloud *cloud_input;
 
     bool auto_bounds=0;
+    bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
+    std::string package_path, input_path, output_path, target_path, input_file, output_file, target_file; 
 
 
-    int LoadCloud(void){
+    ros::NodeHandle node;
+    //ros::Rate loop_rate(2);
+
+
+    // public functions
+
+    // function to load the config file(yaml) to pick the data files and set parameters 
+    int LoadConfig(void){
 
       std::cout<<"===================================================================="<<std::endl;
-      std::cout<<"       SeamDetection::LoadCloud : loading configuration file       "<<std::endl;
+      std::cout<<"         SeamDetection::LoadConfig - loading configuration file     "<<std::endl;
       std::cout<<"===================================================================="<<std::endl<<std::endl;
 
-      // there is only one cmd line arg and it is the name of the config file
-      // this is not true, the params are loaded in the launch file
-      // read the config file(yaml) feild to pick the data files and set parameters
+      // get boolen parameters 
+      node.getParam("save_output", save_output);
+      node.getParam("translate_output", translate_output);
+      node.getParam("automatic_bounds", automatic_bounds);
+      node.getParam("use_clustering", use_clustering);
+      node.getParam("new_scan", new_scan);
+      node.getParam("transform_input", transform_input);
+
+      // get parameters that contain strings  
+      node.getParam("seam_detection/input_file", input_file);
+      node.getParam("seam_detection/output_file", output_file);
+      node.getParam("seam_detection/target_file", target_file);
+      
+      // generate absolute file paths to inputs (does this belong here?)
+      input_path=package_path+'/'+input_file;
+      output_path=package_path+'/'+output_file;
+      target_path=package_path+'/'+target_file;
+
+      // get parameters that contain doubles 
+      double voxel_leaf_size, cluster_tolerance;
+      node.getParam("seam_detection/voxel_leaf_size", voxel_leaf_size);
+      node.getParam("seam_detection/cluster_tolerance", cluster_tolerance);
+
+      // get parameters that contain ints
+      int cluster_min_size, cluster_max_size;
+      node.getParam("seam_detection/cluster_min_size", cluster_min_size);
+      node.getParam("seam_detection/cluster_max_size", cluster_max_size);
+
+      // parameters that contain vectors of doubles
+      std::vector<double> filter_box_vec;
+      double filter_box[6];
+
+      std::vector<double> pre_rotation_vec, pre_translation_vec;
+      Eigen::Vector3f pre_rotation, pre_translation;
+
+      node.getParam("seam_detection/pre_rotation",  pre_rotation_vec);
+      node.getParam("seam_detection/pre_translation",  pre_translation_vec);
+      
+      for(unsigned i=0; i < pre_rotation_vec.size(); i++){
+        pre_rotation[i]=pre_rotation_vec[i]; // copy from std vector to eigen vector3f 
+        pre_translation[i]=pre_translation_vec[i]; 
+      }
+
+      node.getParam("seam_detection/filter_box",  filter_box_vec);
+      for(unsigned i=0; i < filter_box_vec.size(); i++)
+        filter_box[i]=filter_box_vec[i]; // copy from vector to array 
+    
+      return 0;
+
+    }
+    
+    
+    // function to load pointcloud from PCD file as defined in config
+    int LoadCloud(std::string input_file){
+
+      std::cout<<"===================================================================="<<std::endl;
+      std::cout<<"       SeamDetection::LoadCloud - loading configuration file        "<<std::endl;
+      std::cout<<"===================================================================="<<std::endl<<std::endl;
 
       // find the path to the this package (seam_detection)
-      std::string packagepath = ros::package::getPath("seam_detection");
-      std::string filepath = "pcd_images/ds435i_table_parts/table_part1_part2_02.pcd";
-      std::string input_path;
+      //std::string packagepath = ros::package::getPath("seam_detection");
+      //std::string filepath = "pcd_images/ds435i_table_parts/table_part1_part2_02.pcd";
+      //std::string input_path;
 
-      input_path=packagepath+'/'+filepath;
+      //input_path=packagepath+'/'+filepath;
+
+      node.getParam("seam_detection/input_file", input_file);
+      input_path=package_path+'/'+input_file;
 
       // instantiate cloud pointer
       //PointCloud::Ptr cloud_input (new PointCloud); 
@@ -206,20 +281,14 @@ int main(int argc, char** argv)
 {
 
   ros::init(argc,argv,"seam_detection");
-  ros::NodeHandle node;
-  ros::Rate loop_rate(2);
-
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"                     SeamDetection v1.9                    "<<endl;
-  std::cout<<"===================================================================="<<endl;
-  std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
-
-  // find the path to the this package (seam_detection)
-  std::string packagepath = ros::package::getPath("seam_detection");
+  //ros::NodeHandle node;
+  //ros::Rate loop_rate(2);
 
   SeamDetection sd;
  
-  sd.LoadCloud();
+  sd.LoadConfig();
+
+  sd.LoadCloud(sd.input_file);
 
 
   PointCloud::Ptr cloud_a (new PointCloud);
