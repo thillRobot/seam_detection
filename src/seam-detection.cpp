@@ -290,6 +290,28 @@ class SeamDetection {
      
     }
 
+    void ShowClouds(void)
+    {
+
+      std::cout<<"===================================================================="<<std::endl;
+      std::cout<<"       SeamDetection::ShowClouds - preparing visualization          "<<std::endl;
+      std::cout<<"===================================================================="<<std::endl<<std::endl;
+
+      ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1) ;
+
+      cloud_input->header.frame_id = "base_link";
+
+      //publish forever
+      //while(ros::ok())
+      //{
+
+      //pub_input.publish(cloud_input);
+
+      ros::spinOnce();
+      //    loop_rate.sleep();
+      //}
+    }
+
 
   private:
 
@@ -311,7 +333,6 @@ int main(int argc, char** argv)
   sd.LoadConfig();
 
   sd.LoadCloud(sd.input_file);
-
 
   PointCloud::Ptr cloud_a (new PointCloud);
   PointCloud::Ptr cloud_b (new PointCloud);
