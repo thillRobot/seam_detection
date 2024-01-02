@@ -21,7 +21,6 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
-
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
@@ -29,7 +28,6 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/sample_consensus/sac_model_sphere.h>
-
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/registration/icp.h>
@@ -37,6 +35,9 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/registration/correspondence_rejection.h>
 #include <pcl/registration/correspondence_rejection_surface_normal.h>
 #include <pcl/visualization/pcl_visualizer.h>
+
+#include <pcl/search/kdtree.h>
+#include <pcl/segmentation/extract_clusters.h>
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
@@ -62,11 +63,14 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
-//#include <tf/TransformStamped.h>
 
+// PCL XYZ RGB Pointclouds
 typedef pcl::PointXYZRGB PointT;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
+
+// aligned_allocator - STL compatible allocator to use with types requiring a non-standard alignment 
+typedef std::vector < PointCloudPtr, Eigen::aligned_allocator < PointCloudPtr > > PointCloudVec;
 
 
 class SeamDetection {
@@ -78,9 +82,9 @@ class SeamDetection {
     // default constructor
     SeamDetection():rate(5) { // ROS::Rate rate(5) is in intializer list
       
-      std::cout<<"===================================================================="<<std::endl;
-      std::cout<<"                     SeamDetection v1.9                             "<<std::endl;
-      std::cout<<"===================================================================="<<std::endl;
+      std::cout<<"|----------------------------------------|"<<std::endl;
+      std::cout<<"|---------- SeamDetection v1.9 ----------|"<<std::endl;
+      std::cout<<"|----------------------------------------|"<<std::endl;
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
       // allocate memory for pointclouds
@@ -97,9 +101,7 @@ class SeamDetection {
     // function to load the config file(yaml) to pick the data files and set parameters 
     int LoadConfig(void){
 
-      std::cout<<"===================================================================="<<std::endl;
-      std::cout<<"         SeamDetection::LoadConfig - loading configuration file     "<<std::endl;
-      std::cout<<"===================================================================="<<std::endl<<std::endl;
+      std::cout<<"|---------- SeamDetection::LoadConfig - loading configuration file ---------|"<<std::endl;
 
       // get boolen parameters 
       node.getParam("save_output", save_output);
@@ -155,10 +157,8 @@ class SeamDetection {
     // function to load pointcloud from PCD file as defined in config
     int LoadCloud(std::string input_file){
 
-      std::cout<<"===================================================================="<<std::endl;
-      std::cout<<"       SeamDetection::LoadCloud - loading configuration file        "<<std::endl;
-      std::cout<<"===================================================================="<<std::endl<<std::endl;
-
+      std::cout<<"|---------- SeamDetection::LoadCloud - loading configuration file ----------|"<<std::endl;
+      
       node.getParam("seam_detection/input_file", input_file);
       input_path=package_path+'/'+input_file;
 
@@ -179,7 +179,7 @@ class SeamDetection {
     }
 
 
-    // function to copy PointCloud with XYZRGB points
+    // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
     void CopyCloud(PointCloud &input, PointCloud &output){
 
       std::cout<<"the point cloud input has "<< input.size()<< " points"<<std::endl;
@@ -277,13 +277,60 @@ class SeamDetection {
      
     }
 
+    // function to perform Euclidean clustering algorithm 
+    void EuclideanClusterCloud(PointCloud &input,  int min_size, int max_size, double tolerance)
+    { 
+      PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
+      pcl::copyPointCloud(input,*cloud);
+
+      // Creating the KdTree object for the search method of the extraction
+      pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
+      tree->setInputCloud (cloud);
+
+      std::vector<pcl::PointIndices> cluster_indices;
+      pcl::EuclideanClusterExtraction<PointT> ec;
+      ec.setClusterTolerance (tolerance); // cluster parameters set in config file
+      ec.setMinClusterSize (min_size);
+      ec.setMaxClusterSize (max_size);
+      ec.setSearchMethod (tree);
+      ec.setInputCloud (cloud);
+      ec.extract (cluster_indices);
+
+      // instantiate a std vector of pcl pointclouds with pcl PointXYZ points (see typedef above)
+      //PointCloudVec clusters;
+
+      int j = 0;
+      for (const auto& cluster : cluster_indices) 
+      {
+        pcl::PointCloud<PointT>::Ptr cloud_cluster (new pcl::PointCloud<PointT>);
+        for (const auto& idx : cluster.indices) { // add points to cluster cloud
+          cloud_cluster->push_back((*cloud)[idx]);
+        } 
+        cloud_cluster->width = cloud_cluster->size();
+        cloud_cluster->height = 1;
+        cloud_cluster->is_dense = true;
+
+        cloud_clusters.push_back(cloud_cluster); // add clusters to vector of clusters
+
+        //std::cout << "PointCloud representing cluster"<<j<<" has "<< cloud_cluster->size() << " data points " << std::endl;
+        j++; // increment the cluster counter
+      }
+
+      for (int i = 0; i < cloud_clusters.size(); i++){
+        std::cout << "Point Cloud " << i << " has " << cloud_clusters[i]->size() << " Points " << std::endl;
+      }
+
+      std::cout<< "cloud_clusters size: "<< cloud_clusters.size() <<std::endl;
+
+      //return clusters;
+    }
+  
+
     // function to publish a single cloud (not working for multiple calls, blocking error)
     void PublishCloud(PointCloud &cloud, std::string topic)
     {
 
-      std::cout<<"===================================================================="<<std::endl;
-      std::cout<<"       SeamDetection::ShowCloud - preparing visualization           "<<std::endl;
-      std::cout<<"===================================================================="<<std::endl<<std::endl;
+      std::cout<<"|---------- SeamDetection::ShowCloud - publishing single cloud ----------|"<<std::endl;
 
       ros::Publisher pub = node.advertise<PointCloud> (topic, 1, true);
 
@@ -299,11 +346,8 @@ class SeamDetection {
     void PublishClouds()
     {
 
-      std::cout<<"===================================================================="<<std::endl;
-      std::cout<<"       SeamDetection::ShowClouds - preparing visualization           "<<std::endl;
-      std::cout<<"===================================================================="<<std::endl<<std::endl;
-
-
+      std::cout<<"|---------- SeamDetection::ShowClouds - publishing all clouds ----------|"<<std::endl;
+ 
       //cloud_input->header.frame_id = "base_link";
       cloud_input->header.frame_id = "base_link";
       cloud_transformed->header.frame_id = "base_link";
@@ -320,6 +364,9 @@ class SeamDetection {
 
     // attributes
     PointCloud *cloud_input, *cloud_transformed, *cloud_bounded;
+
+    PointCloudVec cloud_clusters;  // vector of pointclouds to store the separate clusters
+
 
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
@@ -351,23 +398,23 @@ int main(int argc, char** argv)
   
   SeamDetection sd;
  
-  sd.LoadConfig();
+  sd.LoadConfig();             // load parameters from config file to ros param server
+  sd.LoadCloud(sd.input_file); // load a pointcloud from pcd file 
 
-  sd.LoadCloud(sd.input_file);
-
-  PointCloud::Ptr cloud_copy (new PointCloud);
-  //PointCloud::Ptr cloud_transformed (new PointCloud);
-  //PointCloud::Ptr cloud_bounded (new PointCloud);
-
-  sd.CopyCloud(*sd.cloud_input, *cloud_copy);
+  PointCloud::Ptr cloud_copy (new PointCloud); // make copy here in main, just testing
+  
+  //sd.CopyCloud(*sd.cloud_input, *cloud_copy); // testing a useless function...
+  pcl::copyPointCloud(*sd.cloud_input, *cloud_copy); // use the pcl copy
 
   sd.TransformCloud(*cloud_copy, *sd.cloud_transformed, sd.pre_rotation, sd.pre_translation);
   
   sd.BoundCloud(*sd.cloud_transformed, *sd.cloud_bounded, sd.bounding_box);
 
-  //sd.PublishCloud(*sd.cloud_input, "/cloud_input");
-  //sd.PublishCloud(*cloud_transformed, "/cloud_transformed");
+  //sd.PublishCloud(*sd.cloud_input, "/cloud_input"); // testing single cloud publish
+  //sd.PublishCloud(*cloud_transformed, "/cloud_transformed"); // not working for multiple topics
   //sd.PublishCloud(*cloud_bounded, "/cloud_bounded");
+
+  sd.EuclideanClusterCloud(*sd.cloud_bounded, 200, 20000, 0.01); // extract euclidean clusters
 
   sd.PublishClouds();
 
