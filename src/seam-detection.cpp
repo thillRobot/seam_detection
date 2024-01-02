@@ -96,6 +96,9 @@ class SeamDetection {
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
     std::string package_path, input_path, output_path, target_path, input_file, output_file, target_file; 
+   
+    double bounding_box[6];
+    Eigen::Vector3f pre_rotation, pre_translation;
 
 
     ros::NodeHandle node;
@@ -140,11 +143,11 @@ class SeamDetection {
       node.getParam("seam_detection/cluster_max_size", cluster_max_size);
 
       // parameters that contain vectors of doubles
-      std::vector<double> filter_box_vec;
-      double filter_box[6];
+      std::vector<double> bounding_box_vec;
+      //double filter_box[6];
 
       std::vector<double> pre_rotation_vec, pre_translation_vec;
-      Eigen::Vector3f pre_rotation, pre_translation;
+      //Eigen::Vector3f pre_rotation, pre_translation;
 
       node.getParam("seam_detection/pre_rotation",  pre_rotation_vec);
       node.getParam("seam_detection/pre_translation",  pre_translation_vec);
@@ -154,9 +157,9 @@ class SeamDetection {
         pre_translation[i]=pre_translation_vec[i]; 
       }
 
-      node.getParam("seam_detection/filter_box",  filter_box_vec);
-      for(unsigned i=0; i < filter_box_vec.size(); i++)
-        filter_box[i]=filter_box_vec[i]; // copy from vector to array 
+      node.getParam("seam_detection/bounding_box",  bounding_box_vec);
+      for(unsigned i=0; i < bounding_box_vec.size(); i++)
+        bounding_box[i]=bounding_box_vec[i]; // copy from vector to array 
     
       return 0;
 
@@ -169,13 +172,6 @@ class SeamDetection {
       std::cout<<"===================================================================="<<std::endl;
       std::cout<<"       SeamDetection::LoadCloud - loading configuration file        "<<std::endl;
       std::cout<<"===================================================================="<<std::endl<<std::endl;
-
-      // find the path to the this package (seam_detection)
-      //std::string packagepath = ros::package::getPath("seam_detection");
-      //std::string filepath = "pcd_images/ds435i_table_parts/table_part1_part2_02.pcd";
-      //std::string input_path;
-
-      //input_path=packagepath+'/'+filepath;
 
       node.getParam("seam_detection/input_file", input_file);
       input_path=package_path+'/'+input_file;
@@ -268,6 +264,32 @@ class SeamDetection {
 
     }
 
+    // function to apply translation and rotation without scaling to PointCloud
+    void TransformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3f rotation, Eigen::Vector3f translation)
+    {
+
+      PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the target cloud
+      pcl::copyPointCloud(input,*cloud);
+
+      Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+     
+      // Define a translation 
+      transform.translation() << translation[0], translation[1], translation[2];
+      // define three axis rotations (RPY)
+      transform.rotate (Eigen::AngleAxisf (rotation[0], Eigen::Vector3f::UnitX()));
+      transform.rotate (Eigen::AngleAxisf (rotation[1], Eigen::Vector3f::UnitY()));
+      transform.rotate (Eigen::AngleAxisf (rotation[2], Eigen::Vector3f::UnitZ()));
+
+      // Print the transformation
+      //std::cout << transform_2.matrix() << std::endl;
+
+      // Execute the transformation on working copy 
+      pcl::transformPointCloud (*cloud, *cloud, transform); 
+      // copy to the output cloud
+      pcl::copyPointCloud(*cloud, output);
+     
+    }
+
 
   private:
 
@@ -293,14 +315,13 @@ int main(int argc, char** argv)
 
   PointCloud::Ptr cloud_a (new PointCloud);
   PointCloud::Ptr cloud_b (new PointCloud);
+  PointCloud::Ptr cloud_c (new PointCloud);
   
   sd.CopyCloud(*sd.cloud_input, *cloud_a);
 
+  sd.TransformCloud(*cloud_a, *cloud_b, sd.pre_rotation, sd.pre_translation);
 
-  double bounds[]={-2.0, 2.0, -2.0, 2.0, -2.0, 2.0};
-
-
-  sd.BoundCloud(*cloud_a, *cloud_b, bounds);
+  sd.BoundCloud(*cloud_b, *cloud_c, sd.bounding_box);
 
 
   return 0;
