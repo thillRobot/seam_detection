@@ -87,7 +87,8 @@ The workspace and package should compile without errors.
  - `rotate_cloud` - apply homogenous transformation to pointcloud using pcl
   
 #### Development Nodes
-  
+
+ - `seam-detection` - implement this project with a c++ class - IN PROGRESS, see devel  
  - `register_clouds` - test different registration algorithms including icp and Teaser
  (Summer 2023 - present)  
  - `get_cloud` - get pointcloud from aubo robot system
