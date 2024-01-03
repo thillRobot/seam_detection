@@ -97,9 +97,14 @@ class SeamDetection {
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
       // allocate memory for pointclouds
-      cloud_input = new PointCloud;
-      cloud_transformed = new PointCloud;
-      cloud_bounded = new PointCloud;
+      input_cloud = new PointCloud;
+      transformed_cloud = new PointCloud;
+      bounded_cloud = new PointCloud;
+
+      recolored_cloud = new PointCloud;
+
+      //cloud_color = new PointCloud; // not the best names, consider removing cloud_ prefix ...
+      //cloud_euclidean = new PointCloud;
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -172,17 +177,17 @@ class SeamDetection {
       input_path=package_path+'/'+input_file;
 
       // instantiate cloud pointer
-      //PointCloud::Ptr cloud_input (new PointCloud); 
+      //PointCloud::Ptr input_cloud (new PointCloud); 
       PointCloud::Ptr cloud (new PointCloud);      // working copy for this routine
 
       std::cout << "Loading cloud input file:" << input_path << std::endl;
-      if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (input_path, *cloud_input) == -1)
+      if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (input_path, *input_cloud) == -1)
       {
           std::cout<<"Couldn't read cloud input file:"<<input_path;
           return (-1);
       }
       std::cout << "Loaded cloud input file: "<< input_path <<std::endl<<
-        cloud_input->width * cloud_input->height << " Data points from "<< input_path << std::endl;
+        input_cloud->width * input_cloud->height << " Data points from "<< input_path << std::endl;
  
       return 0;  
     }
@@ -239,7 +244,7 @@ class SeamDetection {
       }
 
       //Apply Bounding Box Filter
-      pcl::PassThrough<PointT> pass; //cloud_input
+      pcl::PassThrough<PointT> pass; //input_cloud
       pass.setInputCloud(cloud);
 
       pass.setFilterFieldName ("x");
@@ -319,26 +324,24 @@ class SeamDetection {
         cloud_cluster->height = 1;
         cloud_cluster->is_dense = true;
 
-        clusters.push_back(cloud_cluster); // add clusters to vector of clusters
-
-        //std::cout << "PointCloud representing cluster"<<j<<" has "<< cloud_cluster->size() << " data points " << std::endl;
+        euclidean_clusters.push_back(cloud_cluster); // add clusters to vector of clusters
         j++; // increment the cluster counter
       }
 
-
-      for (int i = 0; i < clusters.size(); i++){
-        std::cout << "Point Cloud " << i << " has " << clusters[i]->size() << " Points " << std::endl;
+      for (int i = 0; i < euclidean_clusters.size(); i++){
+        std::cout << "euclidean cluster " << i << " has " << euclidean_clusters[i]->size() << " points " << std::endl;
       }
 
-      std::cout<< "cloud_clusters size: "<< clusters.size() <<std::endl;
+      std::cout<< "euclidean_clusters size: "<< euclidean_clusters.size() <<std::endl;
 
-  
+      //pcl::PointCloud <PointT>::Ptr colored = ec.getColoredCloud ();
+      //pcl::copyPointCloud(*colored, *cloud_color); // copy to member attribute
+        
       //return clusters;
     }
 
 
     void ExtractColorClusters(PointCloud &input, int min_size, double dist_thresh, double reg_color_thresh, double pt_color_thresh){
-
       PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy
       pcl::copyPointCloud(input,*cloud);
 
@@ -361,19 +364,44 @@ class SeamDetection {
       std::vector <pcl::PointIndices> cluster_indices;
       reg.extract(cluster_indices);
 
-      pcl::PointCloud <PointT>::Ptr colored_cloud = reg.getColoredCloud ();
-      //pcl::visualization::CloudViewer viewer ("Cluster viewer");
-      //viewer.showCloud (colored_cloud);
+      pcl::PointCloud <PointT>::Ptr colored = reg.getColoredCloud ();
+      pcl::copyPointCloud(*colored, *recolored_cloud); // copy to member attribute
+      //this copy seems inefficient, fix later
 
-      //while (!viewer.wasStopped ())
-      //{
-      //  std::this_thread::sleep_for(100us); // 100us from std::chrono_literals
-      //}
+      int j = 0;
+      for (const auto& cluster : cluster_indices) 
+      {
+        pcl::PointCloud<PointT>::Ptr cloud_cluster (new pcl::PointCloud<PointT>);
+        for (const auto& idx : cluster.indices) { // add points to cluster cloud
+          cloud_cluster->push_back((*cloud)[idx]);
+        } 
+        cloud_cluster->width = cloud_cluster->size();
+        cloud_cluster->height = 1;
+        cloud_cluster->is_dense = true;
+
+        color_clusters.push_back(cloud_cluster); // add clusters to vector of clusters
+        j++; // increment the cluster counter
+      }
+
+      for (int i = 0; i < color_clusters.size(); i++){
+        std::cout << "color cluster " << i << " has " << color_clusters[i]->size() << " points " << std::endl;
+      }
+
+      std::cout<< "color_clusters size: "<< color_clusters.size() <<std::endl;
+
+      /*pcl::visualization::CloudViewer viewer ("Cluster viewer");
+      viewer.showCloud (colored_cloud);
+      //viewer.showCloud (color_clusters); // does not work, showCloud requires pointer
+
+      while (!viewer.wasStopped ()){
+        std::this_thread::sleep_for(100us); // 100us from std::chrono_literals
+      }*/
 
     }
   
 
     // function to publish a single cloud (not working for multiple calls, blocking error)
+    /*
     void PublishCloud(PointCloud &cloud, std::string topic)
     {
 
@@ -381,13 +409,13 @@ class SeamDetection {
 
       ros::Publisher pub = node.advertise<PointCloud> (topic, 1, true);
 
-      //cloud_input->header.frame_id = "base_link";
+      //input_cloud->header.frame_id = "base_link";
       cloud.header.frame_id = "base_link";
 
       pub.publish(cloud);
       ros::spin();
 
-    }
+    }*/
 
     // function to publish the input and other clouds to ROS for RVIZ 
     void PublishClouds()
@@ -395,53 +423,57 @@ class SeamDetection {
 
       std::cout<<"|---------- SeamDetection::PublishClouds - publishing all clouds ----------|"<<std::endl;
  
-      //cloud_input->header.frame_id = "base_link";
-      cloud_input->header.frame_id = "base_link";
-      cloud_transformed->header.frame_id = "base_link";
-      cloud_bounded->header.frame_id = "base_link";
+      input_cloud->header.frame_id = "base_link";
+      transformed_cloud->header.frame_id = "base_link";
+      bounded_cloud->header.frame_id = "base_link";
 
-      pub_input.publish(*cloud_input);
-      pub_transformed.publish(*cloud_transformed);
-      pub_bounded.publish(*cloud_bounded);
+      pub_input.publish(*input_cloud);
+      pub_transformed.publish(*transformed_cloud);
+      pub_bounded.publish(*bounded_cloud);
       
-      ros::spin();
+      ros::spinOnce();
 
     }
 
+    // function to publish vectors of PointClouds from clustering 
     void PublishClusters()
     {
       
       std::cout<<"|---------- SeamDetection::PublishClusters - publishing clusters ----------|"<<std::endl;
-      // advertise a topic for each cluster
       
-      for (int i=0; i<clusters.size(); i++){
-
-        std::stringstream cluster_name;
-        cluster_name << "cloud_cluster" << i;
-        pub_clusters.push_back(node.advertise<PointCloud>(cluster_name.str(), 0, true));
-        clusters[i]->header.frame_id = "base_link";
-      
+      for (int i=0; i<euclidean_clusters.size(); i++){
+        // advertise a topic and publish a msg for each cluster from euclidean cluster extraction
+        std::stringstream name;
+        name << "euclidean_cluster" << i;
+        pub_euclidean.push_back(node.advertise<PointCloud>(name.str(), 0, true));
+        euclidean_clusters[i]->header.frame_id = "base_link";
+        pub_euclidean[i].publish(euclidean_clusters[i]);
       }
 
-      for (int i=0; i<clusters.size(); i++){
-        pub_clusters[i].publish(clusters[i]);
+      for (int i=0; i<color_clusters.size(); i++){
+        // advertise a topic and publish a msg for each cluster color based region growing cluster extraction
+        std::stringstream name;
+        name << "color_cluster" << i;
+        pub_color.push_back(node.advertise<PointCloud>(name.str(), 0, true));
+        color_clusters[i]->header.frame_id = "base_link";
+        pub_color[i].publish(color_clusters[i]);
       }
 
-      std::cout<<"publisher advertise complete"<<std::endl;
+      recolored_cloud->header.frame_id = "base_link";
+      pub_recolored.publish(*recolored_cloud);
       
-      ros::spin();
+      ros::spinOnce();
 
     }
 
-
-
-
     // attributes
-    PointCloud *cloud_input, *cloud_transformed, *cloud_bounded;
-    //PointCloudPtr cloud_bounded_ptr;
+    PointCloud *input_cloud, *transformed_cloud, *bounded_cloud;
+    PointCloud *recolored_cloud; // re-colored cloud from getColoredCloud() in color based extraction
 
-    PointCloudVec clusters;  // vector of pointclouds to store the separate clusters
+    //PointCloudPtr bounded_cloud_ptr; 
 
+    // vectors of pointclouds to store the separate clusters
+    PointCloudVec color_clusters, euclidean_clusters;
 
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
@@ -450,20 +482,19 @@ class SeamDetection {
     double bounding_box[6];
     Eigen::Vector3f pre_rotation, pre_translation;
 
-    ros::NodeHandle node; // !!! many examples have node in 'private'
-    ros::Rate rate;       // node and rate might be useful in 'public' ...
-
 
   private:
 
     // attributes
-    const int ijk=0;
+    ros::NodeHandle node;
+    ros::Rate rate;       // rate might be useful in 'public', but this is the proper place
 
-    ros::Publisher pub_input = node.advertise<PointCloud> ("/cloud_input", 1, true);
-    ros::Publisher pub_transformed = node.advertise<PointCloud> ("cloud_transformed", 1, true);
-    ros::Publisher pub_bounded = node.advertise<PointCloud> ("cloud_bounded", 1, true);
+    ros::Publisher pub_input = node.advertise<PointCloud> ("/input_cloud", 1, true);
+    ros::Publisher pub_transformed = node.advertise<PointCloud> ("transformed_cloud", 1, true);
+    ros::Publisher pub_bounded = node.advertise<PointCloud> ("bounded_cloud", 1, true);
+    ros::Publisher pub_recolored = node.advertise<PointCloud> ("recolored_cloud", 1, true);
 
-    std::vector<ros::Publisher> pub_clusters;
+    std::vector<ros::Publisher> pub_color, pub_euclidean;
 
 };
 
@@ -480,33 +511,24 @@ int main(int argc, char** argv)
 
   PointCloud::Ptr cloud_copy (new PointCloud); // make copy here in main, just testing
   
-  //sd.CopyCloud(*sd.cloud_input, *cloud_copy); // testing a useless function...
-  pcl::copyPointCloud(*sd.cloud_input, *cloud_copy); // use the pcl copy
+  //sd.CopyCloud(*sd.input_cloud, *cloud_copy); // testing a useless function...
+  pcl::copyPointCloud(*sd.input_cloud, *cloud_copy); // use the pcl copy
 
-  sd.TransformCloud(*cloud_copy, *sd.cloud_transformed, sd.pre_rotation, sd.pre_translation);
+  sd.TransformCloud(*cloud_copy, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
   
-  sd.BoundCloud(*sd.cloud_transformed, *sd.cloud_bounded, sd.bounding_box);
+  sd.BoundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
 
-  //sd.PublishCloud(*sd.cloud_input, "/cloud_input"); // testing single cloud publish
-  //sd.PublishCloud(*cloud_transformed, "/cloud_transformed"); // not working for multiple topics
-  //sd.PublishCloud(*cloud_bounded, "/cloud_bounded");
+  //sd.PublishCloud(*sd.input_cloud, "/input_cloud"); // testing single cloud publish
+  //sd.PublishCloud(*transformed_cloud, "/transformed_cloud"); // not working for multiple topics
+  //sd.PublishCloud(*bounded_cloud, "/bounded_cloud");
 
-  sd.ExtractEuclideanClusters(*sd.cloud_bounded, 200, 20000, 0.01); // euclidean cluster extraction
+  sd.ExtractEuclideanClusters(*sd.bounded_cloud, 200, 20000, 0.01); // preform euclidean cluster extraction
 
-  sd.ExtractColorClusters(*sd.cloud_bounded, 200, 10, 6, 5); // color region growing cluster extraction
+  sd.ExtractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform color region growing cluster extraction
 
-  //sd.PublishClouds();
+  sd.PublishClouds();  // show the input, transformed, and bounded clouds
 
-  sd.PublishClusters();
-
-  // loop forever
-  //while(ros::ok())
-  //{
-
-    //ros::spinOnce();
-    //sd.rate.sleep();
-  
-  //}
+  sd.PublishClusters(); // show the euclidean and color based clusters 
   
   ros::spin();
 
