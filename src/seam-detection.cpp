@@ -340,6 +340,13 @@ class SeamDetection {
       //return clusters;
     }
 
+    // function to compare cloud size, primarily for std::sort()
+    static bool CompareSize(PointCloudPtr cloud_a, PointCloudPtr cloud_b){
+
+      return cloud_a->size()>cloud_b->size();
+
+    }
+  
 
     void ExtractColorClusters(PointCloud &input, int min_size, double dist_thresh, double reg_color_thresh, double pt_color_thresh){
       PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy
@@ -389,15 +396,15 @@ class SeamDetection {
 
       std::cout<< "color_clusters size: "<< color_clusters.size() <<std::endl;
 
-      /*pcl::visualization::CloudViewer viewer ("Cluster viewer");
-      viewer.showCloud (colored_cloud);
-      //viewer.showCloud (color_clusters); // does not work, showCloud requires pointer
+      // sort the cluster using user-defined compare function defined above 
+      std::sort(color_clusters.begin(), color_clusters.end(), CompareSize);
 
-      while (!viewer.wasStopped ()){
-        std::this_thread::sleep_for(100us); // 100us from std::chrono_literals
-      }*/
+      for (int i = 0; i < color_clusters.size(); i++){
+        std::cout << "sorted color cluster " << i << " has " << color_clusters[i]->size() << " points " << std::endl;
+      }  
 
     }
+
   
 
     // function to publish a single cloud (not working for multiple calls, blocking error)
@@ -522,7 +529,7 @@ int main(int argc, char** argv)
   //sd.PublishCloud(*transformed_cloud, "/transformed_cloud"); // not working for multiple topics
   //sd.PublishCloud(*bounded_cloud, "/bounded_cloud");
 
-  sd.ExtractEuclideanClusters(*sd.bounded_cloud, 200, 20000, 0.01); // preform euclidean cluster extraction
+  sd.ExtractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform euclidean cluster extraction
 
   sd.ExtractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform color region growing cluster extraction
 
