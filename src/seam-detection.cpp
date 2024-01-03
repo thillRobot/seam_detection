@@ -16,6 +16,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
+#include <pcl/common/common.h>
 #include <pcl/pcl_config.h>
 #include <pcl/console/parse.h>
 #include <pcl/io/pcd_io.h>
@@ -113,7 +114,7 @@ class SeamDetection {
   
 
     // function to load the config file(yaml) to pick the data files and set parameters 
-    int LoadConfig(void){
+    int loadConfig(void){
 
       std::cout<<"|---------- SeamDetection::LoadConfig - loading configuration file ---------|"<<std::endl;
 
@@ -167,9 +168,9 @@ class SeamDetection {
       return 0;
     }
     
-    
+
     // function to load pointcloud from PCD file as defined in config
-    int LoadCloud(std::string input_file){
+    int loadCloud(std::string input_file){
 
       std::cout<<"|---------- SeamDetection::LoadCloud - loading configuration file ----------|"<<std::endl;
       
@@ -190,11 +191,11 @@ class SeamDetection {
         input_cloud->width * input_cloud->height << " Data points from "<< input_path << std::endl;
  
       return 0;  
-    }
+    } 
 
 
     // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
-    void CopyCloud(PointCloud &input, PointCloud &output){
+    void copyCloud(PointCloud &input, PointCloud &output){
 
       std::cout<<"the point cloud input has "<< input.size()<< " points"<<std::endl;
       for (int i=0; i<input.size(); i++) { // add points to cluster cloud
@@ -206,7 +207,7 @@ class SeamDetection {
 
 
     // function to apply bounding box to PointCloud with XYZRGB points
-    void BoundCloud(PointCloud &input, PointCloud &output, double box[]){
+    void boundCloud(PointCloud &input, PointCloud &output, double box[]){
 
       PointCloud::Ptr cloud (new PointCloud);      // working copy for this routine
       for (int i=0; i<input.size(); i++) { // add points to cluster cloud
@@ -265,9 +266,9 @@ class SeamDetection {
 
     }
 
+
     // function to apply translation and rotation without scaling to PointCloud
-    void TransformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3f rotation, Eigen::Vector3f translation)
-    {
+    void transformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3f rotation, Eigen::Vector3f translation){
 
       PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the target cloud
       pcl::copyPointCloud(input,*cloud);
@@ -291,9 +292,10 @@ class SeamDetection {
      
     }
 
-    // function to perform Euclidean clustering algorithm 
-    void ExtractEuclideanClusters(PointCloud &input,  int min_size, int max_size, double tolerance)
-    { 
+
+    // function to perform Euclidean Cluster Extraction  
+    PointCloudVec extractEuclideanClusters(PointCloud &input,  int min_size, int max_size, double tolerance){
+
       PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the target cloud
       pcl::copyPointCloud(input,*cloud);
 
@@ -311,7 +313,7 @@ class SeamDetection {
       ec.extract (cluster_indices);
 
       // instantiate a std vector of pcl pointclouds with pcl PointXYZ points (see typedef above)
-      //PointCloudVec clusters;
+      PointCloudVec clusters;
 
       int j = 0;
       for (const auto& cluster : cluster_indices) 
@@ -324,31 +326,34 @@ class SeamDetection {
         cloud_cluster->height = 1;
         cloud_cluster->is_dense = true;
 
-        euclidean_clusters.push_back(cloud_cluster); // add clusters to vector of clusters
+        clusters.push_back(cloud_cluster); // add clusters to vector of clusters
         j++; // increment the cluster counter
       }
 
-      for (int i = 0; i < euclidean_clusters.size(); i++){
-        std::cout << "euclidean cluster " << i << " has " << euclidean_clusters[i]->size() << " points " << std::endl;
+      for (int i = 0; i < clusters.size(); i++){
+        std::cout << "euclidean cluster " << i << " has " << clusters[i]->size() << " points " << std::endl;
       }
 
-      std::cout<< "euclidean_clusters size: "<< euclidean_clusters.size() <<std::endl;
+      std::cout<< "euclidean_clusters size: "<< clusters.size() <<std::endl;
 
-      //pcl::PointCloud <PointT>::Ptr colored = ec.getColoredCloud ();
+      //pcl::PointCloud <PointT>::Ptr colored = ec.getColoredCloud (); // getColoredCloud not available
       //pcl::copyPointCloud(*colored, *cloud_color); // copy to member attribute
         
-      //return clusters;
+      return clusters;
     }
+
 
     // function to compare cloud size, primarily for std::sort()
     static bool CompareSize(PointCloudPtr cloud_a, PointCloudPtr cloud_b){
 
-      return cloud_a->size()>cloud_b->size();
+      return cloud_a->size()>cloud_b->size(); // for sorting by greatest to least number of points in cloud
 
     }
   
 
-    void ExtractColorClusters(PointCloud &input, int min_size, double dist_thresh, double reg_color_thresh, double pt_color_thresh){
+    // function to perform Color Based Region Growing Cluster Extraction 
+    PointCloudVec extractColorClusters(PointCloud &input, int min_size, double dist_thresh, double reg_color_thresh, double pt_color_thresh){
+      
       PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy
       pcl::copyPointCloud(input,*cloud);
 
@@ -375,6 +380,9 @@ class SeamDetection {
       pcl::copyPointCloud(*colored, *recolored_cloud); // copy to member attribute
       //this copy seems inefficient, fix later
 
+      // instantiate a std vector of pcl pointclouds with pcl PointXYZ points (see typedef above)
+      PointCloudVec clusters;
+
       int j = 0;
       for (const auto& cluster : cluster_indices) 
       {
@@ -386,31 +394,116 @@ class SeamDetection {
         cloud_cluster->height = 1;
         cloud_cluster->is_dense = true;
 
-        color_clusters.push_back(cloud_cluster); // add clusters to vector of clusters
+        clusters.push_back(cloud_cluster); // add clusters to vector of clusters
         j++; // increment the cluster counter
       }
 
-      for (int i = 0; i < color_clusters.size(); i++){
-        std::cout << "color cluster " << i << " has " << color_clusters[i]->size() << " points " << std::endl;
+      for (int i = 0; i < clusters.size(); i++){
+        std::cout << "color cluster " << i << " has " << clusters[i]->size() << " points " << std::endl;
       }
 
-      std::cout<< "color_clusters size: "<< color_clusters.size() <<std::endl;
+      std::cout<< "color_clusters size: "<< clusters.size() <<std::endl;
 
       // sort the cluster using user-defined compare function defined above 
-      std::sort(color_clusters.begin(), color_clusters.end(), CompareSize);
+      std::sort(clusters.begin(), clusters.end(), CompareSize);
 
-      for (int i = 0; i < color_clusters.size(); i++){
-        std::cout << "sorted color cluster " << i << " has " << color_clusters[i]->size() << " points " << std::endl;
+      for (int i = 0; i < clusters.size(); i++){
+        std::cout << "sorted color cluster " << i << " has " << clusters[i]->size() << " points " << std::endl;
       }  
+
+      return clusters;
+
+    }
+
+    // function to find the minimum oriented bounding box of a cloud using principle component analysis
+    void getPCABox(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen::Vector3f& bbox_translation, Eigen::Vector3f& bbox_dimensions){
+
+      PointCloud::Ptr cloud (new PointCloud); //make working copy of the input cloud 
+      //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+      pcl::copyPointCloud(input,*cloud);
+
+      // Compute principal directions
+      Eigen::Vector4f pcaCentroid;
+      pcl::compute3DCentroid(*cloud, pcaCentroid);
+      Eigen::Matrix3f covariance;
+      computeCovarianceMatrixNormalized(*cloud, pcaCentroid, covariance);
+      Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
+      Eigen::Matrix3f eigenVectorsPCA = eigen_solver.eigenvectors();
+      eigenVectorsPCA.col(2) = eigenVectorsPCA.col(0).cross(eigenVectorsPCA.col(1));
+
+      // Transform the original cloud to the origin where the principal components correspond to the axes.
+      Eigen::Matrix4f projectionTransform(Eigen::Matrix4f::Identity());
+      projectionTransform.block<3,3>(0,0) = eigenVectorsPCA.transpose();
+      projectionTransform.block<3,1>(0,3) = -1.f * (projectionTransform.block<3,3>(0,0) * pcaCentroid.head<3>());
+      //pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPointsProjected (new pcl::PointCloud<pcl::PointXYZ>);
+      PointCloudPtr cloudPointsProjected (new PointCloud);
+      
+      pcl::transformPointCloud(*cloud, *cloudPointsProjected, projectionTransform);
+      // Get the minimum and maximum points of the transformed cloud.
+      //pcl::PointXYZ minPoint, maxPoint;
+      PointT minPoint, maxPoint;
+      pcl::getMinMax3D(*cloudPointsProjected, minPoint, maxPoint);
+      const Eigen::Vector3f meanDiagonal = 0.5f*(maxPoint.getVector3fMap() + minPoint.getVector3fMap());
+
+      // Final transform
+      const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA); 
+      const Eigen::Vector3f bboxTranslation = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
+      
+      bbox_dimensions[0]=maxPoint.x-minPoint.x;
+      bbox_dimensions[1]=maxPoint.y-minPoint.y;
+      bbox_dimensions[2]=maxPoint.z-minPoint.z;
+
+      double bbox_volume, bbox_aspect_ratio;
+      bbox_volume=bbox_dimensions[0]*bbox_dimensions[1]*bbox_dimensions[2]; // calculate volume as product of dimensions
+      bbox_aspect_ratio=bbox_dimensions.maxCoeff()/bbox_dimensions.minCoeff(); // calculate aspect ratio as max dimension / min dimension
+
+      std::cout<<"volume: "<<bbox_volume<<std::endl;
+      std::cout<<"aspect ratio: "<<bbox_aspect_ratio<<std::endl;
+
+      bbox_quaternion=bboxQuaternion; // copy to the output variables, these lines crash now that I am passing in a vector
+      bbox_translation=bboxTranslation;
+
+    }
+
+    void getPCABoxes(PointCloudVec &clouds){
+
+      std::vector < Eigen::Quaternionf > quaternions; // vector of quaternions, maybe not the best solution... send me a better one, 2D array containing quats? eh...
+      std::vector < Eigen::Vector3f > translations;   // these could be in a 2D array, but then the syntax would not match
+      std::vector < Eigen::Vector3f > dimensions;
+
+      for (int i = 0; i < clouds.size(); i++){
+        
+        // get the pose and size of the minimum bounding box for each cluster
+        Eigen::Quaternionf quaternion; // this is a temp variable to get the eigen::quaternion from the function which will be added to quaternions vector
+        Eigen::Vector3f translation, dimension; // these are also temp vars for the same purpose, there is probably a better way to do this ... 
+        getPCABox(*clouds[i], quaternion, translation, dimension);  // does not work (compiles but throws runtime error), pick up here! 
+        
+        // add the temp variable to the vectors
+        quaternions.push_back(quaternion);  
+        translations.push_back(translation); 
+        dimensions.push_back(dimension); 
+
+        // print cluster information to the terminal for debug
+        std::cout << "cluster "<< i <<" number of points: " << clouds[i]->size() << std::endl;
+        std::cout << "cluster "<< i <<" PCA box quaternion: ["<< quaternions[i].x()<<","
+                                            << quaternions[i].y()<<","
+                                            << quaternions[i].z()<<","
+                                            << quaternions[i].w()<<"]"<<std::endl;                                    
+        std::cout << "cluster "<< i <<" PCA box translation: ["<< translations[i][0] << "," 
+                                            <<translations[i][1] << "," 
+                                            <<translations[i][2] << "]" <<std::endl;
+        std::cout << "cluster "<< i <<" PCA box dimension: ["<< dimensions[i][0] << "," 
+                                            <<dimensions[i][1] << "," 
+                                            <<dimensions[i][2] << "]" <<std::endl;
+
+      }
 
     }
 
   
-
     // function to publish a single cloud (not working for multiple calls, blocking error)
     /*
-    void PublishCloud(PointCloud &cloud, std::string topic)
-    {
+    void publishCloud(PointCloud &cloud, std::string topic){
 
       std::cout<<"|---------- SeamDetection::PublishCloud - publishing single cloud ----------|"<<std::endl;
 
@@ -424,9 +517,9 @@ class SeamDetection {
 
     }*/
 
+
     // function to publish the input and other clouds to ROS for RVIZ 
-    void PublishClouds()
-    {
+    void publishClouds(){
 
       std::cout<<"|---------- SeamDetection::PublishClouds - publishing all clouds ----------|"<<std::endl;
  
@@ -442,9 +535,9 @@ class SeamDetection {
 
     }
 
+
     // function to publish vectors of PointClouds from clustering 
-    void PublishClusters()
-    {
+    void publishClusters(PointCloudVec &euclidean_clusters, PointCloudVec &color_clusters){
       
       std::cout<<"|---------- SeamDetection::PublishClusters - publishing clusters ----------|"<<std::endl;
       
@@ -456,7 +549,7 @@ class SeamDetection {
         euclidean_clusters[i]->header.frame_id = "base_link";
         pub_euclidean[i].publish(euclidean_clusters[i]);
       }
-
+     
       for (int i=0; i<color_clusters.size(); i++){
         // advertise a topic and publish a msg for each cluster color based region growing cluster extraction
         std::stringstream name;
@@ -473,6 +566,7 @@ class SeamDetection {
 
     }
 
+
     // attributes
     PointCloud *input_cloud, *transformed_cloud, *bounded_cloud;
     PointCloud *recolored_cloud; // re-colored cloud from getColoredCloud() in color based extraction
@@ -480,8 +574,9 @@ class SeamDetection {
     //PointCloudPtr bounded_cloud_ptr; 
 
     // vectors of pointclouds to store the separate clusters
-    PointCloudVec color_clusters, euclidean_clusters;
+    //PointCloudVec color_clusters, euclidean_clusters;
 
+    // other parameters from the config file (these do not need to public)
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
     std::string package_path, input_path, output_path, target_path, input_file, output_file, target_file; 
@@ -513,29 +608,48 @@ int main(int argc, char** argv)
   
   SeamDetection sd;
  
-  sd.LoadConfig();             // load parameters from config file to ros param server
-  sd.LoadCloud(sd.input_file); // load a pointcloud from pcd file 
+  sd.loadConfig();             // load parameters from config file to ros param server
+  sd.loadCloud(sd.input_file); // load a pointcloud from pcd file 
 
   PointCloud::Ptr cloud_copy (new PointCloud); // make copy here in main, just testing
   
   //sd.CopyCloud(*sd.input_cloud, *cloud_copy); // testing a useless function...
   pcl::copyPointCloud(*sd.input_cloud, *cloud_copy); // use the pcl copy
 
-  sd.TransformCloud(*cloud_copy, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
+  sd.transformCloud(*cloud_copy, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
   
-  sd.BoundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
+  sd.boundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
 
   //sd.PublishCloud(*sd.input_cloud, "/input_cloud"); // testing single cloud publish
   //sd.PublishCloud(*transformed_cloud, "/transformed_cloud"); // not working for multiple topics
   //sd.PublishCloud(*bounded_cloud, "/bounded_cloud");
 
-  sd.ExtractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform euclidean cluster extraction
+  PointCloudVec euclidean_clusters, color_clusters;
 
-  sd.ExtractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform color region growing cluster extraction
+  euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform euclidean cluster extraction
 
-  sd.PublishClouds();  // show the input, transformed, and bounded clouds
+  color_clusters=sd.extractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform color region growing cluster extraction
 
-  sd.PublishClusters(); // show the euclidean and color based clusters 
+
+  sd.getPCABoxes(euclidean_clusters);
+
+  sd.getPCABoxes(color_clusters);
+
+
+  sd.publishClouds();  // show the input, transformed, and bounded clouds
+
+  sd.publishClusters(euclidean_clusters, color_clusters); // show the euclidean and color based clusters 
+
+
+
+
+  // get the pose and size of the minimum bounding box for each cluster
+  //Eigen::Quaternionf cluster_quaternion; // this is a temp variable to get the eigen::quaternion from the function which will be added to quaternions vector
+  //Eigen::Vector3f cluster_translation, cluster_dimension; // these are also temp vars for the same purpose, there is probably a better way to do this ... 
+  //sd.getPCABox(*sd.euclidean_clusters[0], cluster_quaternion, cluster_translation, cluster_dimension);  // does not work (compiles but throws runtime error), pick up here! 
+  
+  // 
+
   
   ros::spin();
 
