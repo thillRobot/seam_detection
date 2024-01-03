@@ -203,17 +203,17 @@ int main(int argc, char** argv)
   reg.setInputCloud (cloud);
   reg.setIndices (indices);
   reg.setSearchMethod (tree);
+  reg.setMinClusterSize (200);
   reg.setDistanceThreshold (10);
   reg.setPointColorThreshold (6);
   reg.setRegionColorThreshold (5);
-  reg.setMinClusterSize (200);
+  
 
   std::vector <pcl::PointIndices> clusters;
   reg.extract (clusters);
 
   pcl::PointCloud <pcl::PointXYZRGB>::Ptr colored_cloud = reg.getColoredCloud ();
   pcl::visualization::CloudViewer viewer ("Cluster viewer");
-
   viewer.showCloud (colored_cloud);
 
   while (!viewer.wasStopped ())
