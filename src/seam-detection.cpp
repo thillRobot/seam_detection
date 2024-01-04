@@ -90,7 +90,7 @@ class SeamDetection {
     // functions 
     
     // default constructor
-    SeamDetection(): rate(5), cloud_topic("/cloud") { // ROS::Rate rate(5) is in intializer list
+    SeamDetection(): rate(5), pub_idx(0) { // ROS::Rate rate(5) is in intializer list
       
       std::cout<<"|----------------------------------------|"<<std::endl;
       std::cout<<"|---------- SeamDetection v1.9 ----------|"<<std::endl;
@@ -101,11 +101,7 @@ class SeamDetection {
       input_cloud = new PointCloud;
       transformed_cloud = new PointCloud;
       bounded_cloud = new PointCloud;
-
       recolored_cloud = new PointCloud;
-
-      //cloud_color = new PointCloud; // not the best names, consider removing cloud_ prefix ...
-      //cloud_euclidean = new PointCloud;
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -503,26 +499,84 @@ class SeamDetection {
     }
 
 
-    // function to find the intersection C of two clouds A,B defined by the points in cloud A AND cloud B 
-    void getCloudIntersection(PointCloud &A, PointCloud &B, PointCloud &C){
+    // function to find the intersection C of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
+    // this is based on exact comparison and will not work for approximate cloud points 
+    void getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2, PointCloud &cloud3){
 
-      int k=0; // index for the new intersection cloud
-      for (int i=0; i<A.size(); i++) { // add points to cluster cloud
-        
-        for (int j=0; j<B.size(); j++){
-
-          if (A.points[i].x==B.points[j].x&&A.points[i].y==B.points[j].y&&A.points[i].z==B.points[j].z){ 
-            C.push_back(A[i]); // add the shared point to the new cloud
-            k++; // increment the new cloud counter
+      for (int i=0; i<cloud1.size(); i++) { // add points to cluster cloud
+        for (int j=0; j<cloud2.size(); j++){
+          // check if all three coordinate values are the same
+          if (cloud1.points[i].x==cloud2.points[j].x&&cloud1.points[i].y==cloud2.points[j].y&&cloud1.points[i].z==cloud2.points[j].z){ 
+            cloud3.push_back(cloud1[i]); // add the shared point to the new cloud
           }
         }
       }
-      std::cout<< "the intersection cloud has "<< C.size() << " points" <<std::endl;
+      std::cout<< "the intersection cloud has "<< cloud3.size() << " points" <<std::endl;
     }
 
+   
+    // function to find the cluster of clouds representing the intersection of two clusters, calls SeamDetection::getClusterIntersection()   
+    void getClusterIntersection(PointCloudVec &clusters1, PointCloudVec &clusters2, PointCloudVec &clusters3, int thresh){
+
+      PointCloudPtr cloud (new PointCloud);
+      //PointCloudVec clusters;
+
+      int k=0; // comparison counter (counts each time)
+      for(int i=0; i<clusters1.size(); i++){ // for each cluster in clusters1
+
+        for (int j=0; j<clusters2.size(); j++){ // compare with each cluster in clusters2
+
+          getCloudIntersection(*clusters1[i], *clusters2[j], *cloud); // find the points in clusters1[i] AND clusters2[j]
+
+          if (cloud->size()>thresh){ // check if the intersection passes a threshold
+            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
+            //clusters.push_back(cloud); // add the intersection to the cluster of intersections
+            clusters3.push_back(cloud);
+          }else{
+            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
+          }
+          cloud->clear(); // empty the tmp cloud for the next intersection
+          k++;
+        }
+      }
+
+      std::cout<<"there are "<<clusters3.size()<<" clouds in the cluster intersection"<< std::endl;
+      //return clusters;
+    }
     
+
+    // function to find the cluster of clouds representing the intersection of two clusters, calls SeamDetection::getClusterIntersection()   
+    PointCloudVec getClusterIntersection(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh){
+
+      PointCloudPtr cloud (new PointCloud);
+      PointCloudVec clusters;
+
+      int k=0; // comparison counter (counts each time)
+      for(int i=0; i<clusters1.size(); i++){ // for each cluster in clusters1
+
+        for (int j=0; j<clusters2.size(); j++){ // compare with each cluster in clusters2
+
+          getCloudIntersection(*clusters1[i], *clusters2[j], *cloud); // find the points in clusters1[i] AND clusters2[j]
+
+          if (cloud->size()>thresh){ // check if the intersection passes a threshold
+            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
+            clusters.push_back(cloud); // add the intersection to the cluster of intersections
+          }else{
+            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
+          }
+          cloud->clear(); // empty the tmp cloud for the next intersection
+          k++;
+        }
+      }
+
+      std::cout<<"there are "<<clusters.size()<<" clouds in the cluster intersection"<< std::endl;
+      return clusters;
+    }
+
+
+
     // function to merge a vector of pointclouds into a single pointcloud
-    void mergeClusters(PointCloudVec &clusters, PointCloud &output ){
+    void mergeClusters(PointCloudVec &clusters, PointCloud &output){
 
       for (int i=0; i<clusters.size(); i++){
       
@@ -535,14 +589,28 @@ class SeamDetection {
       std::cout<< "the merged cloud has "<< output.size() << " points" <<std::endl;
     }
 
-    //PointCloudVec getClusterIntersection(PointCloudVec &A, PointCloudVec &B){
-    //}
+    
+    // overloaded function to merge a vector of pointclouds and return pointer to single pointcloud 
+    PointCloudPtr mergeClusters(PointCloudVec &clusters){
 
+      PointCloudPtr output (new PointCloud);
 
+      for (int i=0; i<clusters.size(); i++){
+      
+        for (int j=0; j<clusters[i]->size(); j++){
+          output->push_back(clusters[i]->points[j]);
+        }
+      
+      }
+
+      std::cout<< "the merged cloud has "<< output->size() << " points" <<std::endl;
+      return output;
+    }
+
+    
     // function to publish a single cloud 
     void publishCloud(PointCloud &cloud, std::string topic){
- 
-      std::cout<<"|---------- SeamDetection::PublishCloud - publishing single cloud ----------|"<<std::endl;
+      std::cout<<"|---------- SeamDetection::publishCloud - publishing single cloud ----------|"<<std::endl;
 
       // advertise a new topic and publish a msg each time this function is called
       pub_clouds.push_back(node.advertise<PointCloud>(topic, 0, true));
@@ -558,8 +626,7 @@ class SeamDetection {
 
     // function to publish the input and other clouds to ROS for RVIZ 
     void publishClouds(){
-
-      std::cout<<"|---------- SeamDetection::PublishClouds - publishing all clouds ----------|"<<std::endl;
+      std::cout<<"|---------- SeamDetection::publishClouds - publishing all clouds ----------|"<<std::endl;
  
       input_cloud->header.frame_id = "base_link";
       transformed_cloud->header.frame_id = "base_link";
@@ -574,10 +641,28 @@ class SeamDetection {
     }
 
 
-    // function to publish vectors of PointClouds from clustering 
-    void publishClusters(PointCloudVec &euclidean_clusters, PointCloudVec &color_clusters, PointCloudVec &intersection_clusters){
+    // function to publish a vector of PointClouds representing clusters 
+    void publishClusters(PointCloudVec &clusters, std::string prefix){
+      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
+        
+      for (int i=0; i<clusters.size(); i++){
+        // advertise a topic and publish a msg for each cluster from euclidean cluster extraction
+        std::stringstream name;
+        name << prefix << i;
+        pub_clusters.push_back(node.advertise<PointCloud>(name.str(), 0, true));
+        clusters[i]->header.frame_id = "base_link";
+        pub_clusters[pub_idx].publish(clusters[i]);
+        pub_idx++;
+      }
       
-      std::cout<<"|---------- SeamDetection::PublishClusters - publishing clusters ----------|"<<std::endl;
+      ros::spinOnce();
+     
+    }
+
+
+    // overloaded function to publish vectors of PointClouds from clustering, uses hard coded members, less useful 
+    void publishClusters(PointCloudVec &euclidean_clusters, PointCloudVec &color_clusters, PointCloudVec &intersection_clusters){
+      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
       
       for (int i=0; i<euclidean_clusters.size(); i++){
         // advertise a topic and publish a msg for each cluster from euclidean cluster extraction
@@ -598,7 +683,7 @@ class SeamDetection {
       }
 
       for (int i=0; i<intersection_clusters.size(); i++){
-        // advertise a topic and publish a msg for each cluster color based region growing cluster extraction
+        // advertise a topic and publish a msg for each intersection cluster 
         std::stringstream name;
         name << "intersection_cluster" << i;
         pub_intersection.push_back(node.advertise<PointCloud>(name.str(), 0, true));
@@ -648,6 +733,8 @@ class SeamDetection {
     // generic publisher, can this be used for all of the clouds?
     //ros::Publisher cloud_pub = node.advertise<PointCloud> (cloud_topic, 1, true);
     std::vector<ros::Publisher> pub_clouds;
+    std::vector<ros::Publisher> pub_clusters;
+    int pub_idx;
 
     std::vector<ros::Publisher> pub_color, pub_euclidean, pub_intersection;
 
@@ -661,18 +748,18 @@ int main(int argc, char** argv)
   
   SeamDetection sd;
  
-  sd.loadConfig();             // load parameters from config file to ros param server
+  sd.loadConfig();             // load parameters from config file
   sd.loadCloud(sd.input_file); // load a pointcloud from pcd file 
 
   PointCloudPtr cloud_copy (new PointCloud); // make copy here in main, just testing
   
   //sd.CopyCloud(*sd.input_cloud, *cloud_copy); // testing a useless function...
   pcl::copyPointCloud(*sd.input_cloud, *cloud_copy); // use the pcl copy
+
   sd.transformCloud(*cloud_copy, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
 
-  PointCloudVec euclidean_clusters, color_clusters, intersection_clusters;
-
+  PointCloudVec euclidean_clusters, color_clusters;
   euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform Euclidean cluster extraction
   color_clusters=sd.extractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
 
@@ -686,9 +773,12 @@ int main(int argc, char** argv)
 
   PointCloudPtr intersection_cloud (new PointCloud);
   sd.getCloudIntersection(*euclidean_clusters[0], *color_clusters[0], *intersection_cloud);
-
-  intersection_clusters.push_back(intersection_cloud);
   std::cout<<"intersection_cloud has "<<intersection_cloud->size()<<" points"<<std::endl;
+
+  PointCloudVec intersection_clusters;
+  //intersection_clusters=sd.getClusterIntersection(euclidean_clusters, color_clusters, 500);
+  sd.getClusterIntersection(euclidean_clusters, color_clusters, intersection_clusters, 500);
+  
   std::cout<<"intersection_clusters has "<<intersection_clusters.size()<<" clouds"<<std::endl;
 
   sd.publishCloud(*sd.input_cloud, "/input_cloud"); // show the input, transformed, and bounded clouds
@@ -696,7 +786,13 @@ int main(int argc, char** argv)
   sd.publishCloud(*sd.bounded_cloud, "/bounded_cloud");
 
   //sd.publishClouds();  // show the input, transformed, and bounded clouds in a single hardcoded function (redundant with above)
+  
+  // intersection clusters not showing with this function either, fix this tomorrow
   sd.publishClusters(euclidean_clusters, color_clusters, intersection_clusters); // show the euclidean and color based clusters
+  
+  //sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // working 
+  //sd.publishClusters(color_clusters, "/color_cluster");         // working  
+  //sd.publishClusters(intersection_clusters, "/intersection_cluster"); // not working, stuck on this!
 
   ros::spin();
 
