@@ -465,6 +465,8 @@ class SeamDetection {
 
     }
 
+
+    //function to get principle component axis boxes for a vector of pointclouds, calls SeamDetection::getPCABox()
     void getPCABoxes(PointCloudVec &clouds){
 
       std::vector < Eigen::Quaternionf > quaternions; // vector of quaternions, maybe not the best solution... send me a better one, 2D array containing quats? eh...
@@ -495,16 +497,36 @@ class SeamDetection {
         std::cout << "cluster "<< i <<" PCA box dimension: ["<< dimensions[i][0] << "," 
                                             <<dimensions[i][1] << "," 
                                             <<dimensions[i][2] << "]" <<std::endl;
+      
+      }
+    }
 
+    // function to find the intersection C of two clouds A,B defined by the points in cloud A AND cloud B 
+    void getCloudIntersection(PointCloud &A, PointCloud &B, PointCloud &C){
+
+      int k=0; // index for the new intersection cloud
+      for (int i=0; i<A.size(); i++) { // add points to cluster cloud
+        
+        for (int j=0; j<B.size(); j++){
+
+          if (A.points[i].x==B.points[j].x&&A.points[i].y==B.points[j].y&&A.points[i].z==B.points[j].z){ 
+
+            C.push_back(A[i]); // add the shared point to the new cloud
+            k++; // increment the new cloud counter
+          
+          }
+        }
       }
 
+      std::cout<< "the intersection cloud has "<< C.size() << " points" <<std::endl;
     }
+
 
   
     // function to publish a single cloud (not working for multiple calls, blocking error)
     /*
     void publishCloud(PointCloud &cloud, std::string topic){
-
+ 
       std::cout<<"|---------- SeamDetection::PublishCloud - publishing single cloud ----------|"<<std::endl;
 
       ros::Publisher pub = node.advertise<PointCloud> (topic, 1, true);
@@ -537,7 +559,7 @@ class SeamDetection {
 
 
     // function to publish vectors of PointClouds from clustering 
-    void publishClusters(PointCloudVec &euclidean_clusters, PointCloudVec &color_clusters){
+    void publishClusters(PointCloudVec &euclidean_clusters, PointCloudVec &color_clusters, PointCloudVec &intersection_clusters){
       
       std::cout<<"|---------- SeamDetection::PublishClusters - publishing clusters ----------|"<<std::endl;
       
@@ -557,6 +579,15 @@ class SeamDetection {
         pub_color.push_back(node.advertise<PointCloud>(name.str(), 0, true));
         color_clusters[i]->header.frame_id = "base_link";
         pub_color[i].publish(color_clusters[i]);
+      }
+
+      for (int i=0; i<intersection_clusters.size(); i++){
+        // advertise a topic and publish a msg for each cluster color based region growing cluster extraction
+        std::stringstream name;
+        name << "intersection_cluster" << i;
+        pub_intersection.push_back(node.advertise<PointCloud>(name.str(), 0, true));
+        intersection_clusters[i]->header.frame_id = "base_link";
+        pub_intersection[i].publish(intersection_clusters[i]);
       }
 
       recolored_cloud->header.frame_id = "base_link";
@@ -596,7 +627,7 @@ class SeamDetection {
     ros::Publisher pub_bounded = node.advertise<PointCloud> ("bounded_cloud", 1, true);
     ros::Publisher pub_recolored = node.advertise<PointCloud> ("recolored_cloud", 1, true);
 
-    std::vector<ros::Publisher> pub_color, pub_euclidean;
+    std::vector<ros::Publisher> pub_color, pub_euclidean, pub_intersection;
 
 };
 
@@ -611,46 +642,39 @@ int main(int argc, char** argv)
   sd.loadConfig();             // load parameters from config file to ros param server
   sd.loadCloud(sd.input_file); // load a pointcloud from pcd file 
 
-  PointCloud::Ptr cloud_copy (new PointCloud); // make copy here in main, just testing
+  PointCloudPtr cloud_copy (new PointCloud); // make copy here in main, just testing
   
   //sd.CopyCloud(*sd.input_cloud, *cloud_copy); // testing a useless function...
   pcl::copyPointCloud(*sd.input_cloud, *cloud_copy); // use the pcl copy
-
   sd.transformCloud(*cloud_copy, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
-  
   sd.boundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
 
   //sd.PublishCloud(*sd.input_cloud, "/input_cloud"); // testing single cloud publish
   //sd.PublishCloud(*transformed_cloud, "/transformed_cloud"); // not working for multiple topics
-  //sd.PublishCloud(*bounded_cloud, "/bounded_cloud");
 
-  PointCloudVec euclidean_clusters, color_clusters;
+  PointCloudVec euclidean_clusters, color_clusters, intersection_clusters;
 
   euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform euclidean cluster extraction
-
   color_clusters=sd.extractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform color region growing cluster extraction
 
-
   sd.getPCABoxes(euclidean_clusters);
-
   sd.getPCABoxes(color_clusters);
 
+  PointCloudPtr intersection_cloud (new PointCloud);
+  sd.getCloudIntersection(*euclidean_clusters[0], *color_clusters[0], *intersection_cloud);
+
+  intersection_clusters.push_back(intersection_cloud);
+  std::cout<<"intersection_cloud has "<<intersection_cloud->size()<<" points"<<std::endl;
+  std::cout<<"intersection_clusters has "<<intersection_clusters.size()<<" clouds"<<std::endl;
 
   sd.publishClouds();  // show the input, transformed, and bounded clouds
+  sd.publishClusters(euclidean_clusters, color_clusters, intersection_clusters); // show the euclidean and color based clusters
 
-  sd.publishClusters(euclidean_clusters, color_clusters); // show the euclidean and color based clusters 
+  //PointCloud intersection_cloud;
+  //PointCloud::iterator it;
+  //it=std::set_intersection(euclidean_clusters[0], euclidean_clusters[0]+10000, color_clusters, color_clusters[0]+10000, intersection.begin() );
+  //euclidean_clusters[0]
 
-
-
-
-  // get the pose and size of the minimum bounding box for each cluster
-  //Eigen::Quaternionf cluster_quaternion; // this is a temp variable to get the eigen::quaternion from the function which will be added to quaternions vector
-  //Eigen::Vector3f cluster_translation, cluster_dimension; // these are also temp vars for the same purpose, there is probably a better way to do this ... 
-  //sd.getPCABox(*sd.euclidean_clusters[0], cluster_quaternion, cluster_translation, cluster_dimension);  // does not work (compiles but throws runtime error), pick up here! 
-  
-  // 
-
-  
   ros::spin();
 
   return 0;
