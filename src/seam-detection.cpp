@@ -97,7 +97,7 @@ class SeamDetection {
       std::cout<<"|----------------------------------------|"<<std::endl;
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
-      // allocate memory for pointclouds
+      // allocate memory for pointclouds member attributes
       input_cloud = new PointCloud;
       transformed_cloud = new PointCloud;
       bounded_cloud = new PointCloud;
@@ -314,7 +314,7 @@ class SeamDetection {
       int j = 0;
       for (const auto& cluster : cluster_indices) 
       {
-        pcl::PointCloud<PointT>::Ptr cloud_cluster (new pcl::PointCloud<PointT>);
+        pcl::PointCloud<PointT>::Ptr cloud_cluster (new pcl::PointCloud<PointT>); // allocate memory for the clouds in clusters
         for (const auto& idx : cluster.indices) { // add points to cluster cloud
           cloud_cluster->push_back((*cloud)[idx]);
         } 
@@ -499,7 +499,7 @@ class SeamDetection {
     }
 
 
-    // function to find the intersection C of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
+    // function to find the intersection cloud3 of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
     // this is based on exact comparison and will not work for approximate cloud points 
     void getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2, PointCloud &cloud3){
 
@@ -548,7 +548,7 @@ class SeamDetection {
     // function to find the cluster of clouds representing the intersection of two clusters, calls SeamDetection::getClusterIntersection()   
     PointCloudVec getClusterIntersection(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh){
 
-      PointCloudPtr cloud (new PointCloud);
+      PointCloudPtr cloud (new PointCloud); // tmp memory for kth test intersection 
       PointCloudVec clusters;
 
       int k=0; // comparison counter (counts each time)
@@ -560,11 +560,21 @@ class SeamDetection {
 
           if (cloud->size()>thresh){ // check if the intersection passes a threshold
             std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
-            clusters.push_back(cloud); // add the intersection to the cluster of intersections
+                                             
+            // allocate memory for the pointcloud to be stored and pointed to by the new PointCloudVec  (vector of pointcloud pointers)
+            PointCloudPtr cluster (new PointCloud);
+            pcl::copyPointCloud(*cloud, *cluster); // make a copy to avoid the clear below
+
+            clusters.push_back(cluster); // add the intersection to the cluster of intersections
+            //std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points"<<std::endl; // the push is working....
+            std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
+            //
+
           }else{
             std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
           }
-          cloud->clear(); // empty the tmp cloud for the next intersection
+          cloud->clear(); // empty the tmp cloud for the next intersection, is this clear wiping both??? YES INDEED ! BUG IS HERE!
+          std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points after the clear"<<std::endl;
           k++;
         }
       }
@@ -775,11 +785,14 @@ int main(int argc, char** argv)
   sd.getCloudIntersection(*euclidean_clusters[0], *color_clusters[0], *intersection_cloud);
   std::cout<<"intersection_cloud has "<<intersection_cloud->size()<<" points"<<std::endl;
 
+  sd.publishCloud(*intersection_cloud, "/intersection_cloud");
+
+  
   PointCloudVec intersection_clusters;
-  //intersection_clusters=sd.getClusterIntersection(euclidean_clusters, color_clusters, 500);
-  sd.getClusterIntersection(euclidean_clusters, color_clusters, intersection_clusters, 500);
+  intersection_clusters=sd.getClusterIntersection(euclidean_clusters, color_clusters, 500);
   
   std::cout<<"intersection_clusters has "<<intersection_clusters.size()<<" clouds"<<std::endl;
+  std::cout<<"intersection_clusters[0] has "<<intersection_clusters[0]->size()<<" points"<<std::endl;
 
   sd.publishCloud(*sd.input_cloud, "/input_cloud"); // show the input, transformed, and bounded clouds
   sd.publishCloud(*sd.transformed_cloud, "/transformed_cloud"); 
@@ -788,12 +801,12 @@ int main(int argc, char** argv)
   //sd.publishClouds();  // show the input, transformed, and bounded clouds in a single hardcoded function (redundant with above)
   
   // intersection clusters not showing with this function either, fix this tomorrow
-  sd.publishClusters(euclidean_clusters, color_clusters, intersection_clusters); // show the euclidean and color based clusters
+  //sd.publishClusters(euclidean_clusters, color_clusters, intersection_clusters); // show the euclidean and color based clusters
   
-  //sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // working 
-  //sd.publishClusters(color_clusters, "/color_cluster");         // working  
-  //sd.publishClusters(intersection_clusters, "/intersection_cluster"); // not working, stuck on this!
-
+  sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // working 
+  sd.publishClusters(color_clusters, "/color_cluster");         // working  
+  sd.publishClusters(intersection_clusters, "/intersection_cluster"); // not working, stuck on this!
+   
   ros::spin();
 
   return 0;
