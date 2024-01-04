@@ -90,7 +90,7 @@ class SeamDetection {
     // functions 
     
     // default constructor
-    SeamDetection():rate(5) { // ROS::Rate rate(5) is in intializer list
+    SeamDetection(): rate(5), cloud_topic("/cloud") { // ROS::Rate rate(5) is in intializer list
       
       std::cout<<"|----------------------------------------|"<<std::endl;
       std::cout<<"|---------- SeamDetection v1.9 ----------|"<<std::endl;
@@ -539,22 +539,21 @@ class SeamDetection {
     //}
 
 
-  
-    // function to publish a single cloud (not working for multiple calls, blocking error)
-    /*
+    // function to publish a single cloud 
     void publishCloud(PointCloud &cloud, std::string topic){
  
       std::cout<<"|---------- SeamDetection::PublishCloud - publishing single cloud ----------|"<<std::endl;
 
-      ros::Publisher pub = node.advertise<PointCloud> (topic, 1, true);
-
-      //input_cloud->header.frame_id = "base_link";
+      // advertise a new topic and publish a msg each time this function is called
+      pub_clouds.push_back(node.advertise<PointCloud>(topic, 0, true));
+      
       cloud.header.frame_id = "base_link";
 
-      pub.publish(cloud);
-      ros::spin();
+      pub_clouds[pub_clouds.size()-1].publish(cloud);
 
-    }*/
+      ros::spinOnce();
+
+    }
 
 
     // function to publish the input and other clouds to ROS for RVIZ 
@@ -632,6 +631,8 @@ class SeamDetection {
     double bounding_box[6];
     Eigen::Vector3f pre_rotation, pre_translation;
 
+    std::string cloud_topic;
+
 
   private:
 
@@ -643,6 +644,10 @@ class SeamDetection {
     ros::Publisher pub_transformed = node.advertise<PointCloud> ("transformed_cloud", 1, true);
     ros::Publisher pub_bounded = node.advertise<PointCloud> ("bounded_cloud", 1, true);
     ros::Publisher pub_recolored = node.advertise<PointCloud> ("recolored_cloud", 1, true);
+
+    // generic publisher, can this be used for all of the clouds?
+    //ros::Publisher cloud_pub = node.advertise<PointCloud> (cloud_topic, 1, true);
+    std::vector<ros::Publisher> pub_clouds;
 
     std::vector<ros::Publisher> pub_color, pub_euclidean, pub_intersection;
 
@@ -666,9 +671,6 @@ int main(int argc, char** argv)
   sd.transformCloud(*cloud_copy, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
 
-  //sd.PublishCloud(*sd.input_cloud, "/input_cloud"); // testing single cloud publish
-  //sd.PublishCloud(*transformed_cloud, "/transformed_cloud"); // not working for multiple topics
-
   PointCloudVec euclidean_clusters, color_clusters, intersection_clusters;
 
   euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform Euclidean cluster extraction
@@ -689,12 +691,12 @@ int main(int argc, char** argv)
   std::cout<<"intersection_cloud has "<<intersection_cloud->size()<<" points"<<std::endl;
   std::cout<<"intersection_clusters has "<<intersection_clusters.size()<<" clouds"<<std::endl;
 
-  sd.publishClouds();  // show the input, transformed, and bounded clouds
-  sd.publishClusters(euclidean_clusters, color_clusters, intersection_clusters); // show the euclidean and color based clusters
+  sd.publishCloud(*sd.input_cloud, "/input_cloud"); // show the input, transformed, and bounded clouds
+  sd.publishCloud(*sd.transformed_cloud, "/transformed_cloud"); 
+  sd.publishCloud(*sd.bounded_cloud, "/bounded_cloud");
 
-  //PointCloud intersection_cloud;
-  //PointCloud::iterator it;
-  //it=std::set_intersection(euclidean_clusters[0], euclidean_clusters[0]+10000, color_clusters, color_clusters[0]+10000, intersection.begin() );
+  //sd.publishClouds();  // show the input, transformed, and bounded clouds in a single hardcoded function (redundant with above)
+  sd.publishClusters(euclidean_clusters, color_clusters, intersection_clusters); // show the euclidean and color based clusters
 
   ros::spin();
 
