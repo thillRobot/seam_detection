@@ -415,6 +415,7 @@ class SeamDetection {
 
     }
 
+
     // function to find the minimum oriented bounding box of a cloud using principle component analysis
     void getPCABox(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen::Vector3f& bbox_translation, Eigen::Vector3f& bbox_dimensions){
 
@@ -501,6 +502,7 @@ class SeamDetection {
       }
     }
 
+
     // function to find the intersection C of two clouds A,B defined by the points in cloud A AND cloud B 
     void getCloudIntersection(PointCloud &A, PointCloud &B, PointCloud &C){
 
@@ -510,16 +512,31 @@ class SeamDetection {
         for (int j=0; j<B.size(); j++){
 
           if (A.points[i].x==B.points[j].x&&A.points[i].y==B.points[j].y&&A.points[i].z==B.points[j].z){ 
-
             C.push_back(A[i]); // add the shared point to the new cloud
             k++; // increment the new cloud counter
-          
           }
         }
       }
-
       std::cout<< "the intersection cloud has "<< C.size() << " points" <<std::endl;
     }
+
+    
+    // function to merge a vector of pointclouds into a single pointcloud
+    void mergeClusters(PointCloudVec &clusters, PointCloud &output ){
+
+      for (int i=0; i<clusters.size(); i++){
+      
+        for (int j=0; j<clusters[i]->size(); j++){
+          output.push_back(clusters[i]->points[j]);
+        }
+      
+      }
+
+      std::cout<< "the merged cloud has "<< output.size() << " points" <<std::endl;
+    }
+
+    //PointCloudVec getClusterIntersection(PointCloudVec &A, PointCloudVec &B){
+    //}
 
 
   
@@ -654,8 +671,13 @@ int main(int argc, char** argv)
 
   PointCloudVec euclidean_clusters, color_clusters, intersection_clusters;
 
-  euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform euclidean cluster extraction
-  color_clusters=sd.extractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform color region growing cluster extraction
+  euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform Euclidean cluster extraction
+  color_clusters=sd.extractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
+
+  PointCloudPtr euclidean_merged (new PointCloud);
+  sd.mergeClusters(euclidean_clusters, *euclidean_merged);
+
+  std::cout<<"euclidean_merged has "<<euclidean_merged->size()<<" points"<< std::endl;
 
   sd.getPCABoxes(euclidean_clusters);
   sd.getPCABoxes(color_clusters);
@@ -673,7 +695,6 @@ int main(int argc, char** argv)
   //PointCloud intersection_cloud;
   //PointCloud::iterator it;
   //it=std::set_intersection(euclidean_clusters[0], euclidean_clusters[0]+10000, color_clusters, color_clusters[0]+10000, intersection.begin() );
-  //euclidean_clusters[0]
 
   ros::spin();
 
