@@ -453,9 +453,6 @@ class SeamDetection {
       volume=dimension[0]*dimension[1]*dimension[2]; // calculate volume as product of dimensions
       aspect_ratio=dimension.maxCoeff()/dimension.minCoeff(); // calculate aspect ratio as max dimension / min dimension
 
-      std::cout<<"volume: "<<volume<<std::endl;
-      std::cout<<"aspect ratio: "<<aspect_ratio<<std::endl;
-
       rotation=box_rotation;    // copy to the output variables, these lines crash now that I am passing in a vector ...
       translation=box_translation;
 
@@ -525,26 +522,77 @@ class SeamDetection {
       distance_y=translation1[1]-translation2[1];
       distance_z=translation1[2]-translation2[2];
       f1 = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0); // square root of sum of squared component distances between centroids - l
+      //std::cout<<"f1: "<<f1<<std::endl;
 
       // term2 - volume of bounding box
       volume1=dimension1[0]*dimension1[1]*dimension1[2];
       volume2=dimension2[0]*dimension2[1]*dimension2[2];
-      f2 = pow(volume1-volume2,1.0/3.0); // cube root of difference in volume - l
+      f2 = pow(std::abs(volume1-volume2),1.0/3.0); // cube root of difference in volume - l
+      //std::cout<<"f2: "<<f2<<std::endl;
 
       // term3 - aspect ratio of bounding box 
       aspect_ratio1=  dimension1.maxCoeff()/dimension1.minCoeff(); 
       aspect_ratio2=  dimension2.maxCoeff()/dimension2.minCoeff(); 
       f3 = pow(pow(aspect_ratio1 - aspect_ratio2, 2), 1.0/2.0); // square root of squared difference in aspect ratios - l
+      //std::cout<<"f3: "<<f3<<std::endl;
 
       // term4 - orientation of bounding box
-      difference_x=dimension1[0]-dimension2[0];
-      difference_y=dimension1[1]-dimension2[1];
+      difference_x=dimension1[0]-dimension2[0]; // this cannot be right, does not contain orientation info...
+      difference_y=dimension1[1]-dimension2[1]; // need to use projection onto fixed framed
       difference_z=dimension1[2]-dimension2[2];
       f4 = pow(pow(difference_x,2)+pow(difference_y,2)+pow(difference_z,2), 1.0/2.0); // square root of sum of square dimension differences - l
+      //std::cout<<"f4: "<<f4<<std::endl;
 
       // objective function value is sum of terms 
       return score=f1+f2+f3+f4;
 
+    }
+
+    // function to find best 1 to 1 correlation between two sets of clusters
+    // for now this assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence 
+    PointCloudVec matchClusters(PointCloudVec clusters, PointCloudVec compares){
+
+      double score, score_min;
+      int j_min, success;
+
+      PointCloudVec matches;
+
+      if (clusters.size()<=compares.size()){         // clusters1 has fewer clusters than clusters2  
+         
+        for (int i=0; i<clusters.size(); i++){               // for each cluster in clusters1 find best match from clusters2 
+          
+          score_min=scoreClouds(*clusters[0], *compares[0]);  // seed the search with the score of first pair 
+          j_min=0;                                              // dont forget to initialize the search index  ! 
+
+          for (int j=0; j<compares.size(); j++){
+            score=scoreClouds(*clusters[i], *compares[j]);
+            std::cout<<"clusters["<<i<<"] and compares["<<j<<"] have a score "<<score<<std::endl;
+
+            if (score<score_min){
+              score_min=score;    // store the min score
+              j_min=j;            // and the index of the min
+            }
+  
+          }
+
+          // after checking all potential matches, push the best match into the vector of matches with the recorded index
+          matches.push_back(compares[j_min]);
+          std::cout<<"clusters["<<i<<"] was matched to compares["<<j_min<<"] with a score "<<score_min<<std::endl;
+          compares.erase(compares.begin()+j_min); // remove the match from the set of compares for 1-1 correspondence 
+
+        }
+
+        for (int k=0; k<matches.size(); k++){
+          std::cout<<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
+          <<" and compares["<<k<<"] has "<<compares[k]->size()<< " points"<<std::endl;
+        }
+      
+      }else{       // compares has fewer clusters than clusters, empty return 
+        std::cout<<"warning: ( clusters.size() <= compares.size() ) failed, no matches returned"<<std::endl;
+      }
+
+      std::cout<<"matches contains "<<matches.size()<<" clusters after matching complete"<<std::endl;
+      return matches;
     }
 
 
@@ -825,7 +873,6 @@ int main(int argc, char** argv)
   sd.publishCloud(*sd.bounded_cloud, "/bounded_cloud");
 
 
-
   PointCloudVec euclidean_clusters, color_clusters;
   euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform Euclidean cluster extraction
   color_clusters=sd.extractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
@@ -844,6 +891,8 @@ int main(int argc, char** argv)
   pair_score=sd.scoreClouds(*euclidean_clusters[0], *color_clusters[0]);
   std::cout<<"the pair: ( euclidean_clusters[0], color_clusters[0] ) has a score "<<pair_score<<std::endl;
   
+  sd.matchClusters(euclidean_clusters, color_clusters);
+
   /*
   PointCloudPtr intersection_cloud (new PointCloud); // testing intersection method
   sd.getCloudIntersection(*euclidean_clusters[0], *color_clusters[0], *intersection_cloud);
