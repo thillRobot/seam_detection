@@ -540,7 +540,8 @@ class SeamDetection {
       difference_x=dimension1[0]-dimension2[0]; // this cannot be right, does not contain orientation info...
       difference_y=dimension1[1]-dimension2[1]; // need to use projection onto fixed framed
       difference_z=dimension1[2]-dimension2[2];
-      f4 = pow(pow(difference_x,2)+pow(difference_y,2)+pow(difference_z,2), 1.0/2.0); // square root of sum of square dimension differences - l
+      //f4 = pow(pow(difference_x,2)+pow(difference_y,2)+pow(difference_z,2), 1.0/2.0); // square root of sum of square dimension differences - l
+      f4=0; // disabled temporarily 
       //std::cout<<"f4: "<<f4<<std::endl;
 
       // objective function value is sum of terms 
@@ -566,7 +567,8 @@ class SeamDetection {
 
           for (int j=0; j<compares.size(); j++){
             score=scoreClouds(*clusters[i], *compares[j]);
-            std::cout<<"clusters["<<i<<"] and compares["<<j<<"] have a score "<<score<<std::endl;
+            std::cout<<"clusters["<<i<<"] (size:" <<clusters[i]->size()<<") and compares["<<j
+                     <<"] (size:"<<compares[j]->size()<<") have a score "<<score<<std::endl;
 
             if (score<score_min){
               score_min=score;    // store the min score
@@ -577,14 +579,15 @@ class SeamDetection {
 
           // after checking all potential matches, push the best match into the vector of matches with the recorded index
           matches.push_back(compares[j_min]);
-          std::cout<<"clusters["<<i<<"] was matched to compares["<<j_min<<"] with a score "<<score_min<<std::endl;
+          std::cout<<"clusters["<<i<<"] (size:" <<clusters[i]->size()<<") was matched to compares["
+                   <<j_min<<"] (size:"<<compares[j_min]->size()<<") with a score "<<score_min<<std::endl;
           compares.erase(compares.begin()+j_min); // remove the match from the set of compares for 1-1 correspondence 
 
         }
 
-        for (int k=0; k<matches.size(); k++){
+        for (int k=0; k<clusters.size(); k++){
           std::cout<<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
-          <<" and compares["<<k<<"] has "<<compares[k]->size()<< " points"<<std::endl;
+          <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
         }
       
       }else{       // compares has fewer clusters than clusters, empty return 
@@ -891,7 +894,13 @@ int main(int argc, char** argv)
   pair_score=sd.scoreClouds(*euclidean_clusters[0], *color_clusters[0]);
   std::cout<<"the pair: ( euclidean_clusters[0], color_clusters[0] ) has a score "<<pair_score<<std::endl;
   
-  sd.matchClusters(euclidean_clusters, color_clusters);
+  PointCloudVec euclidean_matches; // keep in mind that this vector contains pointers to the original clusters data
+  euclidean_matches=sd.matchClusters(euclidean_clusters, color_clusters); // no data copies made here
+
+  sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
+  sd.publishClusters(color_clusters, "/color_cluster");           
+  sd.publishClusters(euclidean_matches, "/euclidean_match");
+
 
   /*
   PointCloudPtr intersection_cloud (new PointCloud); // testing intersection method
