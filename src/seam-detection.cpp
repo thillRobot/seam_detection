@@ -413,52 +413,51 @@ class SeamDetection {
 
 
     // function to find the minimum oriented bounding box of a cloud using principle component analysis
-    void getPCABox(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen::Vector3f& bbox_translation, Eigen::Vector3f& bbox_dimensions){
+    // void getPCABox(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen::Vector3f& bbox_translation, Eigen::Vector3f& bbox_dimensions){
 
-      PointCloud::Ptr cloud (new PointCloud); //make working copy of the input cloud 
-      //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-      pcl::copyPointCloud(input,*cloud);
+    void getPCABox(PointCloud &input, Eigen::Quaternionf& rotation, Eigen::Vector3f& translation, Eigen::Vector3f& dimension){
+
+      PointCloud::Ptr cloud (new PointCloud); //allocate memory 
+      pcl::copyPointCloud(input,*cloud);      //and make working copy of the input cloud 
 
       // Compute principal directions
-      Eigen::Vector4f pcaCentroid;
-      pcl::compute3DCentroid(*cloud, pcaCentroid);
+      Eigen::Vector4f centroid;
+      pcl::compute3DCentroid(*cloud, centroid);
       Eigen::Matrix3f covariance;
-      computeCovarianceMatrixNormalized(*cloud, pcaCentroid, covariance);
+      computeCovarianceMatrixNormalized(*cloud, centroid, covariance);
       Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
-      Eigen::Matrix3f eigenVectorsPCA = eigen_solver.eigenvectors();
-      eigenVectorsPCA.col(2) = eigenVectorsPCA.col(0).cross(eigenVectorsPCA.col(1));
+      Eigen::Matrix3f eigen_vectors = eigen_solver.eigenvectors();
+      eigen_vectors.col(2) = eigen_vectors.col(0).cross(eigen_vectors.col(1));
 
       // Transform the original cloud to the origin where the principal components correspond to the axes.
-      Eigen::Matrix4f projectionTransform(Eigen::Matrix4f::Identity());
-      projectionTransform.block<3,3>(0,0) = eigenVectorsPCA.transpose();
-      projectionTransform.block<3,1>(0,3) = -1.f * (projectionTransform.block<3,3>(0,0) * pcaCentroid.head<3>());
-      //pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPointsProjected (new pcl::PointCloud<pcl::PointXYZ>);
-      PointCloudPtr cloudPointsProjected (new PointCloud);
+      Eigen::Matrix4f projection_transform(Eigen::Matrix4f::Identity());
+      projection_transform.block<3,3>(0,0) = eigen_vectors.transpose();
+      projection_transform.block<3,1>(0,3) = -1.f * (projection_transform.block<3,3>(0,0) * centroid.head<3>());
+      PointCloudPtr projected_cloud (new PointCloud);
       
-      pcl::transformPointCloud(*cloud, *cloudPointsProjected, projectionTransform);
+      pcl::transformPointCloud(*cloud, *projected_cloud, projection_transform);
       // Get the minimum and maximum points of the transformed cloud.
-      //pcl::PointXYZ minPoint, maxPoint;
-      PointT minPoint, maxPoint;
-      pcl::getMinMax3D(*cloudPointsProjected, minPoint, maxPoint);
-      const Eigen::Vector3f meanDiagonal = 0.5f*(maxPoint.getVector3fMap() + minPoint.getVector3fMap());
+      PointT min_point, max_point;
+      pcl::getMinMax3D(*projected_cloud, min_point, max_point);
+      const Eigen::Vector3f mean_diagonal = 0.5f*(max_point.getVector3fMap() + min_point.getVector3fMap());
 
       // Final transform
-      const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA); 
-      const Eigen::Vector3f bboxTranslation = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
+      const Eigen::Quaternionf box_rotation(eigen_vectors); 
+      const Eigen::Vector3f box_translation = eigen_vectors * mean_diagonal + centroid.head<3>();
       
-      bbox_dimensions[0]=maxPoint.x-minPoint.x;
-      bbox_dimensions[1]=maxPoint.y-minPoint.y;
-      bbox_dimensions[2]=maxPoint.z-minPoint.z;
+      dimension[0]=max_point.x-min_point.x; // store the x,y,z lengths of the bounding box
+      dimension[1]=max_point.y-min_point.y;
+      dimension[2]=max_point.z-min_point.z;
 
-      double bbox_volume, bbox_aspect_ratio;
-      bbox_volume=bbox_dimensions[0]*bbox_dimensions[1]*bbox_dimensions[2]; // calculate volume as product of dimensions
-      bbox_aspect_ratio=bbox_dimensions.maxCoeff()/bbox_dimensions.minCoeff(); // calculate aspect ratio as max dimension / min dimension
+      double volume, aspect_ratio;
+      volume=dimension[0]*dimension[1]*dimension[2]; // calculate volume as product of dimensions
+      aspect_ratio=dimension.maxCoeff()/dimension.minCoeff(); // calculate aspect ratio as max dimension / min dimension
 
-      std::cout<<"volume: "<<bbox_volume<<std::endl;
-      std::cout<<"aspect ratio: "<<bbox_aspect_ratio<<std::endl;
+      std::cout<<"volume: "<<volume<<std::endl;
+      std::cout<<"aspect ratio: "<<aspect_ratio<<std::endl;
 
-      bbox_quaternion=bboxQuaternion; // copy to the output variables, these lines crash now that I am passing in a vector
-      bbox_translation=bboxTranslation;
+      rotation=box_rotation;    // copy to the output variables, these lines crash now that I am passing in a vector ...
+      translation=box_translation;
 
     }
 
@@ -496,6 +495,56 @@ class SeamDetection {
                                             <<dimensions[i][2] << "]" <<std::endl;
       
       }
+    }
+
+
+    // function to calculate the the objection function value or score for a pair of PointClouds
+    // to be used to find agreement between potentially overlapping clouds 
+    double scoreClouds(PointCloud &cloud1, PointCloud &cloud2){
+
+      double score=100, f1, f2, f3, f4, 
+             distance_x, distance_y, distance_z,
+             volume1, volume2, 
+             aspect_ratio1, aspect_ratio2,
+             difference_x, difference_y, difference_z;
+
+      // find the pca min bounding box for the first cloud
+      Eigen::Quaternionf quaternion1; 
+      Eigen::Vector3f translation1, dimension1;  
+      getPCABox(cloud1, quaternion1, translation1, dimension1);
+
+      // find the pca min bounding box for the second cloud 
+      Eigen::Quaternionf quaternion2; 
+      Eigen::Vector3f translation2, dimension2;  
+      getPCABox(cloud2, quaternion2, translation2, dimension2);
+
+      // calculate separate terms for the objective function between the two clouds
+
+      // term1 - position of centroid
+      distance_x=translation1[0]-translation2[0];
+      distance_y=translation1[1]-translation2[1];
+      distance_z=translation1[2]-translation2[2];
+      f1 = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0); // square root of sum of squared component distances between centroids - l
+
+      // term2 - volume of bounding box
+      volume1=dimension1[0]*dimension1[1]*dimension1[2];
+      volume2=dimension2[0]*dimension2[1]*dimension2[2];
+      f2 = pow(volume1-volume2,1.0/3.0); // cube root of difference in volume - l
+
+      // term3 - aspect ratio of bounding box 
+      aspect_ratio1=  dimension1.maxCoeff()/dimension1.minCoeff(); 
+      aspect_ratio2=  dimension2.maxCoeff()/dimension2.minCoeff(); 
+      f3 = pow(pow(aspect_ratio1 - aspect_ratio2, 2), 1.0/2.0); // square root of squared difference in aspect ratios - l
+
+      // term4 - orientation of bounding box
+      difference_x=dimension1[0]-dimension2[0];
+      difference_y=dimension1[1]-dimension2[1];
+      difference_z=dimension1[2]-dimension2[2];
+      f4 = pow(pow(difference_x,2)+pow(difference_y,2)+pow(difference_z,2), 1.0/2.0); // square root of sum of square dimension differences - l
+
+      // objective function value is sum of terms 
+      return score=f1+f2+f3+f4;
+
     }
 
 
@@ -565,7 +614,7 @@ class SeamDetection {
             PointCloudPtr cluster (new PointCloud);
             pcl::copyPointCloud(*cloud, *cluster); // make a copy to avoid the clear below
 
-            // check multiple add here
+            // check multiple add here ... intersection 'cluster' is unique, new clusters should not have repeat entries... check on this  
             clusters.push_back(cluster); // add the intersection to the cluster of intersections
             //std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points"<<std::endl; // the push is working....
             std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
@@ -770,7 +819,13 @@ int main(int argc, char** argv)
   // add voxel to choose res here
   sd.transformCloud(*cloud_copy, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
-  
+ 
+  sd.publishCloud(*sd.input_cloud, "/input_cloud"); // show the input, transformed, and bounded clouds
+  sd.publishCloud(*sd.transformed_cloud, "/transformed_cloud"); 
+  sd.publishCloud(*sd.bounded_cloud, "/bounded_cloud");
+
+
+
   PointCloudVec euclidean_clusters, color_clusters;
   euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform Euclidean cluster extraction
   color_clusters=sd.extractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
@@ -784,30 +839,29 @@ int main(int argc, char** argv)
   sd.getPCABoxes(color_clusters);
 
   // add low cost cluster matching here (combine bounding box data)
-
+  
+  double pair_score; 
+  pair_score=sd.scoreClouds(*euclidean_clusters[0], *color_clusters[0]);
+  std::cout<<"the pair: ( euclidean_clusters[0], color_clusters[0] ) has a score "<<pair_score<<std::endl;
+  
+  /*
   PointCloudPtr intersection_cloud (new PointCloud); // testing intersection method
   sd.getCloudIntersection(*euclidean_clusters[0], *color_clusters[0], *intersection_cloud);
   std::cout<<"intersection_cloud has "<<intersection_cloud->size()<<" points"<<std::endl;
-
   sd.publishCloud(*intersection_cloud, "/intersection_cloud"); // show in rviz
+  */
 
+  /*
   PointCloudVec intersection_clusters;
   intersection_clusters=sd.getClusterIntersection(euclidean_clusters, color_clusters, 500); 
   
   std::cout<<"intersection_clusters has "<<intersection_clusters.size()<<" clouds"<<std::endl;
   std::cout<<"intersection_clusters[0] has "<<intersection_clusters[0]->size()<<" points"<<std::endl;
-
-  sd.publishCloud(*sd.input_cloud, "/input_cloud"); // show the input, transformed, and bounded clouds
-  sd.publishCloud(*sd.transformed_cloud, "/transformed_cloud"); 
-  sd.publishCloud(*sd.bounded_cloud, "/bounded_cloud");
-
-  //sd.publishClouds();  // show the input, transformed, and bounded clouds in a single hardcoded function (redundant with above)
-  // intersection clusters not showing with this function either, fix this tomorrow
-  //sd.publishClusters(euclidean_clusters, color_clusters, intersection_clusters); // show the euclidean and color based clusters
   
-  sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // working 
-  sd.publishClusters(color_clusters, "/color_cluster");         // working  
-  sd.publishClusters(intersection_clusters, "/intersection_cluster"); // not working, stuck on this!
+  sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
+  sd.publishClusters(color_clusters, "/color_cluster");           
+  sd.publishClusters(intersection_clusters, "/intersection_cluster");
+  */
    
   ros::spin();
 
