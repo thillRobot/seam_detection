@@ -565,6 +565,7 @@ class SeamDetection {
             PointCloudPtr cluster (new PointCloud);
             pcl::copyPointCloud(*cloud, *cluster); // make a copy to avoid the clear below
 
+            // check multiple add here
             clusters.push_back(cluster); // add the intersection to the cluster of intersections
             //std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points"<<std::endl; // the push is working....
             std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
@@ -766,9 +767,10 @@ int main(int argc, char** argv)
   //sd.CopyCloud(*sd.input_cloud, *cloud_copy); // testing a useless function...
   pcl::copyPointCloud(*sd.input_cloud, *cloud_copy); // use the pcl copy
 
+  // add voxel to choose res here
   sd.transformCloud(*cloud_copy, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
-
+  
   PointCloudVec euclidean_clusters, color_clusters;
   euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform Euclidean cluster extraction
   color_clusters=sd.extractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
@@ -781,15 +783,16 @@ int main(int argc, char** argv)
   sd.getPCABoxes(euclidean_clusters);
   sd.getPCABoxes(color_clusters);
 
-  PointCloudPtr intersection_cloud (new PointCloud);
+  // add low cost cluster matching here (combine bounding box data)
+
+  PointCloudPtr intersection_cloud (new PointCloud); // testing intersection method
   sd.getCloudIntersection(*euclidean_clusters[0], *color_clusters[0], *intersection_cloud);
   std::cout<<"intersection_cloud has "<<intersection_cloud->size()<<" points"<<std::endl;
 
-  sd.publishCloud(*intersection_cloud, "/intersection_cloud");
+  sd.publishCloud(*intersection_cloud, "/intersection_cloud"); // show in rviz
 
-  
   PointCloudVec intersection_clusters;
-  intersection_clusters=sd.getClusterIntersection(euclidean_clusters, color_clusters, 500);
+  intersection_clusters=sd.getClusterIntersection(euclidean_clusters, color_clusters, 500); 
   
   std::cout<<"intersection_clusters has "<<intersection_clusters.size()<<" clouds"<<std::endl;
   std::cout<<"intersection_clusters[0] has "<<intersection_clusters[0]->size()<<" points"<<std::endl;
@@ -799,7 +802,6 @@ int main(int argc, char** argv)
   sd.publishCloud(*sd.bounded_cloud, "/bounded_cloud");
 
   //sd.publishClouds();  // show the input, transformed, and bounded clouds in a single hardcoded function (redundant with above)
-  
   // intersection clusters not showing with this function either, fix this tomorrow
   //sd.publishClusters(euclidean_clusters, color_clusters, intersection_clusters); // show the euclidean and color based clusters
   
