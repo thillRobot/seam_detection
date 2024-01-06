@@ -599,6 +599,95 @@ class SeamDetection {
     }
 
 
+    // modified function to find best 1 to 1 correlation between two sets of clusters
+    // for now this assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence
+    // this version checks all n^2 matches before removing any from the compare set 
+    PointCloudVec matchClusters2(PointCloudVec clusters, PointCloudVec compares){
+
+      double score, score_min;
+      int success;
+
+      //PointCloudVec clusters;
+      PointCloudVec matches;
+      matches=clusters; // copying to get size, just testing
+
+      //clusters=clusters_in; // working copy of the clusters vector
+
+      std::vector<int> cluster_indices(clusters.size()), compare_indices(compares.size()); // vectors to contain the search set indices
+      std::iota (std::begin(cluster_indices), std::end(cluster_indices), 0); // fill with consecutive integers
+      std::iota (std::begin(compare_indices), std::end(compare_indices), 0); // fill with consecutive integers
+
+      std::vector<int>::iterator it, jt, it_min, jt_min;
+
+      if (clusters.size()<=compares.size()){  // clusters1 has fewer clusters than clusters2  (input error checking)
+         
+        for (int h=0; h<clusters.size(); h++){ // loop across each cluster in clusters, to find a best match for each
+          
+          score_min=scoreClouds(*clusters[cluster_indices[0]], *compares[compare_indices[0]]);  // seed the search with the score of first pair before the outside loop
+          
+          //i_min=cluster_indices[0]; // default value for i_min in case it is not assigned in search
+          //std::cout<<"cluster_indices: "<<std::endl;
+          for (it=cluster_indices.begin(); it != cluster_indices.end(); it++){ // for each cluster in clusters1 find best match from clusters2 
+            
+            //j_min=compare_indices[0];  // default value for i_min in case it is not assigned in search
+            for (jt=compare_indices.begin(); jt != compare_indices.end(); jt++){
+         
+              score=scoreClouds(*clusters[*it], *compares[*jt]);
+
+              //std::cout<<"clusters["<<*it<<"] (size:" <<clusters[*it]->size()<<") and compares["<<*jt
+              //        <<"] (size:"<<compares[*jt]->size()<<") have a score "<<score<<std::endl;
+
+              if (score<score_min&&score){
+                score_min=score;    // save the min score
+                it_min=it;     // save the iterator to the min score cluster
+                jt_min=jt;     // save the iterator to the min score compare
+
+              }
+            }
+          }
+
+          std::cout<<"on iteration "<<h<<" the best match was found between clusters["<<*it_min<< "] and compares["<<*jt_min<<"] with score"<<score_min<<std::endl;
+          std::cout<<"matches size: "<<matches.size()<<std::endl;
+          // after checking all potential matches, 
+          // push the best match into the vector of matches with the recorded index for the correct cluster
+          //matches.insert(matches.begin()+*it_min, compares[*jt_min]); // this is causing the vector to grow
+          matches.at(*it_min)=compares[*jt_min];
+        
+          std::cout<<"erasing clusters"<<std::endl;
+          cluster_indices.erase(it_min);  // remove the cluster index from the set of clusters indices
+          compare_indices.erase(jt_min);  // remove the match index from the set of compares for 1-1 correspondence
+
+          std::cout<<"new clusters:"<<std::endl;
+          for (it=cluster_indices.begin(); it!=cluster_indices.end(); it++){
+            std::cout<<"clusters["<<*it<<"] (size: "<<clusters[*it]->size()<<")"<<std::endl;
+          }
+          std::cout<<"new compares:"<<std::endl;
+          for (jt=compare_indices.begin(); jt!=compare_indices.end(); jt++){
+            std::cout<<"compares["<<*jt<<"] (size: "<<compares[*jt]->size()<<")"<<std::endl;
+          }
+          
+        }
+
+        //std::cout<<"clusters["<<i<<"] (size:" <<clusters[i]->size()<<") was matched to compares["
+        //         <<j_min<<"] (size:"<<compares[j_min]->size()<<") with a score "<<score_min<<std::endl;
+                
+        for (int k=0; k<clusters.size(); k++){
+          std::cout<<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
+                   <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
+        }
+
+        for (int k=0; k<matches.size(); k++){
+          std::cout<<"matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
+        }
+      
+      }else{       // compares has fewer clusters than clusters, empty return 
+        std::cout<<"warning: ( clusters.size() <= compares.size() ) failed, no matches returned"<<std::endl;
+      }
+
+      std::cout<<"matches contains "<<matches.size()<<" clusters after matching complete"<<std::endl;
+      return matches;
+    }
+
     // function to find the intersection cloud3 of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
     // this is based on exact comparison and will not work for approximate cloud points 
     void getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2, PointCloud &cloud3){
@@ -895,11 +984,14 @@ int main(int argc, char** argv)
   std::cout<<"the pair: ( euclidean_clusters[0], color_clusters[0] ) has a score "<<pair_score<<std::endl;
   
   PointCloudVec euclidean_matches; // keep in mind that this vector contains pointers to the original clusters data
-  euclidean_matches=sd.matchClusters(euclidean_clusters, color_clusters); // no data copies made here
+  //euclidean_matches=sd.matchClusters(euclidean_clusters, color_clusters); // no data copies made here
 
-  sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
-  sd.publishClusters(color_clusters, "/color_cluster");           
-  sd.publishClusters(euclidean_matches, "/euclidean_match");
+  euclidean_matches=sd.matchClusters2(euclidean_clusters, color_clusters); // no data copies made here
+
+
+  //sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
+  //sd.publishClusters(color_clusters, "/color_cluster");           
+  //sd.publishClusters(euclidean_matches, "/euclidean_match");
 
 
   /*
