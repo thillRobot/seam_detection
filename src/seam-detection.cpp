@@ -533,8 +533,7 @@ class SeamDetection {
       // term3 - aspect ratio of bounding box 
       aspect_ratio1=  dimension1.maxCoeff()/dimension1.minCoeff(); 
       aspect_ratio2=  dimension2.maxCoeff()/dimension2.minCoeff(); 
-      //f3 = pow(pow(aspect_ratio1 - aspect_ratio2, 2), 1.0/2.0); // square root of squared difference in aspect ratios - l
-      f3=0;
+      f3 = pow(pow(aspect_ratio1 - aspect_ratio2, 2), 1.0/2.0); // square root of squared difference in aspect ratios - l
       //std::cout<<"f3: "<<f3<<std::endl;
 
       // term4 - orientation of bounding box
@@ -973,11 +972,9 @@ int main(int argc, char** argv)
 
   euclidean_matches=sd.matchClusters2(euclidean_clusters, color_clusters); // no data copies made here
 
-
-  //sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
-  //sd.publishClusters(color_clusters, "/color_cluster");           
-  //sd.publishClusters(euclidean_matches, "/euclidean_match");
-
+  sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
+  sd.publishClusters(color_clusters, "/color_cluster");           
+  sd.publishClusters(euclidean_matches, "/euclidean_match");
 
   /*
   PointCloudPtr intersection_cloud (new PointCloud); // testing intersection method
