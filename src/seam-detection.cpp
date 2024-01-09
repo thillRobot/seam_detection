@@ -678,20 +678,29 @@ class SeamDetection {
     PointCloudVec matchClustersMulti(PointCloudVec clusters, PointCloudVec compares, bool verbose){
 
       PointCloudVec matches;
+      matches=clusters; // make a copy just to get the size, change to an empty copy later
+
       std::vector<double> scores(compares.size()); // vector of scores, for debugging purposes
-      std::vector<double> centroid_diffs(compares.size()), 
+      std::vector<double> centroid_diffs(compares.size()), // vectors of differences 
                           volume_diffs(compares.size()), 
                           aspect_ratio_diffs(compares.size());
+
+      std::vector<double> centroid_diffs_norm(compares.size()), // normalized vectors of differences 
+                          volume_diffs_norm(compares.size()), 
+                          aspect_ratio_diffs_norm(compares.size());                    
+
 
       double distance_x, distance_y, distance_z,
       volume1, volume2, 
       aspect_ratio1, aspect_ratio2,
       difference_x, difference_y, difference_z;
 
+      double centroid_diffs_median, volume_diffs_median, aspect_ratio_diffs_median;
+
       if (clusters.size()<=compares.size()){  // clusters has fewer clusters than compares 
          
          for (int i=0; i<clusters.size(); i++){               // for each cluster in clusters find best match from compares 
-          scores.empty();
+          //scores.empty();
 
           //score_min=scoreClouds(*clusters[0], *compares[0], verbose);  // seed the search with the score of first pair 
           //j_min=0;                                              // dont forget to initialize the search index  ! 
@@ -735,28 +744,70 @@ class SeamDetection {
   
           }
 
-          // after checking all potential matches, push the best match into the vector of matches with the recorded index
-          //matches.push_back(compares[j_min]);
-          //matches.at(i)=compares[j_min];
+          // calculate the median value for each objective 
+          centroid_diffs_median=getMedian(centroid_diffs);
+          volume_diffs_median=getMedian(volume_diffs);
+          aspect_ratio_diffs_median=getMedian(aspect_ratio_diffs);
+          
+          double score, score_min;
+          int j_min=0; // default value for the search index, in case it is not set
+
+          // seed the minimization with the first set of differences 
+          score_min=centroid_diffs_norm[j_min]+volume_diffs_norm[j_min]+aspect_ratio_diffs_norm[j_min];
+
+          for(int j=0; j<compares.size(); j++){
+
+            // normalize diffs by dividing by median difference for each objective 
+            centroid_diffs_norm[j]=centroid_diffs[j]/centroid_diffs_median;
+            volume_diffs_norm[j]=volume_diffs[j]/volume_diffs_median;
+            aspect_ratio_diffs_norm[j]=aspect_ratio_diffs[j]/aspect_ratio_diffs_median;  
+
+            // calculate the score as the sum of the normalized diffs 
+            score=centroid_diffs_norm[j]+volume_diffs_norm[j]+aspect_ratio_diffs_norm[j];
+
+            if (score<score_min){ // find the lowest score
+              score_min=score;
+              j_min=j;            // record the index of the lowest score
+
+            }
+
+          }          
+
+          // add the compare with the best score to matches
+          matches.at(i)=compares[j_min];
+          // remove the match from the compare set for next iteration
+          compares.erase(compares.begin()+j_min);
+
+
           if(verbose){
-            std::cout<<"iteration "<<i<<std::endl;
+
+            std::cout<<std::endl<<"iteration "<<i<<std::endl;
+
             for (int j=0; j<scores.size(); j++){
               std::cout <<"centroid_diffs["<<j<<"]: "<<centroid_diffs[j]
                         <<", volume_diffs["<<j<<"]: "<<volume_diffs[j]
                         <<", aspect_ratio_diffs["<<j<<"]: "<<aspect_ratio_diffs[j]<<std::endl;
-
             }
-            //std::cout<<"clusters["<<i<<"] (size:" <<clusters[i]->size()<<") was matched to compares["
-            //         <<j_min<<"] (size:"<<compares[j_min]->size()<<") with a score "<<score_min<<std::endl;
+
+            std::cout <<"centroid_diffs_median: "<<centroid_diffs_median
+                      <<", volume_diffs_median:"<<volume_diffs_median
+                      <<", aspect_ratio_diffs_median: "<<aspect_ratio_diffs_median<<std::endl; 
+
+            std::cout<<"iteration "<<i<<" normalized with median" <<std::endl;
+            for (int j=0; j<scores.size(); j++){
+              std::cout <<"centroid_diffs_norm["<<j<<"]: "<<centroid_diffs_norm[j]
+                        <<", volume_diffs_norm["<<j<<"]: "<<volume_diffs_norm[j]
+                        <<", aspect_ratio_diffs_norm["<<j<<"]: "<<aspect_ratio_diffs_norm[j]<<std::endl;
+            }
+
           }
-          //compares.erase(compares.begin()+j_min); // remove the match from the set of compares for 1-1 correspondence 
 
-        }
+          for (int k=0; k<clusters.size(); k++){
+            std::cout <<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
+                      <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
+          }             
 
-        //for (int k=0; k<clusters.size(); k++){
-        //  std::cout<<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
-        //  <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
-        //}    
+        }   
 
       }else{       // compares has fewer clusters than clusters, empty return 
         std::cout<<"warning: ( clusters.size() <= compares.size() ) failed, no matches returned"<<std::endl;
@@ -767,6 +818,24 @@ class SeamDetection {
 
     }
 
+    // function to return the median value of a std::vector
+    double getMedian(std::vector<double> vals){
+
+      size_t size=vals.size();
+
+      if (size==0){
+        return 0; // size 0 vector has no median
+      }else{
+        std::sort(vals.begin(), vals.end());
+        if(size%2==0){
+          return (vals[size/2-1]+vals[size/2])/2;
+        }else{
+          return vals[size/2];
+        }
+
+      }
+
+    }
 
 
 
@@ -1149,9 +1218,9 @@ int main(int argc, char** argv)
   
   
 
-  //sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
-  //sd.publishClusters(color_clusters, "/color_cluster");           
-  //sd.publishClusters(euclidean_matches, "/euclidean_match");
+  sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
+  sd.publishClusters(color_clusters, "/color_cluster");           
+  sd.publishClusters(euclidean_matches, "/euclidean_match");
 
   /*
   PointCloudPtr intersection_cloud (new PointCloud); // testing intersection method
