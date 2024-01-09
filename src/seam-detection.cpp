@@ -735,108 +735,109 @@ class SeamDetection {
       difference_x, difference_y, difference_z;
 
       double centroid_diffs_median, volume_diffs_median, aspect_ratio_diffs_median;
-
-      if (clusters.size()<=compares.size()){  // clusters has fewer clusters than compares 
+      int n;
+      if (clusters.size()<=compares.size()){  // clusters has fewer clusters than compares
+        n=clusters.size();
+      }else{
+        n=compares.size();
+        std::cout<<"warning: ( clusters.size() <= compares.size() ) failed, matching clusters[1:compares.size()] to compares[:]"<<std::endl; 
+      } 
          
-        for (int i=0; i<clusters.size(); i++){  // compare each cluster in clusters to each cluster in compares 
-                                        
-          for (int j=0; j<compares.size(); j++){
+      for (int i=0; i<n; i++){  // compare each cluster in clusters to each cluster in compares 
+                                      
+        for (int j=0; j<compares.size(); j++){
 
-            // find the pca min bounding box for the ith cloud in clusters
-            Eigen::Quaternionf quaternion1; 
-            Eigen::Vector3f translation1, dimension1;
-            Eigen::Matrix3f eigenvectors1;
-            getPCABox(*clusters[i], quaternion1, translation1, dimension1, eigenvectors1);
+          // find the pca min bounding box for the ith cloud in clusters
+          Eigen::Quaternionf quaternion1; 
+          Eigen::Vector3f translation1, dimension1;
+          Eigen::Matrix3f eigenvectors1;
+          getPCABox(*clusters[i], quaternion1, translation1, dimension1, eigenvectors1);
 
-            // find the pca min bounding box for the jth cloud in compares
-            Eigen::Quaternionf quaternion2; 
-            Eigen::Vector3f translation2, dimension2;
-            Eigen::Matrix3f eigenvectors2;
-            getPCABox(*compares[j], quaternion2, translation2, dimension2, eigenvectors2);
+          // find the pca min bounding box for the jth cloud in compares
+          Eigen::Quaternionf quaternion2; 
+          Eigen::Vector3f translation2, dimension2;
+          Eigen::Matrix3f eigenvectors2;
+          getPCABox(*compares[j], quaternion2, translation2, dimension2, eigenvectors2);
 
-            // calculate the objective differences for each pair 
-            // term1 - position of centroid
-            distance_x=translation1[0]-translation2[0];
-            distance_y=translation1[1]-translation2[1];
-            distance_z=translation1[2]-translation2[2];
-            centroid_diffs.at(j) = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0); // square root of sum of squared component distances between centroids - l
-            // term2 - volume of bounding box
-            volume1=dimension1[0]*dimension1[1]*dimension1[2];
-            volume2=dimension2[0]*dimension2[1]*dimension2[2];
-            volume_diffs.at(j) = std::abs(volume1-volume2);
-            // term3 - aspect ratio of bounding box 
-            aspect_ratio1=  dimension1.maxCoeff()/dimension1.minCoeff(); 
-            aspect_ratio2=  dimension2.maxCoeff()/dimension2.minCoeff(); 
-            aspect_ratio_diffs.at(j)= std::abs(aspect_ratio1 - aspect_ratio2); // square root of squared difference in aspect ratios - l
+          // calculate the objective differences for each pair 
+          // term1 - position of centroid
+          distance_x=translation1[0]-translation2[0];
+          distance_y=translation1[1]-translation2[1];
+          distance_z=translation1[2]-translation2[2];
+          centroid_diffs.at(j) = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0); // square root of sum of squared component distances between centroids - l
+          // term2 - volume of bounding box
+          volume1=dimension1[0]*dimension1[1]*dimension1[2];
+          volume2=dimension2[0]*dimension2[1]*dimension2[2];
+          volume_diffs.at(j) = std::abs(volume1-volume2);
+          // term3 - aspect ratio of bounding box 
+          aspect_ratio1=  dimension1.maxCoeff()/dimension1.minCoeff(); 
+          aspect_ratio2=  dimension2.maxCoeff()/dimension2.minCoeff(); 
+          aspect_ratio_diffs.at(j)= std::abs(aspect_ratio1 - aspect_ratio2); // square root of squared difference in aspect ratios - l
 
-          }
-
-          // find the median value for each objective 
-          centroid_diffs_median=getMedian(centroid_diffs);
-          volume_diffs_median=getMedian(volume_diffs);
-          aspect_ratio_diffs_median=getMedian(aspect_ratio_diffs);
-          
-          // find pair with min sum objective difference using median normalized differences 
-          double score, score_min;
-          int j_min=0; // default value for the search index, in case it is not set
-
-          // seed the minimization with the first set of differences 
-          score_min=centroid_diffs_norm[j_min]+volume_diffs_norm[j_min]+aspect_ratio_diffs_norm[j_min];
-
-          for(int j=0; j<compares.size(); j++){ // re-check each possible pair
-            // normalize diffs by dividing by median difference for each objective 
-            centroid_diffs_norm[j]=centroid_diffs[j]/centroid_diffs_median;
-            volume_diffs_norm[j]=volume_diffs[j]/volume_diffs_median;
-            aspect_ratio_diffs_norm[j]=aspect_ratio_diffs[j]/aspect_ratio_diffs_median;  
-
-            // calculate the score as the sum of the normalized diffs 
-            score=centroid_diffs_norm[j]+volume_diffs_norm[j]+aspect_ratio_diffs_norm[j];
-
-            if (score<score_min){ // find the lowest score
-              score_min=score;
-              j_min=j;            // record the index of the lowest score
-
-            }
-
-          }          
-
-          // add the compare with the best score to matches
-          matches.at(i)=compares[j_min];
-          // remove the match from the compare set for next iteration
-          compares.erase(compares.begin()+j_min);
-
-          if(verbosity>1){ // show the values as the search is performed
-
-            std::cout<<std::endl<<"iteration "<<i<<std::endl;
-
-            for (int j=0; j<scores.size(); j++){
-              std::cout <<"centroid_diffs["<<j<<"]: "<<centroid_diffs[j]
-                        <<", volume_diffs["<<j<<"]: "<<volume_diffs[j]
-                        <<", aspect_ratio_diffs["<<j<<"]: "<<aspect_ratio_diffs[j]<<std::endl;
-            }
-            std::cout <<"centroid_diffs_median: "<<centroid_diffs_median
-                      <<", volume_diffs_median:"<<volume_diffs_median
-                      <<", aspect_ratio_diffs_median: "<<aspect_ratio_diffs_median<<std::endl; 
-            std::cout<<"iteration "<<i<<" normalized with median" <<std::endl;
-            for (int j=0; j<scores.size(); j++){
-              std::cout <<"centroid_diffs_norm["<<j<<"]: "<<centroid_diffs_norm[j]
-                        <<", volume_diffs_norm["<<j<<"]: "<<volume_diffs_norm[j]
-                        <<", aspect_ratio_diffs_norm["<<j<<"]: "<<aspect_ratio_diffs_norm[j]<<std::endl;
-            }
-
-          }
-        }  
-        
-        if(verbosity>0){ // show the results of the search after complete
-          for (int k=0; k<clusters.size(); k++){
-            std::cout <<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
-                      <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
-          }             
         }
-     
-      }else{       // compares has fewer clusters than clusters, empty return 
-        std::cout<<"warning: ( clusters.size() <= compares.size() ) failed, no matches returned"<<std::endl;
+
+        // find the median value for each objective 
+        centroid_diffs_median=getMedian(centroid_diffs);
+        volume_diffs_median=getMedian(volume_diffs);
+        aspect_ratio_diffs_median=getMedian(aspect_ratio_diffs);
+        
+        // find pair with min sum objective difference using median normalized differences 
+        double score, score_min;
+        int j_min=0; // default value for the search index, in case it is not set
+
+        // seed the minimization with the first set of differences 
+        score_min=centroid_diffs_norm[j_min]+volume_diffs_norm[j_min]+aspect_ratio_diffs_norm[j_min];
+
+        for(int j=0; j<compares.size(); j++){ // re-check each possible pair
+          // normalize diffs by dividing by median difference for each objective 
+          centroid_diffs_norm[j]=centroid_diffs[j]/centroid_diffs_median;
+          volume_diffs_norm[j]=volume_diffs[j]/volume_diffs_median;
+          aspect_ratio_diffs_norm[j]=aspect_ratio_diffs[j]/aspect_ratio_diffs_median;  
+
+          // calculate the score as the sum of the normalized diffs 
+          score=centroid_diffs_norm[j]+volume_diffs_norm[j]+aspect_ratio_diffs_norm[j];
+
+          if (score<score_min){ // find the lowest score
+            score_min=score;
+            j_min=j;            // record the index of the lowest score
+
+          }
+        }          
+
+        // add the compare with the best score to matches
+        matches.at(i)=compares[j_min];
+        // remove the match from the compare set for next iteration
+        compares.erase(compares.begin()+j_min);
+
+        if(verbosity>1){ // show the values as the search is performed
+
+          std::cout<<std::endl<<"iteration "<<i<<std::endl;
+
+          for (int j=0; j<scores.size(); j++){
+            std::cout <<"centroid_diffs["<<j<<"]: "<<centroid_diffs[j]
+                      <<", volume_diffs["<<j<<"]: "<<volume_diffs[j]
+                      <<", aspect_ratio_diffs["<<j<<"]: "<<aspect_ratio_diffs[j]<<std::endl;
+          }
+          std::cout <<"centroid_diffs_median: "<<centroid_diffs_median
+                    <<", volume_diffs_median:"<<volume_diffs_median
+                    <<", aspect_ratio_diffs_median: "<<aspect_ratio_diffs_median<<std::endl; 
+          std::cout<<"iteration "<<i<<" normalized with median" <<std::endl;
+          for (int j=0; j<scores.size(); j++){
+            std::cout <<"centroid_diffs_norm["<<j<<"]: "<<centroid_diffs_norm[j]
+                      <<", volume_diffs_norm["<<j<<"]: "<<volume_diffs_norm[j]
+                      <<", aspect_ratio_diffs_norm["<<j<<"]: "<<aspect_ratio_diffs_norm[j]<<std::endl;
+          }
+        }
+      }  
+      
+      if(verbosity>0){ // show the results of the search after complete
+        for (int k=0; k<clusters.size(); k++){
+          std::cout <<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
+                    <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
+        }             
       }
+     
+      
 
       return matches;
 
@@ -1202,7 +1203,7 @@ int main(int argc, char** argv)
   sd.loadClouds(sd.target_file, sd.input_file); // load pointclouds from pcd file 
 
   // perform voxel-downsampling, pre-transformation, and bounding-box on the input cloud
-  double voxel_size=0.0015; // voxel leaf size for downsampling
+  double voxel_size=0.001; // voxel leaf size for downsampling
   sd.downsampleCloud(*sd.input_cloud, *sd.downsampled_cloud, voxel_size); 
   sd.transformCloud(*sd.downsampled_cloud, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
@@ -1241,16 +1242,23 @@ int main(int argc, char** argv)
   sd.getPCABoxes(color_clusters);
   
   int verbosity_level=1; // controls the verbosity level to print, 0-no print, 1-print results, 2-print search data and results 
-  PointCloudVec euclidean_matches; // keep in mind that this vector contains pointers to the original clusters data, no data copies made
+  PointCloudVec euclidean_color_matches; // keep in mind that this vector contains pointers to the original clusters data, no data copies made
   //euclidean_matches=sd.matchClusters(euclidean_clusters, color_clusters, verbosity_level); 
-  euclidean_matches=sd.matchClustersMulti(euclidean_clusters, color_clusters, verbosity_level); 
+  euclidean_color_matches=sd.matchClustersMulti(euclidean_clusters, color_clusters, verbosity_level); 
   //euclidean_matches=sd.matchClusters2(euclidean_clusters, color_clusters, verbosity_level);
   
   sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
   sd.publishClusters(color_clusters, "/color_cluster");           
-  sd.publishClusters(euclidean_matches, "/euclidean_match");
+  sd.publishClusters(euclidean_color_matches, "/euclidean_color_match");
 
   sd.publishClusters(target_clusters, "/target_cluster");
+
+
+  PointCloudVec target_matches;
+  target_matches=sd.matchClustersMulti(target_clusters, euclidean_color_matches, verbosity_level); 
+  //target_matches=sd.matchClustersMulti(euclidean_color_matches, target_clusters, verbosity_level); // this function is not bi-directional
+
+  sd.publishClusters(target_matches, "/target_match");
 
   /*
   PointCloudPtr intersection_cloud (new PointCloud); // testing intersection method
