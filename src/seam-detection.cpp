@@ -1201,12 +1201,6 @@ int main(int argc, char** argv)
   sd.loadConfig();             // load parameters from config file
   sd.loadClouds(sd.target_file, sd.input_file); // load pointclouds from pcd file 
 
-
-  PointCloudPtr cloud_copy (new PointCloud); // make copy here in main, just testing
-  
-  //sd.CopyCloud(*sd.input_cloud, *cloud_copy); // testing a useless function...
-  //pcl::copyPointCloud(*sd.input_cloud, *cloud_copy); // use the pcl copy
-
   // perform voxel-downsampling, pre-transformation, and bounding-box on the input cloud
   double voxel_size=0.0015; // voxel leaf size for downsampling
   sd.downsampleCloud(*sd.input_cloud, *sd.downsampled_cloud, voxel_size); 
@@ -1218,11 +1212,25 @@ int main(int argc, char** argv)
   sd.publishCloud(*sd.transformed_cloud, "/transformed_cloud"); 
   sd.publishCloud(*sd.bounded_cloud, "/bounded_cloud");
 
-  sd.publishCloud(*sd.input_target, "/input_target"); // show the input target cloud in rviz
+  // perform voxel-downsampling, pre-transformation, and bounding-box on the target cloud
+  sd.downsampleCloud(*sd.input_target, *sd.downsampled_target, voxel_size); 
+  sd.transformCloud(*sd.downsampled_target, *sd.transformed_target, sd.pre_rotation, sd.pre_translation);
+  sd.boundCloud(*sd.transformed_target, *sd.bounded_target, sd.bounding_box);
+ 
+  sd.publishCloud(*sd.input_target, "/input_target"); // show the input and modified targets in rviz
+  sd.publishCloud(*sd.downsampled_target, "/downsampled_target");
+  sd.publishCloud(*sd.transformed_target, "/transformed_target"); 
+  sd.publishCloud(*sd.bounded_target, "/bounded_target");
 
-  PointCloudVec euclidean_clusters, color_clusters;
+
+  PointCloudVec euclidean_clusters, color_clusters, target_clusters;
   euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform Euclidean cluster extraction
   color_clusters=sd.extractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
+
+  target_clusters=sd.extractEuclideanClusters(*sd.bounded_target, 200, 100000, 0.01); // preform Euclidean cluster extraction
+
+  std::cout<<"target_cluster size:"<<target_clusters.size()<<std::endl;
+
 
   PointCloudPtr euclidean_merged (new PointCloud);
   sd.mergeClusters(euclidean_clusters, *euclidean_merged);
@@ -1241,6 +1249,8 @@ int main(int argc, char** argv)
   sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
   sd.publishClusters(color_clusters, "/color_cluster");           
   sd.publishClusters(euclidean_matches, "/euclidean_match");
+
+  sd.publishClusters(target_clusters, "/target_cluster");
 
   /*
   PointCloudPtr intersection_cloud (new PointCloud); // testing intersection method
