@@ -98,16 +98,17 @@ class SeamDetection {
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
       // allocate memory for pointclouds member attributes
-      input_cloud = new PointCloud;
-      downsampled_cloud = new PointCloud;
-      transformed_cloud = new PointCloud;
-      bounded_cloud = new PointCloud;
-      recolored_cloud = new PointCloud;
+      input_source = new PointCloud;
+      downsampled_source = new PointCloud;
+      transformed_source = new PointCloud;
+      bounded_source = new PointCloud;  
+      //recolored_source = new PointCloud; // not using 
 
       input_target = new PointCloud;
       downsampled_target = new PointCloud;
       transformed_target = new PointCloud;
       bounded_target = new PointCloud;
+      //recolored_target = new PointCloud;
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -129,15 +130,15 @@ class SeamDetection {
       node.getParam("transform_input", transform_input);
 
       // get parameters that contain strings  
-      node.getParam("seam_detection/input_file", input_file);
-      node.getParam("seam_detection/output_file", output_file);
       node.getParam("seam_detection/target_file", target_file);
-      
-      // generate absolute file paths to inputs (does this belong here?)
-      input_path=package_path+'/'+input_file;
-      output_path=package_path+'/'+output_file;
-      target_path=package_path+'/'+target_file;
+      node.getParam("seam_detection/source_file", source_file);    
+      node.getParam("seam_detection/output_file", output_file);
 
+      // generate absolute file paths to inputs (does this belong here?)
+      target_path=package_path+'/'+target_file;
+      source_path=package_path+'/'+source_file;
+      output_path=package_path+'/'+output_file;
+      
       // get parameters that contain doubles 
       double voxel_leaf_size, cluster_tolerance;
       node.getParam("seam_detection/voxel_leaf_size", voxel_leaf_size);
@@ -172,36 +173,28 @@ class SeamDetection {
     
 
     // function to load pointcloud from PCD file as defined in config
+    // hardcoded for target and source class members, consider generalizing ...
     int loadClouds(std::string target_file, std::string input_file){
 
       std::cout<<"|---------- SeamDetection::LoadCloud - loading configuration file ----------|"<<std::endl;
-      
-      //node.getParam("seam_detection/input_file", input_file);
-      //input_path=package_path+'/'+input_file;
-      //node.getParam("seam_detection/input_file", input_file);
-      //input_path=package_path+'/'+input_file;
-
-      // instantiate cloud pointer
-      //PointCloud::Ptr input_cloud (new PointCloud); 
-      //PointCloud::Ptr cloud (new PointCloud);      // working copy for this routine
 
       std::cout << "Loading target input file:" << target_path << std::endl;
       if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (target_path, *input_target) == -1)
       {
-          std::cout<<"Couldn't read cloud input file:"<<target_path;
+          std::cout<<"Couldn't read target input file:"<<target_path;
           return (-1);
       }
-      std::cout << "Loaded cloud target file: "<< target_path <<std::endl<<
-        input_target->width * input_target->height << " Data points from "<< target_path << std::endl;
+      std::cout << "Loaded target input file: "<< target_path <<std::endl<<
+        input_target->width * input_target->height << " data points from "<< target_path << std::endl;
 
-      std::cout << "Loading cloud input file:" << input_path << std::endl;
-      if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (input_path, *input_cloud) == -1)
+      std::cout << "Loading source input file:" << source_path << std::endl;
+      if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (source_path, *input_source) == -1)
       {
-          std::cout<<"Couldn't read cloud input file:"<<input_path;
+          std::cout<<"Couldn't read source input file:"<<source_path;
           return (-1);
       }
-      std::cout << "Loaded cloud input file: "<< input_path <<std::endl<<
-        input_cloud->width * input_cloud->height << " Data points from "<< input_path << std::endl;
+      std::cout << "Loaded source input file: "<< source_path <<std::endl<<
+        input_source->width * input_source->height << " data points from "<< source_path << std::endl;
  
       return 0;  
     } 
@@ -415,8 +408,8 @@ class SeamDetection {
       reg.extract(cluster_indices);
 
       pcl::PointCloud <PointT>::Ptr colored = reg.getColoredCloud ();
-      pcl::copyPointCloud(*colored, *recolored_cloud); // copy to member attribute
-      //this copy seems inefficient, fix later
+      //pcl::copyPointCloud(*colored, *recolored_cloud); // copy to member attribute
+      // recolored cloud not used in workflow
 
       // instantiate a std vector of pcl pointclouds with pcl PointXYZ points (see typedef above)
       PointCloudVec clusters;
@@ -1074,23 +1067,6 @@ class SeamDetection {
     }
 
 
-    // function to publish the input and other clouds to ROS for RVIZ 
-    void publishClouds(){
-      std::cout<<"|---------- SeamDetection::publishClouds - publishing all clouds ----------|"<<std::endl;
- 
-      input_cloud->header.frame_id = "base_link";
-      transformed_cloud->header.frame_id = "base_link";
-      bounded_cloud->header.frame_id = "base_link";
-
-      pub_input.publish(*input_cloud);
-      pub_transformed.publish(*transformed_cloud);
-      pub_bounded.publish(*bounded_cloud);
-      
-      ros::spinOnce();
-
-    }
-
-
     // function to publish a vector of PointClouds representing clusters 
     void publishClusters(PointCloudVec &clusters, std::string prefix){
       std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
@@ -1109,48 +1085,8 @@ class SeamDetection {
      
     }
 
-
-    // overloaded function to publish vectors of PointClouds from clustering, uses hard coded members, less useful 
-    void publishClusters(PointCloudVec &euclidean_clusters, PointCloudVec &color_clusters, PointCloudVec &intersection_clusters){
-      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
-      
-      for (int i=0; i<euclidean_clusters.size(); i++){
-        // advertise a topic and publish a msg for each cluster from euclidean cluster extraction
-        std::stringstream name;
-        name << "euclidean_cluster" << i;
-        pub_euclidean.push_back(node.advertise<PointCloud>(name.str(), 0, true));
-        euclidean_clusters[i]->header.frame_id = "base_link";
-        pub_euclidean[i].publish(euclidean_clusters[i]);
-      }
-     
-      for (int i=0; i<color_clusters.size(); i++){
-        // advertise a topic and publish a msg for each cluster color based region growing cluster extraction
-        std::stringstream name;
-        name << "color_cluster" << i;
-        pub_color.push_back(node.advertise<PointCloud>(name.str(), 0, true));
-        color_clusters[i]->header.frame_id = "base_link";
-        pub_color[i].publish(color_clusters[i]);
-      }
-
-      for (int i=0; i<intersection_clusters.size(); i++){
-        // advertise a topic and publish a msg for each intersection cluster 
-        std::stringstream name;
-        name << "intersection_cluster" << i;
-        pub_intersection.push_back(node.advertise<PointCloud>(name.str(), 0, true));
-        intersection_clusters[i]->header.frame_id = "base_link";
-        pub_intersection[i].publish(intersection_clusters[i]);
-      }
-
-      recolored_cloud->header.frame_id = "base_link";
-      pub_recolored.publish(*recolored_cloud);
-      
-      ros::spinOnce();
-
-    }
-
-
     // attributes
-    PointCloud *input_cloud, *downsampled_cloud, *transformed_cloud, *bounded_cloud;
+    PointCloud *input_source, *downsampled_source, *transformed_source, *bounded_source;
     PointCloud *input_target, *downsampled_target, *transformed_target, *bounded_target;
     PointCloud *recolored_cloud; // re-colored cloud from getColoredCloud() in color based extraction
 
@@ -1162,7 +1098,7 @@ class SeamDetection {
     // other parameters from the config file (these do not need to public)
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
-    std::string package_path, input_path, output_path, target_path, input_file, output_file, target_file; 
+    std::string package_path, target_path, source_path, output_path, target_file, source_file, output_file; 
    
     double bounding_box[6];
     Eigen::Vector3f pre_rotation, pre_translation;
@@ -1175,11 +1111,6 @@ class SeamDetection {
     // attributes
     ros::NodeHandle node;
     ros::Rate rate;       // rate might be useful in 'public', but this is the proper place
-
-    ros::Publisher pub_input = node.advertise<PointCloud> ("/input_cloud", 1, true);
-    ros::Publisher pub_transformed = node.advertise<PointCloud> ("transformed_cloud", 1, true);
-    ros::Publisher pub_bounded = node.advertise<PointCloud> ("bounded_cloud", 1, true);
-    ros::Publisher pub_recolored = node.advertise<PointCloud> ("recolored_cloud", 1, true);
 
     // generic publisher, can this be used for all of the clouds?
     //ros::Publisher cloud_pub = node.advertise<PointCloud> (cloud_topic, 1, true);
@@ -1200,65 +1131,69 @@ int main(int argc, char** argv)
   SeamDetection sd;
  
   sd.loadConfig();             // load parameters from config file
-  sd.loadClouds(sd.target_file, sd.input_file); // load pointclouds from pcd file 
+  sd.loadClouds(sd.target_file, sd.source_file); // load pointclouds from pcd file 
 
-  // perform voxel-downsampling, pre-transformation, and bounding-box on the input cloud
+  // perform voxel-downsampling, pre-transformation, and bounding-box on the source cloud
   double voxel_size=0.001; // voxel leaf size for downsampling
-  sd.downsampleCloud(*sd.input_cloud, *sd.downsampled_cloud, voxel_size); 
-  sd.transformCloud(*sd.downsampled_cloud, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
-  sd.boundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
+  sd.downsampleCloud(*sd.input_source, *sd.downsampled_source, voxel_size); 
+  sd.transformCloud(*sd.downsampled_source, *sd.transformed_source, sd.pre_rotation, sd.pre_translation);
+  sd.boundCloud(*sd.transformed_source, *sd.bounded_source, sd.bounding_box);
  
-  sd.publishCloud(*sd.input_cloud, "/input_cloud"); // show the input and modified clouds in rviz
-  sd.publishCloud(*sd.downsampled_cloud, "/downsampled_cloud");
-  sd.publishCloud(*sd.transformed_cloud, "/transformed_cloud"); 
-  sd.publishCloud(*sd.bounded_cloud, "/bounded_cloud");
+  sd.publishCloud(*sd.input_source, "/input_source"); // show the input source and modified source clouds in rviz
+  sd.publishCloud(*sd.downsampled_source, "/downsampled_source");
+  sd.publishCloud(*sd.transformed_source, "/transformed_source"); 
+  sd.publishCloud(*sd.bounded_source, "/bounded_source");
 
   // perform voxel-downsampling, pre-transformation, and bounding-box on the target cloud
   sd.downsampleCloud(*sd.input_target, *sd.downsampled_target, voxel_size); 
   sd.transformCloud(*sd.downsampled_target, *sd.transformed_target, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.transformed_target, *sd.bounded_target, sd.bounding_box);
  
-  sd.publishCloud(*sd.input_target, "/input_target"); // show the input and modified targets in rviz
+  sd.publishCloud(*sd.input_target, "/input_target"); // show the input target and modified target clouds in rviz
   sd.publishCloud(*sd.downsampled_target, "/downsampled_target");
   sd.publishCloud(*sd.transformed_target, "/transformed_target"); 
   sd.publishCloud(*sd.bounded_target, "/bounded_target");
 
+  PointCloudVec source_euclidean_clusters, source_color_clusters;
+  source_euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_source, 200, 100000, 0.01); // preform Euclidean cluster extraction
+  source_color_clusters=sd.extractColorClusters(*sd.bounded_source, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
+  
+  std::cout<<"source_euclidean_clusters size:"<<source_euclidean_clusters.size()<<std::endl;
+  std::cout<<"source_color_clusters size:"<<source_color_clusters.size()<<std::endl;
 
-  PointCloudVec euclidean_clusters, color_clusters, target_clusters;
-  euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform Euclidean cluster extraction
-  color_clusters=sd.extractColorClusters(*sd.bounded_cloud, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
+  PointCloudVec target_euclidean_clusters, target_color_clusters;
+  target_euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_target, 200, 100000, 0.01); // preform Euclidean cluster extraction
+  target_color_clusters=sd.extractColorClusters(*sd.bounded_target, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
 
-  target_clusters=sd.extractEuclideanClusters(*sd.bounded_target, 200, 100000, 0.01); // preform Euclidean cluster extraction
+  std::cout<<"target_euclidean_clusters size:"<<target_euclidean_clusters.size()<<std::endl;
+  std::cout<<"target_color_clusters size:"<<target_color_clusters.size()<<std::endl;
 
-  std::cout<<"target_cluster size:"<<target_clusters.size()<<std::endl;
-
-
-  PointCloudPtr euclidean_merged (new PointCloud);
-  sd.mergeClusters(euclidean_clusters, *euclidean_merged);
-
-  std::cout<<"euclidean_merged has "<<euclidean_merged->size()<<" points"<< std::endl;
-
-  sd.getPCABoxes(euclidean_clusters);
-  sd.getPCABoxes(color_clusters);
+  //PointCloudPtr euclidean_merged (new PointCloud);
+  //sd.mergeClusters(euclidean_clusters, *euclidean_merged);
+  //std::cout<<"euclidean_merged has "<<euclidean_merged->size()<<" points"<< std::endl;
   
   int verbosity_level=1; // controls the verbosity level to print, 0-no print, 1-print results, 2-print search data and results 
-  PointCloudVec euclidean_color_matches; // keep in mind that this vector contains pointers to the original clusters data, no data copies made
+  PointCloudVec source_matches, target_matches; // keep in mind that this vector contains pointers to the original clusters data, no data copies made
   //euclidean_matches=sd.matchClusters(euclidean_clusters, color_clusters, verbosity_level); 
-  euclidean_color_matches=sd.matchClustersMulti(euclidean_clusters, color_clusters, verbosity_level); 
   //euclidean_matches=sd.matchClusters2(euclidean_clusters, color_clusters, verbosity_level);
-  
-  sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
-  sd.publishClusters(color_clusters, "/color_cluster");           
-  sd.publishClusters(euclidean_color_matches, "/euclidean_color_match");
 
-  sd.publishClusters(target_clusters, "/target_cluster");
+  source_matches=sd.matchClustersMulti(source_euclidean_clusters, source_color_clusters, verbosity_level);  
+  target_matches=sd.matchClustersMulti(target_euclidean_clusters, target_color_clusters, verbosity_level); 
+
+  sd.publishClusters(source_euclidean_clusters, "/source_euclidean_cluster"); // show the euclidean and color based clusters  
+  sd.publishClusters(source_color_clusters, "/source_color_cluster");         // for the source cloud  
+  sd.publishClusters(source_matches, "/source_match");
+
+  sd.publishClusters(target_euclidean_clusters, "/target_euclidean_cluster"); // show the euclidean and color based clusters  
+  sd.publishClusters(target_color_clusters, "/target_color_cluster");         // for the target cloud  
+  sd.publishClusters(target_matches, "/target_match");
 
 
-  PointCloudVec target_matches;
-  target_matches=sd.matchClustersMulti(target_clusters, euclidean_color_matches, verbosity_level); 
+  //PointCloudVec target_matches;
+  //target_matches=sd.matchClustersMulti(target_clusters, euclidean_color_matches, verbosity_level); 
   //target_matches=sd.matchClustersMulti(euclidean_color_matches, target_clusters, verbosity_level); // this function is not bi-directional
 
-  sd.publishClusters(target_matches, "/target_match");
+  //sd.publishClusters(target_matches, "/target_match");
 
   /*
   PointCloudPtr intersection_cloud (new PointCloud); // testing intersection method
