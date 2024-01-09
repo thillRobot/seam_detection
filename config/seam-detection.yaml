@@ -1,12 +1,10 @@
 ---
 scene_name: "seam-detection"
 
-source_file: "pcd_images/table_tee/table_8in10in_tee_x4y24_45.pcd"
-target_file: "pcd_images/table_tee/8in10in_tee_01_blndr.pcd"
 
 seam_detection/input_file: "pcd_images/ds435i_table_parts/table_part1_part2_02.pcd"
 seam_detection/output_file: "pcd_images/ds435i_table_parts/table_part1_part2_02_filtered.pcd"
-seam_detection/target_file: "pcd_images/shape1_shape2/shape2.pcd"
+seam_detection/target_file: "pcd_images/ds435i_table_parts/table_part1_02.pcd"
 
 save_output: true
 translate_output: false

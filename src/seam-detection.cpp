@@ -99,9 +99,15 @@ class SeamDetection {
 
       // allocate memory for pointclouds member attributes
       input_cloud = new PointCloud;
+      downsampled_cloud = new PointCloud;
       transformed_cloud = new PointCloud;
       bounded_cloud = new PointCloud;
       recolored_cloud = new PointCloud;
+
+      input_target = new PointCloud;
+      downsampled_target = new PointCloud;
+      transformed_target = new PointCloud;
+      bounded_target = new PointCloud;
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -166,16 +172,27 @@ class SeamDetection {
     
 
     // function to load pointcloud from PCD file as defined in config
-    int loadCloud(std::string input_file){
+    int loadClouds(std::string target_file, std::string input_file){
 
       std::cout<<"|---------- SeamDetection::LoadCloud - loading configuration file ----------|"<<std::endl;
       
-      node.getParam("seam_detection/input_file", input_file);
-      input_path=package_path+'/'+input_file;
+      //node.getParam("seam_detection/input_file", input_file);
+      //input_path=package_path+'/'+input_file;
+      //node.getParam("seam_detection/input_file", input_file);
+      //input_path=package_path+'/'+input_file;
 
       // instantiate cloud pointer
       //PointCloud::Ptr input_cloud (new PointCloud); 
-      PointCloud::Ptr cloud (new PointCloud);      // working copy for this routine
+      //PointCloud::Ptr cloud (new PointCloud);      // working copy for this routine
+
+      std::cout << "Loading target input file:" << target_path << std::endl;
+      if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (target_path, *input_target) == -1)
+      {
+          std::cout<<"Couldn't read cloud input file:"<<target_path;
+          return (-1);
+      }
+      std::cout << "Loaded cloud target file: "<< target_path <<std::endl<<
+        input_target->width * input_target->height << " Data points from "<< target_path << std::endl;
 
       std::cout << "Loading cloud input file:" << input_path << std::endl;
       if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (input_path, *input_cloud) == -1)
@@ -541,7 +558,7 @@ class SeamDetection {
 
     // function to calculate the the objection function value or score for a pair of PointClouds
     // to be used to find agreement between potentially overlapping clouds 
-    double scoreClouds(PointCloud &cloud1, PointCloud &cloud2, bool verbose){
+    double scoreClouds(PointCloud &cloud1, PointCloud &cloud2, int verbosity){
 
       double score=100, f1, f2, f3, f4, 
              distance_x, distance_y, distance_z,
@@ -597,7 +614,7 @@ class SeamDetection {
       // objective function value is sum of terms 
       score=f1+f2+f3+f4;
       
-      if(verbose){
+      if(verbosity>1){
         std::cout<<"translation1: "<<std::endl<<"["<<translation1[0]<<","<<translation1[1]<<","<<translation1[2]<<"]"<<std::endl;
         std::cout<<"translation2: "<<std::endl<<"["<<translation2[0]<<","<<translation2[1]<<","<<translation2[2]<<"]"<<std::endl;
 
@@ -621,61 +638,59 @@ class SeamDetection {
 
     // function to find best 1 to 1 correlation between two sets of clusters
     // for now this assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence 
-    PointCloudVec matchClusters(PointCloudVec clusters, PointCloudVec compares, bool verbose){
+    PointCloudVec matchClusters(PointCloudVec clusters, PointCloudVec compares, int verbosity){
 
       double score, score_min;
       int j_min, success;
 
       PointCloudVec matches;
-      matches=clusters;
+      matches=clusters; // make a copy to get the size, fix this soon
 
       if (clusters.size()<=compares.size()){         // clusters has fewer clusters than compares
          
         for (int i=0; i<clusters.size(); i++){               // for each cluster in clusters find best match from compares 
           
-          score_min=scoreClouds(*clusters[0], *compares[0], verbose);  // seed the search with the score of first pair 
+          score_min=scoreClouds(*clusters[0], *compares[0], verbosity);  // seed the search with the score of first pair 
           j_min=0;                                              // dont forget to initialize the search index  ! 
 
           for (int j=0; j<compares.size(); j++){
-            score=scoreClouds(*clusters[i], *compares[j], verbose);
-            if(verbose){
-              std::cout <<"clusters["<<i<<"] (size:" <<clusters[i]->size()<<") and compares["<<j
-                        <<"] (size:"<<compares[j]->size()<<") have a score "<<score<<std::endl<<std::endl;
-            }
+            score=scoreClouds(*clusters[i], *compares[j], verbosity);
+
             if (score<score_min){
               score_min=score;    // store the min score
               j_min=j;            // and the index of the min
             }
-  
+
+            if(verbosity>1){  // show the pairs score as the search is performed 
+              std::cout <<"clusters["<<i<<"] (size:" <<clusters[i]->size()<<") and compares["<<j
+                        <<"] (size:"<<compares[j]->size()<<") have a score "<<score<<std::endl<<std::endl;
+            }  
+      
           }
 
           // after checking all potential matches, push the best match into the vector of matches with the recorded index
-          //matches.push_back(compares[j_min]);
           matches.at(i)=compares[j_min];
-          if(verbose){
-            std::cout<<"clusters["<<i<<"] (size:" <<clusters[i]->size()<<") was matched to compares["
-                     <<j_min<<"] (size:"<<compares[j_min]->size()<<") with a score "<<score_min<<std::endl;
-          }
           compares.erase(compares.begin()+j_min); // remove the match from the set of compares for 1-1 correspondence 
 
         }
-
-        for (int k=0; k<clusters.size(); k++){
-          std::cout<<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
-          <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
+        
+        if (verbosity>0){  
+          for (int k=0; k<clusters.size(); k++){ // show the results after the search is complete
+            std::cout<<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
+            <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
+          }
         }
-      
+
       }else{       // compares has fewer clusters than clusters, empty return 
         std::cout<<"warning: ( clusters.size() <= compares.size() ) failed, no matches returned"<<std::endl;
       }
 
-      //std::cout<<"matches contains "<<matches.size()<<" clusters after matching complete"<<std::endl;
       return matches;
     }
 
 
     // function to find best match between sets of clusters using multi-objective optimization
-    PointCloudVec matchClustersMulti(PointCloudVec clusters, PointCloudVec compares, bool verbose){
+    PointCloudVec matchClustersMulti(PointCloudVec clusters, PointCloudVec compares, int verbosity){
 
       PointCloudVec matches;
       matches=clusters; // make a copy just to get the size, change to an empty copy later
@@ -689,7 +704,6 @@ class SeamDetection {
                           volume_diffs_norm(compares.size()), 
                           aspect_ratio_diffs_norm(compares.size());                    
 
-
       double distance_x, distance_y, distance_z,
       volume1, volume2, 
       aspect_ratio1, aspect_ratio2,
@@ -699,16 +713,10 @@ class SeamDetection {
 
       if (clusters.size()<=compares.size()){  // clusters has fewer clusters than compares 
          
-         for (int i=0; i<clusters.size(); i++){               // for each cluster in clusters find best match from compares 
-          //scores.empty();
-
-          //score_min=scoreClouds(*clusters[0], *compares[0], verbose);  // seed the search with the score of first pair 
-          //j_min=0;                                              // dont forget to initialize the search index  ! 
-
+        for (int i=0; i<clusters.size(); i++){  // compare each cluster in clusters to each cluster in compares 
+                                        
           for (int j=0; j<compares.size(); j++){
-            
-            //scores.at(j)=scoreClouds(*clusters[i], *compares[j], verbose);
-            
+
             // find the pca min bounding box for the ith cloud in clusters
             Eigen::Quaternionf quaternion1; 
             Eigen::Vector3f translation1, dimension1;
@@ -721,42 +729,36 @@ class SeamDetection {
             Eigen::Matrix3f eigenvectors2;
             getPCABox(*compares[j], quaternion2, translation2, dimension2, eigenvectors2);
 
+            // calculate the objective differences for each pair 
             // term1 - position of centroid
             distance_x=translation1[0]-translation2[0];
             distance_y=translation1[1]-translation2[1];
             distance_z=translation1[2]-translation2[2];
             centroid_diffs.at(j) = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0); // square root of sum of squared component distances between centroids - l
-
             // term2 - volume of bounding box
             volume1=dimension1[0]*dimension1[1]*dimension1[2];
             volume2=dimension2[0]*dimension2[1]*dimension2[2];
             volume_diffs.at(j) = std::abs(volume1-volume2);
-
             // term3 - aspect ratio of bounding box 
             aspect_ratio1=  dimension1.maxCoeff()/dimension1.minCoeff(); 
             aspect_ratio2=  dimension2.maxCoeff()/dimension2.minCoeff(); 
             aspect_ratio_diffs.at(j)= std::abs(aspect_ratio1 - aspect_ratio2); // square root of squared difference in aspect ratios - l
 
-            //if(verbose){
-            //  std::cout <<"clusters["<<i<<"] (size:" <<clusters[i]->size()<<") and compares["<<j
-            //            <<"] (size:"<<compares[j]->size()<<") have a score "<<scores[j]<<std::endl<<std::endl;
-            // }
-  
           }
 
-          // calculate the median value for each objective 
+          // find the median value for each objective 
           centroid_diffs_median=getMedian(centroid_diffs);
           volume_diffs_median=getMedian(volume_diffs);
           aspect_ratio_diffs_median=getMedian(aspect_ratio_diffs);
           
+          // find pair with min sum objective difference using median normalized differences 
           double score, score_min;
           int j_min=0; // default value for the search index, in case it is not set
 
           // seed the minimization with the first set of differences 
           score_min=centroid_diffs_norm[j_min]+volume_diffs_norm[j_min]+aspect_ratio_diffs_norm[j_min];
 
-          for(int j=0; j<compares.size(); j++){
-
+          for(int j=0; j<compares.size(); j++){ // re-check each possible pair
             // normalize diffs by dividing by median difference for each objective 
             centroid_diffs_norm[j]=centroid_diffs[j]/centroid_diffs_median;
             volume_diffs_norm[j]=volume_diffs[j]/volume_diffs_median;
@@ -778,8 +780,7 @@ class SeamDetection {
           // remove the match from the compare set for next iteration
           compares.erase(compares.begin()+j_min);
 
-
-          if(verbose){
+          if(verbosity>1){ // show the values as the search is performed
 
             std::cout<<std::endl<<"iteration "<<i<<std::endl;
 
@@ -788,11 +789,9 @@ class SeamDetection {
                         <<", volume_diffs["<<j<<"]: "<<volume_diffs[j]
                         <<", aspect_ratio_diffs["<<j<<"]: "<<aspect_ratio_diffs[j]<<std::endl;
             }
-
             std::cout <<"centroid_diffs_median: "<<centroid_diffs_median
                       <<", volume_diffs_median:"<<volume_diffs_median
                       <<", aspect_ratio_diffs_median: "<<aspect_ratio_diffs_median<<std::endl; 
-
             std::cout<<"iteration "<<i<<" normalized with median" <<std::endl;
             for (int j=0; j<scores.size(); j++){
               std::cout <<"centroid_diffs_norm["<<j<<"]: "<<centroid_diffs_norm[j]
@@ -801,24 +800,24 @@ class SeamDetection {
             }
 
           }
-
+        }  
+        
+        if(verbosity>0){ // show the results of the search after complete
           for (int k=0; k<clusters.size(); k++){
             std::cout <<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
                       <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
           }             
-
-        }   
-
+        }
+     
       }else{       // compares has fewer clusters than clusters, empty return 
         std::cout<<"warning: ( clusters.size() <= compares.size() ) failed, no matches returned"<<std::endl;
       }
 
-      std::cout<<"matches contains "<<matches.size()<<" clusters after matching complete"<<std::endl;
       return matches;
 
     }
 
-    // function to return the median value of a std::vector
+    // function to return the median value of a std::vector, it seems like there would be a std method for this
     double getMedian(std::vector<double> vals){
 
       size_t size=vals.size();
@@ -837,14 +836,10 @@ class SeamDetection {
 
     }
 
-
-
-
-
     // modified function to find best 1 to 1 correlation between two sets of clusters
     // for now this assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence
     // this version checks all n^2 matches before removing any from the compare set 
-    PointCloudVec matchClusters2(PointCloudVec clusters, PointCloudVec compares, bool verbose){
+    PointCloudVec matchClusters2(PointCloudVec clusters, PointCloudVec compares, int verbosity){
 
       double score, score_min;
       std::vector<double> scores(clusters.size()); // vector of scores, for debugging purposes
@@ -864,7 +859,7 @@ class SeamDetection {
       if (clusters.size()<=compares.size()){  // clusters1 has fewer clusters than clusters2  (input error checking)
          
         for (int h=0; h<clusters.size(); h++){ // loop across each cluster in clusters, to find a best match for each
-          score_min=scoreClouds(*clusters[cluster_indices[0]], *compares[compare_indices[0]], verbose);  // seed the search with the score of first pair before the outside loop
+          score_min=scoreClouds(*clusters[cluster_indices[0]], *compares[compare_indices[0]], verbosity);  // seed the search with the score of first pair before the outside loop
           
           it_min=cluster_indices.begin(); // default value for it_min in case it is not assigned in search
           for (it=cluster_indices.begin(); it != cluster_indices.end(); it++){ // for each cluster in clusters1 find best match from clusters2 
@@ -872,8 +867,8 @@ class SeamDetection {
             jt_min=compare_indices.begin(); // default value for jt_min in case it is not assigned in search
             for (jt=compare_indices.begin(); jt != compare_indices.end(); jt++){
          
-              score=scoreClouds(*clusters[*it], *compares[*jt], verbose); // get the score of the ith cluster and jth compare
-              if(verbose){
+              score=scoreClouds(*clusters[*it], *compares[*jt], verbosity); // get the score of the ith cluster and jth compare
+              if(verbosity>1){
                 std::cout<<"clusters["<<*it<<"] (size:" <<clusters[*it]->size()<<") and compares["<<*jt
                          <<"] (size:"<<compares[*jt]->size()<<") have a score "<<score<<std::endl<<std::endl;
               } 
@@ -892,7 +887,7 @@ class SeamDetection {
           matches.at(*it_min)=compares[*jt_min]; // you could just index it, but at() is the cpp way 
           scores.at(*it_min)=score_min;          // save the score, for debugging the cost function
           original_indices.at(*it_min)=*jt_min;  // save the original index of the compare cluster, for debugging only  
-          if(verbose){
+          if(verbosity>1){
             std::cout<<"on iteration "<<h<<" the best match was found between clusters["<<*it_min
                    << "] and compares["<<*jt_min<<"] with score "<<score_min<<std::endl;
             std::cout<<"clusters["<<*it_min<<"] and compares["<<*jt_min<<"] were removed from the search sets"<<std::endl;
@@ -900,12 +895,13 @@ class SeamDetection {
           cluster_indices.erase(it_min);  // remove the cluster index from the set of clusters indices
           compare_indices.erase(jt_min);  // remove the match index from the set of compares for 1-1 correspondence, do this last      
         }
-          
-        for (int k=0; k<clusters.size(); k++){
-          std::cout<<"clusters["<<k<<"] (size:" <<clusters[k]->size()<<") matched with compares["<<original_indices[k]
-          <<"](size:"<<compares[original_indices[k]]->size()<<") which is now matches["<<k<<"] (size:"<<matches[k]->size()<<")"<<std::endl;
-          
-          std::cout<<"the comparison score between clusters["<<k<<"] and compares["<<original_indices[k]<<"] is "<<scores[k]<<std::endl;
+        
+        if (verbosity>0){  
+          for (int k=0; k<clusters.size(); k++){
+            std::cout<<"clusters["<<k<<"] (size:" <<clusters[k]->size()<<") matched with compares["<<original_indices[k]
+            <<"](size:"<<compares[original_indices[k]]->size()<<") which is now matches["<<k<<"] (size:"<<matches[k]->size()<<")"<<std::endl;
+            std::cout<<"the comparison score between clusters["<<k<<"] and compares["<<original_indices[k]<<"] is "<<scores[k]<<std::endl;
+          }
         }
       
       }else{       // compares has fewer clusters than clusters, empty return 
@@ -1128,7 +1124,8 @@ class SeamDetection {
 
 
     // attributes
-    PointCloud *input_cloud, *transformed_cloud, *bounded_cloud;
+    PointCloud *input_cloud, *downsampled_cloud, *transformed_cloud, *bounded_cloud;
+    PointCloud *input_target, *downsampled_target, *transformed_target, *bounded_target;
     PointCloud *recolored_cloud; // re-colored cloud from getColoredCloud() in color based extraction
 
     //PointCloudPtr bounded_cloud_ptr; 
@@ -1177,7 +1174,8 @@ int main(int argc, char** argv)
   SeamDetection sd;
  
   sd.loadConfig();             // load parameters from config file
-  sd.loadCloud(sd.input_file); // load a pointcloud from pcd file 
+  sd.loadClouds(sd.target_file, sd.input_file); // load pointclouds from pcd file 
+
 
   PointCloudPtr cloud_copy (new PointCloud); // make copy here in main, just testing
   
@@ -1192,6 +1190,7 @@ int main(int argc, char** argv)
   sd.publishCloud(*sd.transformed_cloud, "/transformed_cloud"); 
   sd.publishCloud(*sd.bounded_cloud, "/bounded_cloud");
 
+  sd.publishCloud(*sd.input_target, "/input_target");
 
   PointCloudVec euclidean_clusters, color_clusters;
   euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform Euclidean cluster extraction
@@ -1205,19 +1204,12 @@ int main(int argc, char** argv)
   sd.getPCABoxes(euclidean_clusters);
   sd.getPCABoxes(color_clusters);
   
-  //double pair_score; 
-  //pair_score=sd.scoreClouds(*euclidean_clusters[0], *color_clusters[0]); // testing score function
-  //std::cout<<"the pair: ( euclidean_clusters[0], color_clusters[0] ) has a score "<<pair_score<<std::endl;
-  
-  bool show_search=1; // controls the verbose flag to print or not to print during the search
+  int verbosity_level=1; // controls the verbosity level to print, 0-no print, 1-print results, 2-print search data and results 
   PointCloudVec euclidean_matches; // keep in mind that this vector contains pointers to the original clusters data, no data copies made
-  //euclidean_matches=sd.matchClusters(euclidean_clusters, color_clusters, show_search); 
-  euclidean_matches=sd.matchClustersMulti(euclidean_clusters, color_clusters, show_search); 
-  //euclidean_matches=sd.matchClusters2(euclidean_clusters, color_clusters, show_search); 
+  //euclidean_matches=sd.matchClusters(euclidean_clusters, color_clusters, verbosity_level); 
+  euclidean_matches=sd.matchClustersMulti(euclidean_clusters, color_clusters, verbosity_level); 
+  //euclidean_matches=sd.matchClusters2(euclidean_clusters, color_clusters, verbosity_level);
   
-  
-  
-
   sd.publishClusters(euclidean_clusters, "/euclidean_cluster"); // show the euclidean and color based clusters  
   sd.publishClusters(color_clusters, "/color_cluster");           
   sd.publishClusters(euclidean_matches, "/euclidean_match");
