@@ -6,12 +6,10 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /PointCloud21
-        - /PointCloud22
         - /PointCloud26
-        - /PointCloud216
-        - /PointCloud225
-        - /PointCloud235
+        - /PointCloud217
+        - /PointCloud226
+        - /PointCloud236
       Splitter Ratio: 0.5058823823928833
     Tree Height: 1162
   - Class: rviz/Selection
@@ -126,7 +124,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
       Style: Flat Squares
-      Topic: /input_target
+      Topic: /downsampled_cloud
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -243,6 +241,34 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 165; 165; 165
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.0024999999441206455
+      Style: Flat Squares
+      Topic: /input_target
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -1377,7 +1403,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.4164652824401855
+      Distance: 1.1322821378707886
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -1393,9 +1419,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.0747963190078735
+      Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 1.6335595846176147
+      Yaw: 1.5485594272613525
     Saved: ~
 Window Geometry:
   Displays:

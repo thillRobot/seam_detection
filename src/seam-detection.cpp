@@ -219,6 +219,31 @@ class SeamDetection {
     }
 
 
+    // function to apply voxel downsampling to pointcloud 
+    void downsampleCloud(PointCloud &input, PointCloud &output, double leaf_size){
+
+      PointCloud::Ptr cloud (new PointCloud); 
+      pcl::copyPointCloud(input, *cloud);        // this copy ensures that the input data is left unchanged
+ 
+      // Apply Voxel Filter 
+      std::cout<<"Before voxel filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
+      if (leaf_size>0)
+      {
+        pcl::VoxelGrid<PointT> vox;
+        vox.setInputCloud (cloud); // operate directly on the output PointCloud pointer, removes need for copy below
+        vox.setLeafSize (leaf_size, leaf_size, leaf_size); // use "001f","001f","0001f" or "none" to set voxel leaf size
+        vox.filter (*cloud);
+        std::cout<<"After voxel filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
+      }else
+      {
+        std::cout<<"leaf_size>0 failed, no voxel filtering"<< std::endl;
+      }
+
+      pcl::copyPointCloud(*cloud, output); // this copy is avoided by filtering "output" directly 
+
+    }
+
+
     // function to apply bounding box to PointCloud with XYZRGB points
     void boundCloud(PointCloud &input, PointCloud &output, double box[]){
 
@@ -1180,17 +1205,20 @@ int main(int argc, char** argv)
   PointCloudPtr cloud_copy (new PointCloud); // make copy here in main, just testing
   
   //sd.CopyCloud(*sd.input_cloud, *cloud_copy); // testing a useless function...
-  pcl::copyPointCloud(*sd.input_cloud, *cloud_copy); // use the pcl copy
+  //pcl::copyPointCloud(*sd.input_cloud, *cloud_copy); // use the pcl copy
 
-  // add voxel to choose res here
-  sd.transformCloud(*cloud_copy, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
+  // perform voxel-downsampling, pre-transformation, and bounding-box on the input cloud
+  double voxel_size=0.0015; // voxel leaf size for downsampling
+  sd.downsampleCloud(*sd.input_cloud, *sd.downsampled_cloud, voxel_size); 
+  sd.transformCloud(*sd.downsampled_cloud, *sd.transformed_cloud, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.transformed_cloud, *sd.bounded_cloud, sd.bounding_box);
  
-  sd.publishCloud(*sd.input_cloud, "/input_cloud"); // show the input, transformed, and bounded clouds
+  sd.publishCloud(*sd.input_cloud, "/input_cloud"); // show the input and modified clouds in rviz
+  sd.publishCloud(*sd.downsampled_cloud, "/downsampled_cloud");
   sd.publishCloud(*sd.transformed_cloud, "/transformed_cloud"); 
   sd.publishCloud(*sd.bounded_cloud, "/bounded_cloud");
 
-  sd.publishCloud(*sd.input_target, "/input_target");
+  sd.publishCloud(*sd.input_target, "/input_target"); // show the input target cloud in rviz
 
   PointCloudVec euclidean_clusters, color_clusters;
   euclidean_clusters=sd.extractEuclideanClusters(*sd.bounded_cloud, 200, 100000, 0.01); // preform Euclidean cluster extraction
