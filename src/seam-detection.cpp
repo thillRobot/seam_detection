@@ -1278,7 +1278,7 @@ int main(int argc, char** argv)
  
   // Step 2 - extract clusters from training cloud using euclidean and color algorithms
   PointCloudVec training_euclidean_clusters, training_color_clusters;
-  training_euclidean_clusters=sd.extractEuclideanClusters(*sd.training_bounded, 200, 100000, 0.01); // preform Euclidean cluster extraction
+  training_euclidean_clusters=sd.extractEuclideanClusters(*sd.training_bounded, 200, 100000, 0.005); // preform Euclidean cluster extraction
   training_color_clusters=sd.extractColorClusters(*sd.training_bounded, 200, 10, 6, 5);             // preform Color Based Region Growing cluster extraction
   std::cout<<"training_euclidean_clusters size:"<<training_euclidean_clusters.size()<<std::endl;
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
@@ -1318,7 +1318,7 @@ int main(int argc, char** argv)
 
   // Step 6 - extract clusters from test cloud using euclidean and color algorithms
   PointCloudVec test_euclidean_clusters, test_color_clusters;
-  test_euclidean_clusters=sd.extractEuclideanClusters(*sd.test_bounded, 200, 100000, 0.01); // preform Euclidean cluster extraction
+  test_euclidean_clusters=sd.extractEuclideanClusters(*sd.test_bounded, 200, 100000, 0.005); // preform Euclidean cluster extraction
   test_color_clusters=sd.extractColorClusters(*sd.test_bounded, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
   
   std::cout<<"test_euclidean_clusters size:"<<test_euclidean_clusters.size()<<std::endl;
