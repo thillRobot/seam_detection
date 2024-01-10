@@ -15,5 +15,6 @@ transform_input: true
 seam_detection/pre_rotation:    [0.0, 3.14159, 0.0]
 seam_detection/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254
 
-seam_detection/bounding_box: [0.0, 1.0, -1.0, 1.0, 0.012, 0.5] # bounding box limits
+#seam_detection/bounding_box: [0.0, 1.0, -1.0, 1.0, 0.012, 0.5] # bounding box limits
+seam_detection/bounding_box: [0.0, 1.0, -1.0, 1.0, 0.01, 0.5] # bounding box limits
 seam_detection/voxel_leaf_size: 0.001  

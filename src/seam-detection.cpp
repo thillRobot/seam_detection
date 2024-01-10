@@ -1336,8 +1336,9 @@ int main(int argc, char** argv)
   // [Step 8 - ...] - compare 'training' target from steps 1-3 to correlated 'test' clusters from steps 4-7 
   // to find the target object in the test case image 
   PointCloudPtr test_target;
-  test_target=sd.matchClustersMulti(*training_target, test_euclidean_clusters, debug_level); 
-  
+  //test_target=sd.matchClustersMulti(*training_target, test_euclidean_clusters, debug_level); 
+  test_target=sd.matchClustersMulti(*training_target, test_color_clusters, debug_level);
+
   std::cout <<"the training target (size:"<<training_target->size()
             <<") is correlated with test_euclidean_clusters (size: "<<test_target->size()<<")"<<std::endl; 
 
