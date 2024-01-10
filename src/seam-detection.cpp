@@ -1288,16 +1288,17 @@ int main(int argc, char** argv)
   PointCloudVec training_matches; // keep in mind that this vector contains pointers to the original clusters data, no data copies made
   training_matches=sd.matchClustersMulti(training_euclidean_clusters, training_color_clusters, debug_level); 
   
+  // show the extracted 'test' clusters in rviz
+  sd.publishClusters(training_euclidean_clusters, "/training_euclidean"); // show the euclidean and color based clusters  
+  sd.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
+  sd.publishClusters(training_matches, "/training_match");
+
   PointCloudPtr training_target;                    // use a pointer to the pointcloud data, no data copy required
   training_target=training_euclidean_clusters[0];   // assume the largest euclidean cluster is the target cluster
   //training_target=training_color_clusters[0];   // assume the largest color cluster is the training cluster
   // consider adding merge or something else here 
 
-  // show the extracted 'test' clusters in rviz
-  sd.publishClusters(training_euclidean_clusters, "/training_euclidean_cluster"); // show the euclidean and color based clusters  
-  sd.publishClusters(training_color_clusters, "/training_color_cluster");         // for the training cloud  
-  sd.publishClusters(training_matches, "/training_match");
-
+  sd.publishCloud(*training_target, "/training_target"); // show the matching target from the test image 
 
   // [Steps 4-7] - use 'test' image of target object on cluttered table
   
@@ -1327,17 +1328,21 @@ int main(int argc, char** argv)
   PointCloudVec test_matches;
   test_matches=sd.matchClustersMulti(test_euclidean_clusters, test_color_clusters, debug_level); 
 
-  sd.publishClusters(test_euclidean_clusters, "/test_euclidean_cluster"); // show the euclidean and color based clusters  
-  sd.publishClusters(test_color_clusters, "/test_color_cluster");         // for the test cloud  
+  sd.publishClusters(test_euclidean_clusters, "/test_euclidean"); // show the euclidean and color based clusters  
+  sd.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
   sd.publishClusters(test_matches, "/test_match");
 
-  // [Steps 8 ... ] - compare 'training' target from steps 1-3 to correlated 'test' clusters from steps 4-7 
-  // to find the target object in the test case 
+
+  // [Step 8 - ...] - compare 'training' target from steps 1-3 to correlated 'test' clusters from steps 4-7 
+  // to find the target object in the test case image 
   PointCloudPtr test_target;
   test_target=sd.matchClustersMulti(*training_target, test_euclidean_clusters, debug_level); 
   
   std::cout <<"the training target (size:"<<training_target->size()
             <<") is correlated with test_euclidean_clusters (size: "<<test_target->size()<<")"<<std::endl; 
+
+  sd.publishCloud(*test_target, "/test_target"); // show the matching target from the test image         
+
 
   /*  // merge cloud example
   PointCloudPtr euclidean_merged (new PointCloud);
