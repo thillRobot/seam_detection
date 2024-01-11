@@ -171,33 +171,6 @@ class SeamDetection {
     
 
     // function to load pointcloud from PCD file as defined in config
-    // hardcoded for training and test class members, consider generalizing ...
-    int loadClouds(std::string training_file, std::string test_file){
-
-      std::cout<<"|---------- SeamDetection::LoadCloud - loading PCD files ----------|"<<std::endl;
-
-      std::cout << "Loading training input file:" << training_path << std::endl;
-      if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (training_path, *training_input) == -1)
-      {
-          std::cout<<"Couldn't read training input file:"<<training_path;
-          return (-1);
-      }
-      std::cout << "Loaded training input file: "<< training_path <<std::endl<<
-        training_input->width * training_input->height << " data points from "<< training_path << std::endl;
-
-      std::cout << "Loading test input file:" << test_path << std::endl;
-      if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (test_path, *test_input) == -1)
-      {
-          std::cout<<"Couldn't read source input file:"<<test_path;
-          return (-1);
-      }
-      std::cout << "Loaded test input file: "<< test_path <<std::endl<<
-        test_input->width * test_input->height << " data points from "<< test_path << std::endl;
- 
-      return 0;  
-    } 
-
-    // function to load pointcloud from PCD file as defined in config
     int loadCloud(std::string file_name, PointCloud &input){
 
       std::cout<<"|---------- SeamDetection::LoadCloud - loading PCD file ----------|"<<std::endl;
@@ -215,6 +188,40 @@ class SeamDetection {
       return 0;  
     } 
 
+    // function to publish a single cloud as a ROS topic 
+    void publishCloud(PointCloud &cloud, std::string topic){
+      std::cout<<"|---------- SeamDetection::publishCloud - publishing single cloud ----------|"<<std::endl;
+
+      // advertise a new topic and publish a msg each time this function is called
+      pub_clouds.push_back(node.advertise<PointCloud>(topic, 0, true));
+      
+      cloud.header.frame_id = "base_link";
+
+      pub_clouds[pub_clouds.size()-1].publish(cloud);
+
+      ros::spinOnce();
+
+    }
+
+
+    // function to publish a vector of PointClouds representing clusters as a ROS topic
+    void publishClusters(PointCloudVec &clusters, std::string prefix){
+      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
+        
+      for (int i=0; i<clusters.size(); i++){
+        // advertise a topic and publish a msg for each cluster from euclidean cluster extraction
+        std::stringstream name;
+        name << prefix << i;
+        pub_clusters.push_back(node.advertise<PointCloud>(name.str(), 0, true));
+        clusters[i]->header.frame_id = "base_link";
+        pub_clusters[pub_idx].publish(clusters[i]);
+        pub_idx++;
+      }
+      
+      ros::spinOnce();
+     
+    }
+ 
 
     // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
     void copyCloud(PointCloud &input, PointCloud &output){
@@ -340,6 +347,163 @@ class SeamDetection {
     }
 
 
+    // function to return the median value of a std::vector
+    // it seems like there would be a std method for this
+    double getMedian(std::vector<double> vals){
+
+      size_t size=vals.size();
+
+      if (size==0){
+        return 0; // size 0 vector has no median
+      }else{
+        std::sort(vals.begin(), vals.end());
+        if(size%2==0){
+          return (vals[size/2-1]+vals[size/2])/2;
+        }else{
+          return vals[size/2];
+        }
+      }
+    }
+    
+    
+    // overloaded function to return the median value of a Eigen::VectorXd (dynxamic sized vector of doubles)
+    // it seems like there would be a std method for this
+    double getMedian(Eigen::VectorXd vals){
+
+      int size=vals.size();
+
+      if (size==0){
+        return 0; // size 0 vector has no median
+      }else{
+        std::sort(vals.data(), vals.data()+vals.size());
+        if(size%2==0){
+          return (vals[size/2-1]+vals[size/2])/2;
+        }else{
+          return vals[size/2];
+        }
+      }
+    }
+    
+
+    // function to find the intersection cloud3 of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
+    // this is based on exact comparison and will not work for approximate cloud points 
+    void getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2, PointCloud &cloud3){
+
+      for (int i=0; i<cloud1.size(); i++) { // add points to cluster cloud
+        for (int j=0; j<cloud2.size(); j++){
+          // check if all three coordinate values are the same
+          if (cloud1.points[i].x==cloud2.points[j].x&&cloud1.points[i].y==cloud2.points[j].y&&cloud1.points[i].z==cloud2.points[j].z){ 
+            cloud3.push_back(cloud1[i]); // add the shared point to the new cloud
+          }
+        }
+      }
+      std::cout<< "the intersection cloud has "<< cloud3.size() << " points" <<std::endl;
+    }
+
+   
+    // function to find the cluster of clouds representing the intersection of two clusters, calls SeamDetection::getClusterIntersection()   
+    void getClusterIntersection(PointCloudVec &clusters1, PointCloudVec &clusters2, PointCloudVec &clusters3, int thresh){
+
+      PointCloudPtr cloud (new PointCloud);
+      //PointCloudVec clusters;
+
+      int k=0; // comparison counter (counts each time)
+      for(int i=0; i<clusters1.size(); i++){ // for each cluster in clusters1
+
+        for (int j=0; j<clusters2.size(); j++){ // compare with each cluster in clusters2
+
+          getCloudIntersection(*clusters1[i], *clusters2[j], *cloud); // find the points in clusters1[i] AND clusters2[j]
+
+          if (cloud->size()>thresh){ // check if the intersection passes a threshold
+            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
+            //clusters.push_back(cloud); // add the intersection to the cluster of intersections
+            clusters3.push_back(cloud);
+          }else{
+            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
+          }
+          cloud->clear(); // empty the tmp cloud for the next intersection
+          k++;
+        }
+      }
+
+      std::cout<<"there are "<<clusters3.size()<<" clouds in the cluster intersection"<< std::endl;
+      //return clusters;
+    }
+    
+
+    // function to find the cluster of clouds representing the intersection of two clusters, calls SeamDetection::getClusterIntersection()   
+    PointCloudVec getClusterIntersection(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh){
+
+      PointCloudPtr cloud (new PointCloud); // tmp memory for kth test intersection 
+      PointCloudVec clusters;
+
+      int k=0; // comparison counter (counts each time)
+      for(int i=0; i<clusters1.size(); i++){ // for each cluster in clusters1
+
+        for (int j=0; j<clusters2.size(); j++){ // compare with each cluster in clusters2
+
+          getCloudIntersection(*clusters1[i], *clusters2[j], *cloud); // find the points in clusters1[i] AND clusters2[j]
+
+          if (cloud->size()>thresh){ // check if the intersection passes a threshold
+            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
+                                             
+            // allocate memory for the pointcloud to be stored and pointed to by the new PointCloudVec  (vector of pointcloud pointers)
+            PointCloudPtr cluster (new PointCloud);
+            pcl::copyPointCloud(*cloud, *cluster); // make a copy to avoid the clear below
+
+            // check multiple add here ... intersection 'cluster' is unique, new clusters should not have repeat entries... check on this  
+            clusters.push_back(cluster); // add the intersection to the cluster of intersections
+            //std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points"<<std::endl; // the push is working....
+            std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
+            //
+
+          }else{
+            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
+          }
+          cloud->clear(); // empty the tmp cloud for the next intersection, is this clear wiping both??? YES INDEED ! BUG IS HERE!
+          std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points after the clear"<<std::endl;
+          k++;
+        }
+      }
+
+      std::cout<<"there are "<<clusters.size()<<" clouds in the cluster intersection"<< std::endl;
+      return clusters;
+    }
+
+
+    // function to merge a vector of pointclouds into a single pointcloud
+    void mergeClusters(PointCloudVec &clusters, PointCloud &output){
+
+      for (int i=0; i<clusters.size(); i++){
+      
+        for (int j=0; j<clusters[i]->size(); j++){
+          output.push_back(clusters[i]->points[j]);
+        }
+      
+      }
+
+      std::cout<< "the merged cloud has "<< output.size() << " points" <<std::endl;
+    }
+
+    
+    // overloaded function to merge a vector of pointclouds and return pointer to single pointcloud 
+    PointCloudPtr mergeClusters(PointCloudVec &clusters){
+
+      PointCloudPtr output (new PointCloud);
+
+      for (int i=0; i<clusters.size(); i++){
+      
+        for (int j=0; j<clusters[i]->size(); j++){
+          output->push_back(clusters[i]->points[j]);
+        }
+      
+      }
+
+      std::cout<< "the merged cloud has "<< output->size() << " points" <<std::endl;
+      return output;
+    }
+
+    
     // function to perform Euclidean Cluster Extraction  
     PointCloudVec extractEuclideanClusters(PointCloud &input,  int min_size, int max_size, double tolerance){
 
@@ -464,8 +628,6 @@ class SeamDetection {
 
 
     // function to find the minimum oriented bounding box of a cloud using principle component analysis
-    // void getPCABox(PointCloud &input, Eigen::Quaternionf& bbox_quaternion, Eigen::Vector3f& bbox_translation, Eigen::Vector3f& bbox_dimensions){
-
     void getPCABox(PointCloud &input, Eigen::Quaternionf& rotation, Eigen::Vector3f& translation, Eigen::Vector3f& dimension){
 
       PointCloud::Ptr cloud (new PointCloud); //allocate memory 
@@ -509,6 +671,8 @@ class SeamDetection {
 
     }
 
+     
+    // overloaded function to find the minimum oriented bounding box of a cloud using principle component analysis, gives access to eigen_vectors for debugging
     void getPCABox(PointCloud &input, Eigen::Quaternionf& rotation, Eigen::Vector3f& translation, Eigen::Vector3f& dimension, Eigen::Matrix3f eigen_vectors){
 
       PointCloud::Ptr cloud (new PointCloud); //allocate memory 
@@ -585,10 +749,8 @@ class SeamDetection {
         std::cout << "cluster "<< i <<" PCA box dimension: ["<< dimensions[i][0] << "," 
                                             <<dimensions[i][1] << "," 
                                             <<dimensions[i][2] << "]" <<std::endl;
-        
       }
     }
-
 
     // function to calculate the the objection function value or score for a pair of PointClouds
     // to be used to find agreement between potentially overlapping clouds 
@@ -667,8 +829,8 @@ class SeamDetection {
       }
       
       return score=f1+f2+f3+f4;
-
     }
+
 
     // function to find best 1 to 1 correlation between two sets of clusters
     // for now this assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence 
@@ -738,13 +900,22 @@ class SeamDetection {
                           volume_diffs_norm(compares.size()), 
                           aspect_ratio_diffs_norm(compares.size());                    
 
-      double distance_x, distance_y, distance_z,
-      volume1, volume2, 
-      aspect_ratio1, aspect_ratio2,
-      difference_x, difference_y, difference_z;
+      double  distance_x, distance_y, distance_z, 
+              volume1, volume2, aspect_ratio1, aspect_ratio2,
+              difference_x, difference_y, difference_z,
+              centroid_diffs_median, volume_diffs_median, aspect_ratio_diffs_median,
+              score, score_min;
 
-      double centroid_diffs_median, volume_diffs_median, aspect_ratio_diffs_median;
-      int n;
+      int n, j_min;
+      
+      Eigen::Quaternionf quaternion1; 
+      Eigen::Vector3f translation1, dimension1;
+      Eigen::Matrix3f eigenvectors1;
+
+      Eigen::Quaternionf quaternion2; 
+      Eigen::Vector3f translation2, dimension2;
+      Eigen::Matrix3f eigenvectors2;  
+
       if (clusters.size()<=compares.size()){  // clusters has fewer clusters than compares
         n=clusters.size();
       }else{
@@ -757,15 +928,9 @@ class SeamDetection {
         for (int j=0; j<compares.size(); j++){
 
           // find the pca min bounding box for the ith cloud in clusters
-          Eigen::Quaternionf quaternion1; 
-          Eigen::Vector3f translation1, dimension1;
-          Eigen::Matrix3f eigenvectors1;
           getPCABox(*clusters[i], quaternion1, translation1, dimension1, eigenvectors1);
 
           // find the pca min bounding box for the jth cloud in compares
-          Eigen::Quaternionf quaternion2; 
-          Eigen::Vector3f translation2, dimension2;
-          Eigen::Matrix3f eigenvectors2;
           getPCABox(*compares[j], quaternion2, translation2, dimension2, eigenvectors2);
 
           // calculate the objective differences for each pair 
@@ -791,11 +956,12 @@ class SeamDetection {
         aspect_ratio_diffs_median=getMedian(aspect_ratio_diffs);
         
         // find pair with min sum objective difference using median normalized differences 
-        double score, score_min;
-        int j_min=0; // default value for the search index, in case it is not set
+        //double score, score_min;
+        score_min=10000; // too high to win for now, replace with fn call to score fn
+        j_min=0; // default value for the search index, in case it is not set
 
         // seed the minimization with the first set of differences 
-        score_min=centroid_diffs_norm[j_min]+volume_diffs_norm[j_min]+aspect_ratio_diffs_norm[j_min];
+        score_min=centroid_diffs_norm[j_min]+volume_diffs_norm[j_min]+aspect_ratio_diffs_norm[j_min];// RHS not previously defined, unknown vals...fix this!
 
         for(int j=0; j<compares.size(); j++){ // re-check each possible pair
           // normalize diffs by dividing by median difference for each objective 
@@ -846,40 +1012,45 @@ class SeamDetection {
         }             
       }
       return matches;
-    }
+    }// end of matchClustersMulti() function
+
 
     // overloaded function to find best match between single pointcloud and set of clusters using multi-objective optimization
     PointCloudPtr matchClustersMulti(PointCloud &cloud, PointCloudVec compares, int verbosity){
 
-      std::vector<double> scores(compares.size()); // vector of scores, for debugging purposes
-      std::vector<double> centroid_diffs(compares.size()), // vectors of differences 
-                          volume_diffs(compares.size()), 
-                          aspect_ratio_diffs(compares.size());
+      //std::vector<double> scores(compares.size()); // vector of scores, for debugging purposes
 
-      std::vector<double> centroid_diffs_norm(compares.size()), // normalized vectors of differences 
-                          volume_diffs_norm(compares.size()), 
-                          aspect_ratio_diffs_norm(compares.size());                    
+      Eigen::VectorXd centroid_diffs(compares.size()), // vectors of differences, using eigen for vectorized ops (maybe)
+                      volume_diffs(compares.size()),   // size might not be required as these are Xd 
+                      aspect_ratio_diffs(compares.size()),
+                      centroid_diffs_norm(compares.size()), // normalized vectors of differences 
+                      volume_diffs_norm(compares.size()), 
+                      aspect_ratio_diffs_norm(compares.size()),
+                      scores(compares.size());  // vector of objective function values (scores)      
+                    
+      double  distance_x, distance_y, distance_z, 
+              volume1, volume2, aspect_ratio1, aspect_ratio2,
+              difference_x, difference_y, difference_z,
+              centroid_diffs_median, volume_diffs_median, aspect_ratio_diffs_median,
+              score, score_min;
 
-      double distance_x, distance_y, distance_z,
-      volume1, volume2, 
-      aspect_ratio1, aspect_ratio2,
-      difference_x, difference_y, difference_z;
-
-      double centroid_diffs_median, volume_diffs_median, aspect_ratio_diffs_median;
+      int n, j_min;
       
+      Eigen::Quaternionf quaternion1; 
+      Eigen::Vector3f translation1, dimension1;
+      Eigen::Matrix3f eigenvectors1;
+
+      Eigen::Quaternionf quaternion2; 
+      Eigen::Vector3f translation2, dimension2;
+      Eigen::Matrix3f eigenvectors2;                      
+     
+      // find the pca min bounding box for the ith cloud in clusters, only required to run once for single cloud 
+      getPCABox(cloud, quaternion1, translation1, dimension1, eigenvectors1);
+
       // compare cloud to each cluster in compares                           
       for (int j=0; j<compares.size(); j++){
 
-        // find the pca min bounding box for the ith cloud in clusters
-        Eigen::Quaternionf quaternion1; 
-        Eigen::Vector3f translation1, dimension1;
-        Eigen::Matrix3f eigenvectors1;
-        getPCABox(cloud, quaternion1, translation1, dimension1, eigenvectors1);
-
         // find the pca min bounding box for the jth cloud in compares
-        Eigen::Quaternionf quaternion2; 
-        Eigen::Vector3f translation2, dimension2;
-        Eigen::Matrix3f eigenvectors2;
         getPCABox(*compares[j], quaternion2, translation2, dimension2, eigenvectors2);
 
         // calculate the objective differences for each pair 
@@ -887,15 +1058,19 @@ class SeamDetection {
         distance_x=translation1[0]-translation2[0];
         distance_y=translation1[1]-translation2[1];
         distance_z=translation1[2]-translation2[2];
-        centroid_diffs.at(j) = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0); // square root of sum of squared component distances between centroids - l
+        //centroid_diffs.at(j) = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0); // square root of sum of squared component distances between centroids - l
+        centroid_diffs[j] = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0); // square root of sum of squared component distances between centroids - l
+        
         // term2 - volume of bounding box
         volume1=dimension1[0]*dimension1[1]*dimension1[2];
         volume2=dimension2[0]*dimension2[1]*dimension2[2];
-        volume_diffs.at(j) = std::abs(volume1-volume2);
+        //volume_diffs.at(j) = std::abs(volume1-volume2);
+        volume_diffs[j]=std::abs(volume1-volume2);
         // term3 - aspect ratio of bounding box 
         aspect_ratio1=  dimension1.maxCoeff()/dimension1.minCoeff(); 
         aspect_ratio2=  dimension2.maxCoeff()/dimension2.minCoeff(); 
-        aspect_ratio_diffs.at(j)= std::abs(aspect_ratio1 - aspect_ratio2); // square root of squared difference in aspect ratios - l
+        //aspect_ratio_diffs.at(j)= std::abs(aspect_ratio1 - aspect_ratio2); // square root of squared difference in aspect ratios - l
+        aspect_ratio_diffs[j]= std::abs(aspect_ratio1 - aspect_ratio2); // square root of squared difference in aspect ratios - l
 
       }
 
@@ -903,33 +1078,28 @@ class SeamDetection {
       centroid_diffs_median=getMedian(centroid_diffs);
       volume_diffs_median=getMedian(volume_diffs);
       aspect_ratio_diffs_median=getMedian(aspect_ratio_diffs);
-      
-      // find pair with min sum objective difference using median normalized differences 
-      double score, score_min;
-      int j_min=0; // default value for the search index, in case it is not set
 
-      // seed the minimization with the first set of differences 
-      score_min=centroid_diffs_norm[j_min]+volume_diffs_norm[j_min]+aspect_ratio_diffs_norm[j_min];
+      // normalize diffs by dividing by median difference for each objective 
+      centroid_diffs_norm=centroid_diffs/centroid_diffs_median; // use vectorized row operations from library Eigen
+      volume_diffs_norm=volume_diffs/volume_diffs_median;       // it would be interesting to compare speed again std::vector based method
+      aspect_ratio_diffs_norm=aspect_ratio_diffs/aspect_ratio_diffs_median;
+
+      scores=centroid_diffs_norm+volume_diffs_norm+aspect_ratio_diffs_norm; // calculate all score as the sum of scaled diffs for each set of diffs
+
+      // find pair with min sum objective difference using median normalized differences, replace with std::min for speed
+      j_min=0; // default value for the search index, in case it is not set
+      score_min=scores[0]; // assume first may be the minimum
 
       for(int j=0; j<compares.size(); j++){ // re-check each possible pair
-        // normalize diffs by dividing by median difference for each objective 
-        centroid_diffs_norm[j]=centroid_diffs[j]/centroid_diffs_median;
-        volume_diffs_norm[j]=volume_diffs[j]/volume_diffs_median;
-        aspect_ratio_diffs_norm[j]=aspect_ratio_diffs[j]/aspect_ratio_diffs_median;  
-
-        // calculate the score as the sum of the normalized diffs 
-        score=centroid_diffs_norm[j]+volume_diffs_norm[j]+aspect_ratio_diffs_norm[j];
-
-        if (score<score_min){ // find the lowest score
-          score_min=score;
+        if (scores[j]<score_min){ // find the lowest score
+          score_min=scores[j];
           j_min=j;            // record the index of the lowest score
 
         }
       }          
 
-      //match=compares[j_min];
-
-      if(verbosity>1){ // show the diff values from the search 
+      // printing for debugging, optional, controlled by fn arg
+      if(verbosity>1){ // show the diff values from the search each iteration
         
         for (int j=0; j<scores.size(); j++){
           std::cout <<"centroid_diffs["<<j<<"]: "<<centroid_diffs[j]
@@ -947,42 +1117,19 @@ class SeamDetection {
                     <<", volume_diffs_norm["<<j<<"]: "<<volume_diffs_norm[j]
                     <<", aspect_ratio_diffs_norm["<<j<<"]: "<<aspect_ratio_diffs_norm[j]<<std::endl;
         }
-      
-      }
-      
-      if(verbosity>0){ // show the results of the search after complete
+      }else if(verbosity>0){ // show the results of the search after complete
         std::cout <<"cloud has "<< cloud.size()<< " points " 
-                  <<" and match has "<<compares[j_min]->size()<< " points"<<std::endl;
-                  
+                  <<" and match has "<<compares[j_min]->size()<< " points"<<std::endl;           
       }
+      
       return compares[j_min];  // return the compare with the best score to matches
     }
 
 
-
-    // function to return the median value of a std::vector, it seems like there would be a std method for this
-    double getMedian(std::vector<double> vals){
-
-      size_t size=vals.size();
-
-      if (size==0){
-        return 0; // size 0 vector has no median
-      }else{
-        std::sort(vals.begin(), vals.end());
-        if(size%2==0){
-          return (vals[size/2-1]+vals[size/2])/2;
-        }else{
-          return vals[size/2];
-        }
-
-      }
-
-    }
-
-    // modified function to find best 1 to 1 correlation between two sets of clusters
-    // for now this assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence
-    // this version checks all n^2 matches before removing any from the compare set 
-    PointCloudVec matchClusters2(PointCloudVec clusters, PointCloudVec compares, int verbosity){
+    // function to find best 1 to 1 correlation between two sets of clusters
+    // assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence
+    // this version checks all n^2 matches before removing any from the compare set, this is O(n^3), so it may be slow! 
+    PointCloudVec matchClusters3(PointCloudVec clusters, PointCloudVec compares, int verbosity){
 
       double score, score_min;
       std::vector<double> scores(clusters.size()); // vector of scores, for debugging purposes
@@ -1053,169 +1200,16 @@ class SeamDetection {
 
       //std::cout<<"matches contains "<<matches.size()<<" clusters after matching complete"<<std::endl;
       return matches;
-    }
-
-    // function to find the intersection cloud3 of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
-    // this is based on exact comparison and will not work for approximate cloud points 
-    void getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2, PointCloud &cloud3){
-
-      for (int i=0; i<cloud1.size(); i++) { // add points to cluster cloud
-        for (int j=0; j<cloud2.size(); j++){
-          // check if all three coordinate values are the same
-          if (cloud1.points[i].x==cloud2.points[j].x&&cloud1.points[i].y==cloud2.points[j].y&&cloud1.points[i].z==cloud2.points[j].z){ 
-            cloud3.push_back(cloud1[i]); // add the shared point to the new cloud
-          }
-        }
-      }
-      std::cout<< "the intersection cloud has "<< cloud3.size() << " points" <<std::endl;
-    }
-
-   
-    // function to find the cluster of clouds representing the intersection of two clusters, calls SeamDetection::getClusterIntersection()   
-    void getClusterIntersection(PointCloudVec &clusters1, PointCloudVec &clusters2, PointCloudVec &clusters3, int thresh){
-
-      PointCloudPtr cloud (new PointCloud);
-      //PointCloudVec clusters;
-
-      int k=0; // comparison counter (counts each time)
-      for(int i=0; i<clusters1.size(); i++){ // for each cluster in clusters1
-
-        for (int j=0; j<clusters2.size(); j++){ // compare with each cluster in clusters2
-
-          getCloudIntersection(*clusters1[i], *clusters2[j], *cloud); // find the points in clusters1[i] AND clusters2[j]
-
-          if (cloud->size()>thresh){ // check if the intersection passes a threshold
-            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
-            //clusters.push_back(cloud); // add the intersection to the cluster of intersections
-            clusters3.push_back(cloud);
-          }else{
-            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
-          }
-          cloud->clear(); // empty the tmp cloud for the next intersection
-          k++;
-        }
-      }
-
-      std::cout<<"there are "<<clusters3.size()<<" clouds in the cluster intersection"<< std::endl;
-      //return clusters;
-    }
-    
-
-    // function to find the cluster of clouds representing the intersection of two clusters, calls SeamDetection::getClusterIntersection()   
-    PointCloudVec getClusterIntersection(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh){
-
-      PointCloudPtr cloud (new PointCloud); // tmp memory for kth test intersection 
-      PointCloudVec clusters;
-
-      int k=0; // comparison counter (counts each time)
-      for(int i=0; i<clusters1.size(); i++){ // for each cluster in clusters1
-
-        for (int j=0; j<clusters2.size(); j++){ // compare with each cluster in clusters2
-
-          getCloudIntersection(*clusters1[i], *clusters2[j], *cloud); // find the points in clusters1[i] AND clusters2[j]
-
-          if (cloud->size()>thresh){ // check if the intersection passes a threshold
-            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
-                                             
-            // allocate memory for the pointcloud to be stored and pointed to by the new PointCloudVec  (vector of pointcloud pointers)
-            PointCloudPtr cluster (new PointCloud);
-            pcl::copyPointCloud(*cloud, *cluster); // make a copy to avoid the clear below
-
-            // check multiple add here ... intersection 'cluster' is unique, new clusters should not have repeat entries... check on this  
-            clusters.push_back(cluster); // add the intersection to the cluster of intersections
-            //std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points"<<std::endl; // the push is working....
-            std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
-            //
-
-          }else{
-            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "<<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
-          }
-          cloud->clear(); // empty the tmp cloud for the next intersection, is this clear wiping both??? YES INDEED ! BUG IS HERE!
-          std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points after the clear"<<std::endl;
-          k++;
-        }
-      }
-
-      std::cout<<"there are "<<clusters.size()<<" clouds in the cluster intersection"<< std::endl;
-      return clusters;
-    }
+    } // end of matchClusters3() function
 
 
-
-    // function to merge a vector of pointclouds into a single pointcloud
-    void mergeClusters(PointCloudVec &clusters, PointCloud &output){
-
-      for (int i=0; i<clusters.size(); i++){
-      
-        for (int j=0; j<clusters[i]->size(); j++){
-          output.push_back(clusters[i]->points[j]);
-        }
-      
-      }
-
-      std::cout<< "the merged cloud has "<< output.size() << " points" <<std::endl;
-    }
-
-    
-    // overloaded function to merge a vector of pointclouds and return pointer to single pointcloud 
-    PointCloudPtr mergeClusters(PointCloudVec &clusters){
-
-      PointCloudPtr output (new PointCloud);
-
-      for (int i=0; i<clusters.size(); i++){
-      
-        for (int j=0; j<clusters[i]->size(); j++){
-          output->push_back(clusters[i]->points[j]);
-        }
-      
-      }
-
-      std::cout<< "the merged cloud has "<< output->size() << " points" <<std::endl;
-      return output;
-    }
-
-    
-    // function to publish a single cloud 
-    void publishCloud(PointCloud &cloud, std::string topic){
-      std::cout<<"|---------- SeamDetection::publishCloud - publishing single cloud ----------|"<<std::endl;
-
-      // advertise a new topic and publish a msg each time this function is called
-      pub_clouds.push_back(node.advertise<PointCloud>(topic, 0, true));
-      
-      cloud.header.frame_id = "base_link";
-
-      pub_clouds[pub_clouds.size()-1].publish(cloud);
-
-      ros::spinOnce();
-
-    }
-
-
-    // function to publish a vector of PointClouds representing clusters 
-    void publishClusters(PointCloudVec &clusters, std::string prefix){
-      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
-        
-      for (int i=0; i<clusters.size(); i++){
-        // advertise a topic and publish a msg for each cluster from euclidean cluster extraction
-        std::stringstream name;
-        name << prefix << i;
-        pub_clusters.push_back(node.advertise<PointCloud>(name.str(), 0, true));
-        clusters[i]->header.frame_id = "base_link";
-        pub_clusters[pub_idx].publish(clusters[i]);
-        pub_idx++;
-      }
-      
-      ros::spinOnce();
-     
-    }
-
+  
     // attributes
 
     // pointcloud pointers
     PointCloud *training_input, *training_downsampled, *training_transformed, *training_bounded; 
     PointCloud *test_input, *test_downsampled, *test_transformed, *test_bounded; 
     //PointCloudPtr test_target;
-
 
     // other parameters from the config file (these do not need to public)
     bool auto_bounds=0;
@@ -1300,11 +1294,6 @@ int main(int argc, char** argv)
 
   sd.publishCloud(*training_target, "/training_target"); // show the matching target from the test image 
   
-  // find intersection of largest euclidean cluster and matching color cluster from the training image
-  PointCloudPtr training_intersection (new PointCloud); // memory allocation required because the intersection cloud data will be copied to a new pointclou
-  sd.getCloudIntersection(*training_euclidean_clusters[0], *training_matches[0], *training_intersection);
-  std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;
-  sd.publishCloud(*training_intersection, "/training_intersection"); // show in rviz
   
   // [Steps 4-7] - use 'test' image of target object on cluttered table
   
@@ -1338,12 +1327,6 @@ int main(int argc, char** argv)
   sd.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
   sd.publishClusters(test_matches, "/test_match");
 
-  // find intersection of largest euclidean cluster and matching color cluster from the test image
-  PointCloudPtr test_intersection (new PointCloud); // memory allocation required because the intersection cloud data will be copied to a new pointclou
-  sd.getCloudIntersection(*test_euclidean_clusters[0], *test_matches[0], *test_intersection);
-  std::cout<<"test_intersection has "<<test_intersection->size()<<" points"<<std::endl;
-  sd.publishCloud(*test_intersection, "/test_intersection"); // show in rviz
-
 
   // [Step 8 - ...] - compare 'training' target from steps 1-3 to correlated 'test' clusters from steps 4-7 
   // to find the target object in the test case image 
@@ -1355,6 +1338,30 @@ int main(int argc, char** argv)
             <<") is correlated with test_euclidean_clusters (size: "<<test_target->size()<<")"<<std::endl; 
 
   sd.publishCloud(*test_target, "/test_target"); // show the matching target from the test image         
+
+  // Option 1 - pe 
+
+
+
+
+
+  // Option 2 - 
+
+  // find intersection of largest euclidean cluster and matching color cluster from the test image
+  PointCloudPtr test_intersection (new PointCloud); // memory allocation required because the intersection cloud data will be copied to a new pointclou
+  sd.getCloudIntersection(*test_euclidean_clusters[0], *test_matches[0], *test_intersection);
+  std::cout<<"test_intersection has "<<test_intersection->size()<<" points"<<std::endl;
+  
+  sd.publishCloud(*test_intersection, "/test_intersection"); // show in rviz
+  
+  // find intersection of largest euclidean cluster and matching color cluster from the training image
+  PointCloudPtr training_intersection (new PointCloud); // memory allocation required because the intersection cloud data will be copied to a new pointclou
+  sd.getCloudIntersection(*training_euclidean_clusters[0], *training_matches[0], *training_intersection);
+  std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;
+  
+  sd.publishCloud(*training_intersection, "/training_intersection"); // show in rviz
+
+
 
 
   /*  // merge cloud example
