@@ -1299,7 +1299,13 @@ int main(int argc, char** argv)
   // consider adding merge or something else here 
 
   sd.publishCloud(*training_target, "/training_target"); // show the matching target from the test image 
-
+  
+  // find intersection of largest euclidean cluster and matching color cluster from the training image
+  PointCloudPtr training_intersection (new PointCloud); // memory allocation required because the intersection cloud data will be copied to a new pointclou
+  sd.getCloudIntersection(*training_euclidean_clusters[0], *training_matches[0], *training_intersection);
+  std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;
+  sd.publishCloud(*training_intersection, "/training_intersection"); // show in rviz
+  
   // [Steps 4-7] - use 'test' image of target object on cluttered table
   
   // Step 4 - load the 'test' pointcloud from pcd file (this is the cluttered table)
@@ -1324,13 +1330,19 @@ int main(int argc, char** argv)
   std::cout<<"test_euclidean_clusters size:"<<test_euclidean_clusters.size()<<std::endl;
   std::cout<<"test_color_clusters size:"<<test_color_clusters.size()<<std::endl;
 
-  // Step 7 - correlate test euclidean clusters to test color clusters 
+  // Step 7 - correlate test euclidean clusters to test color clusters, use multi objective function 
   PointCloudVec test_matches;
   test_matches=sd.matchClustersMulti(test_euclidean_clusters, test_color_clusters, debug_level); 
 
   sd.publishClusters(test_euclidean_clusters, "/test_euclidean"); // show the euclidean and color based clusters  
   sd.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
   sd.publishClusters(test_matches, "/test_match");
+
+  // find intersection of largest euclidean cluster and matching color cluster from the test image
+  PointCloudPtr test_intersection (new PointCloud); // memory allocation required because the intersection cloud data will be copied to a new pointclou
+  sd.getCloudIntersection(*test_euclidean_clusters[0], *test_matches[0], *test_intersection);
+  std::cout<<"test_intersection has "<<test_intersection->size()<<" points"<<std::endl;
+  sd.publishCloud(*test_intersection, "/test_intersection"); // show in rviz
 
 
   // [Step 8 - ...] - compare 'training' target from steps 1-3 to correlated 'test' clusters from steps 4-7 
@@ -1351,12 +1363,7 @@ int main(int argc, char** argv)
   std::cout<<"euclidean_merged has "<<euclidean_merged->size()<<" points"<< std::endl;
   */
 
-  /* // cloud intersection example
-  PointCloudPtr intersection_cloud (new PointCloud); // testing intersection method
-  sd.getCloudIntersection(*euclidean_clusters[0], *color_clusters[0], *intersection_cloud);
-  std::cout<<"intersection_cloud has "<<intersection_cloud->size()<<" points"<<std::endl;
-  sd.publishCloud(*intersection_cloud, "/intersection_cloud"); // show in rviz
-  */
+  
 
   /*
   PointCloudVec intersection_clusters;
