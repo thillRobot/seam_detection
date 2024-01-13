@@ -1,9 +1,9 @@
 ---
 scene_name: "seam-detection"
 
-seam_detection/training_file: "pcd_images/ds435i_table_parts/table_part1_02.pcd"
-seam_detection/test_file: "pcd_images/ds435i_table_parts/table_part1_part2_02.pcd"
-seam_detection/output_file: "pcd_images/ds435i_table_parts/table_part1_part2_02_filtered.pcd"
+seam_detection/training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
+seam_detection/test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
+#seam_detection/output_file: "pcd_images/ds435i_table_parts/table_part1_part2_02_filtered.pcd"
 
 save_output: true
 translate_output: false
