@@ -1,8 +1,13 @@
 ---
 scene_name: "seam-detection"
 
-seam_detection/training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
-seam_detection/test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
+
+seam_detection/training_file: "pcd_images/ds435i_table_parts/training_04_1705438641168780.pcd"
+seam_detection/test_file: "pcd_images/ds435i_table_parts/test_03_1705435510575958.pcd"
+
+
 #seam_detection/output_file: "pcd_images/ds435i_table_parts/table_part1_part2_02_filtered.pcd"
 
 save_output: true
@@ -16,5 +21,5 @@ seam_detection/pre_rotation:    [0.0, 3.14159, 0.0]
 seam_detection/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254
 
 #seam_detection/bounding_box: [0.0, 1.0, -1.0, 1.0, 0.012, 0.5] # bounding box limits
-seam_detection/bounding_box: [-1.0, 1.0, -1.0, 1.0, 0.01, 0.5] # bounding box limits
+seam_detection/bounding_box: [-1.0, 1.0, -1.0, 1.0, 0.010, 0.5] # bounding box limits
 seam_detection/voxel_leaf_size: 0.001  

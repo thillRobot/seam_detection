@@ -1455,8 +1455,8 @@ int main(int argc, char** argv)
  
   // Step 2 - extract clusters from training cloud using euclidean and color algorithms
   PointCloudVec training_euclidean_clusters, training_color_clusters;
-  training_euclidean_clusters=sd.extractEuclideanClusters(*sd.training_bounded, 200, 100000, 0.005); // preform Euclidean cluster extraction
-  training_color_clusters=sd.extractColorClusters(*sd.training_bounded, 200, 10, 6, 5);             // preform Color Based Region Growing cluster extraction
+  training_euclidean_clusters=sd.extractEuclideanClusters(*sd.training_bounded, 200, 1000000, 0.005); // preform Euclidean cluster extraction
+  training_color_clusters=sd.extractColorClusters(*sd.training_bounded, 200, 20, 10, 10);             // preform Color Based Region Growing cluster extraction
   std::cout<<"training_euclidean_clusters size:"<<training_euclidean_clusters.size()<<std::endl;
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
 
@@ -1470,12 +1470,11 @@ int main(int argc, char** argv)
   sd.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
   sd.publishClusters(training_matches, "/training_match");
 
-  PointCloudPtr training_target;                    // use a pointer to the pointcloud data, no data copy required
-  training_target=training_euclidean_clusters[0];   // assume the largest euclidean cluster is the target cluster
+  //PointCloudPtr training_target;                    // use a pointer to the pointcloud data, no data copy required
+  //training_target=training_euclidean_clusters[0];   // assume the largest euclidean cluster is the target cluster
   //training_target=training_color_clusters[0];     // assume the largest color cluster is the training cluster
   // consider adding merge or something else here 
-
-  sd.publishCloud(*training_target, "/training_target"); // show the matching target from the training image 
+  //sd.publishCloud(*training_target, "/training_target"); // show the matching target from the training image 
   
   // 3.5 - find intersection of the training data (training_euclidan_clusters[0] , training_matches[0])
   PointCloudPtr training_intersection (new PointCloud); // memory allocation required because the intersection cloud data will be copied to a new pointclou
@@ -1509,8 +1508,9 @@ int main(int argc, char** argv)
   double euclidean_thresh=0.005;
 
   test_euclidean_clusters=sd.extractEuclideanClusters(*sd.test_bounded, euclidean_min_points, euclidean_max_points, euclidean_thresh); // preform Euclidean cluster extraction
-  test_color_clusters=sd.extractColorClusters(*sd.test_bounded, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
-  
+  //test_color_clusters=sd.extractColorClusters(*sd.test_bounded, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
+  test_color_clusters=sd.extractColorClusters(*sd.test_bounded, 200, 40, 12, 12);
+
   std::cout<<"test_euclidean_clusters size:"<<test_euclidean_clusters.size()<<std::endl;
   std::cout<<"test_color_clusters size:"<<test_color_clusters.size()<<std::endl;
 

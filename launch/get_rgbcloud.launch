@@ -1,0 +1,31 @@
+<launch>
+  
+  <!-- get cmd line arg -->
+  <arg name="filename" default="rgbcloud" />
+
+  <node pkg="seam_detection" type="ds435i_tf" name="ds435i_tf" output="log"/> 
+
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch" >
+    <arg name="align_depth" value="true"/> 
+    <arg name="color_width" value="1280" />
+    <arg name="color_height" value="720" />
+    <arg name="color_fps" value="15" />
+    <arg name="depth_width" value="848" />
+    <arg name="depth_height" value="480" />
+    <arg name="depth_fps" value="15" />
+  </include>     
+  <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" />
+
+  <node pkg="nodelet" type="nodelet" name="nodelet1"
+        args="load depth_image_proc/point_cloud_xyzrgb nodelet_manager">
+    <remap from="rgb/camera_info" to="/camera/color/camera_info"/>
+    <remap from="rgb/image_rect_color" to="/camera/color/image_raw"/>
+    <remap from="depth_registered/image_rect" to="/camera/aligned_depth_to_color/image_raw"/>
+    <remap from="points" to="/camera/depth/points"/>
+  </node>
+
+  <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find seam_detection)/rviz/get_training.rviz" />  
+
+  <node pkg="pcl_ros" type="pointcloud_to_pcd" name="pointcloud_to_pcd" output="screen" args="_prefix:=$(find seam_detection)/pcd_images/ds435i_table_parts/$(arg filename)_ input:=/depth_registered/points fixed_frame:=map" />
+
+</launch>
