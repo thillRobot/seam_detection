@@ -140,14 +140,13 @@ class SeamDetection {
       output_path=package_path+'/'+output_file;
       
       // get parameters that contain doubles 
-      double voxel_leaf_size, cluster_tolerance;
-      node.getParam("seam_detection/voxel_leaf_size", voxel_leaf_size);
-      node.getParam("seam_detection/cluster_tolerance", cluster_tolerance);
-
+      //double voxel_size, cluster_tolerance;
+      node.getParam("seam_detection/voxel_size", voxel_size);
+      //node.getParam("seam_detection/cluster_tolerance", cluster_tolerance);
       // get parameters that contain ints
-      int cluster_min_size, cluster_max_size;
-      node.getParam("seam_detection/cluster_min_size", cluster_min_size);
-      node.getParam("seam_detection/cluster_max_size", cluster_max_size);
+      //int cluster_min_size, cluster_max_size;
+      //node.getParam("seam_detection/cluster_min_size", cluster_min_size);
+      //node.getParam("seam_detection/cluster_max_size", cluster_max_size);
 
       // parameters that contain vectors of doubles
       std::vector<double> bounding_box_vec;
@@ -168,13 +167,15 @@ class SeamDetection {
       node.getParam("euclidean_minimum_size", euc_min_size);
       node.getParam("euclidean_maximum_size", euc_max_size);
       node.getParam("euclidean_threshhold", euc_thrsh);
-
+      node.getParam("euclidean_maximum_clusters", euc_max_clstrs);
+      
       // color based region growing segmentation parameters
       node.getParam("color_minimum_size", col_min_size);
       node.getParam("color_point_threshhold", col_pt_thrsh);
       node.getParam("color_region_threshhold", col_reg_thrsh);
       node.getParam("color_distance_threshhold", col_dist_thrsh);
-
+      node.getParam("color_maximum_clusters", col_max_clstrs);
+      
       //int euc_min_size=200; // parameters for the Euclidean Cluster Extraction
       //int euc_max_size=100000; // add these to the config file
       //double euc_thrsh=0.005;
@@ -272,7 +273,7 @@ class SeamDetection {
         std::cout<<"After voxel filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
       }else
       {
-        std::cout<<"leaf_size>0 failed, no voxel filtering"<< std::endl;
+        std::cout<<"leaf_size>0 false, no voxel filtering"<< std::endl;
       }
 
       pcl::copyPointCloud(*cloud, output); // this copy is avoided by filtering "output" directly 
@@ -1445,15 +1446,19 @@ class SeamDetection {
     double bounding_box[6];
     Eigen::Vector3f pre_rotation, pre_translation;
 
+    double voxel_size;
+
     int euc_min_size;  // parameters for the Euclidean Cluster Extraction
     int euc_max_size;  // values defined in config file
     double euc_thrsh;
-
+    int euc_max_clstrs; // max number of clusters 
+   
     int col_min_size;  // parameters for the Color-Based Region-Growing Segmentation
     int col_pt_thrsh;  // values defined in config file
     int col_reg_thrsh; 
     int col_dist_thrsh;
-
+    int col_max_clstrs; // max number of clusters 
+   
     // topic for generic cloud publisher
     std::string cloud_topic;
 
@@ -1495,8 +1500,8 @@ int main(int argc, char** argv)
   sd.loadCloud(sd.training_file, *sd.training_input);
 
   // Step 1.5 - perform voxel-downsampling, pre-transformation, and bounding-box on the training cloud
-  double voxel_size=0.001; // voxel leaf size for downsampling
-  sd.downsampleCloud(*sd.training_input, *sd.training_downsampled, voxel_size); 
+  //double voxel_size=0.001; // voxel leaf size for downsampling
+  sd.downsampleCloud(*sd.training_input, *sd.training_downsampled, sd.voxel_size); 
   sd.transformCloud(*sd.training_downsampled, *sd.training_transformed, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.training_transformed, *sd.training_bounded, sd.bounding_box);
   
@@ -1507,31 +1512,27 @@ int main(int argc, char** argv)
   sd.publishCloud(*sd.training_bounded, "/training_bounded");
  
   // Step 2 - extract clusters from training cloud using euclidean and color algorithms
-  
-  //int euc_min_size=200; // parameters for the Euclidean Cluster Extraction
-  //int euc_max_size=100000; // add these to the config file
-  //double euc_thrsh=0.005;
-
-  //int col_min_size=200; // parameters for the Color-Based Region-Growing Segmentation
-  //int col_pt_thrsh=10;   // add these to the config file
-  //int col_reg_thrsh=6; 
-  //int col_dist_thrsh=5;
-
   PointCloudVec training_euclidean_clusters, training_color_clusters;
-  training_euclidean_clusters=sd.extractEuclideanClusters(*sd.training_bounded, sd.euc_min_size, sd.euc_max_size, sd.euc_thrsh,12); // preform Euclidean cluster extraction
-  training_color_clusters=sd.extractColorClusters(*sd.training_bounded, sd.col_min_size, sd.col_pt_thrsh, sd.col_reg_thrsh, sd.col_dist_thrsh,12);// preform Color Based Region Growing cluster extraction
+  // preform Euclidean cluster extraction
+  training_euclidean_clusters=sd.extractEuclideanClusters(*sd.training_bounded, sd.euc_min_size, sd.euc_max_size, sd.euc_thrsh, sd.euc_max_clstrs); 
+  // preform Color Based Region Growing cluster extraction
+  training_color_clusters=sd.extractColorClusters(*sd.training_bounded, sd.col_min_size, sd.col_pt_thrsh, sd.col_reg_thrsh, sd.col_dist_thrsh, sd.col_max_clstrs);
+  
   std::cout<<"training_euclidean_clusters size:"<<training_euclidean_clusters.size()<<std::endl;
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
+
+  // show the extracted 'training' clusters in rviz
+  sd.publishClusters(training_euclidean_clusters, "/training_euclidean"); // show the euclidean and color based clusters  
+  sd.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
 
   // Step 3 - choose proper euclidean clusters and color clusters using correlation routine between training euclidean and training color 
   int debug_level=1; // controls debug printing, 0-no print, 1-print search results, 2-print search data and search results 
   PointCloudVec training_matches; // keep in mind that this vector contains pointers to the original clusters data, no data copies made
   training_matches=sd.matchClustersMulti(training_euclidean_clusters, training_color_clusters, debug_level); 
   
-  // show the extracted 'training' clusters in rviz
-  sd.publishClusters(training_euclidean_clusters, "/training_euclidean"); // show the euclidean and color based clusters  
-  sd.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
+  // show the matches to the clusters in rviz
   sd.publishClusters(training_matches, "/training_match");
+  
   
   // 3.5 - find intersection of the training data (training_euclidan_clusters[0] , training_matches[0])
   PointCloudPtr training_intersection (new PointCloud); // memory allocation required because the intersection cloud data will be copied to a new pointclou
@@ -1547,7 +1548,7 @@ int main(int argc, char** argv)
   sd.loadCloud(sd.test_file, *sd.test_input);
   
   // Step 5 - perform voxel-downsampling, pre-transformation, and bounding-box on the test cloud (same params used as in step 1.5)
-  sd.downsampleCloud(*sd.test_input, *sd.test_downsampled, voxel_size); 
+  sd.downsampleCloud(*sd.test_input, *sd.test_downsampled, sd.voxel_size); 
   sd.transformCloud(*sd.test_downsampled, *sd.test_transformed, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.test_transformed, *sd.test_bounded, sd.bounding_box);
  
@@ -1560,22 +1561,24 @@ int main(int argc, char** argv)
   // Step 6 - extract clusters from test cloud using euclidean and color algorithms
   PointCloudVec test_euclidean_clusters, test_color_clusters;
  
-  test_euclidean_clusters=sd.extractEuclideanClusters(*sd.test_bounded, sd.euc_min_size, sd.euc_max_size, sd.euc_thrsh,12); // preform Euclidean cluster extraction
-  //test_color_clusters=sd.extractColorClusters(*sd.test_bounded, 200, 10, 6, 5); // preform Color Based Region Growing cluster extraction
-  test_color_clusters=sd.extractColorClusters(*sd.test_bounded, sd.col_min_size, sd.col_pt_thrsh, sd.col_reg_thrsh, sd.col_dist_thrsh,12);
-  
+  // preform Euclidean cluster extraction
+  test_euclidean_clusters=sd.extractEuclideanClusters(*sd.test_bounded, sd.euc_min_size, sd.euc_max_size, sd.euc_thrsh, sd.euc_max_clstrs); 
+  // preform Color Based Region Growing cluster extraction
+  test_color_clusters=sd.extractColorClusters(*sd.test_bounded, sd.col_min_size, sd.col_pt_thrsh, sd.col_reg_thrsh, sd.col_dist_thrsh, sd.col_max_clstrs);
+ 
   std::cout<<"test_euclidean_clusters size:"<<test_euclidean_clusters.size()<<std::endl;
   std::cout<<"test_color_clusters size:"<<test_color_clusters.size()<<std::endl;
+  sd.publishClusters(test_euclidean_clusters, "/test_euclidean"); // show the euclidean and color based clusters  
+  sd.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
 
   // Step 7 - correlate test euclidean clusters to test color clusters, use multi objective function 
   PointCloudVec test_matches;
   test_matches=sd.matchClustersMulti(test_euclidean_clusters, test_color_clusters, debug_level); 
-
-  sd.publishClusters(test_euclidean_clusters, "/test_euclidean"); // show the euclidean and color based clusters  
-  sd.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
+  // show the matched clusters in rviz
   sd.publishClusters(test_matches, "/test_match");
   
 
+  
   // Step 7.5 - Extract intersection of the test data (ALL test_euclidan_clusters[:] , all test_matches[:]) 
   PointCloudVec test_intersections; // vector of pointcloud points, dynamic sized 
  

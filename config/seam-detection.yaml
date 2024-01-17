@@ -4,17 +4,18 @@ scene_name: "seam-detection"
 #seam_detection/training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
 #seam_detection/test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
 
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_05.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_03_1705436329142622.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/test_03_1705435510575958.pcd"
 
-seam_detection/training_file: "pcd_images/ds435i_table_parts/training_03_1705436329142622.pcd"
-seam_detection/test_file: "pcd_images/ds435i_table_parts/test_03_1705435510575958.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_03_1705435453634201.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_04_1705438639514498.pcd"
 
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_05_1705439859938987.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b_1705440053802620.pcd"
+seam_detection/training_file: "pcd_images/ds435i_table_parts/training_05_1705439859938987.pcd"
+seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b_1705440053802620.pcd"
 
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_06_1705439876431224.pcd"
 #seam_detection/training_file: "pcd_images/ds435i_table_parts/training_06_1705439878106249.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_06b_1705439996108773.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_06b_1705439997603622.pcd"
 
 #seam_detection/training_file: "pcd_images/ds435i_table_parts/training_07_1705439894755495.pcd"
 #seam_detection/test_file: "pcd_images/ds435i_table_parts/training_07b_1705439980260987.pcd"
@@ -35,20 +36,17 @@ transform_input: true
 seam_detection/pre_rotation:    [0.0, 3.14159, 0.0] # ds435i rgb camera 32inches from table surface pointing down
 seam_detection/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
 
-#seam_detection/bounding_box: [0.0, 1.0, -1.0, 1.0, 0.012, 0.5] # bounding box limits
 seam_detection/bounding_box: [-1.0, 1.0, -1.0, 1.0, 0.010, 0.5] # bounding box limits
-seam_detection/voxel_leaf_size: 0.001  
+#seam_detection/voxel_size: 0.001  
+seam_detection/voxel_size: 0
 
 euclidean_minimum_size: 200 # parameters for the Euclidean Cluster Extraction
 euclidean_maximum_size: 100000
 euclidean_threshhold: 0.005
+euclidean_maximum_clusters: 12
 
-#color_minimum_size: 200 # parameters for the Color-Based Region-Growing Segmentation
-#color_point_threshhold: 10 
-#color_region_threshhold: 6 
-#color_distance_threshhold: 5
-
-color_minimum_size: 200 # parameters for the Color-Based Region-Growing Segmentation
-color_point_threshhold: 12 
-color_region_threshhold: 12
+color_minimum_size: 200 # parameters for the Color-Based Region-Growing Segmentation (aka color cluster extraction)
+color_point_threshhold: 4 
+color_region_threshhold: 4
 color_distance_threshhold: 10
+color_maximum_clusters: 12
