@@ -580,8 +580,15 @@ class SeamDetection {
 
       }
 
-      // put the first max_cluster_number clusters into clusters_out to be returned
-      for (int i=0; i<max_cluster_number; i++){
+      // if there are fewer clusters than the max, the length will remain the same
+      int n; // number of clouds in clusters_out
+      if (clusters.size()<max_cluster_number){
+        n=clusters.size();
+      }else{
+        n=max_cluster_number;
+      }
+      // put the first n clusters into clusters_out to be returned
+      for (int i=0; i<n; i++){
         clusters_out.push_back(clusters[i]);
       }
 
@@ -590,7 +597,7 @@ class SeamDetection {
         std::cout << "euclidean clusters_out " << i << " has " << clusters_out[i]->size() << " points " << std::endl;
       }
         
-      return clusters_out;
+      return clusters_out;      
     }
 
 
@@ -659,8 +666,15 @@ class SeamDetection {
       // sort the cluster using user-defined compare function defined above 
       std::sort(clusters.begin(), clusters.end(), CompareSize);
 
-      // put the first max_cluster_number clusters into clusters_out to be returned
-      for (int i=0; i<max_cluster_number; i++){
+      // if there are fewer clusters than the max, the length will remain the same
+      int n; // number of clouds in clusters_out
+      if (clusters.size()<max_cluster_number){
+        n=clusters.size();
+      }else{
+        n=max_cluster_number;
+      }
+      // put the first n clusters into clusters_out to be returned
+      for (int i=0; i<n; i++){
         clusters_out.push_back(clusters[i]);
       }
 

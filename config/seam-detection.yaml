@@ -1,16 +1,29 @@
 ---
 scene_name: "seam-detection"
 
-seam_detection/training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
-seam_detection/test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
 
 #seam_detection/training_file: "pcd_images/ds435i_table_parts/training_05.pcd"
 #seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b.pcd"
 
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_06.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_06b.pcd"
+seam_detection/training_file: "pcd_images/ds435i_table_parts/training_03_1705436329142622.pcd"
+seam_detection/test_file: "pcd_images/ds435i_table_parts/test_03_1705435510575958.pcd"
 
-#seam_detection/output_file: "pcd_images/ds435i_table_parts/table_part1_part2_02_filtered.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_05_1705439859938987.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b_1705440053802620.pcd"
+
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_06_1705439878106249.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_06b_1705439996108773.pcd"
+
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_07_1705439894755495.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_07b_1705439980260987.pcd"
+
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_08_1705439916751924.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_08b_1705439964900832.pcd"
+
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_10_1705440132530404.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_10b_1705440114369514.pcd"
 
 save_output: true
 translate_output: false
@@ -30,7 +43,12 @@ euclidean_minimum_size: 200 # parameters for the Euclidean Cluster Extraction
 euclidean_maximum_size: 100000
 euclidean_threshhold: 0.005
 
+#color_minimum_size: 200 # parameters for the Color-Based Region-Growing Segmentation
+#color_point_threshhold: 10 
+#color_region_threshhold: 6 
+#color_distance_threshhold: 5
+
 color_minimum_size: 200 # parameters for the Color-Based Region-Growing Segmentation
-color_point_threshhold: 10 
-color_region_threshhold: 6 
-color_distance_threshhold: 5
+color_point_threshhold: 12 
+color_region_threshhold: 12
+color_distance_threshhold: 10
