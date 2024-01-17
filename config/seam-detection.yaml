@@ -1,12 +1,14 @@
 ---
 scene_name: "seam-detection"
 
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
+seam_detection/training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
+seam_detection/test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
 
-seam_detection/training_file: "pcd_images/ds435i_table_parts/training_04_1705438641168780.pcd"
-seam_detection/test_file: "pcd_images/ds435i_table_parts/test_03_1705435510575958.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_05.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b.pcd"
 
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_06.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_06b.pcd"
 
 #seam_detection/output_file: "pcd_images/ds435i_table_parts/table_part1_part2_02_filtered.pcd"
 
@@ -17,9 +19,18 @@ use_clustering: true
 new_scan: false
 transform_input: true
 
-seam_detection/pre_rotation:    [0.0, 3.14159, 0.0]
-seam_detection/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254
+seam_detection/pre_rotation:    [0.0, 3.14159, 0.0] # ds435i rgb camera 32inches from table surface pointing down
+seam_detection/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
 
 #seam_detection/bounding_box: [0.0, 1.0, -1.0, 1.0, 0.012, 0.5] # bounding box limits
 seam_detection/bounding_box: [-1.0, 1.0, -1.0, 1.0, 0.010, 0.5] # bounding box limits
 seam_detection/voxel_leaf_size: 0.001  
+
+euclidean_minimum_size: 200 # parameters for the Euclidean Cluster Extraction
+euclidean_maximum_size: 100000
+euclidean_threshhold: 0.005
+
+color_minimum_size: 200 # parameters for the Color-Based Region-Growing Segmentation
+color_point_threshhold: 10 
+color_region_threshhold: 6 
+color_distance_threshhold: 5
