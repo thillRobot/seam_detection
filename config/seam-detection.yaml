@@ -46,7 +46,7 @@ euclidean_threshhold: 0.005
 euclidean_maximum_clusters: 12
 
 color_minimum_size: 200 # parameters for the Color-Based Region-Growing Segmentation (aka color cluster extraction)
-color_point_threshhold: 4 
-color_region_threshhold: 4
-color_distance_threshhold: 10
+color_distance_threshhold: 20
+color_point_threshhold: 60 
+color_region_threshhold: 5
 color_maximum_clusters: 12
