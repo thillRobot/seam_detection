@@ -140,13 +140,7 @@ class SeamDetection {
       output_path=package_path+'/'+output_file;
       
       // get parameters that contain doubles 
-      //double voxel_size, cluster_tolerance;
       node.getParam("seam_detection/voxel_size", voxel_size);
-      //node.getParam("seam_detection/cluster_tolerance", cluster_tolerance);
-      // get parameters that contain ints
-      //int cluster_min_size, cluster_max_size;
-      //node.getParam("seam_detection/cluster_min_size", cluster_min_size);
-      //node.getParam("seam_detection/cluster_max_size", cluster_max_size);
 
       // parameters that contain vectors of doubles
       std::vector<double> bounding_box_vec;
@@ -155,6 +149,7 @@ class SeamDetection {
         bounding_box[i]=bounding_box_vec[i]; // copy from vector to array 
       }
 
+      // rotation and translation parameters from camera to fixed frame  
       std::vector<double> pre_rotation_vec, pre_translation_vec;
       node.getParam("seam_detection/pre_rotation",  pre_rotation_vec);
       node.getParam("seam_detection/pre_translation",  pre_translation_vec);
@@ -164,29 +159,18 @@ class SeamDetection {
       }
 
       // euclidean cluster extraction parameters
-      node.getParam("euclidean_minimum_size", euc_min_size);
-      node.getParam("euclidean_maximum_size", euc_max_size);
-      node.getParam("euclidean_threshhold", euc_thrsh);
-      node.getParam("euclidean_maximum_clusters", euc_max_clstrs);
+      node.getParam("euclidean_thresh", euclidean_thresh);
+      node.getParam("euclidean_min_size", euclidean_min_size);
+      node.getParam("euclidean_max_size", euclidean_max_size);
+      node.getParam("euclidean_max_clusters", euclidean_max_clusters);
       
       // color based region growing segmentation parameters
-      node.getParam("color_minimum_size", col_min_size);
-      node.getParam("color_point_threshhold", col_pt_thrsh);
-      node.getParam("color_region_threshhold", col_reg_thrsh);
-      node.getParam("color_distance_threshhold", col_dist_thrsh);
-      node.getParam("color_maximum_clusters", col_max_clstrs);
-      
-      //int euc_min_size=200; // parameters for the Euclidean Cluster Extraction
-      //int euc_max_size=100000; // add these to the config file
-      //double euc_thrsh=0.005;
-
-      //int col_min_size=200; // parameters for the Color-Based Region-Growing Segmentation
-      //int col_pt_thrsh=10;   // add these to the config file
-      //int col_reg_thrsh=6; 
-      //int col_dist_thrsh=5;
-
-
-    
+      node.getParam("color_distance_thresh", color_distance_thresh);
+      node.getParam("color_point_thresh", color_point_thresh);
+      node.getParam("color_region_thresh", color_region_thresh);
+      node.getParam("color_min_size", color_min_size);
+      node.getParam("color_max_clusters", color_max_clusters);
+          
       return 0;
     }
     
@@ -544,7 +528,7 @@ class SeamDetection {
 
     
     // function to perform Euclidean Cluster Extraction  
-    PointCloudVec extractEuclideanClusters(PointCloud &input, int min_cluster_size, int max_cluster_size, double tolerance, int max_cluster_number){
+    PointCloudVec extractEuclideanClusters(PointCloud &input){
 
       PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy of the training cloud
       pcl::copyPointCloud(input,*cloud);
@@ -555,9 +539,9 @@ class SeamDetection {
 
       std::vector<pcl::PointIndices> cluster_indices;
       pcl::EuclideanClusterExtraction<PointT> ec;
-      ec.setClusterTolerance (tolerance); // cluster parameters set in config file
-      ec.setMinClusterSize (min_cluster_size);
-      ec.setMaxClusterSize (max_cluster_size);
+      ec.setClusterTolerance (euclidean_thresh); // cluster parameters set in config file
+      ec.setMinClusterSize (euclidean_min_size);
+      ec.setMaxClusterSize (euclidean_max_size);
       ec.setSearchMethod (tree);
       ec.setInputCloud (cloud);
       ec.extract (cluster_indices);
@@ -583,10 +567,10 @@ class SeamDetection {
 
       // if there are fewer clusters than the max, the length will remain the same
       int n; // number of clouds in clusters_out
-      if (clusters.size()<max_cluster_number){
+      if (clusters.size()<euclidean_max_clusters){
         n=clusters.size();
       }else{
-        n=max_cluster_number;
+        n=euclidean_max_clusters;
       }
       // put the first n clusters into clusters_out to be returned
       for (int i=0; i<n; i++){
@@ -611,7 +595,7 @@ class SeamDetection {
   
 
     // function to perform Color Based Region Growing Cluster Extraction 
-    PointCloudVec extractColorClusters(PointCloud &input, int min_cluster_size, double dist_thresh, double reg_color_thresh, double pt_color_thresh, int max_cluster_number){
+    PointCloudVec extractColorClusters(PointCloud &input){
       
       PointCloud::Ptr cloud (new PointCloud);       //use this as the working copy
       pcl::copyPointCloud(input,*cloud);
@@ -627,15 +611,15 @@ class SeamDetection {
       reg.setInputCloud (cloud);
       reg.setIndices (indices);
       reg.setSearchMethod (tree);
-      reg.setDistanceThreshold (dist_thresh);
-      reg.setPointColorThreshold (pt_color_thresh);
-      reg.setRegionColorThreshold (reg_color_thresh);
-      reg.setMinClusterSize (min_cluster_size);
+      reg.setDistanceThreshold (color_distance_thresh);
+      reg.setPointColorThreshold (color_point_thresh);
+      reg.setRegionColorThreshold (color_region_thresh);
+      reg.setMinClusterSize (color_min_size);
 
       std::vector <pcl::PointIndices> cluster_indices;
       reg.extract(cluster_indices);
 
-      pcl::PointCloud <PointT>::Ptr colored = reg.getColoredCloud ();
+      //pcl::PointCloud <PointT>::Ptr colored = reg.getColoredCloud ();
       //pcl::copyPointCloud(*colored, *recolored_cloud); // copy to member attribute
       // recolored cloud not used in workflow
 
@@ -659,20 +643,15 @@ class SeamDetection {
         
       }
 
-      //std::cout<< "clusters size: "<< clusters.size() <<std::endl;
-      //for (int i = 0; i < clusters.size(); i++){
-      //  std::cout << "color cluster " << i << " has " << clusters[i]->size() << " points " << std::endl;
-      //}
-
       // sort the cluster using user-defined compare function defined above 
       std::sort(clusters.begin(), clusters.end(), CompareSize);
 
       // if there are fewer clusters than the max, the length will remain the same
       int n; // number of clouds in clusters_out
-      if (clusters.size()<max_cluster_number){
+      if (clusters.size()<color_max_clusters){
         n=clusters.size();
       }else{
-        n=max_cluster_number;
+        n=color_max_clusters;
       }
       // put the first n clusters into clusters_out to be returned
       for (int i=0; i<n; i++){
@@ -1448,16 +1427,16 @@ class SeamDetection {
 
     double voxel_size;
 
-    int euc_min_size;  // parameters for the Euclidean Cluster Extraction
-    int euc_max_size;  // values defined in config file
-    double euc_thrsh;
-    int euc_max_clstrs; // max number of clusters 
+    double euclidean_thresh;  // parameters for the Euclidean Cluster Extraction, values defined in config file
+    int euclidean_min_size;  
+    int euclidean_max_size;   
+    int euclidean_max_clusters; // max number of clusters to be returned 
    
-    int col_min_size;  // parameters for the Color-Based Region-Growing Segmentation
-    int col_pt_thrsh;  // values defined in config file
-    int col_reg_thrsh; 
-    int col_dist_thrsh;
-    int col_max_clstrs; // max number of clusters 
+    int color_distance_thresh; // parameters for the Color-Based Region-Growing Segmentation, values defined in config file
+    int color_min_size;  
+    int color_point_thresh;  
+    int color_region_thresh; 
+    int color_max_clusters; // max number of clusters to be returned 
    
     // topic for generic cloud publisher
     std::string cloud_topic;
@@ -1500,7 +1479,6 @@ int main(int argc, char** argv)
   sd.loadCloud(sd.training_file, *sd.training_input);
 
   // Step 1.5 - perform voxel-downsampling, pre-transformation, and bounding-box on the training cloud
-  //double voxel_size=0.001; // voxel leaf size for downsampling
   sd.downsampleCloud(*sd.training_input, *sd.training_downsampled, sd.voxel_size); 
   sd.transformCloud(*sd.training_downsampled, *sd.training_transformed, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.training_transformed, *sd.training_bounded, sd.bounding_box);
@@ -1513,10 +1491,10 @@ int main(int argc, char** argv)
  
   // Step 2 - extract clusters from training cloud using euclidean and color algorithms
   PointCloudVec training_euclidean_clusters, training_color_clusters;
-  // preform Euclidean cluster extraction
-  training_euclidean_clusters=sd.extractEuclideanClusters(*sd.training_bounded, sd.euc_min_size, sd.euc_max_size, sd.euc_thrsh, sd.euc_max_clstrs); 
-  // preform Color Based Region Growing cluster extraction
-  training_color_clusters=sd.extractColorClusters(*sd.training_bounded, sd.col_min_size, sd.col_pt_thrsh, sd.col_reg_thrsh, sd.col_dist_thrsh, sd.col_max_clstrs);
+  // perform Euclidean cluster extraction
+  training_euclidean_clusters=sd.extractEuclideanClusters(*sd.training_bounded); 
+  // perform Color Based Region Growing cluster extraction
+  training_color_clusters=sd.extractColorClusters(*sd.training_bounded);
   
   std::cout<<"training_euclidean_clusters size:"<<training_euclidean_clusters.size()<<std::endl;
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
@@ -1562,9 +1540,9 @@ int main(int argc, char** argv)
   PointCloudVec test_euclidean_clusters, test_color_clusters;
  
   // preform Euclidean cluster extraction
-  test_euclidean_clusters=sd.extractEuclideanClusters(*sd.test_bounded, sd.euc_min_size, sd.euc_max_size, sd.euc_thrsh, sd.euc_max_clstrs); 
+  test_euclidean_clusters=sd.extractEuclideanClusters(*sd.test_bounded); 
   // preform Color Based Region Growing cluster extraction
-  test_color_clusters=sd.extractColorClusters(*sd.test_bounded, sd.col_min_size, sd.col_pt_thrsh, sd.col_reg_thrsh, sd.col_dist_thrsh, sd.col_max_clstrs);
+  test_color_clusters=sd.extractColorClusters(*sd.test_bounded);
  
   std::cout<<"test_euclidean_clusters size:"<<test_euclidean_clusters.size()<<std::endl;
   std::cout<<"test_color_clusters size:"<<test_color_clusters.size()<<std::endl;
