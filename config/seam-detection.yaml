@@ -31,8 +31,9 @@ seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b_1705440053
 #seam_detection/training_file: "pcd_images/ds435i_table_parts/training_20_1705706511970438.pcd"
 #seam_detection/training_file: "pcd_images/ds435i_table_parts/training_21_1705706602384186.pcd"
 #seam_detection/training_file: "pcd_images/ds435i_table_parts/training_22_1705707044040835.pcd"
-seam_detection/training_file: "pcd_images/ds435i_table_parts/training_23_1705707968536234.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_23_1705707968536234.pcd"
 
+seam_detection/training_file: "pcd_images/ds435i_table_parts/output.pcd"
 
 save_output: true
 translate_output: false
@@ -41,8 +42,11 @@ use_clustering: true
 new_scan: false
 transform_input: true
 
-seam_detection/pre_rotation:    [0.0, 3.14159, 0.0] # ds435i rgb camera 32inches from table surface pointing down
-seam_detection/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
+#seam_detection/pre_rotation:    [0.0, 3.14159, 0.0] # ds435i rgb camera 32inches from table surface pointing down
+#seam_detection/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
+
+seam_detection/pre_rotation:    [0.0, 0.0, 0.0] 
+seam_detection/pre_translation: [0.0, 0.0, 0.0]  
 
 seam_detection/bounding_box: [-1.0, 1.0, -1.0, 1.0, 0.010, 0.5] # bounding box limits
 #seam_detection/voxel_size: 0.001  

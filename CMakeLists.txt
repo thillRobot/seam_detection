@@ -310,16 +310,19 @@ target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
 # target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+# ds435i_tf
+add_executable(ds435i_tf src/ds435i_tf.cpp)
+target_link_libraries(ds435i_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# save_rgbcloud
+add_executable(save_rgbcloud src/save_rgbcloud.cpp)
+target_link_libraries(save_rgbcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 ###########################################################
 ## Aubo Robot system interface nodes                     ## 
 ## require aubo_description and aubo_control to compile  ##
 ## comment out these nodes if robot not present          ## 
 ###########################################################
-
-# ds435i_tf
-add_executable(ds435i_tf src/ds435i_tf.cpp)
-target_link_libraries(ds435i_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # get_cloud
 #add_executable(get_cloud src/get_cloud.cpp)
