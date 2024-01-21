@@ -3,33 +3,20 @@
 
 #include <iostream>
 #include <string>
-#include <boost/thread/thread.hpp>
-#include <Eigen/Dense>
-#include <Eigen/Core>
 
-#include <pcl/pcl_config.h>
-#include <pcl/console/parse.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 
-#include <sensor_msgs/PointCloud.h>
-#include <sensor_msgs/PointCloud2.h>
-
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
 
 #include "ros/package.h"
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <geometry_msgs/PointStamped.h>
-#include <visualization_msgs/Marker.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <geometry_msgs/Twist.h>
 
-// PCL XYZ RGB Pointclouds
+
+// PCL XYZ RGB Pointclouds type definitions
 typedef pcl::PointXYZRGB PointT;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
@@ -75,16 +62,13 @@ int main(int argc, char** argv)
   // find the path to the this package (seam_detection)
   std::string package_path = ros::package::getPath("seam_detection");
 
-  // get additional command line parameters (passed through launch file)
-  //const std::string input_topic;
-  //std::string output_file;
-  
+  // get additional command line parameters (passed through launch file)  
   if (argc<2){
     std::cout<<"error: argc<2, input_topic(argv[1]) and output_file(argv[2]) must be set in cmd line"<<std::endl;
   	return -1; // quit main early with a neg flag... i dont really like this here but it works
   }
 
-  //get command line args 
+  // instatiate constant strings from cmd line args
   const std::string input_topic(argv[1]);    
   const std::string output_file(argv[2]);    
   
@@ -95,11 +79,13 @@ int main(int argc, char** argv)
   
   ros::Subscriber cloud_sub = node.subscribe(input_topic, 10, cloud_callback);
   
-  // loop forever
-  while(ros::ok())
-  {
-      ros::spinOnce();
-      loop_rate.sleep();
+  int count=0;
+  // loop for some iterations
+  while(ros::ok()&&count<5){
+    ros::spinOnce();    
+    loop_rate.sleep();
+  	std::cout<<"main loop count: "<<count<<std::endl;
+  	count++;
   }
 
 }
