@@ -21,9 +21,10 @@ typedef pcl::PointXYZRGB PointT;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
 
+// global variable for the output file path, to be used by callback
 std::string output_path;
 
-
+// callback function for recieving cloud messages
 void cloud_callback (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
 	PointCloud::Ptr cloud_in (new PointCloud);
@@ -63,7 +64,7 @@ int main(int argc, char** argv)
   std::string package_path = ros::package::getPath("seam_detection");
 
   // get additional command line parameters (passed through launch file)  
-  if (argc<2){
+  if (argc<3){
     std::cout<<"error: argc<2, input_topic(argv[1]) and output_file(argv[2]) must be set in cmd line"<<std::endl;
   	return -1; // quit main early with a neg flag... i dont really like this here but it works
   }
@@ -80,11 +81,11 @@ int main(int argc, char** argv)
   ros::Subscriber cloud_sub = node.subscribe(input_topic, 10, cloud_callback);
   
   int count=0;
-  // loop for some iterations
+  // loop for a low number of iterations then quit
   while(ros::ok()&&count<5){
     ros::spinOnce();    
     loop_rate.sleep();
-  	std::cout<<"main loop count: "<<count<<std::endl;
+  	//std::cout<<"main loop count: "<<count<<std::endl;
   	count++;
   }
 

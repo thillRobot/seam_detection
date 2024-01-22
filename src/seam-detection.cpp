@@ -611,10 +611,16 @@ class SeamDetection {
       reg.setInputCloud (cloud);
       reg.setIndices (indices);
       reg.setSearchMethod (tree);
+       
+         
       reg.setDistanceThreshold (color_distance_thresh);
       reg.setPointColorThreshold (color_point_thresh);
       reg.setRegionColorThreshold (color_region_thresh);
       reg.setMinClusterSize (color_min_size);
+  
+      std::cout<<"distance threshold: "<<reg.getDistanceThreshold()<<std::endl;
+      std::cout<<"point color threshold: "<<reg.getPointColorThreshold()<<std::endl;
+      std::cout<<"region color threshold: "<<reg.getRegionColorThreshold()<<std::endl;
 
       std::vector <pcl::PointIndices> cluster_indices;
       reg.extract(cluster_indices);
@@ -1427,16 +1433,11 @@ class SeamDetection {
 
     double voxel_size;
 
-    double euclidean_thresh;  // parameters for the Euclidean Cluster Extraction, values defined in config file
-    int euclidean_min_size;  
-    int euclidean_max_size;   
-    int euclidean_max_clusters; // max number of clusters to be returned 
+    float euclidean_thresh;  // parameters for the Euclidean Cluster Extraction, values defined in config file
+    int euclidean_min_size, euclidean_max_size, euclidean_max_clusters; 
    
-    int color_distance_thresh; // parameters for the Color-Based Region-Growing Segmentation, values defined in config file
-    int color_min_size;  
-    int color_point_thresh;  
-    int color_region_thresh; 
-    int color_max_clusters; // max number of clusters to be returned 
+    float color_distance_thresh, color_point_thresh, color_region_thresh; // parameters for the Color-Based Region-Growing Segmentation, values defined in config file
+    int color_min_size, color_max_clusters;  
    
     // topic for generic cloud publisher
     std::string cloud_topic;
