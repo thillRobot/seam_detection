@@ -42,6 +42,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/filters/filter_indices.h> // for pcl::removeNaNFromPointCloud
 #include <pcl/segmentation/region_growing_rgb.h>
+#include <pcl/surface/mls.h>
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
@@ -74,6 +75,9 @@ using namespace std::chrono_literals;
 typedef pcl::PointXYZRGB PointT;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
+
+typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
+typedef pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr PointCloudNormalPtr;
 
 //typedef pcl::PointCloud< pcl::PointXYZRGB > PointCloud;
 //typedef PointCloud::ConstPtr PointCloudConstPtr;
@@ -108,7 +112,8 @@ class SeamDetection {
       training_downsampled = new PointCloud;
       training_transformed = new PointCloud;
       training_bounded = new PointCloud;
-      //training_target = new PointCloud;
+      
+      training_smoothed = new PointCloudNormal;
       
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -199,6 +204,22 @@ class SeamDetection {
 
       // advertise a new topic and publish a msg each time this function is called
       pub_clouds.push_back(node.advertise<PointCloud>(topic, 0, true));
+      
+      cloud.header.frame_id = "base_link";
+
+      pub_clouds[pub_clouds.size()-1].publish(cloud);
+
+      ros::spinOnce();
+
+    }
+
+    // overloaded function to publish a single cloud as a ROS topic 
+    // could use templates i thinkMi to handle a different type instead of overloading
+    void publishCloud(PointCloudNormal &cloud, std::string topic){
+      std::cout<<"|---------- SeamDetection::publishCloud - publishing single cloud ----------|"<<std::endl;
+
+      // advertise a new topic and publish a msg each time this function is called
+      pub_clouds.push_back(node.advertise<PointCloudNormal>(topic, 0, true));
       
       cloud.header.frame_id = "base_link";
 
@@ -351,6 +372,34 @@ class SeamDetection {
      
     }
 
+    void smoothCloud(PointCloud &input, PointCloudNormal &output){
+
+      PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
+      pcl::copyPointCloud(input,*cloud);
+
+      // Create a KD-Tree
+      pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
+
+      // Output has the PointNormal type in order to store the normals calculated by MLS
+      //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points;
+
+      // Init object (second point type is for the normals, even if unused)
+      pcl::MovingLeastSquares<PointT, pcl::PointXYZRGBNormal> mls;
+
+      mls.setComputeNormals (true);
+      // Set parameters
+
+      mls.setInputCloud (cloud);
+      mls.setPolynomialOrder (2);
+      mls.setSearchMethod (tree);
+      mls.setSearchRadius (0.03);
+
+      // Reconstruct
+      mls.process (output);
+
+      //pcl::copyPointCloud(input, output)
+
+    }
 
     // function to return the median value of a std::vector
     // it seems like there would be a std method for this
@@ -1423,6 +1472,9 @@ class SeamDetection {
     PointCloud *test_input, *test_downsampled, *test_transformed, *test_bounded; 
     //PointCloudPtr test_target;
 
+    PointCloudNormal *training_smoothed;
+
+
     // other parameters from the config file (these do not need to public)
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
@@ -1483,13 +1535,17 @@ int main(int argc, char** argv)
   sd.downsampleCloud(*sd.training_input, *sd.training_downsampled, sd.voxel_size); 
   sd.transformCloud(*sd.training_downsampled, *sd.training_transformed, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.training_transformed, *sd.training_bounded, sd.bounding_box);
+
+  sd.smoothCloud(*sd.training_bounded, *sd.training_smoothed);
+  std::cout<<"training_smoothed has "<<sd.training_bounded->size()<<" points"<<std::endl;
   
   // show the input training clouds in rviz
   sd.publishCloud(*sd.training_input, "/training_input"); 
   sd.publishCloud(*sd.training_downsampled, "/training_downsampled");
   sd.publishCloud(*sd.training_transformed, "/training_transformed"); 
   sd.publishCloud(*sd.training_bounded, "/training_bounded");
- 
+  sd.publishCloud(*sd.training_smoothed, "/training_smoothed");
+
   // Step 2 - extract clusters from training cloud using euclidean and color algorithms
   PointCloudVec training_euclidean_clusters, training_color_clusters;
   // perform Euclidean cluster extraction
