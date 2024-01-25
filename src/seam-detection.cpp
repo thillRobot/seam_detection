@@ -104,7 +104,8 @@ class SeamDetection {
       test_input = new PointCloud;
       test_downsampled = new PointCloud;
       test_transformed = new PointCloud;
-      test_bounded = new PointCloud;  
+      test_bounded = new PointCloud; 
+
       //test_target = new PointCloud;
 
       training_input = new PointCloud;
@@ -114,6 +115,10 @@ class SeamDetection {
       
       training_smoothed = new PointCloudNormal;
       
+      // working copy for debugging
+      cloud = new pcl::PointCloud<pcl::PointXYZRGBNormal>;
+
+
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
   
@@ -216,7 +221,6 @@ class SeamDetection {
     }
 
 
-
     // function to publish a vector of PointClouds representing clusters as a ROS topic
     void publishClusters(PointCloudVec &clusters, std::string prefix){
       std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
@@ -232,7 +236,6 @@ class SeamDetection {
       }
       
       ros::spinOnce();
-     
     }
 
 
@@ -251,27 +254,25 @@ class SeamDetection {
       }
       
       ros::spinOnce();
-     
     }
 
     
     // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
-    template <typename pT>
-    void publishClustersT(std::vector < pcl::PointCloud<pT>*, Eigen::aligned_allocator < pcl::PointCloud<pT>*> > &clusters, std::string prefix){
+    template <typename point_t>
+    void publishClustersT(std::vector< pcl::PointCloud<point_t>*, Eigen::aligned_allocator<pcl::PointCloud<point_t>*> > &clusters, std::string prefix){
       std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
         
       for (int i=0; i<clusters.size(); i++){
         // advertise a topic and publish a msg for each cluster in clusters
         std::stringstream name;
         name << prefix << i;
-        pub_clusters.push_back(node.advertise<pcl::PointCloud<pT>>(name.str(), 0, true)); // this type needs handling too
+        pub_clusters.push_back(node.advertise<pcl::PointCloud<point_t>>(name.str(), 0, true)); // this type needs handling too
         clusters[i]->header.frame_id = "base_link";
         pub_clusters[pub_idx].publish(clusters[i]);
         pub_idx++;
       }
       
       ros::spinOnce();
-     
     }
  
     // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
@@ -423,19 +424,19 @@ class SeamDetection {
 
     }
 
-    template <typename pT, typename pNT> 
-    void smoothCloudT(pcl::PointCloud<pT> &input, pcl::PointCloud<pNT> &output){
+    template <typename point_t, typename point_normal_t> 
+    void smoothCloudT(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_normal_t> &output){
 
-      pcl::PointCloud<pT>* cloud (new pcl::PointCloud<pT>);  //use this as the working copy for this function 
+      typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>);  //use this as the working copy for this function 
       pcl::copyPointCloud(input,*cloud);
 
       // Create a KD-Tree
-      pcl::search::KdTree<pT>* tree (new pcl::search::KdTree<pT>);
+      typename pcl::search::KdTree<point_t>::Ptr tree (new pcl::search::KdTree<point_t>);
 
       // Output has the PointNormal type in order to store the normals calculated by MLS
       //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; // modify the function output pointcloud directly instead
       // Init object (second point type is for the normals, even if unused)
-      pcl::MovingLeastSquares<pT, pNT> mls;
+      pcl::MovingLeastSquares<point_t, point_normal_t> mls;
 
       mls.setComputeNormals (true);
       // Set parameters
@@ -856,19 +857,19 @@ class SeamDetection {
 
     //templated function to perform Color Based Region Growing Cluster Extraction and return PointCloudNormalVec
     //typedef pcl::PointCloud pcd_t; 
-    template <typename pT>
-    std::vector < pcl::PointCloud<pT>*, Eigen::aligned_allocator < pcl::PointCloud<pT>*> > extractColorClustersT(pcl::PointCloud<pT> &input){
+    template <typename point_t>
+    std::vector < pcl::PointCloud<point_t>*, Eigen::aligned_allocator < pcl::PointCloud<point_t>*> > extractColorClustersT(pcl::PointCloud<point_t> &input){
       
-      pcl::PointCloud<pT>* cloud (new pcl::PointCloud<pT>);       //use this as the working copy
+      pcl::PointCloud<point_t>* cloud (new pcl::PointCloud<point_t>);       //use this as the working copy
       pcl::copyPointCloud(input,*cloud);
 
       // perform color based region growing segmentation  
-      pcl::search::Search <pT>* tree (new pcl::search::KdTree<pT>);
+      pcl::search::Search <point_t>* tree (new pcl::search::KdTree<point_t>);
 
       pcl::IndicesPtr indices (new std::vector <int>);
       pcl::removeNaNFromPointCloud (*cloud, *indices);
 
-      pcl::RegionGrowingRGB<pT> reg;
+      pcl::RegionGrowingRGB<point_t> reg;
 
       reg.setInputCloud (cloud);
       reg.setIndices (indices);
@@ -879,6 +880,7 @@ class SeamDetection {
       reg.setRegionColorThreshold (color_region_thresh);
       reg.setMinClusterSize (color_min_size);
   
+      /*  
       std::cout<<"distance threshold: "<<reg.getDistanceThreshold()<<std::endl;
       std::cout<<"point color threshold: "<<reg.getPointColorThreshold()<<std::endl;
       std::cout<<"region color threshold: "<<reg.getRegionColorThreshold()<<std::endl;
@@ -893,7 +895,7 @@ class SeamDetection {
       for (const auto& cluster : cluster_indices) 
       {
         
-        pcl::PointCloud<pT>* cloud_cluster (new pcl::PointCloud<pT>);
+        pcl::PointCloud<point_t>* cloud_cluster (new pcl::PointCloud<point_t>);
         for (const auto& idx : cluster.indices) { // add points to cluster cloud
           cloud_cluster->push_back((*cloud)[idx]);
         } 
@@ -927,6 +929,7 @@ class SeamDetection {
       }  
 
       return clusters_out;
+      */
 
     }
 
@@ -1676,6 +1679,8 @@ class SeamDetection {
     // attributes
 
     // pointcloud pointers
+    pcl::PointCloud<pcl::PointXYZRGBNormal> *cloud;
+
     PointCloud *training_input, *training_downsampled, *training_transformed, *training_bounded; 
     PointCloud *test_input, *test_downsampled, *test_transformed, *test_bounded; 
     //PointCloudPtr test_target;
@@ -1745,8 +1750,8 @@ int main(int argc, char** argv)
   sd.transformCloud(*sd.training_downsampled, *sd.training_transformed, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.training_transformed, *sd.training_bounded, sd.bounding_box);
 
-  //sd.smoothCloudT(*sd.training_bounded, *sd.training_smoothed);
-  //std::cout<<"training_smoothed has "<<sd.training_bounded->size()<<" points"<<std::endl;
+  sd.smoothCloudT(*sd.training_bounded, *sd.training_smoothed);
+  std::cout<<"training_smoothed has "<<sd.training_bounded->size()<<" points"<<std::endl;
   
   // show the input training clouds in rviz
   sd.publishCloud(*sd.training_input, "/training_input"); 
@@ -1767,12 +1772,15 @@ int main(int argc, char** argv)
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
 
   // show the extracted 'training' clusters in rviz
-  sd.publishClusters(training_euclidean_clusters, "/training_euclidean"); // show the euclidean and color based clusters  
+  sd.publishClusters(training_euclidean_clusters, "/training_euclidean"); // show the euclidean and color based clusters 
   sd.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
 
   // smooth the bounded training cloud and repeat the color clustering
   //PointCloudNormalVec training_smoothed_color_clusters;
-  //std::vector < pcl::PointCloud<PointNT>*, Eigen::aligned_allocator < pcl::PointCloud<PointNT>* > > training_smoothed_color_clusters;
+  //std::vector < pcl::PointCloud<PointNT>::Ptr, Eigen::aligned_allocator < pcl::PointCloud<PointNT>::Ptr > > training_smoothed_color_clusters;
+  
+  //sd.extractColorClustersT(*sd.training_bounded);
+  //sd.extractColorClustersT(*sd.training_smoothed);
   //training_smoothed_color_clusters=sd.extractColorClustersT(*sd.training_smoothed);
   //sd.publishClustersT(training_smoothed_color_clusters, "/training_smoothed_color"); 
 
