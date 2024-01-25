@@ -179,8 +179,9 @@ class SeamDetection {
     }
     
 
-    // function to load pointcloud from PCD file as defined in config
-    int loadCloud(std::string file_name, PointCloud &input){
+    // templated function to load pcl::PointCloud<point_t> from PCD file as defined in config
+    template <typename point_t>
+    int loadCloud(std::string file_name, pcl::PointCloud<point_t> &input){
 
       std::cout<<"|---------- SeamDetection::LoadCloud - loading PCD file ----------|"<<std::endl;
 
@@ -188,23 +189,23 @@ class SeamDetection {
       file_path=package_path+"/"+file_name;
 
       std::cout << "Loading input pointcloud file: " << file_path << std::endl;
-      if (pcl::io::loadPCDFile<pcl::PointXYZRGB> (file_path, input) == -1)
+      if (pcl::io::loadPCDFile<point_t> (file_path, input) == -1)
       {
-          std::cout<<"Failed to load input pointcloud file: "<< training_path <<std::endl;
-          return (-1);
+        std::cout<<"Failed to load input pointcloud file: "<< training_path <<std::endl;
+        return (-1);
       }
       std::cout << "Loaded "<<input.width * input.height << " data points from input pointcloud file: "<< file_path <<std::endl;
       return 0;  
     } 
 
     
-    // templated function to publish a single cloud as a ROS topic 
-    template <typename T>
-    void publishCloud(T &cloud, std::string topic){
+    // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
+    template <typename point_t>
+    void publishCloud(point_t &cloud, std::string topic){
       std::cout<<"|---------- SeamDetection::publishCloud - publishing single cloud ----------|"<<std::endl;
 
       // advertise a new topic and publish a msg each time this function is called
-      pub_clouds.push_back(node.advertise<PointCloudNormal>(topic, 0, true));
+      pub_clouds.push_back(node.advertise<pcl::PointCloud<point_t>>(topic, 0, true));
       
       cloud.header.frame_id = "base_link";
 
@@ -253,17 +254,17 @@ class SeamDetection {
      
     }
 
-    /*
+    
     // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
-    template <typename T>
-    void publishClustersT(T &clusters, std::string prefix){
+    template <typename pT>
+    void publishClustersT(std::vector < pcl::PointCloud<pT>*, Eigen::aligned_allocator < pcl::PointCloud<pT>*> > &clusters, std::string prefix){
       std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
         
       for (int i=0; i<clusters.size(); i++){
         // advertise a topic and publish a msg for each cluster in clusters
         std::stringstream name;
         name << prefix << i;
-        pub_clusters.push_back(node.advertise<PointCloudNormal>(name.str(), 0, true)); // this type needs handling too
+        pub_clusters.push_back(node.advertise<pcl::PointCloud<pT>>(name.str(), 0, true)); // this type needs handling too
         clusters[i]->header.frame_id = "base_link";
         pub_clusters[pub_idx].publish(clusters[i]);
         pub_idx++;
@@ -271,7 +272,7 @@ class SeamDetection {
       
       ros::spinOnce();
      
-    }*/
+    }
  
     // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
     void copyCloud(PointCloud &input, PointCloud &output){
@@ -413,6 +414,34 @@ class SeamDetection {
       // Set parameters
 
       mls.setInputCloud (cloud);
+      mls.setPolynomialOrder (2);
+      mls.setSearchMethod (tree);
+      mls.setSearchRadius (0.03);
+
+      // Reconstruct
+      mls.process (output);
+
+    }
+
+    template <typename pT, typename pNT> 
+    void smoothCloudT(pcl::PointCloud<pT> &input, pcl::PointCloud<pNT> &output){
+
+      pcl::PointCloud<pT>* cloud (new pcl::PointCloud<pT>);  //use this as the working copy for this function 
+      pcl::copyPointCloud(input,*cloud);
+
+      // Create a KD-Tree
+      pcl::search::KdTree<pT>* tree (new pcl::search::KdTree<pT>);
+
+      // Output has the PointNormal type in order to store the normals calculated by MLS
+      //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; // modify the function output pointcloud directly instead
+      // Init object (second point type is for the normals, even if unused)
+      pcl::MovingLeastSquares<pT, pNT> mls;
+
+      mls.setComputeNormals (true);
+      // Set parameters
+
+      mls.setInputCloud (cloud);
+      //mls.setInputCloud (input);
       mls.setPolynomialOrder (2);
       mls.setSearchMethod (tree);
       mls.setSearchRadius (0.03);
@@ -788,6 +817,83 @@ class SeamDetection {
       {
         
         PointCloudNormal::Ptr cloud_cluster (new PointCloudNormal);
+        for (const auto& idx : cluster.indices) { // add points to cluster cloud
+          cloud_cluster->push_back((*cloud)[idx]);
+        } 
+        cloud_cluster->width = cloud_cluster->size();
+        cloud_cluster->height = 1;
+        cloud_cluster->is_dense = true;
+
+        clusters.push_back(cloud_cluster); // add clusters to vector of clusters
+        j++; // increment the cluster counter
+        
+      }
+
+      // sort the cluster using user-defined compare function defined above 
+      std::sort(clusters.begin(), clusters.end(), CompareSizeNormal);
+
+      // if there are fewer clusters than the max, the length will remain the same
+      int n; // number of clouds in clusters_out
+      if (clusters.size()<color_max_clusters){
+        n=clusters.size();
+      }else{
+        n=color_max_clusters;
+      }
+      // put the first n clusters into clusters_out to be returned
+      for (int i=0; i<n; i++){
+        clusters_out.push_back(clusters[i]);
+      }
+
+      std::cout<< "color clusters_out size: "<< clusters_out.size() <<std::endl;
+      for (int i = 0; i < clusters_out.size(); i++){
+        std::cout << "color clusters_out " << i << " has " << clusters_out[i]->size() << " points " << std::endl;
+      }  
+
+      return clusters_out;
+
+    }
+
+
+    //templated function to perform Color Based Region Growing Cluster Extraction and return PointCloudNormalVec
+    //typedef pcl::PointCloud pcd_t; 
+    template <typename pT>
+    std::vector < pcl::PointCloud<pT>*, Eigen::aligned_allocator < pcl::PointCloud<pT>*> > extractColorClustersT(pcl::PointCloud<pT> &input){
+      
+      pcl::PointCloud<pT>* cloud (new pcl::PointCloud<pT>);       //use this as the working copy
+      pcl::copyPointCloud(input,*cloud);
+
+      // perform color based region growing segmentation  
+      pcl::search::Search <pT>* tree (new pcl::search::KdTree<pT>);
+
+      pcl::IndicesPtr indices (new std::vector <int>);
+      pcl::removeNaNFromPointCloud (*cloud, *indices);
+
+      pcl::RegionGrowingRGB<pT> reg;
+
+      reg.setInputCloud (cloud);
+      reg.setIndices (indices);
+      reg.setSearchMethod (tree);
+       
+      reg.setDistanceThreshold (color_distance_thresh);
+      reg.setPointColorThreshold (color_point_thresh);
+      reg.setRegionColorThreshold (color_region_thresh);
+      reg.setMinClusterSize (color_min_size);
+  
+      std::cout<<"distance threshold: "<<reg.getDistanceThreshold()<<std::endl;
+      std::cout<<"point color threshold: "<<reg.getPointColorThreshold()<<std::endl;
+      std::cout<<"region color threshold: "<<reg.getRegionColorThreshold()<<std::endl;
+
+      std::vector <pcl::PointIndices> cluster_indices;
+      reg.extract(cluster_indices);
+
+      // instantiate a std vector of pcl pointclouds with pcl PointXYZ points (see typedef above)
+      PointCloudNormalVec clusters, clusters_out;
+
+      int j = 0;
+      for (const auto& cluster : cluster_indices) 
+      {
+        
+        pcl::PointCloud<pT>* cloud_cluster (new pcl::PointCloud<pT>);
         for (const auto& idx : cluster.indices) { // add points to cluster cloud
           cloud_cluster->push_back((*cloud)[idx]);
         } 
@@ -1577,6 +1683,7 @@ class SeamDetection {
     PointCloudNormal *training_smoothed;
 
 
+
     // other parameters from the config file (these do not need to public)
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
@@ -1638,15 +1745,15 @@ int main(int argc, char** argv)
   sd.transformCloud(*sd.training_downsampled, *sd.training_transformed, sd.pre_rotation, sd.pre_translation);
   sd.boundCloud(*sd.training_transformed, *sd.training_bounded, sd.bounding_box);
 
-  sd.smoothCloud(*sd.training_bounded, *sd.training_smoothed);
-  std::cout<<"training_smoothed has "<<sd.training_bounded->size()<<" points"<<std::endl;
+  //sd.smoothCloudT(*sd.training_bounded, *sd.training_smoothed);
+  //std::cout<<"training_smoothed has "<<sd.training_bounded->size()<<" points"<<std::endl;
   
   // show the input training clouds in rviz
   sd.publishCloud(*sd.training_input, "/training_input"); 
   sd.publishCloud(*sd.training_downsampled, "/training_downsampled");
   sd.publishCloud(*sd.training_transformed, "/training_transformed"); 
   sd.publishCloud(*sd.training_bounded, "/training_bounded");
-  sd.publishCloud(*sd.training_smoothed, "/training_smoothed");
+  //sd.publishCloud(*sd.training_smoothed, "/training_smoothed");
 
   // Step 2 - extract clusters from training cloud using euclidean and color algorithms
   PointCloudVec training_euclidean_clusters, training_color_clusters;
@@ -1664,9 +1771,10 @@ int main(int argc, char** argv)
   sd.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
 
   // smooth the bounded training cloud and repeat the color clustering
-  PointCloudNormalVec training_smoothed_color_clusters;
-  training_smoothed_color_clusters=sd.extractColorClusters(*sd.training_smoothed);
-  sd.publishClusters(training_smoothed_color_clusters, "/training_smoothed_color"); 
+  //PointCloudNormalVec training_smoothed_color_clusters;
+  //std::vector < pcl::PointCloud<PointNT>*, Eigen::aligned_allocator < pcl::PointCloud<PointNT>* > > training_smoothed_color_clusters;
+  //training_smoothed_color_clusters=sd.extractColorClustersT(*sd.training_smoothed);
+  //sd.publishClustersT(training_smoothed_color_clusters, "/training_smoothed_color"); 
 
   // Step 3 - choose proper euclidean clusters and color clusters using correlation routine between training euclidean and training color 
   int debug_level=1; // controls debug printing, 0-no print, 1-print search results, 2-print search data and search results 
