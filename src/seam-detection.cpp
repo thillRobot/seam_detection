@@ -116,8 +116,7 @@ class SeamDetection {
       training_smoothed = new PointCloudNormal;
       
       // working copy for debugging
-      cloud = new pcl::PointCloud<pcl::PointXYZRGBNormal>;
-
+      //cloud = new pcl::PointCloud<pcl::PointXYZRGBNormal>; // dont use this name
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -257,9 +256,10 @@ class SeamDetection {
     }
 
 
-       // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
+    
+    // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
     template <typename point_t>
-    void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr, Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr >> &clusters, std::string prefix){
+    void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr, Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix){
       std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
         
       for (int i=0; i<clusters.size(); i++){
@@ -274,6 +274,24 @@ class SeamDetection {
       
       ros::spinOnce();
     }
+    /*
+    // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
+    template <typename T, typename A>
+    void publishClustersT(std::vector< typename pcl::PointCloud<T>::Ptr,A >& clusters, std::string prefix){
+      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
+        
+      for (int i=0; i<clusters.size(); i++){
+        // advertise a topic and publish a msg for each cluster in clusters
+        std::stringstream name;
+        name << prefix << i;
+        pub_clusters.push_back(node.advertise<T>>(name.str(), 0, true)); // this type needs handling too
+        clusters[i]->header.frame_id = "base_link";
+        pub_clusters[pub_idx].publish(clusters[i]);
+        pub_idx++;
+      }
+      
+      ros::spinOnce();
+    }*/
  
     // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
     void copyCloud(PointCloud &input, PointCloud &output){
@@ -1777,7 +1795,12 @@ int main(int argc, char** argv)
 
   // smooth the bounded training cloud and repeat the color clustering
   //PointCloudNormalVec training_smoothed_color_clusters;
-  std::vector<typename pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr, Eigen::aligned_allocator<typename pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr> > training_smoothed_color_clusters;
+  //std::vector<typename pcl::PointCloud<PointNT>::Ptr, Eigen::aligned_allocator<typename pcl::PointCloud<PointNT>::Ptr> > training_smoothed_color_clusters;
+
+  using PointCloudPtrType = typename pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr;
+  using AllocatorType = Eigen::aligned_allocator<PointCloudPtrType>;
+  using VectorType = std::vector<PointCloudPtrType, AllocatorType>;
+  VectorType training_smoothed_color_clusters;
 
   training_smoothed_color_clusters=sd.extractColorClustersT(*sd.training_smoothed);
   //sd.publishClustersT(training_smoothed_color_clusters, "/training_smoothed_color"); // passing this in causes a argument error 'no matching function call for...', fix this later
@@ -1790,14 +1813,13 @@ int main(int argc, char** argv)
   // show the matches to the clusters in rviz
   sd.publishClusters(training_matches, "/training_match");
   
-  
+ 
   // 3.5 - find intersection of the training data (training_euclidan_clusters[0] , training_matches[0])
   PointCloudPtr training_intersection (new PointCloud); // memory allocation required because the intersection cloud data will be copied to a new pointclou
   sd.getCloudIntersection(*training_euclidean_clusters[0], *training_matches[0], *training_intersection);
   std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;
   
   sd.publishCloud(*training_intersection, "/training_intersection"); // show in rviz
-
 
   // [Steps 4-7] - use 'test' image of target object on cluttered table
   
@@ -1874,7 +1896,6 @@ int main(int argc, char** argv)
   std::cout<<"final_match has "<<final_match->size()<<" points"<<std::endl;
   sd.publishCloud(*final_match, "/final_match"); // show the matching target from the test image         
   
-   
   ros::spin();
 
   return 0;
