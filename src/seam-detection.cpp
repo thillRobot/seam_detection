@@ -256,17 +256,17 @@ class SeamDetection {
       ros::spinOnce();
     }
 
-    
-    // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
+
+       // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
     template <typename point_t>
-    void publishClustersT(std::vector< pcl::PointCloud<point_t>*, Eigen::aligned_allocator<pcl::PointCloud<point_t>*> > &clusters, std::string prefix){
+    void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr, Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr >> &clusters, std::string prefix){
       std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
         
       for (int i=0; i<clusters.size(); i++){
         // advertise a topic and publish a msg for each cluster in clusters
         std::stringstream name;
         name << prefix << i;
-        pub_clusters.push_back(node.advertise<pcl::PointCloud<point_t>>(name.str(), 0, true)); // this type needs handling too
+        pub_clusters.push_back(node.advertise<point_t>>(name.str(), 0, true)); // this type needs handling too
         clusters[i]->header.frame_id = "base_link";
         pub_clusters[pub_idx].publish(clusters[i]);
         pub_idx++;
@@ -1777,12 +1777,10 @@ int main(int argc, char** argv)
 
   // smooth the bounded training cloud and repeat the color clustering
   //PointCloudNormalVec training_smoothed_color_clusters;
-  std::vector < pcl::PointCloud<PointNT>::Ptr, Eigen::aligned_allocator < pcl::PointCloud<PointNT>::Ptr > > training_smoothed_color_clusters;
-  
-  //sd.extractColorClustersT(*sd.training_bounded);
-  //sd.extractColorClustersT(*sd.training_smoothed);
+  std::vector<typename pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr, Eigen::aligned_allocator<typename pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr> > training_smoothed_color_clusters;
+
   training_smoothed_color_clusters=sd.extractColorClustersT(*sd.training_smoothed);
-  //sd.publishClustersT(training_smoothed_color_clusters, "/training_smoothed_color"); 
+  //sd.publishClustersT(training_smoothed_color_clusters, "/training_smoothed_color"); // passing this in causes a argument error 'no matching function call for...', fix this later
 
   // Step 3 - choose proper euclidean clusters and color clusters using correlation routine between training euclidean and training color 
   int debug_level=1; // controls debug printing, 0-no print, 1-print search results, 2-print search data and search results 
