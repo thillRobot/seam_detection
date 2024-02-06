@@ -249,7 +249,6 @@ class FilterDataset {
     }
 
 
-    
     // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
     template <typename point_t>
     void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr, Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix){
@@ -289,11 +288,11 @@ class FilterDataset {
     // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
     void copyCloud(PointCloud &input, PointCloud &output){
 
-      std::cout<<"the point cloud input has "<< input.size()<< " points"<<std::endl;
+      //std::cout<<"the point cloud input has "<< input.size()<< " points"<<std::endl;
       for (int i=0; i<input.size(); i++) { // add points to cluster cloud
         output.push_back(input[i]);  
       } 
-      std::cout<<"the point cloud output has "<< output.size()<< " points"<<std::endl;
+      //std::cout<<"the point cloud output has "<< output.size()<< " points"<<std::endl;
     
     }
 
@@ -305,14 +304,14 @@ class FilterDataset {
       pcl::copyPointCloud(input, *cloud);        // this copy ensures that the input data is left unchanged
  
       // Apply Voxel Filter 
-      std::cout<<"Before voxel filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
+      //std::cout<<"Before voxel filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
       if (leaf_size>0)
       {
         pcl::VoxelGrid<PointT> vox;
         vox.setInputCloud (cloud); // operate directly on the output PointCloud pointer, removes need for copy below
         vox.setLeafSize (leaf_size, leaf_size, leaf_size); // use "001f","001f","0001f" or "none" to set voxel leaf size
         vox.filter (*cloud);
-        std::cout<<"After voxel filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
+        //std::cout<<"After voxel filtering there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
       }else
       {
         std::cout<<"leaf_size>0 false, no voxel filtering"<< std::endl;
@@ -333,7 +332,7 @@ class FilterDataset {
 
       std::cout<<"Beginning BoundCloud() function" << std::endl;
       //std::cout<<"Before bounding there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
-      std::cout<<"Before bounding there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
+      //std::cout<<"Before bounding there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
       
       double box_length, box_width, box_height;
       box_length=0.25; // default auto_bounds, smart auto bounds not implemented
@@ -347,7 +346,7 @@ class FilterDataset {
         Eigen::Vector4f max;  
 
         pcl::compute3DCentroid(*cloud, centroid);
-        std::cout<<"The centroid of the points was found at: ["<<centroid[0]<<","<<centroid[1]<<","<<centroid[2]<<"]"<<std::endl; 
+        //std::cout<<"The centroid of the points was found at: ["<<centroid[0]<<","<<centroid[1]<<","<<centroid[2]<<"]"<<std::endl; 
 
         box[0]=centroid[0]-box_length/2;  // xmin
         box[1]=centroid[0]+box_length/2;  // xmax
@@ -356,9 +355,9 @@ class FilterDataset {
         box[4]=centroid[2]-box_height/2;  // zmin
         box[5]=centroid[2]+box_height/2;  // zmax
 
-        std::cout<<"Using automatic bounding box limits: ["<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"]"<< std::endl;
+        //std::cout<<"Using automatic bounding box limits: ["<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"]"<< std::endl;
       }else{
-        std::cout<<"Using bounding box limits: ["<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"] from config file"<< std::endl;
+        //std::cout<<"Using bounding box limits: ["<<box[0]<<","<<box[1]<<","<<box[2]<<","<<box[3]<<","<<box[4]<<","<<box[5]<<"] from config file"<< std::endl;
       }
 
       //Apply Bounding Box Filter
@@ -377,8 +376,6 @@ class FilterDataset {
       pass.setFilterLimits(box[4],box[5]);
       pass.filter (*cloud);
         
-      std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " data points in the point cloud. "<< std::endl;
-      // copy to the output cloud
       pcl::copyPointCloud(*cloud, output);
 
     }
@@ -538,7 +535,7 @@ int main(int argc, char** argv)
         int i=0;
         for (bf::directory_entry& x : bf::directory_iterator(input_dir)){
           std::string input_path = bf::canonical(x.path()).string();
-          
+          // parse the input file name and create the modified output filename
           std::vector<std::string> strs;
           boost::split(strs,input_path,boost::is_any_of("/."));
 
@@ -547,51 +544,43 @@ int main(int argc, char** argv)
          
           std::string output_path;
           output_path=input_dir.string()+"/filtered/"+output_file;
- 
+          std::cout<<"input file: "<<input_file<<std::endl; 
           std::cout<<"input file["<<i<<"] path: " <<input_path << std::endl;
           std::cout<<"output file["<<i<<"] path: "<<output_path<< std::endl;
-          //std::cout<<"output_path: "<<output_path<< std::endl;
-          
-          // load the pointcloud from pcd file
-          filter.loadCloud(*filter.input, input_path);
-          //voxel-downsampling, pre-transformation, and bounding-box on the input cloud
-          filter.transformCloud(*filter.input, *filter.transformed, filter.pre_rotation, filter.pre_translation);
-          filter.boundCloud(*filter.transformed, *filter.bounded, filter.bounding_box);
-          filter.smoothCloudT(*filter.bounded, *filter.smoothed); 
-          filter.downsampleCloud(*filter.smoothed, *filter.downsampled, filter.voxel_size); 
+          if (input_path.find(".pcd")!=std::string::npos){          
+            // load the pointcloud from pcd file
+            filter.loadCloud(*filter.input, input_path);
+            //voxel-downsampling, pre-transformation, and bounding-box on the input cloud
+            filter.transformCloud(*filter.input, *filter.transformed, filter.pre_rotation, filter.pre_translation);
+            filter.boundCloud(*filter.transformed, *filter.bounded, filter.bounding_box);
+            filter.smoothCloudT(*filter.bounded, *filter.smoothed); 
+            filter.downsampleCloud(*filter.smoothed, *filter.downsampled, filter.voxel_size); 
+            std::cout<<"after processing, there are "<<filter.downsampled->size()<<"points in the cloud"<< std::endl;          
+    
+            // show the smooth and downsamples each iteration
+            filter.publishCloud(*filter.smoothed, "/smoothed");
+            filter.publishCloud(*filter.downsampled, "/downsampled");
             
-          // show the bounded and smooth each iteration
-          filter.publishCloud(*filter.bounded, "/bounded");
-          filter.publishCloud(*filter.smoothed, "/smoothed");
-          
-          filter.saveCloud(*filter.smoothed, output_path);         
-          i++;
+            // save the processed output cloud to PCD file
+            filter.saveCloud(*filter.smoothed, output_path);         
+            i++;
+          }else{
+            std::cout<<"skipping non PCD file"<<std::endl;
+          }
         }   
 
       }else{
-        cout << input_dir << " exists, but is not a regular file or directory\n";
+        std::cout << input_dir << " exists, but is not a regular file or directory"<<std::endl;
       }
    
     }else{
-      cout << input_dir << " does not exist\n";
+      std::cout << input_dir << " does not exist"<<std::endl;
     }
   
-  }catch (const bf::filesystem_error& ex)
-  {
-    cout << ex.what() << '\n';
+  }catch (const bf::filesystem_error& ex){
+    std::cout << ex.what() << '\n';
   }
-
-  // show the input training clouds in rviz
-  filter.publishCloud(*filter.input, "/input"); 
-  filter.publishCloud(*filter.downsampled, "/downsampled");
-  filter.publishCloud(*filter.transformed, "/transformed"); 
-  filter.publishCloud(*filter.bounded, "/bounded");
-  filter.publishCloud(*filter.smoothed, "/smoothed");
-  
-  // save the cloud after processing 
-  //filter.output_file="table_01_filtered.pcd";
-  //filter.saveCloud(filter.output_file, *filter.smoothed);
-
+ 
   std::cout<<"filter_cloud completed"<<std::endl;
   ros::spin();
 
