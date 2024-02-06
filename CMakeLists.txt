@@ -242,6 +242,15 @@ target_link_libraries(seam-detection
   Eigen3::Eigen  
 )
 
+# filter-cloud (class approach)
+add_executable(filter-cloud src/filter-cloud.cpp)
+target_link_libraries(filter-cloud
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen  
+)
+
+
 # seam_detection
 #add_executable(seam_detection src/seam_detection.cpp)
 #target_link_libraries(seam_detection
@@ -309,6 +318,7 @@ target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # cad_cloud_bulk
 # add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
 # target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 
 # ds435i_tf
 add_executable(ds435i_tf src/ds435i_tf.cpp)

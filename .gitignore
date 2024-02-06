@@ -64,3 +64,14 @@ pcd_images/table_tee/archive
 
 # ROS bag files
 *.bag
+
+# largedataset directories
+ModelNet*
+PartTableNet/
+PartNet
+
+
+
+
+
+

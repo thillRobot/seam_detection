@@ -1,13 +1,13 @@
 services:
-  #seam-detection:
-  #  build: .
-  #  command: roslaunch seam_detection seam_detection.launch
-  #  environment:
-  #    DISPLAY: $DISPLAY
-  #  volumes:
-  #    - /tmp/.X11-unix:/tmp/.X11-unix
-  #    - ~/.Xauthority:/root/.Xauthority
-  #    - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
+  seam-detection-bash:
+    build: .
+    command: /bin/bash
+    environment:
+      DISPLAY: $DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
 
   seam-detection:
     build: .

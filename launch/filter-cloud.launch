@@ -1,0 +1,34 @@
+<launch>
+  <!-- This is the launch file for the FILTER-CLOUD class node and package -->
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
+
+  <arg name="config" default="filter-cloud" />
+
+  <!-- read value of arg -->
+  <param name="param" value="$(arg config)"/> 
+
+  <!-- setup the transformations and frames for the system-->
+  <node
+    pkg="seam_detection"
+    name="seam_detection_tf"
+    type="seam_detection_tf"
+    output="screen"
+  />
+
+  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
+ 
+  <!-- this node contains the primary processing of lidar data for seam detection -->
+  <node
+    pkg="seam_detection"
+    name="filter_cloud"
+    type="filter-cloud"
+    output="screen"
+  />
+
+  <node name="rviz"
+    pkg="rviz"
+    type="rviz"
+    args="-d $(find seam_detection)/rviz/filter-cloud.rviz">
+  </node>
+
+</launch>
