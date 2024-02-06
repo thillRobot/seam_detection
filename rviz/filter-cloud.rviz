@@ -7,6 +7,9 @@ Panels:
         - /Global Options1
         - /Status1
         - /PointCloud21
+        - /PointCloud22
+        - /PointCloud23
+        - /PointCloud24
       Splitter Ratio: 0.5078431367874146
     Tree Height: 1168
   - Class: rviz/Selection
@@ -91,7 +94,7 @@ Visualization Manager:
       Color: 165; 165; 165
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -106,7 +109,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -117,7 +120,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 165; 165; 165
-      Color Transformer: FlatColor
+      Color Transformer: RGB8
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
@@ -130,7 +133,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
       Style: Flat Squares
-      Topic: /training_downsampled
+      Topic: /downsampled
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -145,7 +148,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 165; 165; 165
-      Color Transformer: FlatColor
+      Color Transformer: RGB8
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
@@ -158,7 +161,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
       Style: Flat Squares
-      Topic: /training_transformed
+      Topic: /bounded
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -175,7 +178,7 @@ Visualization Manager:
       Color: 255; 0; 0
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -184,13 +187,13 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.0010000000474974513
+      Size (m): 0.0024999999441206455
       Style: Flat Squares
-      Topic: /training_bounded
+      Topic: /smoothed
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -219,7 +222,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.2661449909210205
+      Distance: 1.0157396793365479
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -227,17 +230,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.06212296336889267
-        Y: 0.3994339406490326
-        Z: 0.23646406829357147
+        X: -0.1938326358795166
+        Y: 0.04771444573998451
+        Z: -0.0787423774600029
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7997962832450867
+      Pitch: 0.23479574918746948
       Target Frame: <Fixed Frame>
-      Yaw: 5.04856014251709
+      Yaw: 0.3953782320022583
     Saved: ~
 Window Geometry:
   Displays:

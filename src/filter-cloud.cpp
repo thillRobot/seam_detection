@@ -95,6 +95,7 @@ class FilterCloud {
       downsampled = new PointCloud;
       transformed = new PointCloud;
       bounded = new PointCloud; 
+      smoothed = new PointCloud;      
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -164,6 +165,31 @@ class FilterCloud {
       std::cout << "Loaded "<<input.width * input.height << " data points from input pointcloud file: "<< path <<std::endl;
       return 0;  
     } 
+    
+    // templated function to save pcl::PointCloud<point_t> to PCD file as defined in config
+    template <typename point_t>
+    int saveCloud(std::string file, pcl::PointCloud<point_t> &output){
+
+      std::cout<<"|---------- SeamDetection::SaveCloud - saving PCD file ----------|"<<std::endl;
+
+      std::string path;
+      path=package_path+"/"+file;
+      
+      // save filtered cloud 
+      
+      //pcl::io::savePCDFileASCII (output_path, *cloud_filtered); // this might be the wrong file saved
+      //std::cout<<"Filtered cloud written to:"<< output_path <<std::endl;
+    
+      std::cout << "Saving output pointcloud file: " << path << std::endl;
+      if (  pcl::io::savePCDFileASCII(path, output) == -1)
+      {
+        std::cout<<"Failed to save ouput pointcloud file: "<< path <<std::endl;
+        return (-1);
+      }
+      std::cout << "Saved "<<output.width * output.height << " data points to output pointcloud file: "<< path <<std::endl;
+      return 0;  
+    } 
+
 
     
     // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
@@ -379,7 +405,7 @@ class FilterCloud {
      
     }
 
-    /*void smoothCloud(PointCloud &input, PointCloudNormal &output){
+    void smoothCloud(PointCloud &input, PointCloudNormal &output){
 
       PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy for this function 
       pcl::copyPointCloud(input,*cloud);
@@ -403,7 +429,7 @@ class FilterCloud {
       // Reconstruct
       mls.process (output);
 
-    }*/
+    }
 
     // templated function to perform PCL moving least squares smoothing, normal data is generated during this process
     template <typename point_t, typename point_normal_t> 
@@ -440,7 +466,7 @@ class FilterCloud {
     // pointcloud pointers
     pcl::PointCloud<pcl::PointXYZRGBNormal> *cloud;
 
-    PointCloud *input, *downsampled, *transformed, *bounded; 
+    PointCloud *input, *downsampled, *transformed, *bounded, *smoothed; 
     
     // other parameters from the config file (these do not need to public)
     bool auto_bounds=0;
@@ -492,23 +518,24 @@ int main(int argc, char** argv)
   // load the pointcloud from pcd file
   filter.loadCloud(filter.input_file, *filter.input);
   
-  filter.publishCloud(*filter.input, "/input");
+  //voxel-downsampling, pre-transformation, and bounding-box on the input cloud
+  filter.transformCloud(*filter.input, *filter.transformed, filter.pre_rotation, filter.pre_translation);
+  filter.boundCloud(*filter.transformed, *filter.bounded, filter.bounding_box);
+  filter.smoothCloudT(*filter.bounded, *filter.smoothed); 
+  filter.downsampleCloud(*filter.smoothed, *filter.downsampled, filter.voxel_size); 
+ 
+ 
+  // show the input training clouds in rviz
+  filter.publishCloud(*filter.input, "/input"); 
+  filter.publishCloud(*filter.downsampled, "/downsampled");
+  filter.publishCloud(*filter.transformed, "/transformed"); 
+  filter.publishCloud(*filter.bounded, "/bounded");
+  filter.publishCloud(*filter.smoothed, "/smoothed");
+  
+  // save the cloud after processing 
+  filter.saveCloud(filter.output_file, *filter.smoothed);
 
-//  // Step 1.5 - perform voxel-downsampling, pre-transformation, and bounding-box on the training cloud
-//  filter.downsampleCloud(*filter.input, *filter.downsampled, filter.voxel_size); 
-//  filter.transformCloud(*filter.downsampled, *filter.transformed, filter.pre_rotation, filter.pre_translation);
-//  filter.boundCloud(*filter.transformed, *filter.bounded, filter.bounding_box);
-//
-//  filter.smoothCloudT(*filter.bounded, *filter.smoothed);
-//  std::cout<<"smoothed has "<<filter.bounded->size()<<" points"<<std::endl;
-//  
-//  // show the input training clouds in rviz
-//  filter.publishCloud(*filter.input, "/input"); 
-//  filter.publishCloud(*filter.downsampled, "/downsampled");
-//  filter.publishCloud(*filter.transformed, "/transformed"); 
-//  filter.publishCloud(*filter.bounded, "/bounded");
-//  filter.publishCloud(*filter.smoothed, "/smoothed");
-//  
+  std::cout<<"filter_cloud completed"<<std::endl;
   ros::spin();
 
   return 0;
