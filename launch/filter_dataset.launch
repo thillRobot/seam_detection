@@ -2,7 +2,7 @@
   <!-- This is the launch file for the FILTER-CLOUD class node and package -->
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
-  <arg name="config" default="filter-cloud" />
+  <arg name="config" default="filter_dataset" />
 
   <!-- read value of arg -->
   <param name="param" value="$(arg config)"/> 
@@ -20,15 +20,15 @@
   <!-- this node contains the primary processing of lidar data for seam detection -->
   <node
     pkg="seam_detection"
-    name="filter_cloud"
-    type="filter-cloud"
+    name="filter_dataset"
+    type="filter_dataset"
     output="screen"
   />
 
   <node name="rviz"
     pkg="rviz"
     type="rviz"
-    args="-d $(find seam_detection)/rviz/filter-cloud.rviz">
+    args="-d $(find seam_detection)/rviz/filter_dataset.rviz">
   </node>
 
 </launch>

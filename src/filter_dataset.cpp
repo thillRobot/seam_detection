@@ -1,6 +1,6 @@
 /*
-Seam Detection, FilterCloud
-This source contains the cpp class FilterCloud for this project
+Seam Detection, FilterDataset
+This source contains the cpp class FilterDataset for this project
 Created on 02/06/2024, this contains some useful tools for working with pointclouds
 
 Tristan Hill - Weld Seam Detection - Tennessee Technological University
@@ -59,6 +59,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 
+namespace bf = boost::filesystem;
 using namespace std::chrono_literals;
 
 // PCL PointClouds with XYZ RGB Points
@@ -76,17 +77,17 @@ typedef pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr PointCloudNormalPtr;
 typedef std::vector < PointCloudPtr, Eigen::aligned_allocator < PointCloudPtr > > PointCloudVec;
 typedef std::vector < PointCloudNormalPtr, Eigen::aligned_allocator < PointCloudNormalPtr > > PointCloudNormalVec;
 
-class FilterCloud {
+class FilterDataset {
 
   public:
 
     // functions 
     
     // default constructor
-    FilterCloud(): rate(5), pub_idx(0) { // ROS::Rate rate(5) is in intializer list
+    FilterDataset(): rate(5), pub_idx(0) { // ROS::Rate rate(5) is in intializer list
       
       std::cout<<"|----------------------------------------|"<<std::endl;
-      std::cout<<"|---------- FilterCloud v1.9 ----------|"<<std::endl;
+      std::cout<<"|---------- FilterDataset v1.9 ----------|"<<std::endl;
       std::cout<<"|----------------------------------------|"<<std::endl;
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
@@ -117,12 +118,14 @@ class FilterCloud {
       node.getParam("transform_input", transform_input);
 
       // get parameters that contain strings  
-      node.getParam("input_file", input_file);    
-      node.getParam("output_file", output_file);
-
+      //node.getParam("input_file", input_file);    
+      //node.getParam("output_file", output_file);
+      node.getParam("input_dir", input_dir);    
+      node.getParam("output_dir", output_dir);
+      
       // generate absolute file paths to inputs (does this belong here?)
-      input_path=package_path+'/'+input_file;
-      output_path=package_path+'/'+output_file;
+      input_path=package_path+'/'+input_dir;
+      output_path=package_path+'/'+output_dir;
       
       // get parameters that contain doubles 
       node.getParam("voxel_size", voxel_size);
@@ -149,12 +152,13 @@ class FilterCloud {
 
     // templated function to load pcl::PointCloud<point_t> from PCD file as defined in config
     template <typename point_t>
-    int loadCloud(std::string file, pcl::PointCloud<point_t> &input){
+    int loadCloud(pcl::PointCloud<point_t> &input, std::string file) {
 
       std::cout<<"|---------- SeamDetection::LoadCloud - loading PCD file ----------|"<<std::endl;
 
       std::string path;
-      path=package_path+"/"+file;
+      //path=package_path+"/"+input_dir+"/"+file;
+      path=file;
 
       std::cout << "Loading input pointcloud file: " << path << std::endl;
       if (pcl::io::loadPCDFile<point_t> (path, input) == -1)
@@ -168,13 +172,13 @@ class FilterCloud {
     
     // templated function to save pcl::PointCloud<point_t> to PCD file as defined in config
     template <typename point_t>
-    int saveCloud(std::string file, pcl::PointCloud<point_t> &output){
+    int saveCloud(pcl::PointCloud<point_t> &output, std::string file){
 
       std::cout<<"|---------- SeamDetection::SaveCloud - saving PCD file ----------|"<<std::endl;
 
       std::string path;
-      path=package_path+"/"+file;
-      
+      //path=package_path+"/"+output_dir+"/"+file;
+      path=file; 
       // save filtered cloud 
       
       //pcl::io::savePCDFileASCII (output_path, *cloud_filtered); // this might be the wrong file saved
@@ -472,7 +476,7 @@ class FilterCloud {
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
     
-    std::string package_path, input_path, output_path, input_file, output_file; 
+    std::string package_path, input_path, output_path, input_dir, output_dir, input_file, output_file; 
    
     double bounding_box[6];
     Eigen::Vector3f pre_rotation, pre_translation;
@@ -508,23 +512,75 @@ int main(int argc, char** argv)
   ros::init(argc,argv,"filter_cloud");
   
   // instantiate an object filter.from the SeamDetection class
-  FilterCloud filter;
+  FilterDataset filter;
  
   // load parameters from ROS param server, modify values in filter-cloud.yaml
   filter.loadConfig(); 
-  
-  std::cout<<"input_file: "<< filter.input_file << std::endl;
 
-  // load the pointcloud from pcd file
-  filter.loadCloud(filter.input_file, *filter.input);
+  filter.input_file="table_01.pcd";
+  //std::cout<<"input_path: "<< filter.input_path << std::endl;
+
+  // Load Input Directory with boost::filesystem
+  std::cout<<"filter input_path:"<<filter.input_path<<std::endl;
+  boost::filesystem::path input_dir(filter.input_path);
   
-  //voxel-downsampling, pre-transformation, and bounding-box on the input cloud
-  filter.transformCloud(*filter.input, *filter.transformed, filter.pre_rotation, filter.pre_translation);
-  filter.boundCloud(*filter.transformed, *filter.bounded, filter.bounding_box);
-  filter.smoothCloudT(*filter.bounded, *filter.smoothed); 
-  filter.downsampleCloud(*filter.smoothed, *filter.downsampled, filter.voxel_size); 
+  try{
+    
+    if (bf::exists(input_dir)){
+      
+      if (bf::is_regular_file(input_dir)){
+        
+        std::cout << input_dir << " size is " << bf::file_size(input_dir) << std::endl;
+      
+      }else if (bf::is_directory(input_dir)){
+       
+        std::cout << input_dir << " is a directory containing:"<< std::endl;
+        int i=0;
+        for (bf::directory_entry& x : bf::directory_iterator(input_dir)){
+          std::string input_path = bf::canonical(x.path()).string();
+          
+          std::vector<std::string> strs;
+          boost::split(strs,input_path,boost::is_any_of("/."));
+
+          std::string input_file = strs[strs.size()-2];
+          std::string output_file = input_file+"_filtered.pcd";
+         
+          std::string output_path;
+          output_path=input_dir.string()+"/filtered/"+output_file;
  
- 
+          std::cout<<"input file["<<i<<"] path: " <<input_path << std::endl;
+          std::cout<<"output file["<<i<<"] path: "<<output_path<< std::endl;
+          //std::cout<<"output_path: "<<output_path<< std::endl;
+          
+          // load the pointcloud from pcd file
+          filter.loadCloud(*filter.input, input_path);
+          //voxel-downsampling, pre-transformation, and bounding-box on the input cloud
+          filter.transformCloud(*filter.input, *filter.transformed, filter.pre_rotation, filter.pre_translation);
+          filter.boundCloud(*filter.transformed, *filter.bounded, filter.bounding_box);
+          filter.smoothCloudT(*filter.bounded, *filter.smoothed); 
+          filter.downsampleCloud(*filter.smoothed, *filter.downsampled, filter.voxel_size); 
+            
+          // show the bounded and smooth each iteration
+          filter.publishCloud(*filter.bounded, "/bounded");
+          filter.publishCloud(*filter.smoothed, "/smoothed");
+          
+          filter.saveCloud(*filter.smoothed, output_path);         
+          i++;
+        }   
+
+      }else{
+        cout << input_dir << " exists, but is not a regular file or directory\n";
+      }
+   
+    }else{
+      cout << input_dir << " does not exist\n";
+    }
+  
+  }catch (const bf::filesystem_error& ex)
+  {
+    cout << ex.what() << '\n';
+  }
+
   // show the input training clouds in rviz
   filter.publishCloud(*filter.input, "/input"); 
   filter.publishCloud(*filter.downsampled, "/downsampled");
@@ -533,7 +589,8 @@ int main(int argc, char** argv)
   filter.publishCloud(*filter.smoothed, "/smoothed");
   
   // save the cloud after processing 
-  filter.saveCloud(filter.output_file, *filter.smoothed);
+  //filter.output_file="table_01_filtered.pcd";
+  //filter.saveCloud(filter.output_file, *filter.smoothed);
 
   std::cout<<"filter_cloud completed"<<std::endl;
   ros::spin();

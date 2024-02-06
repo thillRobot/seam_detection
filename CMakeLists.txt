@@ -242,9 +242,9 @@ target_link_libraries(seam-detection
   Eigen3::Eigen  
 )
 
-# filter-cloud (class approach)
-add_executable(filter-cloud src/filter-cloud.cpp)
-target_link_libraries(filter-cloud
+# filter_dataset (class approach)
+add_executable(filter_dataset src/filter_dataset.cpp)
+target_link_libraries(filter_dataset
   ${catkin_LIBRARIES} 
   ${PCL_LIBRARIES} 
   Eigen3::Eigen  
