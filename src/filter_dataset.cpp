@@ -527,10 +527,15 @@ int main(int argc, char** argv)
       
       if (bf::is_regular_file(input_dir)){
         
-        std::cout << input_dir << " size is " << bf::file_size(input_dir) << std::endl;
-      
+        std::cout << input_dir << " size is " << bf::file_size(input_dir) << std::endl;     
+ 
       }else if (bf::is_directory(input_dir)){
        
+        if (~bf::exists(filter.output_path)){
+          bf::create_directory(filter.output_path);
+          std::cout<<"_filtered directory created for output files"<<std::endl;
+        }
+
         std::cout << input_dir << " is a directory containing:"<< std::endl;
         int i=0;
         for (bf::directory_entry& x : bf::directory_iterator(input_dir)){
@@ -543,8 +548,9 @@ int main(int argc, char** argv)
           std::string output_file = input_file+"_filtered.pcd";
          
           std::string output_path;
-          output_path=input_dir.string()+"/filtered/"+output_file;
-          std::cout<<"input file: "<<input_file<<std::endl; 
+          // output_path=input_dir.string()+"/filtered/"+output_file; // output path from input_path
+          output_path=filter.output_path+"/"+output_file; // output path from config
+
           std::cout<<"input file["<<i<<"] path: " <<input_path << std::endl;
           std::cout<<"output file["<<i<<"] path: "<<output_path<< std::endl;
           if (input_path.find(".pcd")!=std::string::npos){          
@@ -562,7 +568,7 @@ int main(int argc, char** argv)
             filter.publishCloud(*filter.downsampled, "/downsampled");
             
             // save the processed output cloud to PCD file
-            filter.saveCloud(*filter.smoothed, output_path);         
+            filter.saveCloud(*filter.downsampled, output_path);         
             i++;
           }else{
             std::cout<<"skipping non PCD file"<<std::endl;

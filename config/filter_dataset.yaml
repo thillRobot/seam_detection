@@ -1,9 +1,6 @@
 ---
-
-input_file: "pcd_images/PartNet/table/table_01.pcd"
-output_file: "pcd_images/PartNet/table/table_01_filtered.pcd"
-input_dir: "pcd_images/PartNet/table"
-output_dir: "pcd_images/PartNet/table"
+input_dir: "pcd_images/PartNet/table_floor_ds455"
+output_dir: "pcd_images/PartNet/table_floor_ds455/filtered"
 
 save_output: true
 translate_output: false
