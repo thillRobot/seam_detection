@@ -561,14 +561,18 @@ int main(int argc, char** argv)
             filter.boundCloud(*filter.transformed, *filter.bounded, filter.bounding_box);
             filter.smoothCloudT(*filter.bounded, *filter.smoothed); 
             filter.downsampleCloud(*filter.smoothed, *filter.downsampled, filter.voxel_size); 
-            std::cout<<"after processing, there are "<<filter.downsampled->size()<<"points in the cloud"<< std::endl;          
+            std::cout<<"after processing, there are "<<filter.downsampled->size()<<" points in the cloud"<< std::endl;          
     
             // show the smooth and downsamples each iteration
             filter.publishCloud(*filter.smoothed, "/smoothed");
             filter.publishCloud(*filter.downsampled, "/downsampled");
             
             // save the processed output cloud to PCD file
-            filter.saveCloud(*filter.downsampled, output_path);         
+            if (filter.save_output){
+              filter.saveCloud(*filter.downsampled, output_path);         
+            }else{
+              std::cout<<"pointcloud not saved, SAVE_OUTPUT false"<<std::endl;
+            }
             i++;
           }else{
             std::cout<<"skipping non PCD file"<<std::endl;
@@ -584,7 +588,7 @@ int main(int argc, char** argv)
     }
   
   }catch (const bf::filesystem_error& ex){
-    std::cout << ex.what() << '\n';
+    std::cout << ex.what() << std::endl;
   }
  
   std::cout<<"filter_cloud completed"<<std::endl;
