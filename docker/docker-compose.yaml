@@ -1,5 +1,5 @@
 services:
-  seam-detection-bash:
+  sd-bash:
     build: .
     command: /bin/bash
     environment:
