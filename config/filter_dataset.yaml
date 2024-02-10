@@ -1,6 +1,6 @@
 ---
-input_dir: "pcd_images/PartNet/part1"
-output_dir: "pcd_images/PartNet/table_part1/filtered"
+input_dir: "pcd_images/PartNet/multi"
+output_dir: "pcd_images/PartNet/multi/filtered"
 
 save_output: true
 translate_output: false
@@ -12,6 +12,6 @@ transform_input: true
 pre_rotation:    [-0.05, 3.17, 0.0] # ds435i rgb camera 32inches from table surface pointing down
 pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
 
-bounding_box: [-0.5, 0.5, -0.5, 0.5, -0.25, 0.1] # bounding box limits
-voxel_size: 0.002
+bounding_box: [-0.5, 0.4, -0.5, 0.3,  -0.25, 0.1] # bounding box limits
+voxel_size: 0.005
 
