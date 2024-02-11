@@ -29,6 +29,6 @@
 
   <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find seam_detection)/rviz/get_rgbcloud.rviz" />  
 
-  <node pkg="pcl_ros" type="pointcloud_to_pcd" name="pointcloud_to_pcd" output="screen" args="_prefix:=$(find seam_detection)/pcd_images/PartNet/raw/$(arg filename)_ input:=/camera/depth/color/points fixed_frame:=map" />
+  <node pkg="pcl_ros" type="pointcloud_to_pcd" name="pointcloud_to_pcd" output="screen" args="_prefix:=$(find seam_detection)/pcd_images/PartNet/reconstruction/$(arg filename)_ input:=/camera/depth/color/points fixed_frame:=map" />
 
 </launch>
