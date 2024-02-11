@@ -23,7 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
-find_package(teaserpp REQUIRED)
+#find_package(teaserpp REQUIRED)
 #find_package(Boost 1.58 REQUIRED)
 #find_package(Boost 1.81 REQUIRED)
 find_package(Boost REQUIRED)
