@@ -320,9 +320,9 @@ target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 
-# ds435i_tf
-add_executable(ds435i_tf src/ds435i_tf.cpp)
-target_link_libraries(ds435i_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# realsense_tf
+add_executable(realsense_tf src/realsense_tf.cpp)
+target_link_libraries(realsense_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # save_rgbcloud
 add_executable(save_rgbcloud src/save_rgbcloud.cpp)
