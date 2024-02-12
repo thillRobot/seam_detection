@@ -7,8 +7,8 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
-      - $CATKIN_WS_PATH/shared:/home/shared
+      - $ROS_WS/src:/home/seamdetection_ws/src
+      - $ROS_WS/shared:/home/shared
 
   seam-detection:
     build: .
@@ -18,7 +18,7 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ~/.Xauthority:/root/.Xauthority
-      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
+      - $ROS_WS/src:/home/seamdetection_ws/src
 
 #  crg-segmentation:   
 #    build: .

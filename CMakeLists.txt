@@ -324,6 +324,14 @@ target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(realsense_tf src/realsense_tf.cpp)
 target_link_libraries(realsense_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+# realsense_playback_tf
+add_executable(realsense_playback_tf src/realsense_playback_tf.cpp)
+target_link_libraries(realsense_playback_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# realsense_playback_tf2
+add_executable(realsense_playback_tf2 src/realsense_playback_tf2.cpp)
+target_link_libraries(realsense_playback_tf2 ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 # save_rgbcloud
 add_executable(save_rgbcloud src/save_rgbcloud.cpp)
 target_link_libraries(save_rgbcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})

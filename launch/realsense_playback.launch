@@ -1,0 +1,40 @@
+<launch>
+  
+  <!-- launch file for playing back bag files with pointsclouds and tfs -->
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
+
+  <!-- read arg value load the parameters from 'main' config file-->
+  <arg name="config" default="realsense_playback" />
+  <param name="param" value="$(arg config)"/> 
+  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" /> 
+ 
+  <!-- setup the transformations and frames for the system-->
+  <!-- this should be handled by tf from the bag 
+  <node
+    pkg="seam_detection"
+    name="realsense_playback_tf2"
+    type="realsense_playback_tf2"
+    output="screen">
+  </node>
+  -->
+  
+  <rosparam param="use_sim_time">true</rosparam>
+  <!-- play the recorded bag -->
+  <node
+    pkg="rosbag"
+    name="play"
+    type="play"
+    output="screen" 
+    args="--clock --pause $(find seam_detection)/bags/reconstruction/part1_x1_y4_theta0_cpitch0_.bag -r 0.1">
+  </node>
+ 
+  <!-- start RVIZ --> 
+  <node 
+    name="rviz"
+    pkg="rviz"
+    type="rviz"
+    args="-d $(find seam_detection)/rviz/realsense_playback.rviz">
+  </node>
+
+</launch>
+
