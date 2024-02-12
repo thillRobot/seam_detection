@@ -1,8 +1,8 @@
 ---
-input_dir: "pcd_images/PartNet/multi"
-output_dir: "pcd_images/PartNet/multi/filtered"
+input_dir: "pcd_images/PartNet/floor_table_part1_ds455/all"
+output_dir: "pcd_images/PartNet/floor_table_part1_ds455/all/filtered"
 
-save_output: true
+save_output: false
 translate_output: false
 automatic_bounds: false
 use_clustering: true

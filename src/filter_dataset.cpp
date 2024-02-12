@@ -169,7 +169,7 @@ class FilterDataset {
       std::cout << "Loaded "<<input.width * input.height << " data points from input pointcloud file: "<< path <<std::endl;
       return 0;  
     } 
-    
+
     // templated function to save pcl::PointCloud<point_t> to PCD file as defined in config
     template <typename point_t>
     int saveCloud(pcl::PointCloud<point_t> &output, std::string file){
@@ -194,6 +194,88 @@ class FilterDataset {
       return 0;  
     } 
 
+    // function to load a directory of pointclouds
+    int filterCloudDir(std::string in){
+       
+      std::cout<<"|---------- SeamDetection::LoadCloudDir - loading PCD files by directory ----------|"<<std::endl;
+
+      // Load Input Directory with boost::filesystem
+      //std::cout<<"filter input_path:"<<filter.input_path<<std::endl;
+      boost::filesystem::path dir(in);
+      
+      try{
+        
+        if (bf::exists(dir)){
+          
+          if (bf::is_regular_file(dir)){
+            
+            std::cout << dir << " size is " << bf::file_size(dir) << std::endl;     
+     
+          }else if (bf::is_directory(dir)){
+           
+            if (~bf::exists(output_path)){
+              bf::create_directory(output_path);
+              std::cout<<"_filtered directory created for output files"<<std::endl;
+            }
+
+            std::cout << dir << " is a directory containing:"<< std::endl;
+            int i=0;
+            for (bf::directory_entry& x : bf::directory_iterator(dir)){
+              std::string input_path = bf::canonical(x.path()).string();
+              // parse the input file name and create the modified output filename
+              std::vector<std::string> strs;
+              boost::split(strs,input_path,boost::is_any_of("/."));
+
+              std::string input_file = strs[strs.size()-2];
+              std::string output_file = input_file+"_filtered.pcd";
+             
+              std::string output_path;
+              // output_path=input_dir.string()+"/filtered/"+output_file; // output path from input_path
+              output_path=output_path+"/"+output_file; // output path from config
+
+              std::cout<<"input file["<<i<<"] path: " <<input_path << std::endl;
+              std::cout<<"output file["<<i<<"] path: "<<output_path<< std::endl;
+              if (input_path.find(".pcd")!=std::string::npos){          
+                
+                
+                // load the pointcloud from pcd file
+                loadCloud(*input, input_path);
+                //voxel-downsampling, pre-transformation, and bounding-box on the input cloud
+                transformCloud(*input, *transformed, pre_rotation, pre_translation);
+                boundCloud(*transformed, *bounded, bounding_box);
+                smoothCloudT(*bounded, *smoothed); 
+                downsampleCloud(*smoothed, *downsampled, voxel_size); 
+                std::cout<<"after processing, there are "<<downsampled->size()<<" points in the cloud"<< std::endl;          
+        
+                // show the smooth and downsamples each iteration
+                publishCloud(*smoothed, "/smoothed");
+                publishCloud(*downsampled, "/downsampled");
+                
+                // save the processed output cloud to PCD file
+                if (save_output){
+                  saveCloud(*downsampled, output_path);         
+                }else{
+                  std::cout<<"pointcloud not saved, SAVE_OUTPUT false"<<std::endl;
+                }
+                i++;
+              }else{
+                std::cout<<"skipping non PCD file"<<std::endl;
+              }
+            }   
+
+          }else{
+            std::cout << dir << " exists, but is not a regular file or directory"<<std::endl;
+          }
+       
+        }else{
+          std::cout << dir << " does not exist"<<std::endl;
+        }
+      
+      }catch (const bf::filesystem_error& ex){
+        std::cout << ex.what() << std::endl;
+      }
+      return 1;
+    }
 
     
     // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
@@ -517,80 +599,11 @@ int main(int argc, char** argv)
   filter.input_file="table_01.pcd";
   //std::cout<<"input_path: "<< filter.input_path << std::endl;
 
+  PointCloudVec clouds_in;
+  
   // Load Input Directory with boost::filesystem
-  std::cout<<"filter input_path:"<<filter.input_path<<std::endl;
-  boost::filesystem::path input_dir(filter.input_path);
-  
-  try{
-    
-    if (bf::exists(input_dir)){
-      
-      if (bf::is_regular_file(input_dir)){
-        
-        std::cout << input_dir << " size is " << bf::file_size(input_dir) << std::endl;     
- 
-      }else if (bf::is_directory(input_dir)){
-       
-        if (~bf::exists(filter.output_path)){
-          bf::create_directory(filter.output_path);
-          std::cout<<"_filtered directory created for output files"<<std::endl;
-        }
+  filter.filterCloudDir(filter.input_path);
 
-        std::cout << input_dir << " is a directory containing:"<< std::endl;
-        int i=0;
-        for (bf::directory_entry& x : bf::directory_iterator(input_dir)){
-          std::string input_path = bf::canonical(x.path()).string();
-          // parse the input file name and create the modified output filename
-          std::vector<std::string> strs;
-          boost::split(strs,input_path,boost::is_any_of("/."));
-
-          std::string input_file = strs[strs.size()-2];
-          std::string output_file = input_file+"_filtered.pcd";
-         
-          std::string output_path;
-          // output_path=input_dir.string()+"/filtered/"+output_file; // output path from input_path
-          output_path=filter.output_path+"/"+output_file; // output path from config
-
-          std::cout<<"input file["<<i<<"] path: " <<input_path << std::endl;
-          std::cout<<"output file["<<i<<"] path: "<<output_path<< std::endl;
-          if (input_path.find(".pcd")!=std::string::npos){          
-            // load the pointcloud from pcd file
-            filter.loadCloud(*filter.input, input_path);
-            //voxel-downsampling, pre-transformation, and bounding-box on the input cloud
-            filter.transformCloud(*filter.input, *filter.transformed, filter.pre_rotation, filter.pre_translation);
-            filter.boundCloud(*filter.transformed, *filter.bounded, filter.bounding_box);
-            filter.smoothCloudT(*filter.bounded, *filter.smoothed); 
-            filter.downsampleCloud(*filter.smoothed, *filter.downsampled, filter.voxel_size); 
-            std::cout<<"after processing, there are "<<filter.downsampled->size()<<" points in the cloud"<< std::endl;          
-    
-            // show the smooth and downsamples each iteration
-            filter.publishCloud(*filter.smoothed, "/smoothed");
-            filter.publishCloud(*filter.downsampled, "/downsampled");
-            
-            // save the processed output cloud to PCD file
-            if (filter.save_output){
-              filter.saveCloud(*filter.downsampled, output_path);         
-            }else{
-              std::cout<<"pointcloud not saved, SAVE_OUTPUT false"<<std::endl;
-            }
-            i++;
-          }else{
-            std::cout<<"skipping non PCD file"<<std::endl;
-          }
-        }   
-
-      }else{
-        std::cout << input_dir << " exists, but is not a regular file or directory"<<std::endl;
-      }
-   
-    }else{
-      std::cout << input_dir << " does not exist"<<std::endl;
-    }
-  
-  }catch (const bf::filesystem_error& ex){
-    std::cout << ex.what() << std::endl;
-  }
- 
   std::cout<<"filter_cloud completed"<<std::endl;
   ros::spin();
 
