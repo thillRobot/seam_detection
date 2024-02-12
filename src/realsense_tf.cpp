@@ -1,12 +1,12 @@
 /*
-  This is a node to setup tf for MACHINE_VISION
+  node to setup tf for SEAM_DETECTION and ROBOT_VISION/INTELREALSENSE
   this replaces the common node 'setup_tf'
   this node has migrated from TF to TF2 and back again to old TF way just use RPY... (this seems wrong)
 
-  Node: machine_vision_tf.cpp
-  Package: machine_vision
+  Node: realsense_tf.cpp
+  Package: seam_detection.cpp
 
-  Tristan Hill - 12/13/2023 
+  Tristan Hill - 02/11/2024 
 */
 
 #include <ros/ros.h>
@@ -24,10 +24,10 @@ int main(int argc, char** argv){
 
 
     std::cout<<"*************************************************************"<<std::endl;
-    std::cout<<"***************** DS435i TF v1.0 ********************"<<std::endl;
+    std::cout<<"********************** REALSENSE TF v1.0 ********************"<<std::endl;
     std::cout<<"*************************************************************"<<std::endl;
 
-    ros::init(argc, argv, "ds435i_tf");
+    ros::init(argc, argv, "realsense_tf");
     ros::NodeHandle n;
 
     ros::Rate r(50);
