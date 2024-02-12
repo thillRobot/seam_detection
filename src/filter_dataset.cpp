@@ -59,6 +59,18 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 
+#include <rosbag/bag.h>
+#include <rosbag/view.h>
+#include <std_msgs/Int32.h>
+#include <std_msgs/String.h>
+#include <rosgraph_msgs/Clock.h>
+
+#include <boost/foreach.hpp>
+#define foreach BOOST_FOREACH
+
+
+
+
 namespace bf = boost::filesystem;
 using namespace std::chrono_literals;
 
@@ -122,11 +134,16 @@ class FilterDataset {
       //node.getParam("output_file", output_file);
       node.getParam("input_dir", input_dir);    
       node.getParam("output_dir", output_dir);
+       
+      node.getParam("input_bag", input_bag);
       
       // generate absolute file paths to inputs (does this belong here?)
       input_path=package_path+'/'+input_dir;
       output_path=package_path+'/'+output_dir;
-      
+            
+      input_bag_path=package_path+'/'+input_bag;
+
+
       // get parameters that contain doubles 
       node.getParam("voxel_size", voxel_size);
 
@@ -194,7 +211,7 @@ class FilterDataset {
       return 0;  
     } 
 
-    // function to load a directory of pointclouds
+    // function to filter an entire directory of pointclouds, results saved as output_path/*_filtered.pcd
     int filterCloudDir(std::string in){
        
       std::cout<<"|---------- SeamDetection::LoadCloudDir - loading PCD files by directory ----------|"<<std::endl;
@@ -275,6 +292,50 @@ class FilterDataset {
         std::cout << ex.what() << std::endl;
       }
       return 1;
+    }
+
+
+    // function to load pcd files (and frames?) from bag file
+
+    void filterCloudBag(void){
+     
+      rosbag::Bag bag;
+      bag.open(input_bag_path, rosbag::bagmode::Read);
+
+      std::vector<std::string> topics;
+      topics.push_back(std::string("camera/depth/color/points"));
+      //topics.push_back(std::string("numbers"));
+
+      rosbag::View view(bag, rosbag::TopicQuery(topics));
+      
+      int idx=0;
+      foreach(rosbag::MessageInstance const m, view)
+      {
+          /*  
+          std_msgs::String::ConstPtr s = m.instantiate<std_msgs::String>();
+          if (s != NULL)
+              std::cout << s->data << std::endl;
+
+          std_msgs::Int32::ConstPtr i = m.instantiate<std_msgs::Int32>();
+          if (i != NULL)
+              std::cout << i->data << std::endl;
+          */
+          if ( std::strcmp( m.getTopic().c_str(), "camera/depth/color/points") == 0)
+          {
+             sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();
+           
+          }   
+
+         // rosgraph_msgs::Clock::ConstPtr c = m.instantiate<rosgraph_msgs::Clock>();
+         // if (c != NULL)
+         //     std::cout << c->clock << std::endl;
+          
+          std::cout<<"loop counter: "<<idx<<std::endl;
+          idx++;
+      }
+
+      bag.close();
+
     }
 
     
@@ -555,7 +616,7 @@ class FilterDataset {
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
     
-    std::string package_path, input_path, output_path, input_dir, output_dir, input_file, output_file; 
+    std::string package_path, input_path, output_path, input_dir, output_dir, input_file, output_file, input_bag, input_bag_path;
    
     double bounding_box[6];
     Eigen::Vector3f pre_rotation, pre_translation;
@@ -601,8 +662,13 @@ int main(int argc, char** argv)
 
   PointCloudVec clouds_in;
   
-  // Load Input Directory with boost::filesystem
-  filter.filterCloudDir(filter.input_path);
+  // process pcd files in input_path/ and save in output_path/
+  //filter.filterCloudDir(filter.input_path);
+
+  // process pointcloud topics from bag file
+  filter.filterCloudBag();
+
+
 
   std::cout<<"filter_cloud completed"<<std::endl;
   ros::spin();

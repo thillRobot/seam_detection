@@ -2,6 +2,9 @@
 input_dir: "pcd_images/PartNet/floor_table_part1_ds455/all"
 output_dir: "pcd_images/PartNet/floor_table_part1_ds455/all/filtered"
 
+input_bag: "bags/classification/part1_x1_y1_theta0_cpitch20_.bag"
+
+
 save_output: false
 translate_output: false
 automatic_bounds: false
