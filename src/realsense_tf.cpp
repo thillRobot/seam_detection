@@ -1,12 +1,22 @@
 /*
+<<<<<<< HEAD
   node to setup tf for SEAM_DETECTION and ROBOT_VISION/INTELREALSENSE
+=======
+  This is a node to setup tf for ROBOT_VISION/INTELREALSENSE with SEAM_DETECTION
+>>>>>>> 003f8a50f9189ce8a24e5989cd2abe327090934f
   this replaces the common node 'setup_tf'
   this node has migrated from TF to TF2 and back again to old TF way just use RPY... (this seems wrong)
 
   Node: realsense_tf.cpp
+<<<<<<< HEAD
   Package: seam_detection.cpp
 
   Tristan Hill - 02/11/2024 
+=======
+  Package: seam_detection
+
+  Tristan Hill - 12/13/2023 
+>>>>>>> 003f8a50f9189ce8a24e5989cd2abe327090934f
 */
 
 #include <ros/ros.h>
@@ -24,7 +34,11 @@ int main(int argc, char** argv){
 
 
     std::cout<<"*************************************************************"<<std::endl;
+<<<<<<< HEAD
     std::cout<<"********************** REALSENSE TF v1.0 ********************"<<std::endl;
+=======
+    std::cout<<"***************** realsense TF v1.0 ********************"<<std::endl;
+>>>>>>> 003f8a50f9189ce8a24e5989cd2abe327090934f
     std::cout<<"*************************************************************"<<std::endl;
 
     ros::init(argc, argv, "realsense_tf");
@@ -48,6 +62,11 @@ int main(int argc, char** argv){
     //T_camera_base->transform.rotation.x = 0; T_camera_base->transform.rotation.y = 0; T_camera_base->transform.rotation.z = 0;T_camera_base->transform.rotation.w = 1;
 
     //ros::spin();
+<<<<<<< HEAD
+=======
+    float d2r=M_PI/180.0;
+    float in2m=0.0254;
+>>>>>>> 003f8a50f9189ce8a24e5989cd2abe327090934f
 
     while(n.ok())
     {
@@ -57,10 +76,27 @@ int main(int argc, char** argv){
         tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
         ros::Time::now(),"map","base_link"));
 
+<<<<<<< HEAD
       broadcaster.sendTransform(
         tf::StampedTransform(
         tf::Transform(tf::createQuaternionFromRPY(0,M_PI/2,0), tf::Vector3(0.0, 0.0, 32.0*.0254)),
         ros::Time::now(),"base_link","camera_link"));
+=======
+//        broadcaster.sendTransform(
+//        tf::StampedTransform(
+//        tf::Transform(tf::createQuaternionFromRPY(0,M_PI/2,0), tf::Vector3(0.0, 0.0, 32.0*in2m)),
+//        ros::Time::now(),"base_link","camera_link"));
+
+     broadcaster.sendTransform(
+        tf::StampedTransform(
+        tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 65.25*in2m)),
+        ros::Time::now(),"base_link","tripod_link"));
+    
+     broadcaster.sendTransform(
+        tf::StampedTransform(
+        tf::Transform(tf::createQuaternionFromRPY(M_PI+10*d2r,0,0), tf::Vector3(0.0, 5.75*in2m, 0.0)),
+        ros::Time::now(),"tripod_link","camera_link"));
+>>>>>>> 003f8a50f9189ce8a24e5989cd2abe327090934f
       
       if (playback){
         broadcaster.sendTransform(
