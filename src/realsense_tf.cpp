@@ -61,7 +61,7 @@ int main(int argc, char** argv){
     
      broadcaster.sendTransform(
         tf::StampedTransform(
-        tf::Transform(tf::createQuaternionFromRPY(M_PI+20*d2r,20*d2r,0), tf::Vector3(0.0, 5.75*in2m, 0.0)),
+        tf::Transform(tf::createQuaternionFromRPY(M_PI+20*d2r,0*d2r,0), tf::Vector3(0.0, 5.75*in2m, 0.0)),
         ros::Time::now(),"tripod_link","camera_link"));
       
       if (playback){
