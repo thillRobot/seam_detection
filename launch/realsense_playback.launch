@@ -25,7 +25,7 @@
     name="play"
     type="play"
     output="screen" 
-    args="--clock --pause $(find seam_detection)/bags/reconstruction/part1_x4_y4_theta0_cpitch0_.bag -r 0.1">
+    args="--clock --pause $(find seam_detection)/bags/classification/part1_x1_y4_theta0_part2_x9_y4_theta0_glove_x1_y0_theta0_glove_x7_y0_theta0_cpitch20_.bag">
   </node>
  
   <!-- start RVIZ --> 
@@ -37,4 +37,3 @@
   </node>
 
 </launch>
-
