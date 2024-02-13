@@ -69,8 +69,6 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #define foreach BOOST_FOREACH
 
 
-
-
 namespace bf = boost::filesystem;
 using namespace std::chrono_literals;
 
@@ -302,28 +300,30 @@ class FilterDataset {
       rosbag::Bag bag;
       bag.open(input_bag_path, rosbag::bagmode::Read);
 
+      std::string cloud_topic="camera/depth/color/points";
+
       std::vector<std::string> topics;
-      topics.push_back(std::string("camera/depth/color/points"));
+      topics.push_back(cloud_topic);
       //topics.push_back(std::string("numbers"));
 
       rosbag::View view(bag, rosbag::TopicQuery(topics));
       
       int idx=0;
-      foreach(rosbag::MessageInstance const m, view)
-      {
-          /*  
-          std_msgs::String::ConstPtr s = m.instantiate<std_msgs::String>();
-          if (s != NULL)
-              std::cout << s->data << std::endl;
+      foreach(rosbag::MessageInstance const m, view){
+       
+        if ( ~std::strcmp( m.getTopic().c_str(), cloud_topic.c_str() )) {
 
-          std_msgs::Int32::ConstPtr i = m.instantiate<std_msgs::Int32>();
-          if (i != NULL)
-              std::cout << i->data << std::endl;
-          */
-          if ( std::strcmp( m.getTopic().c_str(), "camera/depth/color/points") == 0)
-          {
-             sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();
-           
+            sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();
+            std::cout<<"cloud has "<< cloud->data.size() <<" points" <<std::endl;           
+          
+            // convert to a PCL pointcloud
+            PointCloud bag_cloud;  
+            pcl::fromROSMsg(*cloud, bag_cloud); // faster way https://discourse.ros.org/t/optimized-ros-pcl-conversion/25833
+                                                // but this seems to work good
+             
+            std::cout<<"After converting to PCL pointcloud, the cloud has "<<bag_cloud.size()<<" points"<<std::endl;
+            publishCloud(bag_cloud, "bag_cloud");  
+            
           }   
 
          // rosgraph_msgs::Clock::ConstPtr c = m.instantiate<rosgraph_msgs::Clock>();
