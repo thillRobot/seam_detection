@@ -91,7 +91,7 @@ class FilterDataset {
 
   public:
 
-    // functions 
+    // PUBLIC functions 
     
     // default constructor
     FilterDataset(): rate(5), pub_idx(0) { // ROS::Rate rate(5) is in intializer list
@@ -102,11 +102,12 @@ class FilterDataset {
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
       // allocate memory for pointclouds member attributes
-      input = new PointCloud;
-      downsampled = new PointCloud;
-      transformed = new PointCloud;
-      bounded = new PointCloud; 
-      smoothed = new PointCloud;      
+      input_cloud = new PointCloud;   // this is not a good idea to use this name
+      filtered_cloud = new PointCloud;
+      //downsampled = new PointCloud; // no longer used, they look nice though
+      //transformed = new PointCloud;
+      //bounded = new PointCloud; 
+      //smoothed = new PointCloud;      
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -125,14 +126,14 @@ class FilterDataset {
       node.getParam("automatic_bounds", automatic_bounds);
       node.getParam("use_clustering", use_clustering);
       node.getParam("new_scan", new_scan);
-      node.getParam("transform_input", transform_input);
+      //node.getParam("transform_input", transform_input);
 
       // get parameters that contain strings  
       //node.getParam("input_file", input_file);    
       //node.getParam("output_file", output_file);
       node.getParam("input_dir", input_dir);    
       node.getParam("output_dir", output_dir);
-       
+ 
       node.getParam("input_bag", input_bag);
       
       // generate absolute file paths to inputs (does this belong here?)
@@ -140,7 +141,6 @@ class FilterDataset {
       output_path=package_path+'/'+output_dir;
             
       input_bag_path=package_path+'/'+input_bag;
-
 
       // get parameters that contain doubles 
       node.getParam("voxel_size", voxel_size);
@@ -151,7 +151,8 @@ class FilterDataset {
       for(unsigned i=0; i < bounding_box_vec.size(); i++){
         bounding_box[i]=bounding_box_vec[i]; // copy from vector to array 
       }
-
+      
+      node.getParam("transform_input", transform_input);
       // rotation and translation parameters from camera to fixed frame  
       std::vector<double> pre_rotation_vec, pre_translation_vec;
       node.getParam("pre_rotation",  pre_rotation_vec);
@@ -185,10 +186,11 @@ class FilterDataset {
       return 0;  
     } 
 
+
     // templated function to save pcl::PointCloud<point_t> to PCD file as defined in config
     template <typename point_t>
     int saveCloud(pcl::PointCloud<point_t> &output, std::string file){
-
+      // the name output here is very confusing, consider changing this
       std::cout<<"|---------- SeamDetection::SaveCloud - saving PCD file ----------|"<<std::endl;
 
       std::string path;
@@ -196,9 +198,6 @@ class FilterDataset {
       path=file; 
       // save filtered cloud 
       
-      //pcl::io::savePCDFileASCII (output_path, *cloud_filtered); // this might be the wrong file saved
-      //std::cout<<"Filtered cloud written to:"<< output_path <<std::endl;
-    
       std::cout << "Saving output pointcloud file: " << path << std::endl;
       if (  pcl::io::savePCDFileASCII(path, output) == -1)
       {
@@ -252,23 +251,17 @@ class FilterDataset {
               std::cout<<"output file["<<i<<"] path: "<<output_path<< std::endl;
               if (input_path.find(".pcd")!=std::string::npos){          
                 
-                
                 // load the pointcloud from pcd file
-                loadCloud(*input, input_path);
-                //voxel-downsampling, pre-transformation, and bounding-box on the input cloud
-                transformCloud(*input, *transformed, pre_rotation, pre_translation);
-                boundCloud(*transformed, *bounded, bounding_box);
-                smoothCloudT(*bounded, *smoothed); 
-                downsampleCloud(*smoothed, *downsampled, voxel_size); 
-                std::cout<<"after processing, there are "<<downsampled->size()<<" points in the cloud"<< std::endl;          
-        
+                loadCloud(*input_cloud, input_path);
+                filterCloud(*input_cloud, *filtered_cloud);
+                std::cout<<"after processing, there are "<<filtered_cloud->size()<<" points in the cloud"<< std::endl;          
                 // show the smooth and downsamples each iteration
-                publishCloud(*smoothed, "/smoothed");
-                publishCloud(*downsampled, "/downsampled");
+                //publishCloud(*smoothed_cloud, "/smoothed", "camera_link");
+                publishCloud(*filtered_cloud, "/filtered", "camera_link");
                 
                 // save the processed output cloud to PCD file
                 if (save_output){
-                  saveCloud(*downsampled, output_path);         
+                  saveCloud(*filtered_cloud, output_path);         
                 }else{
                   std::cout<<"pointcloud not saved, SAVE_OUTPUT false"<<std::endl;
                 }
@@ -295,7 +288,7 @@ class FilterDataset {
 
     // function to load pcd files (and frames?) from bag file
 
-    void loadCloudBag(void){
+    PointCloudVec loadCloudBag(void){
      
       rosbag::Bag bag;
       bag.open(input_bag_path, rosbag::bagmode::Read);
@@ -313,54 +306,59 @@ class FilterDataset {
       
       PointCloudVec bag_clouds;
       //use this as the working copy of the training cloud
-    
+      std::cout<<"loading bag of clouds"<<std::endl;
       int idx=0;
       foreach(rosbag::MessageInstance const m, view){
                
-        //std::cout << "Received message on topic: " << m.getTopic() << std::endl;
+        //std::cout << "Received message on topic: " << m.getTopic() << std::endl; 
+        tf2_msgs::TFMessage::Ptr transform = m.instantiate<tf2_msgs::TFMessage>();          
+        if (transform!=NULL){
+          //std::cout<<"transform is not null"<<std::endl;   
+          if(!transform->transforms.empty()){
+            //std::cout<<"pointer not null and transforms not empty"<<std::endl;
+            for(const auto& tf : transform ->transforms){
+              br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
+            }
+          }
+        }     
         
         sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();          
         if (cloud != NULL){
           // convert to a PCL pointcloud
             
           PointCloud::Ptr bag_cloud (new PointCloud); // allocate memory for the loaded cloud      
-          pcl::fromROSMsg(*cloud, *bag_cloud); // faster way https://discourse.ros.org/t/optimized-ros-pcl-conversion/25833
-                                              // but this seems to work good 
-          //std::cout<<"After converting to PCL pointcloud, the cloud has "<<bag_cloud.size()<<" points"<<std::endl;
-          publishCloud(*bag_cloud, "bag_cloud");  
+          pcl::fromROSMsg(*cloud, *bag_cloud); 
+          std::cout<<"After converting to PCL pointcloud, the cloud has "<<bag_cloud->size()<<" points"<<std::endl;
+
+          publishCloud(*bag_cloud, "bag_cloud", "camera_link");  
+ 
+          PointCloud::Ptr filtered_cloud (new PointCloud);          
+          filterCloud(*bag_cloud, *filtered_cloud);          
+          
+          publishCloud(*filtered_cloud, "filtered_cloud", "camera_link");  
           bag_clouds.push_back(bag_cloud);
         }   
       
-       tf2_msgs::TFMessage::Ptr transform = m.instantiate<tf2_msgs::TFMessage>();          
-       if (transform!=NULL){
-         std::cout<<"transform is not null"<<std::endl;   
-         if(!transform->transforms.empty()){
-           std::cout<<"pointer not null and transforms not empty"<<std::endl;
-           for(const auto& tf : transform ->transforms){
-             br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
-           }
-         }
-       }  
-
-       std::cout<<"loop counter: "<<idx<<std::endl;
+       std::cout<<"bag topic loop counter: "<<idx<<std::endl;
        idx++;
       }
       std::cout<<"bag_clouds has "<<bag_clouds.size()<<" clouds"<<std::endl;
       bag.close();
 
+      return bag_clouds;
     }
 
  
     // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
     template <typename point_t>
-    void publishCloud(point_t &cloud, std::string topic){
+    void publishCloud(point_t &cloud, std::string topic, std::string frame){
       std::cout<<"|---------- SeamDetection::publishCloud - publishing single cloud ----------|"<<std::endl;
 
       // advertise a new topic and publish a msg each time this function is called
       pub_clouds.push_back(node.advertise<pcl::PointCloud<point_t>>(topic, 0, true));
       
-      // cloud.header.frame_id = "base_link"; // reference to show cloud in rviz
-      cloud.header.frame_id = "camera_link";
+      cloud.header.frame_id = frame; // reference to show cloud in rviz
+      //cloud.header.frame_id = "camera_link";
 
       pub_clouds[pub_clouds.size()-1].publish(cloud);
 
@@ -370,7 +368,7 @@ class FilterDataset {
 
 
     // function to publish a vector of PointClouds representing clusters as a ROS topic
-    void publishClusters(PointCloudVec &clusters, std::string prefix){
+    void publishClouds(PointCloudVec &clusters, std::string prefix, std::string frame){
       std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
         
       for (int i=0; i<clusters.size(); i++){
@@ -378,7 +376,7 @@ class FilterDataset {
         std::stringstream name;
         name << prefix << i;
         pub_clusters.push_back(node.advertise<PointCloud>(name.str(), 0, true));
-        clusters[i]->header.frame_id = "base_link";
+        clusters[i]->header.frame_id = frame;
         pub_clusters[pub_idx].publish(clusters[i]);
         pub_idx++;
       }
@@ -489,24 +487,24 @@ class FilterDataset {
       box_width=0.25;     
       box_height=0.25;
 
-      if (auto_bounds){
-     
-        Eigen::Vector4f centroid;
-        Eigen::Vector4f min;
-        Eigen::Vector4f max;  
-
-        pcl::compute3DCentroid(*cloud, centroid);
-
-        box[0]=centroid[0]-box_length/2;  // xmin
-        box[1]=centroid[0]+box_length/2;  // xmax
-        box[2]=centroid[1]-box_width/2;   // ymin
-        box[3]=centroid[1]+box_width/2;   // ymax
-        box[4]=centroid[2]-box_height/2;  // zmin
-        box[5]=centroid[2]+box_height/2;  // zmax
-
-      }else{
-      }
-
+//      if (auto_bounds){
+//     
+//        Eigen::Vector4f centroid;
+//        Eigen::Vector4f min;
+//        Eigen::Vector4f max;  
+//
+//        pcl::compute3DCentroid(*cloud, centroid);
+//
+//        box[0]=centroid[0]-box_length/2;  // xmin
+//        box[1]=centroid[0]+box_length/2;  // xmax
+//        box[2]=centroid[1]-box_width/2;   // ymin
+//        box[3]=centroid[1]+box_width/2;   // ymax
+//        box[4]=centroid[2]-box_height/2;  // zmin
+//        box[5]=centroid[2]+box_height/2;  // zmax
+//
+//      }else{
+//      }
+//
       //Apply Bounding Box Filter
       pcl::PassThrough<PointT> pass; //input_cloud
       pass.setInputCloud(cloud);
@@ -524,7 +522,7 @@ class FilterDataset {
       pass.filter (*cloud);
         
       pcl::copyPointCloud(*cloud, output);
-
+      std::cout<<"after bounding there are "<<output.size()<<"points in the cloud"<<std::endl;
     }
 
 
@@ -535,10 +533,9 @@ class FilterDataset {
       pcl::copyPointCloud(input,*cloud);
 
       Eigen::Affine3f transform = Eigen::Affine3f::Identity();
-     
       // Define a translation 
       transform.translation() << translation[0], translation[1], translation[2];
-      // define three axis rotations (RPY)
+      // define three axis rotation&clouds (RPY)
       transform.rotate (Eigen::AngleAxisf (rotation[0], Eigen::Vector3f::UnitX()));
       transform.rotate (Eigen::AngleAxisf (rotation[1], Eigen::Vector3f::UnitY()));
       transform.rotate (Eigen::AngleAxisf (rotation[2], Eigen::Vector3f::UnitZ()));
@@ -550,7 +547,8 @@ class FilterDataset {
       pcl::transformPointCloud (*cloud, *cloud, transform); 
       // copy to the output cloud
       pcl::copyPointCloud(*cloud, output);
-     
+      
+      std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl;
     }
 
     void smoothCloud(PointCloud &input, PointCloudNormal &output){
@@ -562,7 +560,8 @@ class FilterDataset {
       pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
 
       // Output has the PointNormal type in order to store the normals calculated by MLS
-      //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; // modify the function output pointcloud directly instead
+      //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; 
+      // modify the function output pointcloud directly instead
       // Init object (second point type is for the normals, even if unused)
       pcl::MovingLeastSquares<PointT, pcl::PointXYZRGBNormal> mls;
 
@@ -576,22 +575,24 @@ class FilterDataset {
 
       // Reconstruct
       mls.process (output);
-
+      std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
     }
 
-    // templated function to perform PCL moving least squares smoothing, normal data is generated during this process
+    // templated function for PCL moving least squares smoothing, normal data generated during this process
     template <typename point_t, typename point_normal_t> 
     void smoothCloudT(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_normal_t> &output){
       
       //allocate memory and make copy to use as the working copy for this function 
       typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>); 
       pcl::copyPointCloud(input,*cloud);
-
+      
+      std::cout<<"before smoothing there are "<<cloud->size()<<"points in the cloud"<<std::endl;
       // Create a KD-Tree
       typename pcl::search::KdTree<point_t>::Ptr tree (new pcl::search::KdTree<point_t>);
 
       // Output has the PointNormal type in order to store the normals calculated by MLS
-      //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; // modify the function output pointcloud directly instead
+      //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; 
+      // modify the function output pointcloud directly instead
       // Init object (second point type is for the normals, even if unused)
       pcl::MovingLeastSquares<point_t, point_normal_t> mls;
 
@@ -599,16 +600,14 @@ class FilterDataset {
       // Set parameters
 
       mls.setInputCloud (cloud);
-      //mls.setInputCloud (input);
       mls.setPolynomialOrder (2);
       mls.setSearchMethod (tree);
       mls.setSearchRadius (0.03);
 
       // Reconstruct
       mls.process (output);
-
-    }
-    
+      std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
+   } 
 
     // function to apply filter pipeline to cloud
     void filterCloud(PointCloud &input, PointCloud &output){
@@ -616,12 +615,14 @@ class FilterDataset {
       PointCloud::Ptr cloud (new PointCloud);
       pcl::copyPointCloud(input, *cloud);        // this copy ensures that the input data is left unchanged
 
-      //voxel-downsampling, pre-transformation, and bounding-box on the input cloud
-      transformCloud(*cloud, *transformed, pre_rotation, pre_translation);
-      boundCloud(*transformed, *bounded, bounding_box);
-      smoothCloudT(*bounded, *smoothed);
-      downsampleCloud(*smoothed, *downsampled, voxel_size);
-      std::cout<<"after processing, there are "<<downsampled->size()<<" points in the cloud"<< std::endl;
+      //rigid transformation, bounding-box, smoothing, and voxel-downsampling on the input cloud
+      if(transform_input){
+        transformCloud(*cloud, *cloud, pre_rotation, pre_translation);
+      }
+      boundCloud(*cloud, *cloud, bounding_box);
+      //smoothCloudT(*cloud, *cloud); // smooth is slow on dense clouds not surprise
+      downsampleCloud(*cloud, *cloud, voxel_size);
+      std::cout<<"after filtering there are "<<cloud->size()<<" points in the cloud"<< std::endl;
 
       pcl::copyPointCloud(*cloud, output); // this copy is avoided by filtering "output" directly 
     }
@@ -632,13 +633,14 @@ class FilterDataset {
     // pointcloud pointers // !this public member could cause problems!, dont use this
     //pcl::PointCloud<pcl::PointXYZRGBNormal> *cloud;
 
-    PointCloud *input, *downsampled, *transformed, *bounded, *smoothed; 
+    PointCloud *input_cloud, *filtered_cloud; 
     
     // other parameters from the config file (these do not need to public)
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
     
-    std::string package_path, input_path, output_path, input_dir, output_dir, input_file, output_file, input_bag, input_bag_path;
+    std::string package_path, input_path, output_path, input_dir, output_dir, input_file, output_file, 
+                input_bag, input_bag_path;
    
     double bounding_box[6];
     Eigen::Vector3f pre_rotation, pre_translation;
@@ -688,8 +690,10 @@ int main(int argc, char** argv)
   //filter.filterCloudDir(filter.input_path);
 
   // process pointcloud topics from bag file
-  filter.loadCloudBag();
+  PointCloudVec clouds;  
+  clouds=filter.loadCloudBag();
 
+  //filter.publishClouds(clouds, "bag_clouds", "camera_link");
 
 
   std::cout<<"filter_cloud completed"<<std::endl;

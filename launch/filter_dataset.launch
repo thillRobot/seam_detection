@@ -8,11 +8,12 @@
   <param name="param" value="$(arg config)"/> 
 
   <!-- setup the transformations and frames for the system-->
-  <!-- not needed, frames from tf in bag file 
+  <!-- optional, frames from tf in bag file--> 
+  <!--  
   <node
     pkg="seam_detection"
-    name="seam_detection_tf"
-    type="seam_detection_tf"
+    name="realsense_tf"
+    type="realsense_tf"
     output="screen"
   />
   -->
