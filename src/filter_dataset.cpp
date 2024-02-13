@@ -301,37 +301,45 @@ class FilterDataset {
       bag.open(input_bag_path, rosbag::bagmode::Read);
 
       std::string cloud_topic="camera/depth/color/points";
+      std::string tf_topic="tf";
 
       std::vector<std::string> topics;
       topics.push_back(cloud_topic);
-      //topics.push_back(std::string("numbers"));
+      topics.push_back(tf_topic);
 
       rosbag::View view(bag, rosbag::TopicQuery(topics));
       
+      static tf2_ros::TransformBroadcaster br;
+
       int idx=0;
       foreach(rosbag::MessageInstance const m, view){
-       
-        if ( ~std::strcmp( m.getTopic().c_str(), cloud_topic.c_str() )) {
-
-            sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();
-            std::cout<<"cloud has "<< cloud->data.size() <<" points" <<std::endl;           
+               
+        std::cout << "Received message on topic: " << m.getTopic() << std::endl;
+        
+        sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();          
+        if (cloud != NULL){
+          // convert to a PCL pointcloud
+          PointCloud bag_cloud;  
+          pcl::fromROSMsg(*cloud, bag_cloud); // faster way https://discourse.ros.org/t/optimized-ros-pcl-conversion/25833
+                                              // but this seems to work good 
+          //std::cout<<"After converting to PCL pointcloud, the cloud has "<<bag_cloud.size()<<" points"<<std::endl;
+          publishCloud(bag_cloud, "bag_cloud");  
           
-            // convert to a PCL pointcloud
-            PointCloud bag_cloud;  
-            pcl::fromROSMsg(*cloud, bag_cloud); // faster way https://discourse.ros.org/t/optimized-ros-pcl-conversion/25833
-                                                // but this seems to work good
-             
-            std::cout<<"After converting to PCL pointcloud, the cloud has "<<bag_cloud.size()<<" points"<<std::endl;
-            publishCloud(bag_cloud, "bag_cloud");  
-            
-          }   
+        }   
+      
+       tf2_msgs::TFMessage::Ptr transform = m.instantiate<tf2_msgs::TFMessage>();          
+       if (transform!=NULL){
+         std::cout<<"transform is not null"<<std::endl;   
+         if(!transform->transforms.empty()){
+           std::cout<<"pointer not null and transforms not empty"<<std::endl;
+           for(const auto& tf : transform ->transforms){
+             br.sendTransform(tf);                
+           }
+         }
+       }  
 
-         // rosgraph_msgs::Clock::ConstPtr c = m.instantiate<rosgraph_msgs::Clock>();
-         // if (c != NULL)
-         //     std::cout << c->clock << std::endl;
-          
-          std::cout<<"loop counter: "<<idx<<std::endl;
-          idx++;
+       std::cout<<"loop counter: "<<idx<<std::endl;
+       idx++;
       }
 
       bag.close();
