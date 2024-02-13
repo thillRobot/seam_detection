@@ -314,7 +314,7 @@ class FilterDataset {
       int idx=0;
       foreach(rosbag::MessageInstance const m, view){
                
-        std::cout << "Received message on topic: " << m.getTopic() << std::endl;
+        //std::cout << "Received message on topic: " << m.getTopic() << std::endl;
         
         sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();          
         if (cloud != NULL){
@@ -333,7 +333,7 @@ class FilterDataset {
          if(!transform->transforms.empty()){
            std::cout<<"pointer not null and transforms not empty"<<std::endl;
            for(const auto& tf : transform ->transforms){
-             br.sendTransform(tf);                
+             br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
            }
          }
        }  
@@ -355,7 +355,8 @@ class FilterDataset {
       // advertise a new topic and publish a msg each time this function is called
       pub_clouds.push_back(node.advertise<pcl::PointCloud<point_t>>(topic, 0, true));
       
-      cloud.header.frame_id = "base_link";
+      // cloud.header.frame_id = "base_link"; // reference to show cloud in rviz
+      cloud.header.frame_id = "camera_link";
 
       pub_clouds[pub_clouds.size()-1].publish(cloud);
 

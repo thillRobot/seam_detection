@@ -187,7 +187,7 @@ Visualization Manager:
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 5
+      Size (Pixels): 2
       Size (m): 0.0010000000474974513
       Style: Points
       Topic: /downsampled
@@ -215,9 +215,9 @@ Visualization Manager:
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 3
+      Size (Pixels): 2
       Size (m): 0.009999999776482582
-      Style: Flat Squares
+      Style: Points
       Topic: /bag_cloud
       Unreliable: false
       Use Fixed Frame: true
@@ -283,7 +283,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.1200852394104
+      Distance: 1.8883872032165527
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -291,17 +291,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.5925084948539734
-        Y: -0.39569008350372314
-        Z: 0.5994516611099243
-      Focal Shape Fixed Size: true
+        X: -0.3339691460132599
+        Y: 0.01534317433834076
+        Z: 0.2448846697807312
+      Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4897960424423218
+      Pitch: 0.7253982424736023
       Target Frame: <Fixed Frame>
-      Yaw: 0.4203695058822632
+      Yaw: 0.5803979635238647
     Saved: ~
 Window Geometry:
   Displays:
