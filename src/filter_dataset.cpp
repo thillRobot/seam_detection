@@ -318,6 +318,35 @@ class FilterDataset {
             //std::cout<<"pointer not null and transforms not empty"<<std::endl;
             for(const auto& tf : transform ->transforms){
               br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
+              std::cout<<"tf header: "<<tf.header<<std::endl;
+              std::cout<<"tf child frame id: "<<tf.child_frame_id;
+              std::cout<<"translation: "<<tf.transform.translation<<std::endl;
+              
+              geometry_msgs::Transform T_camera_tripod, T_tripod_base, T_camera_base;              
+              if (strcmp(tf.header.frame_id.c_str(), "base_link")){
+                T_tripod_base=tf.transform;              
+              }
+              if (strcmp(tf.header.frame_id.c_str(), "tripod_link")){
+                T_camera_tripod=tf.transform;              
+              }
+              
+              // it does not seem like you can operate directly on the mgs, this is not surprising
+              //T_camera_base.translation=T_tripod_base.translation+T_camera_tripod.translation; 
+              T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
+              T_camera_base.translation.y=T_tripod_base.translation.y+T_camera_tripod.translation.y;              
+              T_camera_base.translation.z=T_tripod_base.translation.z+T_camera_tripod.translation.z;              
+
+              //T_camera_base.rotation=T_tripod_base.rotation*T_camera_tripod.rotation;
+              tf2::Quaternion q_tripod_base, q_camera_tripod, q_camera_base;
+              tf2::fromMsg(T_tripod_base.rotation, q_tripod_base); 
+              tf2::fromMsg(T_camera_tripod.rotation, q_camera_tripod);          
+              q_camera_base=q_tripod_base*q_camera_tripod;  // multiply to combine quaternions   
+              
+              T_camera_base.rotation=tf2::toMsg(q_camera_base);         // add back to message ? not sure why
+              
+              camera_translation=T_camera_base.translation; // !!! left off here, need to convert to eigen 
+              camera_rotation=T_camera_base.rotation;
+
             }
           }
         }     
@@ -617,7 +646,10 @@ class FilterDataset {
 
       //rigid transformation, bounding-box, smoothing, and voxel-downsampling on the input cloud
       if(transform_input){
-        transformCloud(*cloud, *cloud, pre_rotation, pre_translation);
+        
+        //rotation=
+        //translation=
+        //transiformCloud(*cloud, *cloud, rotation, translation);
       }
       boundCloud(*cloud, *cloud, bounding_box);
       //smoothCloudT(*cloud, *cloud); // smooth is slow on dense clouds not surprise
@@ -650,6 +682,7 @@ class FilterDataset {
     // topic for generic cloud publisher
     std::string cloud_topic;
 
+    Eigen::Vector3f camera_translation, camera_rotation;
 
   private:
 
@@ -693,7 +726,7 @@ int main(int argc, char** argv)
   PointCloudVec clouds;  
   clouds=filter.loadCloudBag();
 
-  //filter.publishClouds(clouds, "bag_clouds", "camera_link");
+  filter.publishClouds(clouds, "bag_clouds", "camera_link");
 
 
   std::cout<<"filter_cloud completed"<<std::endl;
