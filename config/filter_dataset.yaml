@@ -2,7 +2,7 @@
 input_dir: "pcd_images/PartNet/floor_table_part1_ds455/all"
 output_dir: "pcd_images/PartNet/floor_table_part1_ds455/all/filtered"
 
-input_bag: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_.bag"
+input_bag: "bags/reconstruction/part1_x6_y4_theta33_cpitch10_.bag"
 
 save_output: false
 translate_output: false
@@ -14,6 +14,6 @@ transform_input: false
 pre_rotation:    [-0.0 5, 3.17, 0.0] #
 pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
 
-bounding_box: [-0.5, 0.5, -0.5, 0.5, 0.85, 2.0] # bounding box limits
+bounding_box: [-0.5, 0.5, -0.5, 0.5, 0.0, 2.0] # bounding box limits
 voxel_size: 0.005
 

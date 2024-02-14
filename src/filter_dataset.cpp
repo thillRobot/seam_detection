@@ -319,8 +319,8 @@ class FilterDataset {
             for(const auto& tf : transform ->transforms){
               br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
               std::cout<<"tf header: "<<tf.header<<std::endl;
-              std::cout<<"tf child frame id: "<<tf.child_frame_id;
-              std::cout<<"translation: "<<tf.transform.translation<<std::endl;
+              std::cout<<"tf child frame id: "<<tf.child_frame_id<<std::endl;
+              std::cout<<"translation: "<<std::endl<<tf.transform.translation<<std::endl;
               
               geometry_msgs::Transform T_camera_tripod, T_tripod_base, T_camera_base;              
               if (strcmp(tf.header.frame_id.c_str(), "base_link")){
@@ -329,8 +329,10 @@ class FilterDataset {
               if (strcmp(tf.header.frame_id.c_str(), "tripod_link")){
                 T_camera_tripod=tf.transform;              
               }
-              
-              // it does not seem like you can operate directly on the mgs, this is not surprising
+              printTransform(T_tripod_base, "T_tripod_base"); // these do not both get set because they are in different tfs, the loop only gets one each time so the other is zero .... this is where the zeros come from!!
+              printTransform(T_camera_tripod, "T_camera_tripod");
+
+              // do not operate directly on the mgs, convert first
               //T_camera_base.translation=T_tripod_base.translation+T_camera_tripod.translation; 
               T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
               T_camera_base.translation.y=T_tripod_base.translation.y+T_camera_tripod.translation.y;              
@@ -340,13 +342,26 @@ class FilterDataset {
               tf2::Quaternion q_tripod_base, q_camera_tripod, q_camera_base;
               tf2::fromMsg(T_tripod_base.rotation, q_tripod_base); 
               tf2::fromMsg(T_camera_tripod.rotation, q_camera_tripod);          
+              
               q_camera_base=q_tripod_base*q_camera_tripod;  // multiply to combine quaternions   
               
-              T_camera_base.rotation=tf2::toMsg(q_camera_base);         // add back to message ? not sure why
+              printQuaternion(q_tripod_base, "q_tripod_base");
+              printQuaternion(q_camera_tripod, "q_camera_tripod");      
               
-              camera_translation=T_camera_base.translation; // !!! left off here, need to convert to eigen 
-              camera_rotation=T_camera_base.rotation;
-
+              T_camera_base.rotation=tf2::toMsg(q_camera_base); // add back to message to be broadcasted
+                           
+              geometry_msgs::TransformStamped tf_camera_base;      
+              tf_camera_base.header.frame_id="camera_base";   // create the new header info
+              tf_camera_base.child_frame_id="base_link";
+              tf_camera_base.transform=T_camera_base;         // add the computed transform to the message
+              
+              printTransform(T_camera_base, "T_camera_base");
+              // add transform to stamped transform to be broadcasted
+              //br.sendTransform(tf_camera_base);
+              
+             // camera_translation=T_camera_base.translation; // !!! left off here, need to convert to eigen 
+             // camera_rotation=T_camera_base.rotation;
+           
             }
           }
         }     
@@ -377,7 +392,33 @@ class FilterDataset {
       return bag_clouds;
     }
 
- 
+    void printTransform(geometry_msgs::Transform transform, std::string name){
+
+      std::cout<<std::endl<<"geometry_msgs::Transform "<<name<<std::endl; 
+      std::cout<<"translation Vector: "<<std::endl;
+      std::cout<<"X: "<<transform.translation.x<<std::endl;
+      std::cout<<"Y: "<<transform.translation.y<<std::endl;
+      std::cout<<"Z: "<<transform.translation.z<<std::endl;
+
+      std::cout<<"rotation quaternion: "<<std::endl;
+      std::cout<<"X: "<<transform.rotation.x<<std::endl;      
+      std::cout<<"Y: "<<transform.rotation.y<<std::endl;
+      std::cout<<"Z: "<<transform.rotation.z<<std::endl;
+      std::cout<<"W: "<<transform.rotation.w<<std::endl;
+
+    }   
+    
+    void printQuaternion(tf2::Quaternion quaternion, std::string name){
+
+      std::cout<<std::endl<<"geometry_msgs::Quaternion "<<name<<std::endl; 
+      std::cout<<"rotation quaternion: "<<std::endl;
+      std::cout<<"X: "<<quaternion.getAxis()[0]<<std::endl;      
+      std::cout<<"Y: "<<quaternion.getAxis()[1]<<std::endl;
+      std::cout<<"Z: "<<quaternion.getAxis()[2]<<std::endl;
+      std::cout<<"W: "<<quaternion.getW()<<std::endl;
+
+    }
+   
     // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
     template <typename point_t>
     void publishCloud(point_t &cloud, std::string topic, std::string frame){
