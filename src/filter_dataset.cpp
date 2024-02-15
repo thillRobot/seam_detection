@@ -303,19 +303,6 @@ class FilterDataset {
       static tf2_ros::TransformBroadcaster br;
       geometry_msgs::Transform T_camera_tripod, T_tripod_base, T_camera_base, T_base_map;              
       geometry_msgs::TransformStamped tf_camera_base, tf_base_map;      
-    //  // setup a fix transform from base to map.. this is not needed 
-    //  T_base_map.translation.x=0;
-    //  T_base_map.translation.y=0;
-    //  T_base_map.translation.z=0;
-    //  T_base_map.rotation.x=0;
-    //  T_base_map.rotation.y=0;
-    //  T_base_map.rotation.z=0;
-    //  T_base_map.rotation.w=1;
-    //  
-    //  tf_base_map.header.frame_id="map";   // create new header info
-    //  tf_base_map.child_frame_id="base_link";
-    //  tf_base_map.transform=T_base_map;
-      
 
       PointCloudVec bag_clouds;
       //use this as the working copy of the training cloud
@@ -402,7 +389,7 @@ class FilterDataset {
           PointCloud::Ptr filtered_cloud (new PointCloud);          
           filterCloud(*bag_cloud, *filtered_cloud);          
           
-          publishCloud(*filtered_cloud, "filtered_cloud", "camera_link");  
+          publishCloud(*filtered_cloud, "filtered_cloud", "base_link");  
           bag_clouds.push_back(bag_cloud);
         }   
       
