@@ -3,6 +3,7 @@ input_dir: "pcd_images/PartNet/floor_table_part1_ds455/all"
 output_dir: "pcd_images/PartNet/floor_table_part1_ds455/all/filtered"
 
 input_bag: "bags/reconstruction/part1_x6_y4_theta33_cpitch10_.bag"
+output_bag_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch10_"
 
 save_output: false
 translate_output: false

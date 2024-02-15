@@ -133,12 +133,14 @@ class FilterDataset {
       node.getParam("output_dir", output_dir);
  
       node.getParam("input_bag", input_bag);
+      node.getParam("output_bag_dir", output_bag_dir);
       
       // generate absolute file paths to inputs (does this belong here?)
       input_path=package_path+'/'+input_dir;
       output_path=package_path+'/'+output_dir;
             
       input_bag_path=package_path+'/'+input_bag;
+      output_bag_path=package_path+'/'+output_bag_dir;
 
       // get parameters that contain doubles 
       node.getParam("voxel_size", voxel_size);
@@ -205,11 +207,12 @@ class FilterDataset {
       std::cout << "Saved "<<output.width * output.height << " data points to output pointcloud file: "<< path <<std::endl;
       return 0;  
     } 
-
+    
+    
     // function to filter an entire directory of pointclouds, results saved as output_path/*_filtered.pcd
     int filterCloudDir(std::string in){
        
-      std::cout<<"|---------- SeamDetection::LoadCloudDir - loading PCD files by directory ----------|"<<std::endl;
+      std::cout<<"|---------- SeamDetection::filterCloudDir - loading PCD files by directory ----------|"<<std::endl;
 
       // Load Input Directory with boost::filesystem
       //std::cout<<"filter input_path:"<<filter.input_path<<std::endl;
@@ -233,24 +236,23 @@ class FilterDataset {
             std::cout << dir << " is a directory containing:"<< std::endl;
             int i=0;
             for (bf::directory_entry& x : bf::directory_iterator(dir)){
-              std::string input_path = bf::canonical(x.path()).string();
+              std::string in_path = bf::canonical(x.path()).string();
               // parse the input file name and create the modified output filename
               std::vector<std::string> strs;
-              boost::split(strs,input_path,boost::is_any_of("/."));
+              boost::split(strs,in_path,boost::is_any_of("/."));
 
               std::string input_file = strs[strs.size()-2];
               std::string output_file = input_file+"_filtered.pcd";
              
-              std::string output_path;
-              // output_path=input_dir.string()+"/filtered/"+output_file; // output path from input_path
-              output_path=output_path+"/"+output_file; // output path from config
+              std::string out_path;
+              out_path=output_path+"/"+output_file; // output path from config
 
               std::cout<<"input file["<<i<<"] path: " <<input_path << std::endl;
-              std::cout<<"output file["<<i<<"] path: "<<output_path<< std::endl;
-              if (input_path.find(".pcd")!=std::string::npos){          
+              std::cout<<"output file["<<i<<"] path: "<<out_path<< std::endl;
+              if (in_path.find(".pcd")!=std::string::npos){          
                 
                 // load the pointcloud from pcd file
-                loadCloud(*input_cloud, input_path);
+                loadCloud(*input_cloud, in_path);
                 filterCloud(*input_cloud, *filtered_cloud);
                 std::cout<<"after processing, there are "<<filtered_cloud->size()<<" points in the cloud"<< std::endl;          
                 // show the smooth and downsamples each iteration
@@ -259,10 +261,11 @@ class FilterDataset {
                 
                 // save the processed output cloud to PCD file
                 if (save_output){
-                  saveCloud(*filtered_cloud, output_path);         
+                  saveCloud(*filtered_cloud, out_path);         
                 }else{
                   std::cout<<"pointcloud not saved, SAVE_OUTPUT false"<<std::endl;
                 }
+
                 i++;
               }else{
                 std::cout<<"skipping non PCD file"<<std::endl;
@@ -285,9 +288,10 @@ class FilterDataset {
 
 
     // function to load pcd files (and frames?) from bag file
-
-    PointCloudVec loadCloudBag(void){
-     
+    PointCloudVec filterCloudBag(void){
+      
+      std::cout<<"|---------- SeamDetection::filterCloudBag - loading pointclouds from bag file ----------|"<<std::endl;
+      
       rosbag::Bag bag;
       bag.open(input_bag_path, rosbag::bagmode::Read);
 
@@ -299,6 +303,27 @@ class FilterDataset {
       topics.push_back(tf_topic);
 
       rosbag::View view(bag, rosbag::TopicQuery(topics));
+           
+      if (~bf::exists(output_bag_path)){
+        bf::create_directory(output_bag_path);
+        std::cout<<"_filtered directory created for output files from bag"<<std::endl;
+      }
+      int nmax=20; // max clouds to process from bag  
+    
+      std::string in_path = bf::canonical(input_bag_path).string();  // input_bag_path from config
+      // parse the input file name and create the modified output filename
+      std::vector<std::string> strs;
+      boost::split(strs,in_path,boost::is_any_of("/."));
+
+      std::string in_file = strs[strs.size()-2];
+      //std::string out_file = in_file+"_filtered.pcd";
+      
+      std::string out_path;
+      //out_path=output_bag_path+"/"+out_file; // output_bag_path from config
+        
+   //   std::cout<<"input bag file path: " <<in_path << std::endl;
+   //   std::cout<<"output bag path: "<<output_bag_path<< std::endl;
+   //   std::cout<<"output bag path prefix: "<<out_path<< std::endl;
       
       static tf2_ros::TransformBroadcaster br;
       geometry_msgs::Transform T_camera_tripod, T_tripod_base, T_camera_base, T_base_map;              
@@ -307,10 +332,11 @@ class FilterDataset {
       PointCloudVec bag_clouds;
       //use this as the working copy of the training cloud
       bool chain_complete=false;
-      std::cout<<"chain_complete: "<< chain_complete<< std::endl; 
+     // std::cout<<"chain_complete: "<< chain_complete<< std::endl; 
       
       std::cout<<"loading bag of clouds"<<std::endl;
       int idx=0;
+      int cloud_idx=0;
       foreach(rosbag::MessageInstance const m, view){
                
         //std::cout << "Received message on topic: " << m.getTopic() << std::endl; 
@@ -320,8 +346,8 @@ class FilterDataset {
              
           for(const auto& tf : transform ->transforms){
             br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
-            std::cout<<"tf header frame_id: "<<tf.header.frame_id<<std::endl;
-            std::cout<<"tf child_frame_id: "<<tf.child_frame_id<<std::endl;
+            //std::cout<<"tf header frame_id: "<<tf.header.frame_id<<std::endl;
+            //std::cout<<"tf child_frame_id: "<<tf.child_frame_id<<std::endl;
             
             if (!strcmp(tf.header.frame_id.c_str(), "base_link")){
               T_tripod_base=tf.transform;              
@@ -333,7 +359,7 @@ class FilterDataset {
             }
             
           }  
-          std::cout<<"chain_complete: "<< chain_complete<< std::endl; 
+       //   std::cout<<"chain_complete: "<< chain_complete<< std::endl; 
           if (chain_complete){
             // calculate the total translation vector as the sum of translation vectors
             T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
@@ -358,26 +384,21 @@ class FilterDataset {
             br.sendTransform(tf_camera_base);
              
             // add transform to stamped transform to be broadcasted 
-            printTransform(T_tripod_base, "T_tripod_base"); 
-            printTransform(T_camera_tripod, "T_camera_tripod");
-            printTransform(T_camera_base, "T_camera_base");
+            //printTransform(T_tripod_base, "T_tripod_base"); 
+            //printTransform(T_camera_tripod, "T_camera_tripod");
+            //printTransform(T_camera_base, "T_camera_base");
             chain_complete=false; 
           
-            //printQuaternion(q_tripod_base, "q_tripod_base");
-            //printQuaternion(q_camera_tripod, "q_camera_tripod");    
-           
             // convert the combined transformation to eigen to be used for transforming clouds
             tf::vectorMsgToEigen(T_camera_base.translation, camera_translation);// convert translation to eigen vector
             tf::quaternionMsgToEigen(T_camera_base.rotation, camera_rotation); // convert rotation to eigen quaternion
           
           }
-
-                      
           
         }     
         
         sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();          
-        if (cloud != NULL){
+        if (cloud != NULL && cloud_idx<nmax){
           // convert to a PCL pointcloud
             
           PointCloud::Ptr bag_cloud (new PointCloud); // allocate memory for the loaded cloud      
@@ -391,9 +412,15 @@ class FilterDataset {
           
           publishCloud(*filtered_cloud, "filtered_cloud", "base_link");  
           bag_clouds.push_back(bag_cloud);
+          
+          std::string out_file = in_file+std::to_string(cloud_idx)+".pcd"; 
+          out_path=output_bag_path+"/"+out_file; // output_bag_path from config
+            
+          saveCloud(*filtered_cloud, out_path);
+          cloud_idx++;
         }   
       
-       std::cout<<"bag topic loop counter: "<<idx<<std::endl;
+       //std::cout<<"bag topic loop counter: "<<idx<<std::endl;
        idx++;
       }
       std::cout<<"bag_clouds has "<<bag_clouds.size()<<" clouds"<<std::endl;
@@ -739,7 +766,7 @@ class FilterDataset {
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
     
     std::string package_path, input_path, output_path, input_dir, output_dir, input_file, output_file, 
-                input_bag, input_bag_path;
+                input_bag, input_bag_path, output_bag_dir, output_bag_path;
    
     double bounding_box[6];
     Eigen::Vector3d pre_rotation, pre_translation;
@@ -792,7 +819,7 @@ int main(int argc, char** argv)
 
   // process pointcloud topics from bag file
   PointCloudVec clouds;  
-  clouds=filter.loadCloudBag();
+  clouds=filter.filterCloudBag();
 
   filter.publishClouds(clouds, "bag_clouds", "camera_link");
 
