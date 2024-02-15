@@ -10,7 +10,7 @@ automatic_bounds: false
 use_clustering: true
 new_scan: false
 
-transform_input: false
+transform_input: true
 pre_rotation:    [-0.0 5, 3.17, 0.0] #
 pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
 

@@ -16,6 +16,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <eigen_conversions/eigen_msg.h>
+#include <Eigen/Geometry> 
 
 #include <pcl/common/common.h>
 #include <pcl/pcl_config.h>
@@ -105,10 +106,6 @@ class FilterDataset {
       // allocate memory for pointclouds member attributes
       input_cloud = new PointCloud;   // this is not a good idea to use this name
       filtered_cloud = new PointCloud;
-      //downsampled = new PointCloud; // no longer used, they look nice though
-      //transformed = new PointCloud;
-      //bounded = new PointCloud; 
-      //smoothed = new PointCloud;      
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -382,8 +379,9 @@ class FilterDataset {
             //printQuaternion(q_tripod_base, "q_tripod_base");
             //printQuaternion(q_camera_tripod, "q_camera_tripod");    
            
-            tf::vectorMsgToEigen(T_camera_base.translation, camera_translation); // !!! left off here, need to convert to eigen 
-            //camera_rotation=T_camera_base.rotation;
+            // convert the combined transformation to eigen to be used for transforming clouds
+            tf::vectorMsgToEigen(T_camera_base.translation, camera_translation);// convert translation to eigen vector
+            tf::quaternionMsgToEigen(T_camera_base.rotation, camera_rotation); // convert rotation to eigen quaternion
           
           }
 
@@ -453,7 +451,6 @@ class FilterDataset {
       pub_clouds.push_back(node.advertise<pcl::PointCloud<point_t>>(topic, 0, true));
       
       cloud.header.frame_id = frame; // reference to show cloud in rviz
-      //cloud.header.frame_id = "camera_link";
 
       pub_clouds[pub_clouds.size()-1].publish(cloud);
 
@@ -599,7 +596,7 @@ class FilterDataset {
 //
 //      }else{
 //      }
-//
+
       //Apply Bounding Box Filter
       pcl::PassThrough<PointT> pass; //input_cloud
       pass.setInputCloud(cloud);
@@ -622,18 +619,41 @@ class FilterDataset {
 
 
     // function to apply translation and rotation without scaling to PointCloud
-    void transformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3f rotation, Eigen::Vector3f translation){
+    void transformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3d rotation, Eigen::Vector3d translation){
 
       PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
       pcl::copyPointCloud(input,*cloud);
 
-      Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+      Eigen::Affine3d transform = Eigen::Affine3d::Identity();
       // Define a translation 
       transform.translation() << translation[0], translation[1], translation[2];
       // define three axis rotation&clouds (RPY)
-      transform.rotate (Eigen::AngleAxisf (rotation[0], Eigen::Vector3f::UnitX()));
-      transform.rotate (Eigen::AngleAxisf (rotation[1], Eigen::Vector3f::UnitY()));
-      transform.rotate (Eigen::AngleAxisf (rotation[2], Eigen::Vector3f::UnitZ()));
+      transform.rotate (Eigen::AngleAxisd (rotation[0], Eigen::Vector3d::UnitX()));
+      transform.rotate (Eigen::AngleAxisd (rotation[1], Eigen::Vector3d::UnitY()));
+      transform.rotate (Eigen::AngleAxisd (rotation[2], Eigen::Vector3d::UnitZ()));
+
+      // Print the transformation
+      //std::cout << transform_2.matrix() << std::endl;
+
+      // Execute the transformation on working copy 
+      pcl::transformPointCloud (*cloud, *cloud, transform); 
+      // copy to the output cloud
+      pcl::copyPointCloud(*cloud, output);
+      
+      std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl;
+    }
+
+    // overloaded function to apply translation and rotation without scaling to PointCloud
+    void transformCloud(PointCloud &input, PointCloud &output, Eigen::Quaterniond rotation, Eigen::Vector3d translation){
+
+      PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
+      pcl::copyPointCloud(input,*cloud);
+
+      Eigen::Affine3d transform = Eigen::Affine3d::Identity();
+      // Define a translation 
+      transform.translation() << translation[0], translation[1], translation[2];
+      
+      transform.rotate(rotation);
 
       // Print the transformation
       //std::cout << transform_2.matrix() << std::endl;
@@ -685,10 +705,6 @@ class FilterDataset {
       // Create a KD-Tree
       typename pcl::search::KdTree<point_t>::Ptr tree (new pcl::search::KdTree<point_t>);
 
-      // Output has the PointNormal type in order to store the normals calculated by MLS
-      //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; 
-      // modify the function output pointcloud directly instead
-      // Init object (second point type is for the normals, even if unused)
       pcl::MovingLeastSquares<point_t, point_normal_t> mls;
 
       mls.setComputeNormals (true);
@@ -712,11 +728,9 @@ class FilterDataset {
 
       //rigid transformation, bounding-box, smoothing, and voxel-downsampling on the input cloud
       if(transform_input){
-        
-        //rotation=
-        //translation=
-        //transiformCloud(*cloud, *cloud, rotation, translation);
+        transformCloud(*cloud, *cloud, camera_rotation, camera_translation);
       }
+
       boundCloud(*cloud, *cloud, bounding_box);
       //smoothCloudT(*cloud, *cloud); // smooth is slow on dense clouds not surprise
       downsampleCloud(*cloud, *cloud, voxel_size);
@@ -741,14 +755,15 @@ class FilterDataset {
                 input_bag, input_bag_path;
    
     double bounding_box[6];
-    Eigen::Vector3f pre_rotation, pre_translation;
+    Eigen::Vector3d pre_rotation, pre_translation;
 
     double voxel_size;
 
     // topic for generic cloud publisher
     std::string cloud_topic;
 
-    Eigen::Vector3d camera_translation, camera_rotation;
+    Eigen::Vector3d camera_translation;
+    Eigen::Quaterniond camera_rotation;
 
   private:
 
