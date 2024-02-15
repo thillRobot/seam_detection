@@ -15,6 +15,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <thread>
 #include <Eigen/Dense>
 #include <Eigen/Core>
+#include <eigen_conversions/eigen_msg.h>
 
 #include <pcl/common/common.h>
 #include <pcl/pcl_config.h>
@@ -303,67 +304,91 @@ class FilterDataset {
       rosbag::View view(bag, rosbag::TopicQuery(topics));
       
       static tf2_ros::TransformBroadcaster br;
+      geometry_msgs::Transform T_camera_tripod, T_tripod_base, T_camera_base, T_base_map;              
+      geometry_msgs::TransformStamped tf_camera_base, tf_base_map;      
+    //  // setup a fix transform from base to map.. this is not needed 
+    //  T_base_map.translation.x=0;
+    //  T_base_map.translation.y=0;
+    //  T_base_map.translation.z=0;
+    //  T_base_map.rotation.x=0;
+    //  T_base_map.rotation.y=0;
+    //  T_base_map.rotation.z=0;
+    //  T_base_map.rotation.w=1;
+    //  
+    //  tf_base_map.header.frame_id="map";   // create new header info
+    //  tf_base_map.child_frame_id="base_link";
+    //  tf_base_map.transform=T_base_map;
       
+
       PointCloudVec bag_clouds;
       //use this as the working copy of the training cloud
+      bool chain_complete=false;
+      std::cout<<"chain_complete: "<< chain_complete<< std::endl; 
+      
       std::cout<<"loading bag of clouds"<<std::endl;
       int idx=0;
       foreach(rosbag::MessageInstance const m, view){
                
         //std::cout << "Received message on topic: " << m.getTopic() << std::endl; 
         tf2_msgs::TFMessage::Ptr transform = m.instantiate<tf2_msgs::TFMessage>();          
-        if (transform!=NULL){
-          //std::cout<<"transform is not null"<<std::endl;   
-          if(!transform->transforms.empty()){
-            //std::cout<<"pointer not null and transforms not empty"<<std::endl;
-            for(const auto& tf : transform ->transforms){
-              br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
-              std::cout<<"tf header: "<<tf.header<<std::endl;
-              std::cout<<"tf child frame id: "<<tf.child_frame_id<<std::endl;
-              std::cout<<"translation: "<<std::endl<<tf.transform.translation<<std::endl;
-              
-              geometry_msgs::Transform T_camera_tripod, T_tripod_base, T_camera_base;              
-              if (strcmp(tf.header.frame_id.c_str(), "base_link")){
-                T_tripod_base=tf.transform;              
-              }
-              if (strcmp(tf.header.frame_id.c_str(), "tripod_link")){
-                T_camera_tripod=tf.transform;              
-              }
-              printTransform(T_tripod_base, "T_tripod_base"); // these do not both get set because they are in different tfs, the loop only gets one each time so the other is zero .... this is where the zeros come from!!
-              printTransform(T_camera_tripod, "T_camera_tripod");
-
-              // do not operate directly on the mgs, convert first
-              //T_camera_base.translation=T_tripod_base.translation+T_camera_tripod.translation; 
-              T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
-              T_camera_base.translation.y=T_tripod_base.translation.y+T_camera_tripod.translation.y;              
-              T_camera_base.translation.z=T_tripod_base.translation.z+T_camera_tripod.translation.z;              
-
-              //T_camera_base.rotation=T_tripod_base.rotation*T_camera_tripod.rotation;
-              tf2::Quaternion q_tripod_base, q_camera_tripod, q_camera_base;
-              tf2::fromMsg(T_tripod_base.rotation, q_tripod_base); 
-              tf2::fromMsg(T_camera_tripod.rotation, q_camera_tripod);          
-              
-              q_camera_base=q_tripod_base*q_camera_tripod;  // multiply to combine quaternions   
-              
-              printQuaternion(q_tripod_base, "q_tripod_base");
-              printQuaternion(q_camera_tripod, "q_camera_tripod");      
-              
-              T_camera_base.rotation=tf2::toMsg(q_camera_base); // add back to message to be broadcasted
-                           
-              geometry_msgs::TransformStamped tf_camera_base;      
-              tf_camera_base.header.frame_id="camera_base";   // create the new header info
-              tf_camera_base.child_frame_id="base_link";
-              tf_camera_base.transform=T_camera_base;         // add the computed transform to the message
-              
-              printTransform(T_camera_base, "T_camera_base");
-              // add transform to stamped transform to be broadcasted
-              //br.sendTransform(tf_camera_base);
-              
-             // camera_translation=T_camera_base.translation; // !!! left off here, need to convert to eigen 
-             // camera_rotation=T_camera_base.rotation;
-           
+        if (transform!=NULL && !transform->transforms.empty()){
+          //std::cout<<"pointer not null and transforms not empty"<<std::endl;
+             
+          for(const auto& tf : transform ->transforms){
+            br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
+            std::cout<<"tf header frame_id: "<<tf.header.frame_id<<std::endl;
+            std::cout<<"tf child_frame_id: "<<tf.child_frame_id<<std::endl;
+            
+            if (!strcmp(tf.header.frame_id.c_str(), "base_link")){
+              T_tripod_base=tf.transform;              
             }
+            if (!strcmp(tf.header.frame_id.c_str(), "tripod_link")){
+              T_camera_tripod=tf.transform;              
+              chain_complete=true; // this assumes a consistent broadcast order
+              tf_camera_base.header.stamp=tf.header.stamp;  // copy the most recent timestamp from above
+            }
+            
+          }  
+          std::cout<<"chain_complete: "<< chain_complete<< std::endl; 
+          if (chain_complete){
+            // calculate the total translation vector as the sum of translation vectors
+            T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
+            T_camera_base.translation.y=T_tripod_base.translation.y+T_camera_tripod.translation.y;              
+            T_camera_base.translation.z=T_tripod_base.translation.z+T_camera_tripod.translation.z;              
+                          
+            // calculate the total quaternion as the product of the quaternion vectors  
+            // do not operate directly on the mgs, convert first
+            tf2::Quaternion q_tripod_base, q_camera_tripod, q_camera_base;
+            tf2::fromMsg(T_tripod_base.rotation, q_tripod_base); 
+            tf2::fromMsg(T_camera_tripod.rotation, q_camera_tripod);          
+            //q_camera_base=q_tripod_base*q_camera_tripod;    // multiply to combine quaternions   
+            q_camera_base=q_camera_tripod*q_tripod_base;      // order matters 
+            T_camera_base.rotation=tf2::toMsg(q_camera_base); // convert from tf2 to geometry msg
+             
+            // now put that in a stamped transform to be re-broadcasted in the tf topic
+            //geometry_msgs::TransformStamped tf_camera_base;      
+            tf_camera_base.header.frame_id="base_link";       // create new header info
+            tf_camera_base.child_frame_id="camera_link_test"; // check loop closure in rviz to validate tf operations
+           
+            tf_camera_base.transform=T_camera_base;           // add the computed transform to the message 
+            br.sendTransform(tf_camera_base);
+             
+            // add transform to stamped transform to be broadcasted 
+            printTransform(T_tripod_base, "T_tripod_base"); 
+            printTransform(T_camera_tripod, "T_camera_tripod");
+            printTransform(T_camera_base, "T_camera_base");
+            chain_complete=false; 
+          
+            //printQuaternion(q_tripod_base, "q_tripod_base");
+            //printQuaternion(q_camera_tripod, "q_camera_tripod");    
+           
+            tf::vectorMsgToEigen(T_camera_base.translation, camera_translation); // !!! left off here, need to convert to eigen 
+            //camera_rotation=T_camera_base.rotation;
+          
           }
+
+                      
+          
         }     
         
         sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();          
@@ -723,7 +748,7 @@ class FilterDataset {
     // topic for generic cloud publisher
     std::string cloud_topic;
 
-    Eigen::Vector3f camera_translation, camera_rotation;
+    Eigen::Vector3d camera_translation, camera_rotation;
 
   private:
 

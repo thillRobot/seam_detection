@@ -1,18 +1,13 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 0
+    Help Height: 166
     Name: Displays
     Property Tree Widget:
       Expanded:
         - /Global Options1
         - /Status1
-        - /PointCloud21
-        - /PointCloud22
-        - /PointCloud23
-        - /PointCloud24
-        - /PointCloud25
       Splitter Ratio: 0.5078431367874146
-    Tree Height: 835
+    Tree Height: 669
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -46,6 +41,44 @@ Visualization Manager:
       Radius: 0.004999999888241291
       Reference Frame: <Fixed Frame>
       Show Trail: false
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        base:
+          Value: true
+        base_link:
+          Value: true
+        camera:
+          Value: true
+        camera_color_optical_frame:
+          Value: true
+        camera_link:
+          Value: true
+        map:
+          Value: true
+        tripod_link:
+          Value: true
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        camera:
+          base:
+            map:
+              base_link:
+                tripod_link:
+                  camera_link:
+                    camera_color_optical_frame:
+                      {}
+      Update Interval: 0
       Value: true
     - Alpha: 0.5
       Cell Size: 1
@@ -223,38 +256,6 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Class: rviz/TF
-      Enabled: true
-      Filter (blacklist): ""
-      Filter (whitelist): ""
-      Frame Timeout: 15
-      Frames:
-        All Enabled: true
-        base_link:
-          Value: true
-        camera_color_optical_frame:
-          Value: true
-        camera_link:
-          Value: true
-        map:
-          Value: true
-        tripod_link:
-          Value: true
-      Marker Alpha: 1
-      Marker Scale: 1
-      Name: TF
-      Show Arrows: true
-      Show Axes: true
-      Show Names: true
-      Tree:
-        map:
-          base_link:
-            tripod_link:
-              camera_link:
-                camera_color_optical_frame:
-                  {}
-      Update Interval: 0
-      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -283,7 +284,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.036092758178711
+      Distance: 2.740065097808838
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -291,17 +292,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.5199415683746338
-        Y: -0.0010777967981994152
-        Z: 0.5379539132118225
+        X: -0.658911943435669
+        Y: 0.13850118219852448
+        Z: 0.7577301263809204
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5353983640670776
+      Pitch: 0.5703983306884766
       Target Frame: <Fixed Frame>
-      Yaw: 0.47039803862571716
+      Yaw: 6.26858377456665
     Saved: ~
 Window Geometry:
   Displays:
