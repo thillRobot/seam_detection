@@ -105,7 +105,7 @@ class FilterDataset {
 
       // allocate memory for pointclouds member attributes
       input_cloud = new PointCloud;   // this is not a good idea to use this name
-      filtered_cloud = new PointCloud;
+      //filtered_cloud = new PointCloud;
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -134,7 +134,8 @@ class FilterDataset {
  
       node.getParam("input_bag", input_bag);
       node.getParam("output_bag_dir", output_bag_dir);
-      
+      node.getParam("num_bag_clouds", num_bag_clouds);     
+
       // generate absolute file paths to inputs (does this belong here?)
       input_path=package_path+'/'+input_dir;
       output_path=package_path+'/'+output_dir;
@@ -210,10 +211,11 @@ class FilterDataset {
     
     
     // function to filter an entire directory of pointclouds, results saved as output_path/*_filtered.pcd
-    int filterCloudDir(std::string in){
+    PointCloudVec filterCloudDir(std::string in){
        
       std::cout<<"|---------- SeamDetection::filterCloudDir - loading PCD files by directory ----------|"<<std::endl;
 
+      PointCloudVec dir_clouds;
       // Load Input Directory with boost::filesystem
       //std::cout<<"filter input_path:"<<filter.input_path<<std::endl;
       boost::filesystem::path dir(in);
@@ -251,6 +253,7 @@ class FilterDataset {
               std::cout<<"output file["<<i<<"] path: "<<out_path<< std::endl;
               if (in_path.find(".pcd")!=std::string::npos){          
                 
+                PointCloud::Ptr filtered_cloud (new PointCloud);          
                 // load the pointcloud from pcd file
                 loadCloud(*input_cloud, in_path);
                 filterCloud(*input_cloud, *filtered_cloud);
@@ -266,6 +269,10 @@ class FilterDataset {
                   std::cout<<"pointcloud not saved, SAVE_OUTPUT false"<<std::endl;
                 }
 
+                // add to a vector of clouds to return
+                dir_clouds.push_back(filtered_cloud);
+ 
+                
                 i++;
               }else{
                 std::cout<<"skipping non PCD file"<<std::endl;
@@ -283,12 +290,12 @@ class FilterDataset {
       }catch (const bf::filesystem_error& ex){
         std::cout << ex.what() << std::endl;
       }
-      return 1;
+      return dir_clouds;
     }
 
 
     // function to load pcd files (and frames?) from bag file
-    PointCloudVec filterCloudBag(void){
+    PointCloudVec filterCloudBag(int num_clouds){
       
       std::cout<<"|---------- SeamDetection::filterCloudBag - loading pointclouds from bag file ----------|"<<std::endl;
       
@@ -308,19 +315,16 @@ class FilterDataset {
         bf::create_directory(output_bag_path);
         std::cout<<"_filtered directory created for output files from bag"<<std::endl;
       }
-      int nmax=20; // max clouds to process from bag  
-    
+      //int nmax=20; // max clouds to process from bag  
+     
       std::string in_path = bf::canonical(input_bag_path).string();  // input_bag_path from config
       // parse the input file name and create the modified output filename
       std::vector<std::string> strs;
       boost::split(strs,in_path,boost::is_any_of("/."));
 
-      std::string in_file = strs[strs.size()-2];
-      //std::string out_file = in_file+"_filtered.pcd";
-      
-      std::string out_path;
-      //out_path=output_bag_path+"/"+out_file; // output_bag_path from config
-        
+      std::string in_file = strs[strs.size()-2];   
+      std::string out_path;  
+
    //   std::cout<<"input bag file path: " <<in_path << std::endl;
    //   std::cout<<"output bag path: "<<output_bag_path<< std::endl;
    //   std::cout<<"output bag path prefix: "<<out_path<< std::endl;
@@ -398,7 +402,7 @@ class FilterDataset {
         }     
         
         sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();          
-        if (cloud != NULL && cloud_idx<nmax){
+        if (cloud != NULL && cloud_idx<num_clouds){
           // convert to a PCL pointcloud
             
           PointCloud::Ptr bag_cloud (new PointCloud); // allocate memory for the loaded cloud      
@@ -412,7 +416,7 @@ class FilterDataset {
           
           publishCloud(*filtered_cloud, "filtered_cloud", "base_link");  
           bag_clouds.push_back(bag_cloud);
-          
+         
           std::string out_file = in_file+std::to_string(cloud_idx)+".pcd"; 
           out_path=output_bag_path+"/"+out_file; // output_bag_path from config
             
@@ -657,16 +661,16 @@ class FilterDataset {
       std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl;
     }
 
-    // overloaded function to apply translation and rotation without scaling to PointCloud
+
+    // overloaded function to apply translation and rotation without scaling to PointCloud using quaternion 
     void transformCloud(PointCloud &input, PointCloud &output, Eigen::Quaterniond rotation, Eigen::Vector3d translation){
 
       PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
       pcl::copyPointCloud(input,*cloud);
 
       Eigen::Affine3d transform = Eigen::Affine3d::Identity();
-      // Define a translation 
+      // set the translation and rotation of the transformation 
       transform.translation() << translation[0], translation[1], translation[2];
-      
       transform.rotate(rotation);
 
       // Print the transformation
@@ -680,6 +684,8 @@ class FilterDataset {
       std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl;
     }
 
+
+    // function to apply moving least squared smoothing to pointcloud
     void smoothCloud(PointCloud &input, PointCloudNormal &output){
 
       PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy for this function 
@@ -694,9 +700,8 @@ class FilterDataset {
       // Init object (second point type is for the normals, even if unused)
       pcl::MovingLeastSquares<PointT, pcl::PointXYZRGBNormal> mls;
 
-      mls.setComputeNormals (true);
       // Set parameters
-
+      mls.setComputeNormals (true);
       mls.setInputCloud (cloud);
       mls.setPolynomialOrder (2);
       mls.setSearchMethod (tree);
@@ -706,6 +711,7 @@ class FilterDataset {
       mls.process (output);
       std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
     }
+
 
     // templated function for PCL moving least squares smoothing, normal data generated during this process
     template <typename point_t, typename point_normal_t> 
@@ -721,9 +727,8 @@ class FilterDataset {
 
       pcl::MovingLeastSquares<point_t, point_normal_t> mls;
 
-      mls.setComputeNormals (true);
       // Set parameters
-
+      mls.setComputeNormals (true);
       mls.setInputCloud (cloud);
       mls.setPolynomialOrder (2);
       mls.setSearchMethod (tree);
@@ -732,21 +737,27 @@ class FilterDataset {
       // Reconstruct
       mls.process (output);
       std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
-   } 
+    } 
 
-    // function to apply filter pipeline to cloud
+
+    // function to apply filter pipeline to pointcloud
     void filterCloud(PointCloud &input, PointCloud &output){
 
       PointCloud::Ptr cloud (new PointCloud);
       pcl::copyPointCloud(input, *cloud);        // this copy ensures that the input data is left unchanged
 
-      //rigid transformation, bounding-box, smoothing, and voxel-downsampling on the input cloud
+      //rigid transformation
       if(transform_input){
         transformCloud(*cloud, *cloud, camera_rotation, camera_translation);
       }
-
+     
+      // bounding box 
       boundCloud(*cloud, *cloud, bounding_box);
-      //smoothCloudT(*cloud, *cloud); // smooth is slow on dense clouds not surprise
+      
+      // moving least squares smoothing  
+      // smoothCloudT(*cloud, *cloud); // smooth is slow on dense clouds not surprise
+      
+      // voxel downsampling  
       downsampleCloud(*cloud, *cloud, voxel_size);
       std::cout<<"after filtering there are "<<cloud->size()<<" points in the cloud"<< std::endl;
 
@@ -767,7 +778,8 @@ class FilterDataset {
     
     std::string package_path, input_path, output_path, input_dir, output_dir, input_file, output_file, 
                 input_bag, input_bag_path, output_bag_dir, output_bag_path;
-   
+    int num_bag_clouds;
+ 
     double bounding_box[6];
     Eigen::Vector3d pre_rotation, pre_translation;
 
@@ -809,21 +821,21 @@ int main(int argc, char** argv)
   // load parameters from ROS param server, modify values in filter-cloud.yaml
   filter.loadConfig(); 
 
-  filter.input_file="table_01.pcd";
+  //filter.input_file="table_01.pcd";
   //std::cout<<"input_path: "<< filter.input_path << std::endl;
-
-  PointCloudVec clouds_in;
   
-  // process pcd files in input_path/ and save in output_path/
-  //filter.filterCloudDir(filter.input_path);
-
   // process pointcloud topics from bag file
-  PointCloudVec clouds;  
-  clouds=filter.filterCloudBag();
-
-  filter.publishClouds(clouds, "bag_clouds", "camera_link");
-
-
+  PointCloudVec bagclouds;  
+  bagclouds=filter.filterCloudBag(filter.num_bag_clouds);
+  // show in rviz
+  filter.publishClouds(bagclouds, "bag_cloud", "base_link");
+  
+  // process pcd files from directory 
+  PointCloudVec dirclouds;
+  dirclouds=filter.filterCloudDir(filter.input_path);
+  // show in rviz
+  filter.publishClouds(dirclouds, "dir_cloud", "base_link");
+  
   std::cout<<"filter_cloud completed"<<std::endl;
   ros::spin();
 
