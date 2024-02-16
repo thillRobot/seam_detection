@@ -31,6 +31,22 @@ int main(int argc, char** argv){
 
     ros::init(argc, argv, "realsense_tf");
     ros::NodeHandle n;
+    
+    float camera_roll=20*d2r+M_PI;
+    float camera_pitch=0*d2r;
+    float camera_yaw=0*d2r;
+    
+    float camera_x=0.0;
+    float camera_y=5.75*in2m;
+    float camera_z=0.0;
+    
+    float tripod_roll=0.0;
+    float tripod_pitch=0.0;
+    float tripod_yaw=0.0;
+    
+    float tripod_x=0.0;
+    float tripod_y=0.0;
+    float tripod_z=65.25*in2m;
 
     ros::Rate r(10);
 
@@ -56,12 +72,12 @@ int main(int argc, char** argv){
 
      broadcaster.sendTransform(
         tf::StampedTransform(
-        tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 65.25*in2m)),
+        tf::Transform(tf::createQuaternionFromRPY(tripod_roll, tripod_pitch, tripod_yaw), tf::Vector3(tripod_x, tripod_y, tripod_z)),
         ros::Time::now(),"base_link","tripod_link"));
     
      broadcaster.sendTransform(
         tf::StampedTransform(
-        tf::Transform(tf::createQuaternionFromRPY(M_PI+20*d2r,0*d2r,0), tf::Vector3(0.0, 5.75*in2m, 0.0)),
+        tf::Transform(tf::createQuaternionFromRPY(camera_roll,camera_pitch,camera_yaw), tf::Vector3(camera_x, camera_y, camera_z)),
         ros::Time::now(),"tripod_link","camera_link"));
       
       if (playback){
