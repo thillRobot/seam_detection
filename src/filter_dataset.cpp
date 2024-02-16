@@ -219,10 +219,8 @@ class FilterDataset {
     } 
     
     
-
-
     // function to load pcd files (and frames?) from bag file
-    PointCloudVec filterCloudBag(int num_clouds, bool publish_clouds){
+    PointCloudVec filterCloudBag(int num_clouds ){
       
       std::cout<<"|---------- SeamDetection::filterCloudBag - loading pointclouds from bag file ----------|"<<std::endl;
       
@@ -334,10 +332,6 @@ class FilterDataset {
           pcl::fromROSMsg(*cloud, *input_cloud); 
           std::cout<<"After converting to PCL pointcloud, the cloud has "<<input_cloud->size()<<" points"<<std::endl;
           
-          if (publish_clouds){
-            publishCloud(*input_cloud, "bag_cloud", "camera_link");  
-          }
-
           // allocate memory for output of filtering process, to be stored (referenced) in pointcloud vec         
           PointCloud::Ptr filtered_cloud (new PointCloud);        
           
@@ -348,8 +342,13 @@ class FilterDataset {
                       smooth_bag_clouds, 
                       downsample_bag_clouds);
        
-          publishCloud(*filtered_cloud, "filtered_cloud", "base_link");  
           bag_clouds.push_back(filtered_cloud);
+          
+          // optionally show the clouds in rviz  
+          if (publish_bag_clouds){
+            publishCloud(*input_cloud, "input_cloud", "camera_link");  
+            publishCloud(*filtered_cloud, "filtered_cloud", "base_link");  
+          }
          
           std::string out_file = in_file+std::to_string(cloud_idx)+".pcd"; 
           out_path=output_bag_path+"/"+out_file; // output_bag_path from config
@@ -372,6 +371,8 @@ class FilterDataset {
       return bag_clouds;
     }
 
+    
+    // function to print contents of a geometry messages transform, used for debugging
     void printTransform(geometry_msgs::Transform transform, std::string name){
 
       std::cout<<std::endl<<"geometry_msgs::Transform "<<name<<std::endl; 
@@ -388,6 +389,8 @@ class FilterDataset {
 
     }   
     
+
+    // function to print the contens of a tf2 quaternion, used for debugging
     void printQuaternion(tf2::Quaternion quaternion, std::string name){
 
       std::cout<<std::endl<<"geometry_msgs::Quaternion "<<name<<std::endl; 
@@ -401,7 +404,7 @@ class FilterDataset {
   
  
     // function to filter an entire directory of pointclouds, results saved as output_path/*_filtered.pcd
-    PointCloudVec filterCloudDir(std::string in, bool publish_clouds){
+    PointCloudVec filterCloudDir(std::string in){
        
       std::cout<<"|---------- SeamDetection::filterCloudDir - loading PCD files by directory ----------|"<<std::endl;
 
@@ -459,8 +462,9 @@ class FilterDataset {
                 std::cout<<"after filtering, there are "<<filtered_cloud->size()<<" points in the cloud"<< std::endl;          
                 
                 // show the filtered cloud each iteration
-                if (publish_clouds){
-                  publishCloud(*filtered_cloud, "/dir_filtered", "base_link");
+                if (publish_dir_clouds){
+                  publishCloud(*input_cloud, "input_cloud", "base_link");  
+                  publishCloud(*filtered_cloud, "filtered_cloud", "base_link");
                 }
                 
                 // save the processed output cloud to PCD file
@@ -866,18 +870,18 @@ int main(int argc, char** argv)
 
   // process pointcloud topics from bag file
   PointCloudVec bagclouds;  
-  bagclouds=filter.filterCloudBag(filter.num_bag_clouds, filter.publish_dir_clouds);
+  bagclouds=filter.filterCloudBag(filter.num_bag_clouds);
   // show in rviz
-  filter.publishClouds(bagclouds, "bag_cloud", "base_link");
+  //filter.publishClouds(bagclouds, "bag_cloud", "base_link");
   
   // process pcd files from directory 
   PointCloudVec dirclouds;
-  dirclouds=filter.filterCloudDir(filter.input_path, filter.publish_bag_clouds);
+  dirclouds=filter.filterCloudDir(filter.input_path);
   // show in rviz
-  filter.publishClouds(dirclouds, "dir_cloud", "base_link");
+  //filter.publishClouds(dirclouds, "dir_cloud", "base_link");
   
   std::cout<<"filter_cloud completed"<<std::endl;
-  ros::spin();
+  ros::spinOnce();
 
   return 0;
 }

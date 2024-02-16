@@ -185,7 +185,7 @@ class SeamDetection {
 
     // templated function to load pcl::PointCloud<point_t> from PCD file as defined in config
     template <typename point_t>
-    int loadCloud(std::string file_name, pcl::PointCloud<point_t> &input){
+    int loadCloud( pcl::PointCloud<point_t> &input, std::string file_name ){
 
       std::cout<<"|---------- SeamDetection::LoadCloud - loading PCD file ----------|"<<std::endl;
 
@@ -1754,14 +1754,34 @@ int main(int argc, char** argv)
   // instantiate an object sd from the SeamDetection class
   SeamDetection sd;
  
-  // Step 0 - load required parameters from ROS param server, modify values in seam-detection.yaml
+  // load ROS parameters, modify values in seam-detection.yaml
   sd.loadConfig(); 
  
+  // step0 - test reconstruction by merging different views
+  PointCloudPtr cloud_part1 (new PointCloud);
+  PointCloudPtr cloud_part2 (new PointCloud);
+  PointCloudPtr cloud_part3 (new PointCloud);
+  PointCloudPtr cloud_part4 (new PointCloud); 
+  PointCloudPtr cloud_merged (new PointCloud);
+  
+  sd.loadCloud(*cloud_part1, "bags/reconstruction/part1_x6_y4_theta33_cpitch0_/filtered/part1_x6_y4_theta33_cpitch0_2_filtered.pcd");
+  sd.loadCloud(*cloud_part2, "bags/reconstruction/part1_x6_y4_theta33_cpitch10_/filtered/part1_x6_y4_theta33_cpitch10_2_filtered.pcd");
+  sd.loadCloud(*cloud_part3, "bags/reconstruction/part1_x6_y4_theta33_cpitch20_/filtered/part1_x6_y4_theta33_cpitch20_2_filtered.pcd");
+  sd.loadCloud(*cloud_part4, "bags/reconstruction/part1_x6_y4_theta33_cpitch30_/filtered/part1_x6_y4_theta33_cpitch30_2_filtered.pcd");
+
+  PointCloudVec cloud_parts;
+  cloud_parts.push_back(cloud_part1);
+  cloud_parts.push_back(cloud_part2);
+  cloud_parts.push_back(cloud_part3);
+  cloud_parts.push_back(cloud_part4);
+
+  cloud_merged=sd.mergeClusters(cloud_parts);
+  sd.publishCloud(*cloud_merged, "cloud_merged");
 
   // [Steps 1-3] - use 'training' image of target object on clean table
 
   // Step 1 - load the 'training' pointcloud from pcd file
-  sd.loadCloud(sd.training_file, *sd.training_input);
+  sd.loadCloud( *sd.training_input, sd.training_file );
 
   // Step 1.5 - perform voxel-downsampling, pre-transformation, and bounding-box on the training cloud
   sd.downsampleCloud(*sd.training_input, *sd.training_downsampled, sd.voxel_size); 
@@ -1824,7 +1844,7 @@ int main(int argc, char** argv)
   // [Steps 4-7] - use 'test' image of target object on cluttered table
   
   // Step 4 - load the 'test' pointcloud from pcd file (this is the cluttered table)
-  sd.loadCloud(sd.test_file, *sd.test_input);
+  sd.loadCloud(*sd.test_input, sd.test_file);
   
   // Step 5 - perform voxel-downsampling, pre-transformation, and bounding-box on the test cloud (same params used as in step 1.5)
   sd.downsampleCloud(*sd.test_input, *sd.test_downsampled, sd.voxel_size); 
@@ -1855,9 +1875,7 @@ int main(int argc, char** argv)
   test_matches=sd.matchClustersMulti(test_euclidean_clusters, test_color_clusters, debug_level); 
   // show the matched clusters in rviz
   sd.publishClusters(test_matches, "/test_match");
-  
-
-  
+   
   // Step 7.5 - Extract intersection of the test data (ALL test_euclidan_clusters[:] , all test_matches[:]) 
   PointCloudVec test_intersections; // vector of pointcloud points, dynamic sized 
  
@@ -1870,7 +1888,8 @@ int main(int argc, char** argv)
     sd.getCloudIntersection(*test_euclidean_clusters[i], *test_matches[i], *cloud); // find the points in clusters1[i] AND clusters2[j]
 
     if (cloud->size()>intr_min_size){ // check if the intersection passes a threshold
-      std::cout<<"test"<<i<<", cluster1["<<i<<"] intersected with cluster2["<<i<<"] has "<<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
+      std::cout<<"test"<<i<<", cluster1["<<i<<"] intersected with cluster2["<<i<<"] has "<<cloud->size()
+               <<" points and will be added to the intersection cluster"<<std::endl;
                                             
       PointCloudPtr cluster (new PointCloud); // allocate memory for the pointcloud to be stored and pointed to by the new PointCloudVec 
       pcl::copyPointCloud(*cloud, *cluster);  // make a copy to avoid the clear below
@@ -1879,7 +1898,8 @@ int main(int argc, char** argv)
       std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
 
     }else{
-      std::cout<<"test"<<i<<", cluster1["<<i<<"] intersected with cluster2["<<i<<"] has "<<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
+      std::cout<<"test"<<i<<", cluster1["<<i<<"] intersected with cluster2["<<i<<"] has "<<cloud->size()
+               <<" points and will NOT be added to the intersection cluster"<<std::endl;
     }
     cloud->clear();
 
@@ -1888,7 +1908,6 @@ int main(int argc, char** argv)
   std::cout<<"test_intersections has "<<test_intersections.size()<<" clouds"<<std::endl;
   sd.publishClusters(test_intersections, "/test_intersection");
    
-
   // [Step 8 - ...] - compare 'training' target (training_intersection) from steps 1-3 to correlated 'test_intersection' clusters from steps 4-7 
   PointCloudPtr final_match;
   final_match=sd.matchClustersMulti(*training_intersection, test_intersections, debug_level); 
