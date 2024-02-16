@@ -1,22 +1,31 @@
 ---
-input_bag: "bags/reconstruction/part1_x6_y4_theta33_cpitch10_.bag"
-output_bag_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch10_"
+input_bag: "bags/reconstruction/part1_x6_y4_theta33_cpitch0_.bag"
+output_bag_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch0_"
 
-input_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch10_"
-output_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch10_"
+input_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch0_"
+output_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch0_/filtered"
 
-num_bag_clouds: 20
+num_bag_clouds: 10
+save_bag_clouds: true
+save_dir_clouds: true
 
-save_output: false
-translate_output: false
-automatic_bounds: false
-use_clustering: true
-new_scan: false
+publish_bag_clouds: true
+publish_dir_clouds: true
 
-transform_input: true
+transform_bag_clouds: true
+bound_bag_clouds: true
+smooth_bag_clouds: false
+downsample_bag_clouds: false
+
+transform_dir_clouds: false
+bound_dir_clouds: false
+smooth_dir_clouds: false
+downsample_dir_clouds: false
+
 pre_rotation:    [-0.0 5, 3.17, 0.0] #
 pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
+auto_bounds: false
 
-bounding_box: [-0.4, 0.5, 0.15, 0.5, 0.91, 2.0] # bounding box limits
+bounding_box: [-0.4, 0.5, 0.15, 0.65, 0.91, 2.0] # bounding box limits
 voxel_size: 0.005
 

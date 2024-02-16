@@ -103,9 +103,8 @@ class FilterDataset {
       std::cout<<"|----------------------------------------|"<<std::endl;
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
-      // allocate memory for pointclouds member attributes
-      input_cloud = new PointCloud;   // this is not a good idea to use this name
-      //filtered_cloud = new PointCloud;
+      // allocate memory for input pointcloud member
+      input_cloud = new PointCloud; 
 
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
@@ -119,12 +118,9 @@ class FilterDataset {
       std::cout<<"|---------- SeamDetection::LoadConfig - loading configuration file ---------|"<<std::endl;
 
       // get boolen parameters 
-      node.getParam("save_output", save_output);
-      node.getParam("translate_output", translate_output);
-      node.getParam("automatic_bounds", automatic_bounds);
-      node.getParam("use_clustering", use_clustering);
-      node.getParam("new_scan", new_scan);
-      //node.getParam("transform_input", transform_input);
+      node.getParam("save_bag_clouds", save_bag_clouds);
+      node.getParam("save_dir_clouds", save_dir_clouds);
+      node.getParam("auto_bounds", auto_bounds);
 
       // get parameters that contain strings  
       //node.getParam("input_file", input_file);    
@@ -145,15 +141,20 @@ class FilterDataset {
 
       // get parameters that contain doubles 
       node.getParam("voxel_size", voxel_size);
-
-      // parameters that contain vectors of doubles
-      std::vector<double> bounding_box_vec;
-      node.getParam("bounding_box",  bounding_box_vec);
-      for(unsigned i=0; i < bounding_box_vec.size(); i++){
-        bounding_box[i]=bounding_box_vec[i]; // copy from vector to array 
-      }
+  
+      node.getParam("publish_bag_clouds", publish_bag_clouds);
+      node.getParam("publish_dir_clouds", publish_dir_clouds);
+  
+      node.getParam("transform_bag_clouds", transform_bag_clouds);
+      node.getParam("bound_bag_clouds", bound_bag_clouds);
+      node.getParam("smooth_bag_clouds", smooth_bag_clouds);
+      node.getParam("downsample_bag_clouds", downsample_bag_clouds);
       
-      node.getParam("transform_input", transform_input);
+      node.getParam("transform_dir_clouds", transform_dir_clouds);
+      node.getParam("bound_dir_clouds", bound_dir_clouds);
+      node.getParam("smooth_dir_clouds", smooth_dir_clouds);
+      node.getParam("downsample_dir_clouds", downsample_dir_clouds);
+
       // rotation and translation parameters from camera to fixed frame  
       std::vector<double> pre_rotation_vec, pre_translation_vec;
       node.getParam("pre_rotation",  pre_rotation_vec);
@@ -163,7 +164,15 @@ class FilterDataset {
         pre_translation[i]=pre_translation_vec[i]; 
       }
          
+      // parameters that contain vectors of doubles
+      std::vector<double> bounding_box_vec;
+      node.getParam("bounding_box",  bounding_box_vec);
+      for(unsigned i=0; i < bounding_box_vec.size(); i++){
+        bounding_box[i]=bounding_box_vec[i]; // copy from vector to array 
+      }
+      node.getParam("auto_bounds",  auto_bounds);
       return 0;
+    
     }
     
 
@@ -210,92 +219,10 @@ class FilterDataset {
     } 
     
     
-    // function to filter an entire directory of pointclouds, results saved as output_path/*_filtered.pcd
-    PointCloudVec filterCloudDir(std::string in){
-       
-      std::cout<<"|---------- SeamDetection::filterCloudDir - loading PCD files by directory ----------|"<<std::endl;
-
-      PointCloudVec dir_clouds;
-      // Load Input Directory with boost::filesystem
-      //std::cout<<"filter input_path:"<<filter.input_path<<std::endl;
-      boost::filesystem::path dir(in);
-      
-      try{
-        
-        if (bf::exists(dir)){
-          
-          if (bf::is_regular_file(dir)){
-            
-            std::cout << dir << " size is " << bf::file_size(dir) << std::endl;     
-     
-          }else if (bf::is_directory(dir)){
-           
-            if (~bf::exists(output_path)){
-              bf::create_directory(output_path);
-              std::cout<<"_filtered directory created for output files"<<std::endl;
-            }
-
-            std::cout << dir << " is a directory containing:"<< std::endl;
-            int i=0;
-            for (bf::directory_entry& x : bf::directory_iterator(dir)){
-              std::string in_path = bf::canonical(x.path()).string();
-              // parse the input file name and create the modified output filename
-              std::vector<std::string> strs;
-              boost::split(strs,in_path,boost::is_any_of("/."));
-
-              std::string input_file = strs[strs.size()-2];
-              std::string output_file = input_file+"_filtered.pcd";
-             
-              std::string out_path;
-              out_path=output_path+"/"+output_file; // output path from config
-
-              std::cout<<"input file["<<i<<"] path: " <<input_path << std::endl;
-              std::cout<<"output file["<<i<<"] path: "<<out_path<< std::endl;
-              if (in_path.find(".pcd")!=std::string::npos){          
-                
-                PointCloud::Ptr filtered_cloud (new PointCloud);          
-                // load the pointcloud from pcd file
-                loadCloud(*input_cloud, in_path);
-                filterCloud(*input_cloud, *filtered_cloud);
-                std::cout<<"after processing, there are "<<filtered_cloud->size()<<" points in the cloud"<< std::endl;          
-                // show the smooth and downsamples each iteration
-                //publishCloud(*smoothed_cloud, "/smoothed", "camera_link");
-                publishCloud(*filtered_cloud, "/filtered", "camera_link");
-                
-                // save the processed output cloud to PCD file
-                if (save_output){
-                  saveCloud(*filtered_cloud, out_path);         
-                }else{
-                  std::cout<<"pointcloud not saved, SAVE_OUTPUT false"<<std::endl;
-                }
-
-                // add to a vector of clouds to return
-                dir_clouds.push_back(filtered_cloud);
- 
-                
-                i++;
-              }else{
-                std::cout<<"skipping non PCD file"<<std::endl;
-              }
-            }   
-
-          }else{
-            std::cout << dir << " exists, but is not a regular file or directory"<<std::endl;
-          }
-       
-        }else{
-          std::cout << dir << " does not exist"<<std::endl;
-        }
-      
-      }catch (const bf::filesystem_error& ex){
-        std::cout << ex.what() << std::endl;
-      }
-      return dir_clouds;
-    }
 
 
     // function to load pcd files (and frames?) from bag file
-    PointCloudVec filterCloudBag(int num_clouds){
+    PointCloudVec filterCloudBag(int num_clouds, bool publish_clouds){
       
       std::cout<<"|---------- SeamDetection::filterCloudBag - loading pointclouds from bag file ----------|"<<std::endl;
       
@@ -396,31 +323,43 @@ class FilterDataset {
             // convert the combined transformation to eigen to be used for transforming clouds
             tf::vectorMsgToEigen(T_camera_base.translation, camera_translation);// convert translation to eigen vector
             tf::quaternionMsgToEigen(T_camera_base.rotation, camera_rotation); // convert rotation to eigen quaternion
-          
-          }
-          
+          } 
         }     
         
         sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();          
         if (cloud != NULL && cloud_idx<num_clouds){
           // convert to a PCL pointcloud
             
-          PointCloud::Ptr bag_cloud (new PointCloud); // allocate memory for the loaded cloud      
-          pcl::fromROSMsg(*cloud, *bag_cloud); 
-          std::cout<<"After converting to PCL pointcloud, the cloud has "<<bag_cloud->size()<<" points"<<std::endl;
-
-          publishCloud(*bag_cloud, "bag_cloud", "camera_link");  
- 
-          PointCloud::Ptr filtered_cloud (new PointCloud);          
-          filterCloud(*bag_cloud, *filtered_cloud);          
+          //PointCloud::Ptr bag_cloud (new PointCloud); // allocate memory for the loaded cloud      
+          pcl::fromROSMsg(*cloud, *input_cloud); 
+          std::cout<<"After converting to PCL pointcloud, the cloud has "<<input_cloud->size()<<" points"<<std::endl;
           
+          if (publish_clouds){
+            publishCloud(*input_cloud, "bag_cloud", "camera_link");  
+          }
+
+          // allocate memory for output of filtering process, to be stored (referenced) in pointcloud vec         
+          PointCloud::Ptr filtered_cloud (new PointCloud);        
+          
+          // process pointcloud through series of filters
+          filterCloud(*input_cloud, *filtered_cloud, 
+                      transform_bag_clouds, 
+                      bound_bag_clouds, 
+                      smooth_bag_clouds, 
+                      downsample_bag_clouds);
+       
           publishCloud(*filtered_cloud, "filtered_cloud", "base_link");  
-          bag_clouds.push_back(bag_cloud);
+          bag_clouds.push_back(filtered_cloud);
          
           std::string out_file = in_file+std::to_string(cloud_idx)+".pcd"; 
           out_path=output_bag_path+"/"+out_file; // output_bag_path from config
-            
-          saveCloud(*filtered_cloud, out_path);
+          
+          if(save_bag_clouds){  
+            saveCloud(*filtered_cloud, out_path);
+          }else{
+            std::cout<<"pointcloud not saved, SAVE_OUTPUT false"<<std::endl;
+          }
+
           cloud_idx++;
         }   
       
@@ -459,7 +398,97 @@ class FilterDataset {
       std::cout<<"W: "<<quaternion.getW()<<std::endl;
 
     }
-   
+  
+ 
+    // function to filter an entire directory of pointclouds, results saved as output_path/*_filtered.pcd
+    PointCloudVec filterCloudDir(std::string in, bool publish_clouds){
+       
+      std::cout<<"|---------- SeamDetection::filterCloudDir - loading PCD files by directory ----------|"<<std::endl;
+
+      PointCloudVec dir_clouds;
+      // Load Input Directory with boost::filesystem
+      //std::cout<<"filter input_path:"<<filter.input_path<<std::endl;
+      boost::filesystem::path dir(in);
+      
+      try{
+        
+        if (bf::exists(dir)){
+          
+          if (bf::is_regular_file(dir)){
+            
+            std::cout << dir << " size is " << bf::file_size(dir) << std::endl;     
+     
+          }else if (bf::is_directory(dir)){
+           
+            if (~bf::exists(output_path)){
+              bf::create_directory(output_path);
+              std::cout<<"_filtered directory created for output files"<<std::endl;
+            }
+
+            std::cout << dir << " is a directory containing:"<< std::endl;
+            int i=0;
+            for (bf::directory_entry& x : bf::directory_iterator(dir)){
+              std::string in_path = bf::canonical(x.path()).string();
+              // parse the input file name and create the modified output filename
+              std::vector<std::string> strs;
+              boost::split(strs,in_path,boost::is_any_of("/."));
+
+              std::string input_file = strs[strs.size()-2];
+              std::string output_file = input_file+"_filtered.pcd";
+             
+              std::string out_path;
+              out_path=output_path+"/"+output_file; // output path from config
+
+              std::cout<<"input file["<<i<<"] path: " <<input_path << std::endl;
+              std::cout<<"output file["<<i<<"] path: "<<out_path<< std::endl;
+              if (in_path.find(".pcd")!=std::string::npos){          
+                
+                PointCloud::Ptr filtered_cloud (new PointCloud);          
+                // load the pointcloud from pcd file
+                loadCloud(*input_cloud, in_path);
+
+                // process pointcloud through series of filters
+                filterCloud(*input_cloud, *filtered_cloud, 
+                            transform_dir_clouds, 
+                            bound_dir_clouds, 
+                            smooth_dir_clouds, 
+                            downsample_dir_clouds);                
+                
+                // add to a vector of clouds to return
+                dir_clouds.push_back(filtered_cloud); 
+                std::cout<<"after filtering, there are "<<filtered_cloud->size()<<" points in the cloud"<< std::endl;          
+                
+                // show the filtered cloud each iteration
+                if (publish_clouds){
+                  publishCloud(*filtered_cloud, "/dir_filtered", "base_link");
+                }
+                
+                // save the processed output cloud to PCD file
+                if (save_dir_clouds){
+                  saveCloud(*filtered_cloud, out_path);         
+                }else{
+                  std::cout<<"pointcloud not saved, SAVE_OUTPUT false"<<std::endl;
+                }
+                
+                i++;
+              }else{
+                std::cout<<"skipping non PCD file"<<std::endl;
+              }
+            }   
+
+          }else{
+            std::cout << dir << " exists, but is not a regular file or directory"<<std::endl;
+          }
+       
+        }else{
+          std::cout << dir << " does not exist"<<std::endl;
+        }
+      
+      }catch (const bf::filesystem_error& ex){
+        std::cout << ex.what() << std::endl;
+      }
+      return dir_clouds;
+    }
     // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
     template <typename point_t>
     void publishCloud(point_t &cloud, std::string topic, std::string frame){
@@ -515,7 +544,8 @@ class FilterDataset {
 
     // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
     template <typename point_t>
-    void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr, Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix){
+    void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr, Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, 
+                          std::string prefix){
       std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
         
       for (int i=0; i<clusters.size(); i++){
@@ -740,27 +770,35 @@ class FilterDataset {
     } 
 
 
-    // function to apply filter pipeline to pointcloud
-    void filterCloud(PointCloud &input, PointCloud &output){
+    // function to apply series of filters to pointcloud
+    void filterCloud(PointCloud &input, PointCloud &output, 
+                     bool transforming,
+                     bool bounding,
+                     bool smoothing,
+                     bool downsampling){
 
       PointCloud::Ptr cloud (new PointCloud);
       pcl::copyPointCloud(input, *cloud);        // this copy ensures that the input data is left unchanged
 
+      // apply series of filters to pointcloud
       //rigid transformation
-      if(transform_input){
+      if(transforming){
         transformCloud(*cloud, *cloud, camera_rotation, camera_translation);
       }
-     
       // bounding box 
-      boundCloud(*cloud, *cloud, bounding_box);
-      
+      if(bounding){
+        boundCloud(*cloud, *cloud, bounding_box);
+      }
       // moving least squares smoothing  
-      // smoothCloudT(*cloud, *cloud); // smooth is slow on dense clouds not surprise
-      
+      if(smoothing){
+        smoothCloudT(*cloud, *cloud); // smooth is slow on dense clouds not surprise
+      }
       // voxel downsampling  
-      downsampleCloud(*cloud, *cloud, voxel_size);
-      std::cout<<"after filtering there are "<<cloud->size()<<" points in the cloud"<< std::endl;
+      if(downsampling){
+        downsampleCloud(*cloud, *cloud, voxel_size);
+      }          
 
+      std::cout<<"after filtering there are "<<cloud->size()<<" points in the cloud"<< std::endl;
       pcl::copyPointCloud(*cloud, output); // this copy is avoided by filtering "output" directly 
     }
 
@@ -770,15 +808,20 @@ class FilterDataset {
     // pointcloud pointers // !this public member could cause problems!, dont use this
     //pcl::PointCloud<pcl::PointXYZRGBNormal> *cloud;
 
-    PointCloud *input_cloud, *filtered_cloud; 
+    PointCloud *input_cloud; // *filtered_cloud; 
     
     // other parameters from the config file (these do not need to public)
-    bool auto_bounds=0;
-    bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
-    
+    bool auto_bounds;
+    bool save_bag_clouds, save_dir_clouds,
+         publish_bag_clouds, publish_dir_clouds,  
+         transform_bag_clouds, transform_dir_clouds,
+         bound_bag_clouds, bound_dir_clouds,
+         smooth_bag_clouds, smooth_dir_clouds,
+         downsample_bag_clouds, downsample_dir_clouds; 
+    int num_bag_clouds;
+
     std::string package_path, input_path, output_path, input_dir, output_dir, input_file, output_file, 
                 input_bag, input_bag_path, output_bag_dir, output_bag_path;
-    int num_bag_clouds;
  
     double bounding_box[6];
     Eigen::Vector3d pre_rotation, pre_translation;
@@ -815,24 +858,21 @@ int main(int argc, char** argv)
   // initialize ROS node
   ros::init(argc,argv,"filter_cloud");
   
-  // instantiate an object filter.from the SeamDetection class
+  // instantiate a filter object 
   FilterDataset filter;
  
-  // load parameters from ROS param server, modify values in filter-cloud.yaml
+  // load ROS parameters, modify values in filter-cloud.yaml
   filter.loadConfig(); 
 
-  //filter.input_file="table_01.pcd";
-  //std::cout<<"input_path: "<< filter.input_path << std::endl;
-  
   // process pointcloud topics from bag file
   PointCloudVec bagclouds;  
-  bagclouds=filter.filterCloudBag(filter.num_bag_clouds);
+  bagclouds=filter.filterCloudBag(filter.num_bag_clouds, filter.publish_dir_clouds);
   // show in rviz
   filter.publishClouds(bagclouds, "bag_cloud", "base_link");
   
   // process pcd files from directory 
   PointCloudVec dirclouds;
-  dirclouds=filter.filterCloudDir(filter.input_path);
+  dirclouds=filter.filterCloudDir(filter.input_path, filter.publish_bag_clouds);
   // show in rviz
   filter.publishClouds(dirclouds, "dir_cloud", "base_link");
   
