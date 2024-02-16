@@ -144,7 +144,9 @@ class FilterDataset {
   
       node.getParam("publish_bag_clouds", publish_bag_clouds);
       node.getParam("publish_dir_clouds", publish_dir_clouds);
-  
+      
+      node.getParam("broadcast_bag_tfs", broadcast_bag_tfs);
+      
       node.getParam("transform_bag_clouds", transform_bag_clouds);
       node.getParam("bound_bag_clouds", bound_bag_clouds);
       node.getParam("smooth_bag_clouds", smooth_bag_clouds);
@@ -172,7 +174,7 @@ class FilterDataset {
       }
       node.getParam("auto_bounds",  auto_bounds);
       return 0;
-    
+   
     }
     
 
@@ -274,7 +276,9 @@ class FilterDataset {
           //std::cout<<"pointer not null and transforms not empty"<<std::endl;
              
           for(const auto& tf : transform ->transforms){
-            br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
+            if (broadcast_bag_tfs){
+              br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
+            }
             //std::cout<<"tf header frame_id: "<<tf.header.frame_id<<std::endl;
             //std::cout<<"tf child_frame_id: "<<tf.child_frame_id<<std::endl;
             
@@ -310,8 +314,10 @@ class FilterDataset {
             tf_camera_base.child_frame_id="camera_link_test"; // check loop closure in rviz to validate tf operations
            
             tf_camera_base.transform=T_camera_base;           // add the computed transform to the message 
-            br.sendTransform(tf_camera_base);
-             
+            
+            if(broadcast_bag_tfs){
+              br.sendTransform(tf_camera_base);
+            }
             // add transform to stamped transform to be broadcasted 
             //printTransform(T_tripod_base, "T_tripod_base"); 
             //printTransform(T_camera_tripod, "T_camera_tripod");
@@ -346,8 +352,8 @@ class FilterDataset {
           
           // optionally show the clouds in rviz  
           if (publish_bag_clouds){
-            publishCloud(*input_cloud, "input_cloud", "camera_link");  
-            publishCloud(*filtered_cloud, "filtered_cloud", "base_link");  
+            publishCloud(*input_cloud, "input_cloud", "map"); // publish from fixed frame to avoid tf time issues 
+            publishCloud(*filtered_cloud, "filtered_cloud", "map");  
           }
          
           std::string out_file = in_file+std::to_string(cloud_idx)+".pcd"; 
@@ -463,8 +469,8 @@ class FilterDataset {
                 
                 // show the filtered cloud each iteration
                 if (publish_dir_clouds){
-                  publishCloud(*input_cloud, "input_cloud", "base_link");  
-                  publishCloud(*filtered_cloud, "filtered_cloud", "base_link");
+                  publishCloud(*input_cloud, "input_cloud", "map");  
+                  publishCloud(*filtered_cloud, "filtered_cloud", "map");
                 }
                 
                 // save the processed output cloud to PCD file
@@ -816,7 +822,7 @@ class FilterDataset {
     
     // other parameters from the config file (these do not need to public)
     bool auto_bounds;
-    bool save_bag_clouds, save_dir_clouds,
+    bool save_bag_clouds, save_dir_clouds, broadcast_bag_tfs,
          publish_bag_clouds, publish_dir_clouds,  
          transform_bag_clouds, transform_dir_clouds,
          bound_bag_clouds, bound_dir_clouds,
@@ -881,7 +887,7 @@ int main(int argc, char** argv)
   //filter.publishClouds(dirclouds, "dir_cloud", "base_link");
   
   std::cout<<"filter_cloud completed"<<std::endl;
-  ros::spinOnce();
+  ros::spin();
 
   return 0;
 }
