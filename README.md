@@ -41,7 +41,7 @@ Add the workspace path to `/.bashrc` so that ros can find your packages
 echo "source ~/<workspace-name>/devel/setup.bash" >> ~/.bashrc
 ```
 
-To use a catkin workspace that is already setup, skip **Step 1** (the workspace must compile with `catkin_make`).
+To use a catkin workspace that is already setup, skip **Step 1** (the workspace can be compiled with `catkin_make` or `catkin build`).
 
 
 #### Step 2 - Download seam_detection Package
@@ -81,14 +81,15 @@ The workspace and package should compile without errors.
 
 #### Supporting Nodes    
 
- - `scan2cloud` - generate pointclouds from lidar scans and poses (node missing from repo, coming back soon)   
  - `cad_cloud` - convert .ply file into .pcd file using pcl
  - `cad_cloud_bulk` - convert directory of .ply files into .pcd files using pcl
- - `rotate_cloud` - apply homogenous transformation to pointcloud using pcl
-  
+ - `rotate_cloud` - apply homogenous transformation to pointcloud using pcl 
+ - `scan1cloud` - generate pointclouds from lidar scans and poses (node missing from repo, coming back soon)   
+
 #### Development Nodes
 
- - `seam-detection` - implement this project with a c++ class - IN PROGRESS, see devel  
+ - `seam-detection` - implement this project with a c++ class - IN PROGRESS, see devel 
+ - `filter_dataset` - process pointclouds and tfs recorded as bag files or stored in pcd directories   
  - `register_clouds` - test different registration algorithms including icp and Teaser
  (Summer 2023 - present)  
  - `get_cloud` - get pointcloud from aubo robot system
@@ -449,22 +450,22 @@ The launch arg has been renamed from `scene` to `config`, and the default config
 
 Stand up the entire application in a single line using docker and docker compose. This is not required, but allows for portable testing. 
 
-Create a source directory and set the environment variable $CATKIN_WS_PATH 
+Create a source directory and set the environment variable $ROS_WS (previously CATKIN_WS_PATH) 
 
 ```
 mkdir -p ~/catkin_ws/src
-export CATKIN_WS_PATH=~/catkin_ws
+export ROS_WS=~/catkin_ws
 ```
 
-Clone this repository into $CATKIN_WS_PATH/src
+Clone this repository into $ROS_WS/src
 
 ```
-cd $CATKIN_WS_PATH/src
+cd $ROS_WS/src
 git clone git@github.com:thillrobot/seam_detection
 ```
 
 
-Modify xauth access control 
+Modify xauth access control to allow display  
 ```
 xhost local:root
 ```
@@ -548,11 +549,36 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
 ```
 
 
+### new developement node - class approach 
+
+filtering process - run the following launch to process a bag file and or directory of pcd files
+
+```
+roslaunch seam_detection filter_dataset.launch
+```
+
+The parameters can be set in  `config/filter_dataset.yaml`, or a different config name can be passed to the launch command
+
+```
+roslaunch seam_detection filter_dataset.launch config:=<CONFIGNAME>
+``` 
+
+
+analyis and part identification - run the following to test the part identification process
+(This probably needs a new name for the script and the the rest... seam_detection is already used)
+
+```
+roslaunch seam_detection seam-detection.launch
+```
+
+The parameters can be set in  `config/seam-detection.yaml`, or a different config name can be passed to the launch command
+
+
 ### Changelog
 #### Tagged Versions
 - v1.0 (stable - tagged 12/07/2020)
 - v1.1 (stable - tagged 12/26/2020)
-  - added `round_tube` or `square_tube` segmentation option for part1
+  - added `round_tube` or `square_tube` segmentation option for part
   - added `part1_type` to `seam_detection.launch` args
   - removed `thresh` from `seam_detection.launch` args
 - v1.2 (stable - tagged 01/15/2021)
@@ -593,6 +619,8 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
   
 
 #### Things To Do (priority top to bottom):
+
+- [ ] IN PROGRESS - use a .cpp class to improve RGB pointcloud filtering and file management, see `filter_dataset.cpp` 
 
 - [ ] IN PROGRESS - use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated! - see devel
 
