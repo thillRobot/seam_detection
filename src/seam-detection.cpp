@@ -1776,6 +1776,10 @@ int main(int argc, char** argv)
   cloud_parts.push_back(cloud_part4);
 
   cloud_merged=sd.mergeClusters(cloud_parts);
+  sd.publishCloud(*cloud_part1, "cloud_part1");
+  sd.publishCloud(*cloud_part2, "cloud_part2");
+  sd.publishCloud(*cloud_part3, "cloud_part3");
+  sd.publishCloud(*cloud_part4, "cloud_part4");
   sd.publishCloud(*cloud_merged, "cloud_merged");
 
   // [Steps 1-3] - use 'training' image of target object on clean table

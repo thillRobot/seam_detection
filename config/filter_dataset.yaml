@@ -1,9 +1,25 @@
 ---
-input_bag: "bags/reconstruction/part1_x6_y4_theta33_cpitch20_.bag"
-output_bag_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch20_"
+input_bag: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_.bag"
+output_bag_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_"
 
-input_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch20_"
-output_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch20_/filtered"
+input_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_"
+output_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_/filtered"
+
+camera_roll: 0
+camera_pitch: 0
+camera_yaw: 0
+
+camera_x: 0.0
+camera_y: 5.75
+camera_z: -1.0
+
+tripod_roll: 30.0
+tripod_pitch: 0.0
+tripod_yaw: 0.0
+
+tripod_x: 0.0
+tripod_y: 0.0
+tripod_z: 65.25
 
 num_bag_clouds: 10
 save_bag_clouds: true
@@ -29,21 +45,5 @@ pre_rotation:    [-0.0 5, 3.17, 0.0] #
 pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
 auto_bounds: false
 
-bounding_box: [-0.4, 0.5, 0.15, 0.65, 0.91, 2.0] # bounding box limits
+bounding_box: [-0.4, 0.5, 0.15, 0.65, 0.915, 2.0] # bounding box limits
 voxel_size: 0.005
-
-camera_roll: 0
-camera_pitch: 0
-camera_yaw: 0
-
-camera_x: 0.0
-camera_y: 5.75
-camera_z: -1.0
-
-tripod_roll: 20.0
-tripod_pitch: 0.0
-tripod_yaw: 0.0
-
-tripod_x: 0.0
-tripod_y: 0.0
-tripod_z: 65.25
