@@ -145,6 +145,7 @@ class FilterDataset {
       node.getParam("publish_bag_clouds", publish_bag_clouds);
       node.getParam("publish_dir_clouds", publish_dir_clouds);
       
+      node.getParam("use_bag_tfs", use_bag_tfs);
       node.getParam("broadcast_bag_tfs", broadcast_bag_tfs);
       
       node.getParam("transform_bag_clouds", transform_bag_clouds);
@@ -265,71 +266,97 @@ class FilterDataset {
       bool chain_complete=false;
      // std::cout<<"chain_complete: "<< chain_complete<< std::endl; 
       
+      //tf::TransformListener listener;
+      tf2_ros::Buffer tfBuffer;
+      tf2_ros::TransformListener tfListener(tfBuffer);
+      
+      tf2_msgs::TFMessage::Ptr transform;          
+
       std::cout<<"loading bag of clouds"<<std::endl;
       int idx=0;
       int cloud_idx=0;
       foreach(rosbag::MessageInstance const m, view){
-               
-        //std::cout << "Received message on topic: " << m.getTopic() << std::endl; 
-        tf2_msgs::TFMessage::Ptr transform = m.instantiate<tf2_msgs::TFMessage>();          
-        if (transform!=NULL && !transform->transforms.empty()){
-          //std::cout<<"pointer not null and transforms not empty"<<std::endl;
-             
-          for(const auto& tf : transform ->transforms){
-            if (broadcast_bag_tfs){
-              br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
-            }
-            //std::cout<<"tf header frame_id: "<<tf.header.frame_id<<std::endl;
-            //std::cout<<"tf child_frame_id: "<<tf.child_frame_id<<std::endl;
-            
-            if (!strcmp(tf.header.frame_id.c_str(), "base_link")){
-              T_tripod_base=tf.transform;              
-            }
-            if (!strcmp(tf.header.frame_id.c_str(), "tripod_link")){
-              T_camera_tripod=tf.transform;              
-              chain_complete=true; // this assumes a consistent broadcast order
-              tf_camera_base.header.stamp=tf.header.stamp;  // copy the most recent timestamp from above
-            }
-            
-          }  
-       //   std::cout<<"chain_complete: "<< chain_complete<< std::endl; 
-          if (chain_complete){
-            // calculate the total translation vector as the sum of translation vectors
-            T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
-            T_camera_base.translation.y=T_tripod_base.translation.y+T_camera_tripod.translation.y;              
-            T_camera_base.translation.z=T_tripod_base.translation.z+T_camera_tripod.translation.z;              
-                          
-            // calculate the total quaternion as the product of the quaternion vectors  
-            // do not operate directly on the mgs, convert first
-            tf2::Quaternion q_tripod_base, q_camera_tripod, q_camera_base;
-            tf2::fromMsg(T_tripod_base.rotation, q_tripod_base); 
-            tf2::fromMsg(T_camera_tripod.rotation, q_camera_tripod);          
-            //q_camera_base=q_tripod_base*q_camera_tripod;    // multiply to combine quaternions   
-            q_camera_base=q_camera_tripod*q_tripod_base;      // order matters 
-            T_camera_base.rotation=tf2::toMsg(q_camera_base); // convert from tf2 to geometry msg
-             
-            // now put that in a stamped transform to be re-broadcasted in the tf topic
-            //geometry_msgs::TransformStamped tf_camera_base;      
-            tf_camera_base.header.frame_id="base_link";       // create new header info
-            tf_camera_base.child_frame_id="camera_link_test"; // check loop closure in rviz to validate tf operations
-           
-            tf_camera_base.transform=T_camera_base;           // add the computed transform to the message 
-            
-            if(broadcast_bag_tfs){
-              br.sendTransform(tf_camera_base);
-            }
-            // add transform to stamped transform to be broadcasted 
-            //printTransform(T_tripod_base, "T_tripod_base"); 
-            //printTransform(T_camera_tripod, "T_camera_tripod");
-            //printTransform(T_camera_base, "T_camera_base");
-            chain_complete=false; 
-          
-            // convert the combined transformation to eigen to be used for transforming clouds
-            tf::vectorMsgToEigen(T_camera_base.translation, camera_translation);// convert translation to eigen vector
-            tf::quaternionMsgToEigen(T_camera_base.rotation, camera_rotation); // convert rotation to eigen quaternion
-          } 
-        }     
         
+        if (use_bag_tfs){   
+          transform = m.instantiate<tf2_msgs::TFMessage>();
+          //std::cout << "Received message on topic: " << m.getTopic() << std::endl; 
+          if (transform!=NULL && !transform->transforms.empty()){
+            //std::cout<<"pointer not null and transforms not empty"<<std::endl;
+               
+            for(const auto& tf : transform ->transforms){
+              
+              if (broadcast_bag_tfs){
+                br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
+              }
+              //std::cout<<"tf header frame_id: "<<tf.header.frame_id<<std::endl;
+              //std::cout<<"tf child_frame_id: "<<tf.child_frame_id<<std::endl;
+              
+              if (!strcmp(tf.header.frame_id.c_str(), "base_link")){
+                T_tripod_base=tf.transform;              
+              }
+              if (!strcmp(tf.header.frame_id.c_str(), "tripod_link")){
+                T_camera_tripod=tf.transform;              
+                chain_complete=true; // this assumes a consistent broadcast order
+                tf_camera_base.header.stamp=tf.header.stamp;  // copy the most recent timestamp from above
+              }
+              
+            }  
+            
+            if (chain_complete){
+              // calculate the total translation vector as the sum of translation vectors
+              T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
+              T_camera_base.translation.y=T_tripod_base.translation.y+T_camera_tripod.translation.y;              
+              T_camera_base.translation.z=T_tripod_base.translation.z+T_camera_tripod.translation.z;              
+                            
+              // calculate the total quaternion as the product of the quaternion vectors  
+              // do not operate directly on the mgs, convert first
+              tf2::Quaternion q_tripod_base, q_camera_tripod, q_camera_base;
+              tf2::fromMsg(T_tripod_base.rotation, q_tripod_base); 
+              tf2::fromMsg(T_camera_tripod.rotation, q_camera_tripod);          
+              //q_camera_base=q_tripod_base*q_camera_tripod;    // multiply to combine quaternions   
+              q_camera_base=q_camera_tripod*q_tripod_base;      // order matters 
+              T_camera_base.rotation=tf2::toMsg(q_camera_base); // convert from tf2 to geometry msg
+               
+              // now put that in a stamped transform to be re-broadcasted in the tf topic
+              //geometry_msgs::TransformStamped tf_camera_base;      
+              tf_camera_base.header.frame_id="base_link";       // create new header info
+              tf_camera_base.child_frame_id="camera_link_test"; // check loop closure in rviz to validate tf operations
+             
+              tf_camera_base.transform=T_camera_base;           // add the computed transform to the message 
+              
+              if(broadcast_bag_tfs){
+                br.sendTransform(tf_camera_base);
+              }
+              // add transform to stamped transform to be broadcasted 
+              //printTransform(T_tripod_base, "T_tripod_base"); 
+              //printTransform(T_camera_tripod, "T_camera_tripod");
+              //printTransform(T_camera_base, "T_camera_base");
+              chain_complete=false; 
+            
+              // convert the combined transformation to eigen to be used for transforming clouds
+              tf::vectorMsgToEigen(T_camera_base.translation, camera_translation);// convert translation to eigen vector
+              tf::quaternionMsgToEigen(T_camera_base.rotation, camera_rotation); // convert rotation to eigen quaternion
+            } 
+          }     
+        }else{
+          //tf::StampedTransform config_transform;
+          // listen to and use a published tf instead of the tf from the bag
+          geometry_msgs::TransformStamped tf;
+          try{
+            //listener.lookupTransform("/base_link", "/camera_link", ros::Time(0), config_transform);
+            tf = tfBuffer.lookupTransform("base_link", "camera_link", ros::Time(0)); 
+            //std::cout<<"transform heard on bag loop iteration "<<idx<<std::endl;
+            tf::vectorMsgToEigen(tf.transform.translation, camera_translation);// convert translation to eigen vector
+            tf::quaternionMsgToEigen(tf.transform.rotation, camera_rotation); // convert rotation to eigen quaternion
+          }
+          catch (tf2::TransformException &ex) {
+            ROS_WARN("%s",ex.what());
+            ros::Duration(1.0).sleep();
+            continue;
+          }                   
+
+        }
+       
         sensor_msgs::PointCloud2::Ptr cloud = m.instantiate<sensor_msgs::PointCloud2>();          
         if (cloud != NULL && cloud_idx<num_clouds){
           // convert to a PCL pointcloud
@@ -822,7 +849,8 @@ class FilterDataset {
     
     // other parameters from the config file (these do not need to public)
     bool auto_bounds;
-    bool save_bag_clouds, save_dir_clouds, broadcast_bag_tfs,
+    bool save_bag_clouds, save_dir_clouds, 
+        broadcast_bag_tfs, use_bag_tfs,
          publish_bag_clouds, publish_dir_clouds,  
          transform_bag_clouds, transform_dir_clouds,
          bound_bag_clouds, bound_dir_clouds,

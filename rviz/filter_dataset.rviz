@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /TF1
+        - /TF1/Frames1
         - /PointCloud24
         - /PointCloud25
       Splitter Ratio: 0.3171936869621277
@@ -50,15 +52,15 @@ Visualization Manager:
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         base_link:
           Value: true
         camera_color_optical_frame:
-          Value: true
+          Value: false
         camera_link:
           Value: true
         map:
-          Value: true
+          Value: false
         tripod_link:
           Value: true
       Marker Alpha: 1
@@ -280,7 +282,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.708094120025635
+      Distance: 2.945962429046631
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -288,17 +290,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.658911943435669
-        Y: 0.13850118219852448
-        Z: 0.7577301263809204
+        X: -0.3372930884361267
+        Y: -0.1833726465702057
+        Z: 0.9728631377220154
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5103984475135803
+      Pitch: 0.7353980541229248
       Target Frame: <Fixed Frame>
-      Yaw: 0.2703980505466461
+      Yaw: 1.0403976440429688
     Saved: ~
 Window Geometry:
   Displays:
@@ -317,4 +319,4 @@ Window Geometry:
     collapsed: true
   Width: 1244
   X: 620
-  Y: 0
+  Y: 27
