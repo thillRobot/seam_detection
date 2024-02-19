@@ -35,7 +35,8 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/filters/filter_indices.h> // for pcl::removeNaNFromPointCloud
 #include <pcl/segmentation/region_growing_rgb.h>
 #include <pcl/surface/mls.h>
-
+#include <pcl/segmentation/extract_polygonal_prism_data.h>
+#include <pcl/surface/convex_hull.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
@@ -806,6 +807,31 @@ class FilterDataset {
       std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
     } 
 
+    // function to implement extrac polygonal prism data 
+    void extractPolygonalPrism(PointCloud &input){
+      
+      PointCloudPtr cloud (new PointCloud);
+      pcl::copyPointCloud(input, *cloud);
+
+      pcl::PointIndices cloud_indices;
+
+      double z_min = 0., z_max = 0.05; // we want the points above the plane, no farther than 5 cm from the surface
+      pcl::PointCloud<PointT>::Ptr hull_points (new pcl::PointCloud<PointT> ());
+      pcl::ConvexHull<PointT> hull;
+      // hull.setDimension (2); // not necessarily needed, but we need to check the dimensionality of the output
+      hull.setInputCloud (cloud);
+      hull.reconstruct (hull_points);
+      if (hull.getDimension () == 2){
+        pcl::ExtractPolygonalPrismData<PointT> prism;
+        prism.setInputCloud (cloud);
+        prism.setInputPlanarHull (hull_points);
+        prism.setHeightLimits (z_min, z_max);
+        prism.segment (cloud_indices);
+      }
+      else{
+       PCL_ERROR ("The input cloud does not represent a planar surface.\n");
+      }
+    }
 
     // function to apply series of filters to pointcloud
     void filterCloud(PointCloud &input, PointCloud &output, 
