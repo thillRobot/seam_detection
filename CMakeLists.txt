@@ -24,7 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
-#find_package(teaserpp REQUIRED)
+find_package(teaserpp REQUIRED)
 #find_package(Boost 1.58 REQUIRED)
 #find_package(Boost 1.81 REQUIRED)
 find_package(Boost REQUIRED)
@@ -253,26 +253,26 @@ target_link_libraries(filter_dataset
 
 
 # seam_detection
-#add_executable(seam_detection src/seam_detection.cpp)
-#target_link_libraries(seam_detection
-#  ${catkin_LIBRARIES} 
-#  ${PCL_LIBRARIES} 
-#  Eigen3::Eigen 
-#  teaserpp::teaser_registration 
-#  teaserpp::teaser_io
-#  teaserpp::teaser_features
-#)
+add_executable(seam_detection src/seam_detection.cpp)
+target_link_libraries(seam_detection
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+  teaserpp::teaser_registration 
+  teaserpp::teaser_io
+  teaserpp::teaser_features
+)
 
-# register_clouds - Registration Algorithm Testing Node(s) ##
-#add_executable(register_clouds src/register_clouds.cpp)
-#target_link_libraries(register_clouds 
-#  ${catkin_LIBRARIES} 
-#  ${PCL_LIBRARIES} 
-#  Eigen3::Eigen 
-#  teaserpp::teaser_registration 
-#  teaserpp::teaser_io
-#  teaserpp::teaser_features
-#)
+# register_clouds - Registration Algorithm Testing Node(s) 
+add_executable(register_clouds src/register_clouds.cpp)
+target_link_libraries(register_clouds 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+  teaserpp::teaser_registration 
+  teaserpp::teaser_io
+  teaserpp::teaser_features
+)
 
 # register_target_source - Registration Algorithm Testing Node(s) ##
 #add_executable(register_target_source src/register_target_source.cpp)

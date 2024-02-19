@@ -92,7 +92,7 @@ void filter_cloud_stateCallback(const std_msgs::Bool::ConstPtr& msg)
   }
 }
 
-// This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
+// function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
 double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double ran_rej_thrsh, double e_results[],double c_offset[])
 {
  
@@ -206,7 +206,7 @@ double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTra
 }
 
 
-// This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
+// function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
 void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[])
 {
  
@@ -338,7 +338,7 @@ void register_cloud_teaser(PointCloud &source, PointCloud &target, tf::StampedTr
 }
 
 
-// This function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
+// function REGISTER_CLOUD_TEASER finds the transform between two pointclouds, based on examples/teaser_cpp_ply.cc
 Eigen::Matrix<double, 6, Eigen::Dynamic> register_cloud_teaser_fpfh(PointCloud &source, PointCloud &target, PointCloud &corrs,  tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double tparams[], teaser::FPFHEstimation features )
 {
  
@@ -484,7 +484,7 @@ Eigen::Matrix<double, 6, Eigen::Dynamic> register_cloud_teaser_fpfh(PointCloud &
 }
 
 
-// this function calculates a difference detween the measured and expected transformation and prints the info to the console
+// function calculates a difference detween the measured and expected transformation and prints the info to the console
 void analyze_results(tf::Transform &tf_in,double e_results[])
 {
   
@@ -528,7 +528,7 @@ int main(int argc, char** argv)
   ros::Subscriber filter_cloud_state_sub = node.subscribe("/filter_cloud/filter_cloud_state", 1000, filter_cloud_stateCallback);
 
   std::cout<<"===================================================================="<<endl;
-  std::cout<<"                    register_clouds v1.8                            "<<endl;
+  std::cout<<"                    register_clouds v1.9                            "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<endl<<endl;
 
@@ -536,37 +536,38 @@ int main(int argc, char** argv)
   std::cout<<"                    register_clouds: loading configuration file     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
-  // there is only one cmd line arg and it is the name of the config file
-  // read the config file(yaml) feild to pick the data files and set parameters
+  // find the path to the this package (seam_detection)
+  std::string packagepath = ros::package::getPath("seam_detection");
 
-  bool use_teaser, use_teaser_fpfh, save_aligned;
+  // load ROS parameters from config file, default config matches this script name -> config/register_clouds.yaml
+  bool use_teaser, use_teaser_fpfh, save_aligned, wait_for_filter;
+  node.getParam("wait_for_filter", wait_for_filter);
   node.getParam("use_teaser", use_teaser);
   node.getParam("use_teaser_fpfh", use_teaser_fpfh);
   node.getParam("save_aligned", save_aligned);
 
-  // find the path to the this package (seam_detection)
-  std::string packagepath = ros::package::getPath("seam_detection");
-
   // parameters that contain strings  
-  std::string source_cloud_path, target_cloud_path, aligned_cloud_path, source_cloud_file, target_cloud_file, aligned_cloud_file;
+  std::string source_cloud_path, target_cloud_path, aligned_cloud_path, 
+              source_cloud_file, target_cloud_file, aligned_cloud_file;
 
   node.getParam("register_clouds/source_file", source_cloud_file);
   source_cloud_path=packagepath+'/'+source_cloud_file;
-
   node.getParam("register_clouds/target_file", target_cloud_file);
-  target_cloud_path=packagepath+'/'+target_cloud_file;
-
+  target_cloud_path=packagepath+'/'+target_cloud_file;\
   node.getParam("register_clouds/aligned_file", aligned_cloud_file);
   aligned_cloud_path=packagepath+'/'+aligned_cloud_file;
-
 
   // parameters that contain doubles
   double voxel_leaf_size, ransac_norm_dist_wt, ransac_max_iter, ransac_dist_thrsh, ransac_k_srch,
          icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh;
 
   // parameters that contain vectors of doubles
-  std::vector<double> xs, ys, zs, filter_box_vec, ransac_init_norm_vec, expected_results_vec, calibration_offset_vec, seam1_points_x_vec, seam1_points_y_vec, seam1_points_z_vec;
-  double filter_box[6],ransac_init_norm[3],icp_params[4],expected_results[6],calibration_offset[6],seam1_points_x[4],seam1_points_y[4],seam1_points_z[4];
+  std::vector<double> xs, ys, zs, filter_box_vec, 
+                      ransac_init_norm_vec, expected_results_vec, calibration_offset_vec; 
+                     // seam1_points_x_vec, seam1_points_y_vec, seam1_points_z_vec;
+  double filter_box[6],ransac_init_norm[3],icp_params[4],
+         expected_results[6],calibration_offset[6];
+        // seam1_points_x[4],seam1_points_y[4],seam1_points_z[4];
   
   node.getParam("register_clouds/filter_box",  filter_box_vec);
   for(unsigned i=0; i < filter_box_vec.size(); i++)
@@ -592,17 +593,7 @@ int main(int argc, char** argv)
     expected_results[i]=expected_results_vec[i]; // copy into an array 
     calibration_offset[i]=calibration_offset_vec[i]; // copy into an array 
   }
-  
-  /*
-  node.getParam("seam1_points_x",seam1_points_x_vec);
-  node.getParam("seam1_points_y",seam1_points_y_vec);
-  node.getParam("seam1_points_z",seam1_points_z_vec);
-  for(unsigned i=0; i < seam1_points_x_vec.size(); i++){
-    seam1_points_x[i]=seam1_points_x_vec[i]; // copy into arrays
-    seam1_points_y[i]=seam1_points_y_vec[i]; 
-    seam1_points_z[i]=seam1_points_z_vec[i];
-  }*/
-
+ 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: preparing pointcloud data      "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
@@ -615,22 +606,27 @@ int main(int argc, char** argv)
   PointCloud::Ptr corrs_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // correspondence cloud   
   PointCloud::Ptr aligned_cloud_T10 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
   PointCloud::Ptr aligned_cloud_T01 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration inverse results)
-
+  
   // wait for pointclouds from filter_cloud
-  while(!filter_cloud_complete){
+  while(!filter_cloud_complete && wait_for_filter){
     ros::spinOnce(); // update topics while waiting
+    std::cout<<"waiting for filtering to complete, wait_for_filter "<<wait_for_filter<<std::endl;
   }
-
+  std::cout<<"filtering wait complete, wait_for_filter: "<<wait_for_filter<<std::endl;
+  
   bool source_loaded=0;
   bool target_loaded=0;
 
+  std::cout<<"loading source file: "<<source_cloud_path<<std::endl;
+  std::cout<<"loading target file: "<<target_cloud_path<<std::endl;
+  
   while (!(source_loaded&&target_loaded)){
     // load the source cloud from PCD file, files generated with src/cad_cloud.cpp
-    
+       
     try{
       if (pcl::io::loadPCDFile<pcl::PointXYZ> (source_cloud_path, *source_cloud) == -1)
       {
-        //std::cout<<"Couldn't read image file:"<<source_cloud_path;
+        std::cout<<"Couldn't read image file:"<<source_cloud_path;
       }else if (!source_loaded){
         std::cout << "Loaded "<<source_cloud->size()<< " data points from "<< source_cloud_file <<std::endl;
         source_loaded=1;  
@@ -638,7 +634,7 @@ int main(int argc, char** argv)
       // load the target cloud from PCD file
       if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_cloud_path, *target_cloud) == -1)
       {
-        //std::cout<<"Couldn't read image file:"<<target_cloud_path;);
+        std::cout<<"Couldn't read image file:"<<target_cloud_path;
       }else if(!target_loaded){
         std::cout << "Loaded "<<target_cloud->size()<< " data points from "<< target_cloud_file <<std::endl;
         target_loaded=1;
@@ -649,6 +645,9 @@ int main(int argc, char** argv)
     }
 
   }
+  
+  std::cout<<"file loading loop complete"<<std::endl;    
+
   // for now each tf has three objects associated with it (more objects == more fun)
   // 1) '<name>' (tf::transform)      // needed for transforms with pcl_ros
   // 2) '<name>_tf2' (tf2::transform) // not used

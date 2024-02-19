@@ -12,7 +12,7 @@ services:
 
   seam-detection:
     build: .
-    command: roslaunch seam_detection seam-detection.launch
+    command: roslaunch seam_detection seam_detection.launch
     environment:
       DISPLAY: $DISPLAY
     volumes:
@@ -20,16 +20,16 @@ services:
       - ~/.Xauthority:/root/.Xauthority
       - $ROS_WS/src:/home/seamdetection_ws/src
 
-#  crg-segmentation:   
-#    build: .
-#    command: roslaunch seam_detection crg_segmentation.launch
-#    environment:
-#      DISPLAY: $DISPLAY
-#    volumes:
-#      - /tmp/.X11-unix:/tmp/.X11-unix
-#      - ~/.Xauthority:/root/.Xauthority
-#      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
-#
+  #  crg-segmentation:   
+  #    build: .
+  #    command: roslaunch seam_detection crg_segmentation.launch
+  #    environment:
+  #      DISPLAY: $DISPLAY
+  #    volumes:
+  #      - /tmp/.X11-unix:/tmp/.X11-unix
+  #      - ~/.Xauthority:/root/.Xauthority
+  #      - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
+  
   # aubo-i10-lidar: 
   #   build: .
   #   command: roslaunch seam_detection aubo_i10_lidar.launch
@@ -62,15 +62,15 @@ services:
   #     - ~/.Xauthority:/root/.Xauthority
   #     - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
 
-  # cad-cloud-bulk: 
-  #   build: .
-  #   command: rosrun seam_detection cad_cloud_bulk -n_samples 4000 -leaf_size .00025 -write_normals 1 -input_dir "ply_images/shape1_shape2/" -output_dir "pcd_images/shape1_shape2/"
-  #   environment:
-  #     DISPLAY: $DISPLAY
-  #   volumes:
-  #     - /tmp/.X11-unix:/tmp/.X11-unix
-  #     - ~/.Xauthority:/root/.Xauthority
-  #     - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src  
+  cad-cloud-bulk: 
+    build: .
+    command: rosrun seam_detection cad_cloud_bulk -n_samples 4000 -leaf_size .00025 -write_normals 1 -input_dir "ply_images/shape1_shape2/" -output_dir "pcd_images/shape1_shape2/"
+    environment:
+      DISPLAY: $DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+      - $ROS_WS/src:/home/seamdetection_ws/src  
 
   #filter-cloud: 
   #  build: .
@@ -81,13 +81,3 @@ services:
   #    - /tmp/.X11-unix:/tmp/.X11-unix
   #    - ~/.Xauthority:/root/.Xauthority
   #    - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src
-   
-  #bash: 
-  #  build: .
-  #  command: bash
-  #  environment:
-  #    DISPLAY: $DISPLAY
-  #  volumes:
-  #    - /tmp/.X11-unix:/tmp/.X11-unix
-  #    - ~/.Xauthority:/root/.Xauthority
-  #    - $CATKIN_WS_PATH/src:/home/seamdetection_ws/src 
