@@ -830,7 +830,7 @@ class FilterDataset {
          prism.setHeightLimits (z_min, z_max);
          prism.segment(cloud_indices);
            
-         //pcl::ExtractIndices<pcl::PointXYZRGB> extract_indices;
+         pcl::ExtractIndices<pcl::PointXYZRGB> extract_indices;
          //extract_indices.setInputCloud(cloud);
          //extract_indices.setIndices(cloud_indices);
  
