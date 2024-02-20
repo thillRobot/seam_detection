@@ -806,33 +806,44 @@ class FilterDataset {
       mls.process (output);
       std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
     } 
+     
 
-    // function to implement extrac polygonal prism data 
     void extractPolygonalPrism(PointCloud &input){
-      
-      PointCloudPtr cloud (new PointCloud);
-      pcl::copyPointCloud(input, *cloud);
-
-      pcl::PointIndices cloud_indices;
-
-      double z_min = 0., z_max = 0.05; // we want the points above the plane, no farther than 5 cm from the surface
-      pcl::PointCloud<PointT>::Ptr hull_points (new pcl::PointCloud<PointT> ());
-      pcl::ConvexHull<PointT> hull;
-      // hull.setDimension (2); // not necessarily needed, but we need to check the dimensionality of the output
-      hull.setInputCloud (cloud);
-      hull.reconstruct (hull_points);
-      if (hull.getDimension () == 2){
-        pcl::ExtractPolygonalPrismData<PointT> prism;
-        prism.setInputCloud (cloud);
-        prism.setInputPlanarHull (hull_points);
-        prism.setHeightLimits (z_min, z_max);
-        prism.segment (cloud_indices);
-      }
-      else{
-       PCL_ERROR ("The input cloud does not represent a planar surface.\n");
-      }
-    }
-
+       
+       PointCloudPtr cloud (new PointCloud);
+       pcl::copyPointCloud(input, *cloud);
+ 
+       pcl::PointIndices cloud_indices;
+       //pcl::PointIndices::Ptr cloud_indices(new pcl::PointIndices);
+        
+       double z_min = 0., z_max = 0.05; // we want the points above the plane, no farther than 5 cm from the surface
+       pcl::PointCloud<pcl::PointXYZRGB>::Ptr hull_points (new pcl::PointCloud<pcl::PointXYZRGB>);
+       pcl::ConvexHull<pcl::PointXYZRGB> hull;
+       
+       hull.setInputCloud (cloud);
+       hull.setDimension(2); // not necessarily needed, but we need to check the dimensionality of the output
+       hull.reconstruct (*hull_points);
+       if (hull.getDimension () == 2){
+         pcl::ExtractPolygonalPrismData<pcl::PointXYZRGB> prism;
+         prism.setInputCloud (cloud);
+         prism.setInputPlanarHull (hull_points); // alternatively use polygon_cloud, defined above
+         prism.setHeightLimits (z_min, z_max);
+         prism.segment(cloud_indices);
+           
+         //pcl::ExtractIndices<pcl::PointXYZRGB> extract_indices;
+         //extract_indices.setInputCloud(cloud);
+         //extract_indices.setIndices(cloud_indices);
+ 
+         //PointCloudPtr extracted_cloud (new PointCloud);
+         //extract_indices.filter(*extracted_cloud);
+ 
+         std::cout<<"cloud segemented with polygonal prism"<<std::endl;
+       }else{
+         std::cout<<"The input cloud does not represent a planar surface."<<std::endl;
+       }
+     }
+   
+     
     // function to apply series of filters to pointcloud
     void filterCloud(PointCloud &input, PointCloud &output, 
                      bool transforming,
@@ -930,16 +941,25 @@ int main(int argc, char** argv)
 
   // process pointcloud topics from bag file
   PointCloudVec bagclouds;  
-  bagclouds=filter.filterCloudBag(filter.num_bag_clouds);
+  //bagclouds=filter.filterCloudBag(filter.num_bag_clouds);
   // show in rviz
   //filter.publishClouds(bagclouds, "bag_cloud", "base_link");
   
   // process pcd files from directory 
   PointCloudVec dirclouds;
-  dirclouds=filter.filterCloudDir(filter.input_path);
+  //dirclouds=filter.filterCloudDir(filter.input_path);
   // show in rviz
   //filter.publishClouds(dirclouds, "dir_cloud", "base_link");
   
+  
+  PointCloud::Ptr test_cloud (new PointCloud);
+  std::string test_path="bags/reconstruction/part1_x6_y4_theta33_cpitch30_/filtered/part1_x6_y4_theta33_cpitch30_2_filtered.pcd";
+  test_path=filter.package_path+"/"+test_path;
+  filter.loadCloud(*test_cloud, test_path);
+ 
+  filter.extractPolygonalPrism(*test_cloud);
+
+
   std::cout<<"filter_cloud completed"<<std::endl;
   ros::spin();
 
