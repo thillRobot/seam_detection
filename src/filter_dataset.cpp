@@ -813,8 +813,8 @@ class FilterDataset {
        PointCloudPtr cloud (new PointCloud);
        pcl::copyPointCloud(input, *cloud);
  
-       pcl::PointIndices cloud_indices;
-       //pcl::PointIndices::Ptr cloud_indices(new pcl::PointIndices);
+       //pcl::PointIndices cloud_indices;
+       pcl::PointIndices::Ptr cloud_indices(new pcl::PointIndices);
         
        double z_min = 0., z_max = 0.05; // we want the points above the plane, no farther than 5 cm from the surface
        pcl::PointCloud<pcl::PointXYZRGB>::Ptr hull_points (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -828,11 +828,11 @@ class FilterDataset {
          prism.setInputCloud (cloud);
          prism.setInputPlanarHull (hull_points); // alternatively use polygon_cloud, defined above
          prism.setHeightLimits (z_min, z_max);
-         prism.segment(cloud_indices);
+         prism.segment(*cloud_indices);
            
          pcl::ExtractIndices<pcl::PointXYZRGB> extract_indices;
-         //extract_indices.setInputCloud(cloud);
-         //extract_indices.setIndices(cloud_indices);
+         extract_indices.setInputCloud(cloud);
+         extract_indices.setIndices(cloud_indices);
  
          //PointCloudPtr extracted_cloud (new PointCloud);
          //extract_indices.filter(*extracted_cloud);
