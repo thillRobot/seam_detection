@@ -30,7 +30,47 @@ int main(int argc, char** argv){
     std::cout<<"*************************************************************"<<std::endl;
 
     ros::init(argc, argv, "realsense_tf");
-    ros::NodeHandle n;
+    ros::NodeHandle node;
+    
+    float d2r=M_PI/180.0;
+    float in2m=0.0254;
+      
+    float camera_roll, camera_yaw, camera_pitch,   
+          tripod_roll, tripod_yaw, tripod_pitch,
+          camera_x, camera_y, camera_z,
+          tripod_x, tripod_y, tripod_z; 
+ 
+    node.getParam("camera_roll", camera_roll);
+    node.getParam("camera_pitch", camera_pitch);
+    node.getParam("camera_yaw", camera_yaw);
+    
+    camera_roll=camera_roll*d2r+M_PI;
+    camera_pitch=camera_pitch*d2r;
+    camera_yaw=camera_yaw*d2r;
+    
+    node.getParam("camera_x", camera_x);
+    node.getParam("camera_y", camera_y);
+    node.getParam("camera_z", camera_z);
+
+    camera_x=camera_x*in2m;
+    camera_y=camera_y*in2m;
+    camera_z=camera_z*in2m;
+
+    node.getParam("tripod_roll", tripod_roll);
+    node.getParam("tripod_pitch", tripod_pitch);
+    node.getParam("tripod_yaw", tripod_yaw);
+    
+    tripod_roll=tripod_roll*d2r;
+    tripod_pitch=tripod_pitch*d2r;
+    tripod_yaw=tripod_yaw*d2r;
+    
+    node.getParam("tripod_x", tripod_x);
+    node.getParam("tripod_y", tripod_y);
+    node.getParam("tripod_z", tripod_z);
+
+    tripod_x=tripod_x*in2m;
+    tripod_y=tripod_y*in2m;
+    tripod_z=tripod_z*in2m;
 
     ros::Rate r(10);
 
@@ -39,9 +79,7 @@ int main(int argc, char** argv){
     // node.getParam("playback", playback);
 
     tf::TransformBroadcaster broadcaster;
-    float d2r=M_PI/180.0;
-    float in2m=0.0254;
-    while(n.ok())
+    while(node.ok())
     {
 
       broadcaster.sendTransform( // take the conversion from rpy to quaternion out of the loop, do this later 
@@ -56,12 +94,12 @@ int main(int argc, char** argv){
 
      broadcaster.sendTransform(
         tf::StampedTransform(
-        tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 65.25*in2m)),
+        tf::Transform(tf::createQuaternionFromRPY(tripod_roll, tripod_pitch, tripod_yaw), tf::Vector3(tripod_x, tripod_y, tripod_z)),
         ros::Time::now(),"base_link","tripod_link"));
     
      broadcaster.sendTransform(
         tf::StampedTransform(
-        tf::Transform(tf::createQuaternionFromRPY(M_PI+20*d2r,0*d2r,0), tf::Vector3(0.0, 5.75*in2m, 0.0)),
+        tf::Transform(tf::createQuaternionFromRPY(camera_roll,camera_pitch,camera_yaw), tf::Vector3(camera_x, camera_y, camera_z)),
         ros::Time::now(),"tripod_link","camera_link"));
       
       if (playback){

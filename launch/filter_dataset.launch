@@ -8,12 +8,17 @@
   <param name="param" value="$(arg config)"/> 
 
   <!-- setup the transformations and frames for the system-->
+  <!-- optional, frames from tf in bag file--> 
+ 
+  <!-- <rosparam param="use_sim_time">true</rosparam> -->
+  
   <node
     pkg="seam_detection"
-    name="seam_detection_tf"
-    type="seam_detection_tf"
+    name="realsense_tf"
+    type="realsense_tf"
     output="screen"
   />
+  
 
   <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
  

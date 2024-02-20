@@ -1,17 +1,49 @@
 ---
-input_dir: "pcd_images/PartNet/multi"
-output_dir: "pcd_images/PartNet/multi/filtered"
+input_bag: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_.bag"
+output_bag_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_"
 
-save_output: true
-translate_output: false
-automatic_bounds: false
-use_clustering: true
-new_scan: false
-transform_input: true
+input_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_"
+output_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_/filtered"
 
-pre_rotation:    [-0.05, 3.17, 0.0] # ds435i rgb camera 32inches from table surface pointing down
+camera_roll: 0
+camera_pitch: 0
+camera_yaw: 0
+
+camera_x: 0.0
+camera_y: 5.75
+camera_z: -1.0
+
+tripod_roll: 30.0
+tripod_pitch: 0.0
+tripod_yaw: 0.0
+
+tripod_x: 0.0
+tripod_y: 0.0
+tripod_z: 65.25
+
+num_bag_clouds: 10
+save_bag_clouds: true
+save_dir_clouds: true
+
+publish_bag_clouds: true
+publish_dir_clouds: true
+
+use_bag_tfs: false
+broadcast_bag_tfs: false
+
+transform_bag_clouds: true
+bound_bag_clouds: false
+smooth_bag_clouds: false
+downsample_bag_clouds: false
+
+transform_dir_clouds: false
+bound_dir_clouds: true
+smooth_dir_clouds: false
+downsample_dir_clouds: false
+
+pre_rotation:    [-0.0 5, 3.17, 0.0] #
 pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
+auto_bounds: false
 
-bounding_box: [-0.5, 0.4, -0.5, 0.3,  -0.25, 0.1] # bounding box limits
+bounding_box: [-0.4, 0.5, 0.15, 0.65, 0.915, 2.0] # bounding box limits
 voxel_size: 0.005
-
