@@ -816,7 +816,7 @@ class FilterDataset {
        //pcl::PointIndices cloud_indices;
        pcl::PointIndices::Ptr cloud_indices(new pcl::PointIndices);
         
-       double z_min = 0., z_max = 0.05; // we want the points above the plane, no farther than 5 cm from the surface
+       double z_min = -0.02, z_max = 0.02; // we want the points above the plane, no farther than 5 cm from the surface
        pcl::PointCloud<pcl::PointXYZRGB>::Ptr hull_points (new pcl::PointCloud<pcl::PointXYZRGB>);
        pcl::ConvexHull<pcl::PointXYZRGB> hull;
        
@@ -830,14 +830,16 @@ class FilterDataset {
          prism.setHeightLimits (z_min, z_max);
          prism.segment(*cloud_indices);
            
-         pcl::ExtractIndices<pcl::PointXYZRGB> extract_indices;
-         extract_indices.setInputCloud(cloud);
-         extract_indices.setIndices(cloud_indices);
+         pcl::ExtractIndices<pcl::PointXYZRGB> prism_indices;
+         prism_indices.setInputCloud(cloud);
+         prism_indices.setIndices(cloud_indices);
  
-         //PointCloudPtr extracted_cloud (new PointCloud);
-         //extract_indices.filter(*extracted_cloud);
+         PointCloudPtr prism_cloud (new PointCloud);
+         prism_indices.filter(*prism_cloud);
+          
+         publishCloud(*prism_cloud, "prism_cloud", "map");
  
-         std::cout<<"cloud segemented with polygonal prism"<<std::endl;
+         std::cout<<"cloud segemented with polygonal prism has "<<prism_cloud->size()<<" points"<<std::endl;
        }else{
          std::cout<<"The input cloud does not represent a planar surface."<<std::endl;
        }
@@ -953,7 +955,7 @@ int main(int argc, char** argv)
   
   
   PointCloud::Ptr test_cloud (new PointCloud);
-  std::string test_path="bags/reconstruction/part1_x6_y4_theta33_cpitch30_/filtered/part1_x6_y4_theta33_cpitch30_2_filtered.pcd";
+  std::string test_path="bags/reconstruction/part1_x6_y4_theta33_cpitch10_/filtered/part1_x6_y4_theta33_cpitch10_2_filtered.pcd";
   test_path=filter.package_path+"/"+test_path;
   filter.loadCloud(*test_cloud, test_path);
  
