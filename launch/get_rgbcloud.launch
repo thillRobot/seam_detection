@@ -13,7 +13,8 @@
     <arg name="depth_width" value="848" />
     <arg name="depth_height" value="480" />
     <arg name="depth_fps" value="15" />
-    <arg name="enable_infra" value="true" /> 
+    <arg name="initial_reset" value="true" />
+   <!-- <arg name="enable_infra" value="true" /> --> 
     <arg name="filters" value="pointcloud, spatial, hole_filling" />
   </include>     
 
