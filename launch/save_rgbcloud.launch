@@ -1,7 +1,7 @@
 <launch>
   
   <!-- get cmd line arg -->
-  <arg name="filename" default="get_rgbcloud" />
+  <arg name="filename" default="save_rgbcloud" />
 
   <!--
   <node pkg="pcl_ros" type="pointcloud_to_pcd" name="pointcloud_to_pcd" output="screen" args="_prefix:=$(find seam_detection)/pcd_images/$(arg filename)_ input:=/camera/depth/color/points fixed_frame:=camera_link" /> -->

@@ -13,6 +13,7 @@
     <arg name="depth_width" value="848" />
     <arg name="depth_height" value="480" />
     <arg name="depth_fps" value="15" />
+    <arg name="enable_infra" value="true" /> 
     <arg name="filters" value="pointcloud, spatial, hole_filling" />
   </include>     
 
@@ -32,9 +33,8 @@
   <!--
   <node pkg="pcl_ros" type="pointcloud_to_pcd" name="pointcloud_to_pcd" output="screen" args="_prefix:=$(find seam_detection)/pcd_images/$(arg filename)_ input:=/camera/depth/color/points fixed_frame:=camera_link" /> 
 -->
-
- <!--
+  
   <node pkg="rosbag" type="record" name="record" args="tf camera/depth/color/points -O $(find seam_detection)/bags/$(arg filename)_ -b 2048" />
- -->
+ 
 
 </launch>
