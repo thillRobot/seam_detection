@@ -141,13 +141,13 @@ int main(int argc, char** argv){
 	              tf::Vector3(camera_x, camera_y, camera_z)),
                       ros::Time::now(),"camera_mount","camera_link"));
               
-              
-      //if (playback){
-      //  broadcaster.sendTransform(
-      //    tf::StampedTransform(
-      //    tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0)),
-      //    ros::Time::now(),"camera_link","camera_color_optical_frame"));
-      //}
+     playback=0;         
+     if (playback){
+     broadcaster.sendTransform(
+         tf::StampedTransform(
+         tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0)),
+         ros::Time::now(),"camera_link","camera_color_optical_frame"));
+     }
      
       r.sleep();
       ros::spinOnce();
