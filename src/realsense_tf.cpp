@@ -35,9 +35,11 @@ int main(int argc, char** argv){
     float d2r=M_PI/180.0;
     float in2m=0.0254;
       
-    float camera_roll, camera_yaw, camera_pitch,   
+    float camera_roll, camera_yaw, camera_pitch,  
+	  camera_x, camera_y, camera_z, 
+          camera_mount_x, camera_mount_y, camera_mount_z,
+          camera_mount_roll, camera_mount_yaw, camera_mount_pitch,   
           tripod_roll, tripod_yaw, tripod_pitch,
-          camera_x, camera_y, camera_z,
           tripod_x, tripod_y, tripod_z; 
  
     node.getParam("camera_roll", camera_roll);
@@ -76,6 +78,22 @@ int main(int argc, char** argv){
     tripod_y=tripod_y*in2m;
     tripod_z=tripod_z*in2m;
 
+
+    node.getParam("camera_mount_roll", camera_mount_roll);
+    node.getParam("camera_mount_pitch", camera_mount_pitch);
+    node.getParam("camera_mount_yaw", camera_mount_yaw);
+    
+    camera_mount_roll=camera_mount_roll*d2r;
+    camera_mount_pitch=camera_mount_pitch*d2r;
+    camera_mount_yaw=camera_mount_yaw*d2r;
+    
+    node.getParam("camera_mount_x", camera_mount_x);
+    node.getParam("camera_mount_y", camera_mount_y);
+    node.getParam("camera_mount_z", camera_mount_z);
+
+    camera_mount_x=camera_mount_x*in2m;
+    camera_mount_y=camera_mount_y*in2m;
+    camera_mount_z=camera_mount_z*in2m;
     ros::Rate r(10);
 
     // get boolen parameters 
@@ -113,8 +131,16 @@ int main(int argc, char** argv){
       
      broadcaster.sendTransform(
         tf::StampedTransform(
-        tf::Transform(tf::createQuaternionFromRPY(camera_roll,camera_pitch,camera_yaw), tf::Vector3(camera_x, camera_y, camera_z)),
-        ros::Time::now(),"T6","camera_link"));
+        tf::Transform(tf::createQuaternionFromRPY(camera_mount_roll,camera_mount_pitch,camera_mount_yaw), 
+		      tf::Vector3(camera_mount_x, camera_mount_y, camera_mount_z)),
+        	      ros::Time::now(),"T6","camera_mount"));
+    
+     broadcaster.sendTransform(
+        tf::StampedTransform(
+        tf::Transform(tf::createQuaternionFromRPY(camera_roll,camera_pitch,camera_yaw), 
+	              tf::Vector3(camera_x, camera_y, camera_z)),
+                      ros::Time::now(),"camera_mount","camera_link"));
+              
               
       //if (playback){
       //  broadcaster.sendTransform(
