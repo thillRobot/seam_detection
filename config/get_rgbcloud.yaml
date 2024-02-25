@@ -5,6 +5,8 @@
 #input_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_"
 #output_dir: "bags/reconstruction/part1_x6_y4_theta33_cpitch30_/filtered"
 
+reconfigure_tf/camera_roll: 0.0
+
 camera_roll: 0.0
 camera_pitch: -90.0
 camera_yaw: 0.0

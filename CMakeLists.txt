@@ -21,17 +21,12 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   message_generation
   eigen_conversions
+  dynamic_reconfigure
 )
 
 find_package(Eigen3 REQUIRED)
 find_package(teaserpp REQUIRED)
-#find_package(Boost 1.58 REQUIRED)
-#find_package(Boost 1.81 REQUIRED)
 find_package(Boost REQUIRED)
-#find_package(PCL 1.9 REQUIRED COMPONENTS common features kdtree)
-#find_package(PCL 1.10 REQUIRED) 
-#find_package(PCL 1.13 REQUIRED) 
-#find_package(PCL REQUIRED COMPONENTS common features kdtree)
 find_package(PCL REQUIRED)
 
 
@@ -106,10 +101,10 @@ generate_messages(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+  cfg/ReconfigureTF.cfg
+  # cfg/DynReconf2.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -121,10 +116,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES seam_detection
+  #  INCLUDE_DIRS include
+  #  LIBRARIES seam_detection
   CATKIN_DEPENDS roscpp rospy std_msgs tf message_runtime
-#  DEPENDS system_lib
+  #  DEPENDS system_lib
 )
 
 ###########
@@ -134,9 +129,14 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
+
+#include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -223,17 +223,13 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-include_directories(${PCL_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
-
 ###########################################
 ## nodes to be compiled with catkin_make ##
 ###########################################
 
-###############################################
-## primary nodes for the SEAM_DETECTION package
-###############################################
+##################################################
+## primary nodes for the SEAM_DETECTION package ##
+##################################################
 
 # seam-detection (class approach)
 add_executable(seam-detection src/seam-detection.cpp)
@@ -320,10 +316,19 @@ target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
 # target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-
 # realsense_tf
 add_executable(realsense_tf src/realsense_tf.cpp)
 target_link_libraries(realsense_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# reconfigure_server
+add_executable(reconfigure_server src/reconfigure_server.cpp)
+add_dependencies(reconfigure_server ${PROJECT_NAME}_gencfg)
+target_link_libraries(reconfigure_server ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# reconfigure_tf
+add_executable(reconfigure_tf src/reconfigure_tf.cpp)
+add_dependencies(reconfigure_tf ${PROJECT_NAME}_gencfg)
+target_link_libraries(reconfigure_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # realsense_playback_tf
 add_executable(realsense_playback_tf src/realsense_playback_tf.cpp)

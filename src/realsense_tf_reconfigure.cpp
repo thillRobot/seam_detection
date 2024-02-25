@@ -1,11 +1,11 @@
 /*
 
-  node to setup tf for SEAM_DETECTION and ROBOT_VISION/INTELREALSENSE rgbd camera
+  node to setup tf for SEAM_DETECTION and ROBOT_VISION/INTELREALSENSE rgbd camera with dynamic reconfigure
 
   this replaces the common node 'setup_tf'
   migrated from TF to TF2 and back again to old TF way just use RPY... (this seems a bit backwards)
 
-  Node: realsense_tf.cpp
+  Node: realsense_tf_rqt.cpp
   Package: seam_detection
   Tristan Hill - 02/11/2024 
 
@@ -19,17 +19,27 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <math.h>
 
+#include <dynamic_reconfigure/server.h>
+//#include <dynamic_tutoriials/TutorialsConfig.h>
 
 bool playback=true;
+
+//void callback(dynamic_tutorials::TutorialsConfig &config, uint32_t level) {
+//  ROS_INFO("Reconfigure Request: %d %f %s %s %d", 
+//            config.int_param, config.double_param, 
+//            config.str_param.c_str(), 
+//            config.bool_param?"True":"False", 
+//            config.size);
+//}
 
 int main(int argc, char** argv){
 
 
     std::cout<<"*************************************************************"<<std::endl;
-    std::cout<<"***************** realsense TF v1.9 *************************"<<std::endl;
+    std::cout<<"************** realsense_tf_reconfigure v1.9 ****************"<<std::endl;
     std::cout<<"*************************************************************"<<std::endl;
 
-    ros::init(argc, argv, "realsense_tf");
+    ros::init(argc, argv, "realsense_tf_reconfigure");
     ros::NodeHandle node;
     
     float d2r=M_PI/180.0;

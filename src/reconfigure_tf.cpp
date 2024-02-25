@@ -1,13 +1,12 @@
 /*
 
-  node to setup tf for SEAM_DETECTION and ROBOT_VISION/INTELREALSENSE rgbd camera
+  node to setup tf for SEAM_DETECTION and ROBOT_VISION/INTELREALSENSE rgbd camera with dynamic reconfigure
 
-  this replaces the common node 'setup_tf'
-  migrated from TF to TF2 and back again to old TF way just use RPY... (this seems a bit backwards)
-
-  Node: realsense_tf.cpp
+  this replaces the common node 'setup_tf' and allows the TFs to be adjusted during runtime
+  
+  Node: reconfigure_tf.cpp
   Package: seam_detection
-  Tristan Hill - 02/11/2024 
+  Tristan Hill - 02/25/2024
 
 */
 
@@ -19,24 +18,54 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <math.h>
 
+//#include <dynamic_reconfigure/server.h>
+#include <dynamic_reconfigure/DoubleParameter.h>
+#include <dynamic_reconfigure/Reconfigure.h>
+#include <dynamic_reconfigure/Config.h>
+#include <seam_detection/ReconfigureTFConfig.h>
 
 bool playback=true;
+
+//function to set dynamic_reconfigure double parameter value
+void reconfigureDouble(std::string name, double value){
+   
+    dynamic_reconfigure::ReconfigureRequest srv_req;
+    dynamic_reconfigure::ReconfigureResponse srv_resp;
+    dynamic_reconfigure::DoubleParameter param;    
+    dynamic_reconfigure::Config conf;
+    
+    param.name=name;
+    param.value=value;
+    conf.doubles.push_back(param);   
+   
+    srv_req.config = conf;
+
+    std::cout<<"name: "<< name << " value: "<< value <<std::endl;
+
+    if (ros::service::call("/reconfigure_server/set_parameters", srv_req, srv_resp)) {
+      ROS_INFO("call to set reconfigure_server parameters succeeded");
+    } else {
+      ROS_INFO("call to set reconfigure_server parameters failed");
+    } 
+
+}
+
 
 int main(int argc, char** argv){
 
 
     std::cout<<"*************************************************************"<<std::endl;
-    std::cout<<"***************** realsense TF v1.9 *************************"<<std::endl;
+    std::cout<<"************************ reconfigure_tf v1.9 ****************"<<std::endl;
     std::cout<<"*************************************************************"<<std::endl;
 
-    ros::init(argc, argv, "realsense_tf");
+    ros::init(argc, argv, "reconfigure_tf");
     ros::NodeHandle node;
-    
-    float d2r=M_PI/180.0;
-    float in2m=0.0254;
+   
+    double d2r=M_PI/180.0;
+    double in2m=0.0254;
       
-    float camera_roll, camera_yaw, camera_pitch,  
-	  camera_x, camera_y, camera_z, 
+    double camera_roll, camera_yaw, camera_pitch,  
+	        camera_x, camera_y, camera_z, 
           camera_mount_x, camera_mount_y, camera_mount_z,
           camera_mount_roll, camera_mount_yaw, camera_mount_pitch,   
           tripod_roll, tripod_yaw, tripod_pitch,
@@ -58,10 +87,6 @@ int main(int argc, char** argv){
     camera_y=camera_y*in2m;
     camera_z=camera_z*in2m;
 
-    std::cout<<"camera_roll: "<<camera_roll
-	     <<", camera_pitch: "<<camera_pitch
-	     <<", camera_yaw: "<<camera_yaw<<std::endl;	
-
     node.getParam("tripod_roll", tripod_roll);
     node.getParam("tripod_pitch", tripod_pitch);
     node.getParam("tripod_yaw", tripod_yaw);
@@ -77,7 +102,6 @@ int main(int argc, char** argv){
     tripod_x=tripod_x*in2m;
     tripod_y=tripod_y*in2m;
     tripod_z=tripod_z*in2m;
-
 
     node.getParam("camera_mount_roll", camera_mount_roll);
     node.getParam("camera_mount_pitch", camera_mount_pitch);
@@ -96,13 +120,25 @@ int main(int argc, char** argv){
     camera_mount_z=camera_mount_z*in2m;
     ros::Rate r(10);
 
-    // get boolen parameters 
-    
+    // get boolen parameters     
     // node.getParam("playback", playback);
 
+    //std::cout<<"camera_roll: "<<camera_roll
+	  //   <<", camera_pitch: "<<camera_pitch
+	  //   <<", camera_yaw: "<<camera_yaw<<std::endl;	
+
+    // set dynamic reconfigure parameters from rosparam values
+    reconfigureDouble("camera_roll", camera_roll);
+    reconfigureDouble("camera_pitch",camera_pitch);
+    reconfigureDouble("camera_yaw",camera_yaw);
+    reconfigureDouble("camera_x",camera_x);
+    reconfigureDouble("camera_y",camera_y);
+    reconfigureDouble("camera_z",camera_z);
+    
     tf::TransformBroadcaster broadcaster;
     while(node.ok())
     {
+      
       // take the conversion from rpy to quaternion out of the loop, do this later 
       broadcaster.sendTransform( 
         tf::StampedTransform(

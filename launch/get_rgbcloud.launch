@@ -9,8 +9,13 @@
   <!-- get cmd line arg -->
   <arg name="filename" default="get_rgbcloud" />
  
+  <node pkg="seam_detection" type="reconfigure_server" name="reconfigure_server" output="screen"/>   
+  <node pkg="seam_detection" type="reconfigure_tf" name="reconfigure_tf" output="screen"/> 
+ 
+   <!--
   <node pkg="seam_detection" type="realsense_tf" name="realsense_tf" output="screen"/> 
-    
+  -->  
+
   <include file="$(find realsense2_camera)/launch/rs_camera.launch" >
     <arg name="align_depth" value="true"/> 
     <arg name="color_width" value="1280" />
