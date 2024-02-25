@@ -1,10 +1,13 @@
+/*
 
-// server node for dynamic reconfigure
-// note: service call to update reconfigure params must be made from separate node
+   server node for dynamic reconfigure
+   note: service call to update reconfigure params must be made from separate node
 
-// package: seam_detection
-// node: reconfigure_server
+   Node: reconfigure_server.cpp
+   Package: seam_detection
+   Tristan Hill - 02/25/2024
 
+*/
 
 #include <ros/ros.h>
 

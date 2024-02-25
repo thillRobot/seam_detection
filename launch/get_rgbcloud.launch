@@ -9,8 +9,10 @@
   <!-- get cmd line arg -->
   <arg name="filename" default="get_rgbcloud" />
  
+  <!-- setup dynamic reconfigure for TFs -->
   <node pkg="seam_detection" type="reconfigure_server" name="reconfigure_server" output="screen"/>   
-  <node pkg="seam_detection" type="reconfigure_tf" name="reconfigure_tf" output="screen"/> 
+  <node pkg="seam_detection" type="reconfigure_tf" name="reconfigure_tf" output="screen"/>  
+  <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen"/> 
  
    <!--
   <node pkg="seam_detection" type="realsense_tf" name="realsense_tf" output="screen"/> 
