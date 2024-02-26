@@ -19,7 +19,8 @@
   -->  
 
   <include file="$(find realsense2_camera)/launch/rs_camera.launch" >
-    <arg name="align_depth" value="true"/> 
+    <arg name="publish_odom_tf" value="false"/> 
+    <arg name="align_depth" value="false"/> 
     <arg name="color_width" value="1280" />
     <arg name="color_height" value="720" />
     <arg name="color_fps" value="15" />
@@ -27,7 +28,7 @@
     <arg name="depth_height" value="480" />
     <arg name="depth_fps" value="15" />
    <!-- <arg name="initial_reset" value="true" /> -->
-   <!-- <arg name="enable_infra" value="true" /> --> 
+    <arg name="enable_infra" value="true" />
     <arg name="filters" value="pointcloud, spatial, hole_filling" />
   </include>     
   
@@ -49,8 +50,8 @@
   <node pkg="pcl_ros" type="pointcloud_to_pcd" name="pointcloud_to_pcd" output="screen" args="_prefix:=$(find seam_detection)/pcd_images/$(arg filename)_ input:=/camera/depth/color/points fixed_frame:=camera_link" /> 
 -->
 
- <!--  
+  
   <node pkg="rosbag" type="record" name="record" args="tf camera/depth/color/points -O $(find seam_detection)/bags/$(arg filename)_ -b 2048" />
- -->
+ 
 
 </launch>
