@@ -158,15 +158,20 @@ int main(int argc, char** argv){
       camera_mount_z=camera_mount_z*in2m;
       
       // broadcast transformations using updated parameter values
-      broadcaster.sendTransform( 
-        tf::StampedTransform(
-        tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
-        ros::Time::now(),"map","base_link"));
+      //broadcaster.sendTransform( 
+      //  tf::StampedTransform(
+      //  tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
+      //  ros::Time::now(),"map","base_link"));
 
-      broadcaster.sendTransform( 
-        tf::StampedTransform(
-        tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
-        ros::Time::now(),"world","map"));
+//      broadcaster.sendTransform( 
+//        tf::StampedTransform(
+//        tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
+//        ros::Time::now(),"world","base_link"));
+      
+    //  broadcaster.sendTransform( 
+    //    tf::StampedTransform(
+    //    tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
+    //    ros::Time::now(),"map","world"));
 
 //     broadcaster.sendTransform(
 //        tf::StampedTransform(

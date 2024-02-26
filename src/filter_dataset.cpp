@@ -148,6 +148,7 @@ class FilterDataset {
       
       node.getParam("use_bag_tfs", use_bag_tfs);
       node.getParam("broadcast_bag_tfs", broadcast_bag_tfs);
+      node.getParam("use_config_tfs", use_config_tfs);
       
       node.getParam("transform_bag_clouds", transform_bag_clouds);
       node.getParam("bound_bag_clouds", bound_bag_clouds);
@@ -259,8 +260,9 @@ class FilterDataset {
    //   std::cout<<"output bag path prefix: "<<out_path<< std::endl;
       
       static tf2_ros::TransformBroadcaster br;
-      geometry_msgs::Transform T_camera_tripod, T_tripod_base, T_camera_base, T_base_map;              
-      geometry_msgs::TransformStamped tf_camera_base, tf_base_map;      
+      geometry_msgs::Transform T_camera_tripod, T_tripod_base, T_camera_base, T_base_map, T_base_world,
+                               T_camera_mount, T_mount_base, T_T6_base, T_T6_world;              
+      geometry_msgs::TransformStamped tf_camera_base, tf_base_map, tf_T6_base, tf_base_world, tf_T6_world, tf_map_world;      
 
       PointCloudVec bag_clouds;
       //use this as the working copy of the training cloud
@@ -287,11 +289,12 @@ class FilterDataset {
             for(const auto& tf : transform ->transforms){
               
               if (broadcast_bag_tfs){
-                br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
+                //br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
               }
               //std::cout<<"tf header frame_id: "<<tf.header.frame_id<<std::endl;
               //std::cout<<"tf child_frame_id: "<<tf.child_frame_id<<std::endl;
               
+              /*
               if (!strcmp(tf.header.frame_id.c_str(), "base_link")){
                 T_tripod_base=tf.transform;              
               }
@@ -300,34 +303,89 @@ class FilterDataset {
                 chain_complete=true; // this assumes a consistent broadcast order
                 tf_camera_base.header.stamp=tf.header.stamp;  // copy the most recent timestamp from above
               }
+              */
+               std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
+               std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
+ 
+              if (!strcmp(tf.header.frame_id.c_str(), "world") && !strcmp(tf.child_frame_id.c_str(), "T6")){
+                std::cout<<"tf recieved"<<std::endl;
+                std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
+                std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
+                //T_base_world=tf.transform;
+                tf_T6_world=tf;              
+              }
               
+              if (!strcmp(tf.header.frame_id.c_str(), "world") && !strcmp(tf.child_frame_id.c_str(), "map")){
+                std::cout<<"tf recieved"<<std::endl;
+                std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
+                std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
+                //T_base_world=tf.transform;
+                tf_map_world=tf;              
+              }
+              
+              if (!strcmp(tf.header.frame_id.c_str(), "map") && !strcmp(tf.child_frame_id.c_str(), "base_link")){
+                std::cout<<"tf recieved"<<std::endl;
+                std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
+                std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
+                //T_T6_base=tf.transform;              
+                //tf_T6_base.header.stamp=tf.header.stamp;  // copy the most recent timestamp from above
+                tf_base_map=tf;
+                
+                chain_complete=true; // this assumes a consistent broadcast order
+              }
+            
             }  
             
             if (chain_complete){
+              if(broadcast_bag_tfs){
+                br.sendTransform(tf_T6_world);
+                br.sendTransform(tf_map_world);
+                br.sendTransform(tf_base_map);
+              }
+              
+              //T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
               // calculate the total translation vector as the sum of translation vectors
-              T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
-              T_camera_base.translation.y=T_tripod_base.translation.y+T_camera_tripod.translation.y;              
-              T_camera_base.translation.z=T_tripod_base.translation.z+T_camera_tripod.translation.z;              
+              //T_camera_base.translation.y=T_tripod_base.translation.y+T_camera_tripod.translation.y;              
+              //T_camera_base.translation.z=T_tripod_base.translation.z+T_camera_tripod.translation.z;              
                             
+              //T_T6_world.translation.x=T_T6_base.translation.x+T_base_world.translation.x;              
+              //T_T6_world.translation.y=T_T6_base.translation.y+T_base_world.translation.y;              
+              //T_T6_world.translation.z=T_T6_base.translation.z+T_base_world.translation.z;              
+              
+
               // calculate the total quaternion as the product of the quaternion vectors  
               // do not operate directly on the mgs, convert first
-              tf2::Quaternion q_tripod_base, q_camera_tripod, q_camera_base;
-              tf2::fromMsg(T_tripod_base.rotation, q_tripod_base); 
-              tf2::fromMsg(T_camera_tripod.rotation, q_camera_tripod);          
+              //tf2::Quaternion q_tripod_base, q_camera_tripod, 
+              //tf2::Quaternion q_camera_base, q_T6_base, q_base_world, q_T6_world;
+              //tf2::fromMsg(T_tripod_base.rotation, q_tripod_base); 
+              //tf2::fromMsg(T_camera_tripod.rotation, q_camera_tripod);          
               //q_camera_base=q_tripod_base*q_camera_tripod;    // multiply to combine quaternions   
-              q_camera_base=q_camera_tripod*q_tripod_base;      // order matters 
-              T_camera_base.rotation=tf2::toMsg(q_camera_base); // convert from tf2 to geometry msg
+              //tf2::fromMsg(T_T6_base.rotation, q_T6_base); 
+              //tf2::fromMsg(T_base_world.rotation, q_base_world);          
+              
+              
+              //q_camera_base=q_camera_tripod*q_tripod_base;      // order matters 
+              //T_camera_base.rotation=tf2::toMsg(q_camera_base); // convert from tf2 to geometry msg
                
+              //q_T6_world=q_T6_base*q_base_world;      // order matters 
+              //T_T6_world.rotation=tf2::toMsg(q_T6_world); // convert from tf2 to geometry msg
               // now put that in a stamped transform to be re-broadcasted in the tf topic
               //geometry_msgs::TransformStamped tf_camera_base;      
-              tf_camera_base.header.frame_id="base_link";       // create new header info
-              tf_camera_base.child_frame_id="camera_link_test"; // check loop closure in rviz to validate tf operations
+              //tf_camera_base.header.frame_id="base_link";       // create new header info
+              //tf_camera_base.child_frame_id="camera_link_test"; // check loop closure in rviz to validate tf operations
              
-              tf_camera_base.transform=T_camera_base;           // add the computed transform to the message 
+              //tf_T6_base.header.frame_id="base_link";       // create new header info
+              //tf_T6_base.child_frame_id="T6_link";          // check loop closure in rviz to validate tf operations
               
-              if(broadcast_bag_tfs){
-                br.sendTransform(tf_camera_base);
-              }
+              //tf_base_world.header.frame_id="world";       // create new header info
+              //tf_base_world.child_frame_id="base_link";          // check loop closure in rviz to validate tf operations
+              
+              //tf_T6_base.transform=T_T6_base;
+              //tf_base_world.transform=T_base_world;
+
+              //tf_camera_base.transform=T_camera_base;           // add the computed transform to the message 
+              //tf_T6_world.transform=T_T6_world;           // add the computed transform to the message 
+
               // add transform to stamped transform to be broadcasted 
               //printTransform(T_tripod_base, "T_tripod_base"); 
               //printTransform(T_camera_tripod, "T_camera_tripod");
@@ -335,20 +393,36 @@ class FilterDataset {
               chain_complete=false; 
             
               // convert the combined transformation to eigen to be used for transforming clouds
-              tf::vectorMsgToEigen(T_camera_base.translation, camera_translation);// convert translation to eigen vector
-              tf::quaternionMsgToEigen(T_camera_base.rotation, camera_rotation); // convert rotation to eigen quaternion
-            } 
+              //tf::vectorMsgToEigen(T_camera_base.translation, camera_translation);// convert translation to eigen vector
+              //tf::quaternionMsgToEigen(T_camera_base.rotation, camera_rotation); // convert rotation to eigen quaternion
+             
+              tf::vectorMsgToEigen(T_T6_world.translation, T6_world_translation);// convert translation to eigen vector
+              tf::quaternionMsgToEigen(T_T6_world.rotation, T6_world_rotation); // convert rotation to eigen quaternion
+            }
           }     
-        }else{
+        }
+        if(use_config_tfs){  // take this section out of the else, now it is an also because we want bag tfs and published tf from reconfigure_tf.cpp
           //tf::StampedTransform config_transform;
           // listen to and use a published tf instead of the tf from the bag
-          geometry_msgs::TransformStamped tf;
+          geometry_msgs::TransformStamped tf, tf_camera_T6;
           try{
             //listener.lookupTransform("/base_link", "/camera_link", ros::Time(0), config_transform);
-            tf = tfBuffer.lookupTransform("base_link", "camera_link", ros::Time(0)); 
-            //std::cout<<"transform heard on bag loop iteration "<<idx<<std::endl;
-            tf::vectorMsgToEigen(tf.transform.translation, camera_translation);// convert translation to eigen vector
-            tf::quaternionMsgToEigen(tf.transform.rotation, camera_rotation); // convert rotation to eigen quaternion
+            //tf = tfBuffer.lookupTransform("base_link", "camera_link", ros::Time(0)); 
+            tf = tfBuffer.lookupTransform("T6", "camera_link", ros::Time(0)); 
+            std::cout<<"transform heard on bag loop iteration "<<idx<<std::endl;
+            br.sendTransform(tf);
+            
+            //tf_camera_T6.header.stamp=tf.header.stamp;
+            //tf_camera_T6.transform=tf.transform;
+            //tf_camera_T6.header.frame_id="camera_link";       // create new header info
+            //tf_camera_T6.child_frame_id="T6_link";          // check loop closure in rviz to validate tf operations
+            //br.sendTransform(tf_camera_T6);
+
+            //  tf::vectorMsgToEigen(tf.transform.translation, camera_translation);// convert translation to eigen vector
+            //  tf::quaternionMsgToEigen(tf.transform.rotation, camera_rotation); // convert rotation to eigen quaternion
+          
+            tf::vectorMsgToEigen(tf.transform.translation, camera_T6_translation);// convert translation to eigen vector
+            tf::quaternionMsgToEigen(tf.transform.rotation, camera_T6_rotation); // convert rotation to eigen quaternion
           }
           catch (tf2::TransformException &ex) {
             ROS_WARN("%s",ex.what());
@@ -380,8 +454,8 @@ class FilterDataset {
           
           // optionally show the clouds in rviz  
           if (publish_bag_clouds){
-            publishCloud(*input_cloud, "input_cloud", "map"); // publish from fixed frame to avoid tf time issues 
-            publishCloud(*filtered_cloud, "filtered_cloud", "map");  
+            publishCloud(*input_cloud, "input_cloud", "world"); // publish from fixed frame to avoid tf time issues 
+            publishCloud(*filtered_cloud, "filtered_cloud", "world");  
           }
          
           std::string out_file = in_file+std::to_string(cloud_idx)+".pcd"; 
@@ -497,8 +571,8 @@ class FilterDataset {
                 
                 // show the filtered cloud each iteration
                 if (publish_dir_clouds){
-                  publishCloud(*input_cloud, "input_cloud", "map");  
-                  publishCloud(*filtered_cloud, "filtered_cloud", "map");
+                  publishCloud(*input_cloud, "input_cloud", "world");  
+                  publishCloud(*filtered_cloud, "filtered_cloud", "world");
                 }
                 
                 // save the processed output cloud to PCD file
@@ -859,7 +933,9 @@ class FilterDataset {
       // apply series of filters to pointcloud
       //rigid transformation
       if(transforming){
-        transformCloud(*cloud, *cloud, camera_rotation, camera_translation);
+        //transformCloud(*cloud, *cloud, camera_rotation, camera_translation);
+        transformCloud(*cloud, *cloud, camera_T6_rotation, camera_T6_translation);
+        transformCloud(*cloud, *cloud, T6_world_rotation, T6_world_translation);
       }
       // bounding box 
       if(bounding){
@@ -889,7 +965,7 @@ class FilterDataset {
     // other parameters from the config file (these do not need to public)
     bool auto_bounds;
     bool save_bag_clouds, save_dir_clouds, 
-        broadcast_bag_tfs, use_bag_tfs,
+        broadcast_bag_tfs, use_bag_tfs, use_config_tfs,
          publish_bag_clouds, publish_dir_clouds,  
          transform_bag_clouds, transform_dir_clouds,
          bound_bag_clouds, bound_dir_clouds,
@@ -908,10 +984,16 @@ class FilterDataset {
     // topic for generic cloud publisher
     std::string cloud_topic;
 
-    Eigen::Vector3d camera_translation;
-    Eigen::Quaterniond camera_rotation;
+    //Eigen::Vector3d camera_translation;
+    //Eigen::Quaterniond camera_rotation;
 
-  private:
+    Eigen::Vector3d camera_T6_translation;
+    Eigen::Quaterniond camera_T6_rotation;
+ 
+    Eigen::Vector3d T6_world_translation;
+    Eigen::Quaterniond T6_world_rotation;
+ 
+   private:
 
     // PRIVATE attributes
 
@@ -943,24 +1025,25 @@ int main(int argc, char** argv)
 
   // process pointcloud topics from bag file
   PointCloudVec bagclouds;  
-  //bagclouds=filter.filterCloudBag(filter.num_bag_clouds);
+  bagclouds=filter.filterCloudBag(filter.num_bag_clouds);
   // show in rviz
   //filter.publishClouds(bagclouds, "bag_cloud", "base_link");
   
   // process pcd files from directory 
-  PointCloudVec dirclouds;
+  //PointCloudVec dirclouds;
   //dirclouds=filter.filterCloudDir(filter.input_path);
   // show in rviz
   //filter.publishClouds(dirclouds, "dir_cloud", "base_link");
   
   
+  // testing extract polygonal prism
+  /*
   PointCloud::Ptr test_cloud (new PointCloud);
   std::string test_path="bags/reconstruction/part1_x6_y4_theta33_cpitch10_/filtered/part1_x6_y4_theta33_cpitch10_2_filtered.pcd";
   test_path=filter.package_path+"/"+test_path;
   filter.loadCloud(*test_cloud, test_path);
- 
   filter.extractPolygonalPrism(*test_cloud);
-
+  */
 
   std::cout<<"filter_cloud completed"<<std::endl;
   ros::spin();
