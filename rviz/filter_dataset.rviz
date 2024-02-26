@@ -29,7 +29,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -55,19 +55,7 @@ Visualization Manager:
         All Enabled: false
         T6:
           Value: true
-        T7:
-          Value: true
-        T_T6_link:
-          Value: true
         base_link:
-          Value: true
-        camera_link:
-          Value: true
-        camera_mount:
-          Value: true
-        map:
-          Value: false
-        world:
           Value: true
       Marker Alpha: 1
       Marker Scale: 1
@@ -76,18 +64,8 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        world:
+        base_link:
           T6:
-            camera_mount:
-              camera_link:
-                {}
-          T7:
-            {}
-          T_T6_link:
-            {}
-          base_link:
-            {}
-          map:
             {}
       Update Interval: 0
       Value: true
@@ -299,7 +277,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: world
+    Fixed Frame: base_link
     Frame Rate: 30
   Name: root
   Tools:
@@ -331,17 +309,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.01258322037756443
-        Y: -0.2079601138830185
-        Z: 0.5044082999229431
+        X: -0.09916800260543823
+        Y: -0.5245952010154724
+        Z: 0.45171114802360535
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3202035129070282
+      Pitch: 0.35020342469215393
       Target Frame: <Fixed Frame>
-      Yaw: 2.8753983974456787
+      Yaw: 5.838583469390869
     Saved: ~
 Window Geometry:
   Displays:

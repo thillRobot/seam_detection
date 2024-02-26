@@ -103,9 +103,15 @@ int main(int argc, char** argv){
     reconfigureDouble("camera_y",camera_y);
     reconfigureDouble("camera_z",camera_z);
     
+    reconfigureDouble("camera_mount_roll", camera_mount_roll);
+    reconfigureDouble("camera_mount_pitch",camera_mount_pitch);
+    reconfigureDouble("camera_mount_yaw",camera_mount_yaw);
+    reconfigureDouble("camera_mount_x",camera_mount_x);
+    reconfigureDouble("camera_mount_y",camera_mount_y);
+    reconfigureDouble("camera_mount_z",camera_mount_z);
     tf::TransformBroadcaster broadcaster;
-    while(node.ok())
-    {
+    
+    while(node.ok()){
 
       // get updated dynamic reconfigure parameters from rosparam to be used in transforms
       node.getParam("/reconfigure_server/camera_roll", camera_roll);
@@ -158,10 +164,10 @@ int main(int argc, char** argv){
       camera_mount_z=camera_mount_z*in2m;
       
       // broadcast transformations using updated parameter values
-      //broadcaster.sendTransform( 
-      //  tf::StampedTransform(
-      //  tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
-      //  ros::Time::now(),"map","base_link"));
+      broadcaster.sendTransform( 
+        tf::StampedTransform(
+        tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
+        ros::Time::now(),"map","base_link"));
 
 //      broadcaster.sendTransform( 
 //        tf::StampedTransform(
@@ -197,14 +203,14 @@ int main(int argc, char** argv){
 	              tf::Vector3(camera_x, camera_y, camera_z)),
                       ros::Time::now(),"camera_mount","camera_link"));
               
-     playback=0;         
-     if (playback){
-     broadcaster.sendTransform(
-         tf::StampedTransform(
-         tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0)),
-         ros::Time::now(),"camera_link","camera_color_optical_frame"));
-     }
-     
+//     playback=0;         
+//     if (playback){
+//     broadcaster.sendTransform(
+//         tf::StampedTransform(
+//         tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0)),
+//         ros::Time::now(),"camera_link","camera_color_optical_frame"));
+//     }
+//     
       rate.sleep();
       ros::spinOnce();
     }

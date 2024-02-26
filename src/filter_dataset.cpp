@@ -288,9 +288,9 @@ class FilterDataset {
                
             for(const auto& tf : transform ->transforms){
               
-              if (broadcast_bag_tfs){
+              //if (broadcast_bag_tfs){
                 //br.sendTransform(tf);  // broadcast the transforms to be used in rviz              
-              }
+              //}
               //std::cout<<"tf header frame_id: "<<tf.header.frame_id<<std::endl;
               //std::cout<<"tf child_frame_id: "<<tf.child_frame_id<<std::endl;
               
@@ -311,36 +311,40 @@ class FilterDataset {
                 std::cout<<"tf recieved"<<std::endl;
                 std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
                 std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
-                //T_base_world=tf.transform;
-                tf_T6_world=tf;              
+                //tf_T6_world=tf;             
+                tf_T6_base.transform=tf.transform;        // use the transform from tf (world->T6) and
+                tf_T6_base.header.frame_id="base_link";   // re-broadcast as the transform fot tf (base_link-T6)
+                tf_T6_base.child_frame_id="T6";            
+                tf_T6_base.header.stamp=ros::Time::now();
+                chain_complete=true;
               }
               
-              if (!strcmp(tf.header.frame_id.c_str(), "world") && !strcmp(tf.child_frame_id.c_str(), "map")){
-                std::cout<<"tf recieved"<<std::endl;
-                std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
-                std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
-                //T_base_world=tf.transform;
-                tf_map_world=tf;              
-              }
-              
-              if (!strcmp(tf.header.frame_id.c_str(), "map") && !strcmp(tf.child_frame_id.c_str(), "base_link")){
-                std::cout<<"tf recieved"<<std::endl;
-                std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
-                std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
-                //T_T6_base=tf.transform;              
-                //tf_T6_base.header.stamp=tf.header.stamp;  // copy the most recent timestamp from above
-                tf_base_map=tf;
-                
-                chain_complete=true; // this assumes a consistent broadcast order
-              }
+           //   if (!strcmp(tf.header.frame_id.c_str(), "world") && !strcmp(tf.child_frame_id.c_str(), "map")){
+           //     std::cout<<"tf recieved"<<std::endl;
+           //     std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
+           //     std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
+           //     //T_base_world=tf.transform;
+           //     tf_map_world=tf;              
+           //   }
+           //   
+           //   if (!strcmp(tf.header.frame_id.c_str(), "map") && !strcmp(tf.child_frame_id.c_str(), "base_link")){
+           //     std::cout<<"tf recieved"<<std::endl;
+           //     std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
+           //     std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
+           //     //T_T6_base=tf.transform;              
+           //     //tf_T6_base.header.stamp=tf.header.stamp;  // copy the most recent timestamp from above
+           //     tf_base_map=tf;
+           //     
+           //     chain_complete=true; // this assumes a consistent broadcast order
+           //   }
             
             }  
             
             if (chain_complete){
               if(broadcast_bag_tfs){
-                br.sendTransform(tf_T6_world);
-                br.sendTransform(tf_map_world);
-                br.sendTransform(tf_base_map);
+                br.sendTransform(tf_T6_base);
+                //br.sendTransform(tf_map_world);
+                //br.sendTransform(tf_base_map);
               }
               
               //T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
@@ -408,9 +412,9 @@ class FilterDataset {
           try{
             //listener.lookupTransform("/base_link", "/camera_link", ros::Time(0), config_transform);
             //tf = tfBuffer.lookupTransform("base_link", "camera_link", ros::Time(0)); 
-            tf = tfBuffer.lookupTransform("T6", "camera_link", ros::Time(0)); 
+            tf = tfBuffer.lookupTransform("base_link", "camera_link", ros::Time(0)); 
             std::cout<<"transform heard on bag loop iteration "<<idx<<std::endl;
-            br.sendTransform(tf);
+            //br.sendTransform(tf);
             
             //tf_camera_T6.header.stamp=tf.header.stamp;
             //tf_camera_T6.transform=tf.transform;
@@ -454,8 +458,8 @@ class FilterDataset {
           
           // optionally show the clouds in rviz  
           if (publish_bag_clouds){
-            publishCloud(*input_cloud, "input_cloud", "world"); // publish from fixed frame to avoid tf time issues 
-            publishCloud(*filtered_cloud, "filtered_cloud", "world");  
+            publishCloud(*input_cloud, "input_cloud", "base_link"); // publish from fixed frame to avoid tf time issues 
+            publishCloud(*filtered_cloud, "filtered_cloud", "base_link");  
           }
          
           std::string out_file = in_file+std::to_string(cloud_idx)+".pcd"; 
@@ -571,8 +575,8 @@ class FilterDataset {
                 
                 // show the filtered cloud each iteration
                 if (publish_dir_clouds){
-                  publishCloud(*input_cloud, "input_cloud", "world");  
-                  publishCloud(*filtered_cloud, "filtered_cloud", "world");
+                  publishCloud(*input_cloud, "input_cloud", "map");  
+                  publishCloud(*filtered_cloud, "filtered_cloud", "map");
                 }
                 
                 // save the processed output cloud to PCD file
@@ -934,8 +938,8 @@ class FilterDataset {
       //rigid transformation
       if(transforming){
         //transformCloud(*cloud, *cloud, camera_rotation, camera_translation);
-        transformCloud(*cloud, *cloud, camera_T6_rotation, camera_T6_translation);
-        transformCloud(*cloud, *cloud, T6_world_rotation, T6_world_translation);
+        //transformCloud(*cloud, *cloud, camera_T6_rotation, camera_T6_translation);
+        //transformCloud(*cloud, *cloud, T6_world_rotation, T6_world_translation);
       }
       // bounding box 
       if(bounding){
