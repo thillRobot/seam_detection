@@ -1,17 +1,17 @@
 ---
-input_bag: "bags/reconstruction/part1_x2_y4_theta0_cpos2_.bag"
-output_bag_dir: "bags/reconstruction/part1_x2_y4_theta0_cpos2_"
+input_bag: "bags/reconstruction/part1_x2_y4_theta0_cpos4_.bag"
+output_bag_dir: "bags/reconstruction/part1_x2_y4_theta0_cpos4_"
 
-input_dir: "bags/reconstruction/part1_x2_y4_theta0_cpos2_"
-output_dir: "bags/reconstruction/part1_x2_y4_theta0_cpos2_/filtered"
+input_dir: "bags/reconstruction/part1_x2_y4_theta0_cpos4_"
+output_dir: "bags/reconstruction/part1_x2_y4_theta0_cpos4_/filtered"
 
-camera_roll: 0
-camera_pitch: -90.0
-camera_yaw: 0
+camera_roll: 0.0
+camera_pitch: 0.0
+camera_yaw: -90.0
 
 camera_x: 0.0
-camera_y: 5.75
-camera_z: -1.0
+camera_y: 0.0
+camera_z: 0.0
 
 camera_mount_roll: 51.5
 camera_mount_pitch: 0
@@ -19,7 +19,7 @@ camera_mount_yaw: 0
 
 camera_mount_x: 3.5
 camera_mount_y: 2.0
-camera_mount_z: 8.5
+camera_mount_z: 6.5
 
 tripod_roll: 30.0
 tripod_pitch: 0.0
@@ -29,9 +29,9 @@ tripod_x: 0.0
 tripod_y: 0.0
 tripod_z: 65.25
 
-num_bag_clouds: 100
-save_bag_clouds: true
-save_dir_clouds: true
+num_bag_clouds: 1000
+save_bag_clouds: false
+save_dir_clouds: false
 
 publish_bag_clouds: true
 publish_dir_clouds: true

@@ -260,9 +260,10 @@ class FilterDataset {
    //   std::cout<<"output bag path prefix: "<<out_path<< std::endl;
       
       static tf2_ros::TransformBroadcaster br;
-      geometry_msgs::Transform T_camera_tripod, T_tripod_base, T_camera_base, T_base_map, T_base_world,
+      geometry_msgs::Transform T_camera_tripod, T_tripod_base, T_camera_base, T_base_camera, T_base_map, T_base_world,
                                T_camera_mount, T_mount_base, T_T6_base, T_T6_world;              
-      geometry_msgs::TransformStamped tf_camera_base, tf_base_map, tf_T6_base, tf_base_world, tf_T6_world, tf_map_world;      
+      geometry_msgs::TransformStamped tf_camera_base, tf_base_camera, tf_base_map, tf_T6_base, 
+                                      tf_base_world, tf_T6_world, tf_map_world;      
 
       PointCloudVec bag_clouds;
       //use this as the working copy of the training cloud
@@ -408,25 +409,39 @@ class FilterDataset {
         if(use_config_tfs){  // take this section out of the else, now it is an also because we want bag tfs and published tf from reconfigure_tf.cpp
           //tf::StampedTransform config_transform;
           // listen to and use a published tf instead of the tf from the bag
-          geometry_msgs::TransformStamped tf, tf_camera_T6;
+          geometry_msgs::TransformStamped tf, tf_camera_base;
           try{
             //listener.lookupTransform("/base_link", "/camera_link", ros::Time(0), config_transform);
             //tf = tfBuffer.lookupTransform("base_link", "camera_link", ros::Time(0)); 
-            tf = tfBuffer.lookupTransform("base_link", "camera_link", ros::Time(0)); 
+            tf_camera_base = tfBuffer.lookupTransform("base_link", "camera_link", ros::Time(0)); 
             std::cout<<"transform heard on bag loop iteration "<<idx<<std::endl;
-            //br.sendTransform(tf);
             
+            tf_base_camera = tfBuffer.lookupTransform("camera_link", "base_link", ros::Time(0)); 
+            std::cout<<"inverse transform heard on bag loop iteration "<<idx<<std::endl;
+            
+            //br.sendTransform(tf_camera_base);
             //tf_camera_T6.header.stamp=tf.header.stamp;
             //tf_camera_T6.transform=tf.transform;
             //tf_camera_T6.header.frame_id="camera_link";       // create new header info
             //tf_camera_T6.child_frame_id="T6_link";          // check loop closure in rviz to validate tf operations
             //br.sendTransform(tf_camera_T6);
-
+            
+            
+            T_camera_base=tf_camera_base.transform;
+            tf::Transform transform, transform_inverse;  
+            tf::transformMsgToTF(T_camera_base, transform);
+            transform_inverse=transform.inverse();
+            
+            //T_base_camera.translation=transform_inverse.getOrigin();
+            //T_base_camera.rotation=transform_inverse.getRotation();
+ 
             //  tf::vectorMsgToEigen(tf.transform.translation, camera_translation);// convert translation to eigen vector
             //  tf::quaternionMsgToEigen(tf.transform.rotation, camera_rotation); // convert rotation to eigen quaternion
-          
-            tf::vectorMsgToEigen(tf.transform.translation, camera_T6_translation);// convert translation to eigen vector
-            tf::quaternionMsgToEigen(tf.transform.rotation, camera_T6_rotation); // convert rotation to eigen quaternion
+            // convert translation and rotation to Eigen::Vector and Eigen::Quaternion to be used in pointcloud transformation         
+            tf::vectorMsgToEigen(tf_camera_base.transform.translation, camera_base_translation);
+            tf::quaternionMsgToEigen(tf_camera_base.transform.rotation, camera_base_rotation); 
+            //tf::vectorMsgToEigen(tf_base_camera.transform.translation, base_camera_translation);
+            //tf::quaternionMsgToEigen(tf_base_camera.transform.rotation, base_camera_rotation); 
           }
           catch (tf2::TransformException &ex) {
             ROS_WARN("%s",ex.what());
@@ -937,9 +952,8 @@ class FilterDataset {
       // apply series of filters to pointcloud
       //rigid transformation
       if(transforming){
-        //transformCloud(*cloud, *cloud, camera_rotation, camera_translation);
-        //transformCloud(*cloud, *cloud, camera_T6_rotation, camera_T6_translation);
-        //transformCloud(*cloud, *cloud, T6_world_rotation, T6_world_translation);
+        //transformCloud(*cloud, *cloud, base_camera_rotation, base_camera_translation);
+        transformCloud(*cloud, *cloud, camera_base_rotation, camera_base_translation);
       }
       // bounding box 
       if(bounding){
@@ -991,9 +1005,12 @@ class FilterDataset {
     //Eigen::Vector3d camera_translation;
     //Eigen::Quaterniond camera_rotation;
 
-    Eigen::Vector3d camera_T6_translation;
-    Eigen::Quaterniond camera_T6_rotation;
+    Eigen::Vector3d camera_base_translation;
+    Eigen::Quaterniond camera_base_rotation;
  
+    Eigen::Vector3d base_camera_translation;
+    Eigen::Quaterniond base_camera_rotation;
+    
     Eigen::Vector3d T6_world_translation;
     Eigen::Quaterniond T6_world_rotation;
  
