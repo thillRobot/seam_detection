@@ -1,37 +1,13 @@
 ---
 scene_name: "seam-detection"
 
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_03_1705436329142622.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_03_1705435453634201.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_05_1705439859938987.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_06_1705439878106249.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_07_1705439894755495.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_08_1705439916751924.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_10_1705440132530404.pcd"
-
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_11_1705703988005435.pcd"
 seam_detection/training_file: "pcd_images/ds435i_table_parts/training_12_1705704311402640.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_13_1705704418782593.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_14_1705704771628826.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_15_1705704966182887.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_16_1705705604495130.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_17_1705706009607119.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_18_1705706362941424.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_19_1705706426520077.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_20_1705706511970438.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_21_1705706602384186.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_22_1705707044040835.pcd"
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_23_1705707968536234.pcd"
-
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/test_03_1705435510575958.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_04_1705438639514498.pcd"
 seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b_1705440053802620.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_06b_1705439997603622.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_07b_1705439980260987.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_08b_1705439964900832.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_10b_1705440114369514.pcd"
+
+view1_file: "bags/reconstruction/part1_x2_y4_theta0_cpos1_/filtered/part1_x2_y4_theta0_cpos1_17_filtered.pcd"
+view2_file: "bags/reconstruction/part1_x2_y4_theta0_cpos2_/filtered/part1_x2_y4_theta0_cpos2_17_filtered.pcd"
+view3_file: "bags/reconstruction/part1_x2_y4_theta0_cpos3_/filtered/part1_x2_y4_theta0_cpos3_17_filtered.pcd"
+view4_file: "bags/reconstruction/part1_x2_y4_theta0_cpos4_/filtered/part1_x2_y4_theta0_cpos4_17_filtered.pcd"
 
 save_output: true
 translate_output: false
@@ -57,3 +33,44 @@ color_distance_thresh: 10
 color_point_thresh: 5
 color_region_thresh: 5 
 color_max_clusters: 5
+
+
+
+
+
+# "bags/reconstruction/part1_x6_y4_theta33_cpitch0_/filtered/part1_x6_y4_theta33_cpitch0_2_filtered.pcd");
+# "bags/reconstruction/part1_x6_y4_theta33_cpitch10_/filtered/part1_x6_y4_theta33_cpitch10_2_filtered.pcd");
+# "bags/reconstruction/part1_x6_y4_theta33_cpitch20_/filtered/part1_x6_y4_theta33_cpitch20_2_filtered.pcd");
+# "bags/reconstruction/part1_x6_y4_theta33_cpitch30_/filtered/part1_x6_y4_theta33_cpitch30_2_filtered.pcd");
+
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_03_1705436329142622.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_03_1705435453634201.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_05_1705439859938987.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_06_1705439878106249.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_07_1705439894755495.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_08_1705439916751924.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_10_1705440132530404.pcd"
+
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_11_1705703988005435.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_12_1705704311402640.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_13_1705704418782593.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_14_1705704771628826.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_15_1705704966182887.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_16_1705705604495130.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_17_1705706009607119.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_18_1705706362941424.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_19_1705706426520077.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_20_1705706511970438.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_21_1705706602384186.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_22_1705707044040835.pcd"
+#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_23_1705707968536234.pcd"
+
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/test_03_1705435510575958.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_04_1705438639514498.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b_1705440053802620.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_06b_1705439997603622.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_07b_1705439980260987.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_08b_1705439964900832.pcd"
+#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_10b_1705440114369514.pcd"
