@@ -3102,7 +3102,7 @@ Visualization Manager:
       Color: 255; 100; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3113,11 +3113,11 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
       Style: Points
-      Topic: /cloud_part1
+      Topic: /cloud_view1
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3130,7 +3130,7 @@ Visualization Manager:
       Color: 100; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3141,11 +3141,11 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
       Style: Points
-      Topic: /cloud_part2
+      Topic: /cloud_view2
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3158,7 +3158,7 @@ Visualization Manager:
       Color: 255; 100; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3169,11 +3169,11 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
       Style: Points
-      Topic: /cloud_part3
+      Topic: /cloud_view3
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3186,7 +3186,7 @@ Visualization Manager:
       Color: 255; 255; 100
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3197,11 +3197,11 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
       Style: Points
-      Topic: /cloud_part4
+      Topic: /cloud_view4
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3291,7 +3291,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.3087340593338013
+      Distance: 0.4396194815635681
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -3299,17 +3299,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.32105106115341187
-        Y: 0.7069978713989258
-        Z: 0.49902525544166565
+        X: -0.13132919371128082
+        Y: -0.7631404995918274
+        Z: 0.005426864605396986
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5497964024543762
+      Pitch: 0.3847961127758026
       Target Frame: <Fixed Frame>
-      Yaw: 3.908564329147339
+      Yaw: 3.513561248779297
     Saved: ~
 Window Geometry:
   Displays:

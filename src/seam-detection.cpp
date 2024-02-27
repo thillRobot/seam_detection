@@ -1758,28 +1758,33 @@ int main(int argc, char** argv)
   sd.loadConfig(); 
  
   // step0 - test reconstruction by merging different views
-  PointCloudPtr cloud_part1 (new PointCloud);
-  PointCloudPtr cloud_part2 (new PointCloud);
-  PointCloudPtr cloud_part3 (new PointCloud);
-  PointCloudPtr cloud_part4 (new PointCloud); 
+  PointCloudPtr cloud_view1 (new PointCloud);
+  PointCloudPtr cloud_view2 (new PointCloud);
+  PointCloudPtr cloud_view3 (new PointCloud);
+  PointCloudPtr cloud_view4 (new PointCloud); 
   PointCloudPtr cloud_merged (new PointCloud);
   
-  sd.loadCloud(*cloud_part1, "bags/reconstruction/part1_x6_y4_theta33_cpitch0_/filtered/part1_x6_y4_theta33_cpitch0_2_filtered.pcd");
-  sd.loadCloud(*cloud_part2, "bags/reconstruction/part1_x6_y4_theta33_cpitch10_/filtered/part1_x6_y4_theta33_cpitch10_2_filtered.pcd");
-  sd.loadCloud(*cloud_part3, "bags/reconstruction/part1_x6_y4_theta33_cpitch20_/filtered/part1_x6_y4_theta33_cpitch20_2_filtered.pcd");
-  sd.loadCloud(*cloud_part4, "bags/reconstruction/part1_x6_y4_theta33_cpitch30_/filtered/part1_x6_y4_theta33_cpitch30_2_filtered.pcd");
+//  sd.loadCloud(*cloud_view1, "bags/reconstruction/part1_x6_y4_theta33_cpitch0_/filtered/part1_x6_y4_theta33_cpitch0_2_filtered.pcd");
+//  sd.loadCloud(*cloud_view2, "bags/reconstruction/part1_x6_y4_theta33_cpitch10_/filtered/part1_x6_y4_theta33_cpitch10_2_filtered.pcd");
+//  sd.loadCloud(*cloud_view3, "bags/reconstruction/part1_x6_y4_theta33_cpitch20_/filtered/part1_x6_y4_theta33_cpitch20_2_filtered.pcd");
+//  sd.loadCloud(*cloud_view4, "bags/reconstruction/part1_x6_y4_theta33_cpitch30_/filtered/part1_x6_y4_theta33_cpitch30_2_filtered.pcd");
 
-  PointCloudVec cloud_parts;
-  cloud_parts.push_back(cloud_part1);
-  cloud_parts.push_back(cloud_part2);
-  cloud_parts.push_back(cloud_part3);
-  cloud_parts.push_back(cloud_part4);
+  sd.loadCloud(*cloud_view1, "bags/reconstruction/part1_x2_y4_theta0_cpos1_/filtered/part1_x2_y4_theta0_cpos1_17_filtered.pcd");
+  sd.loadCloud(*cloud_view2, "bags/reconstruction/part1_x2_y4_theta0_cpos2_/filtered/part1_x2_y4_theta0_cpos2_17_filtered.pcd");
+  sd.loadCloud(*cloud_view3, "bags/reconstruction/part1_x2_y4_theta0_cpos3_/filtered/part1_x2_y4_theta0_cpos3_17_filtered.pcd");
+  sd.loadCloud(*cloud_view4, "bags/reconstruction/part1_x2_y4_theta0_cpos4_/filtered/part1_x2_y4_theta0_cpos4_17_filtered.pcd");
 
-  cloud_merged=sd.mergeClusters(cloud_parts);
-  sd.publishCloud(*cloud_part1, "cloud_part1");
-  sd.publishCloud(*cloud_part2, "cloud_part2");
-  sd.publishCloud(*cloud_part3, "cloud_part3");
-  sd.publishCloud(*cloud_part4, "cloud_part4");
+  PointCloudVec cloud_views;
+  cloud_views.push_back(cloud_view1);
+  cloud_views.push_back(cloud_view2);
+  cloud_views.push_back(cloud_view3);
+  cloud_views.push_back(cloud_view4);
+
+  cloud_merged=sd.mergeClusters(cloud_views);
+  sd.publishCloud(*cloud_view1, "cloud_view1");
+  sd.publishCloud(*cloud_view2, "cloud_view2");
+  sd.publishCloud(*cloud_view3, "cloud_view3");
+  sd.publishCloud(*cloud_view4, "cloud_view4");
   sd.publishCloud(*cloud_merged, "cloud_merged");
 
   // [Steps 1-3] - use 'training' image of target object on clean table
