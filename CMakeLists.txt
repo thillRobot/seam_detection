@@ -29,7 +29,6 @@ find_package(teaserpp REQUIRED)
 find_package(Boost REQUIRED)
 find_package(PCL REQUIRED)
 
-
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -117,9 +116,9 @@ generate_dynamic_reconfigure_options(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  #  LIBRARIES seam_detection
+  #LIBRARIES seam_detection
   CATKIN_DEPENDS roscpp rospy std_msgs tf message_runtime
-  #  DEPENDS system_lib
+  DEPENDS  #system_lib
 )
 
 ###########
@@ -134,14 +133,13 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
 )
 
-#include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/seam_detection.cpp
-# )
+add_library(cloudfilter
+  src/cloudfilter.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -233,26 +231,19 @@ add_definitions(${PCL_DEFINITIONS})
 
 # seam-detection (class approach)
 add_executable(seam-detection src/seam-detection.cpp)
-target_link_libraries(seam-detection
-  ${catkin_LIBRARIES} 
-  ${PCL_LIBRARIES} 
+target_link_libraries(seam-detection ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
   Eigen3::Eigen  
 )
 
 # filter_dataset (class approach)
 add_executable(filter_dataset src/filter_dataset.cpp)
-target_link_libraries(filter_dataset
-  ${catkin_LIBRARIES} 
-  ${PCL_LIBRARIES} 
+target_link_libraries(filter_dataset ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
   Eigen3::Eigen  
 )
 
-
 # seam_detection
 add_executable(seam_detection src/seam_detection.cpp)
-target_link_libraries(seam_detection
-  ${catkin_LIBRARIES} 
-  ${PCL_LIBRARIES} 
+target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
   Eigen3::Eigen 
   teaserpp::teaser_registration 
   teaserpp::teaser_io
@@ -261,9 +252,7 @@ target_link_libraries(seam_detection
 
 # register_clouds - Registration Algorithm Testing Node(s) 
 add_executable(register_clouds src/register_clouds.cpp)
-target_link_libraries(register_clouds 
-  ${catkin_LIBRARIES} 
-  ${PCL_LIBRARIES} 
+target_link_libraries(register_clouds ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
   Eigen3::Eigen 
   teaserpp::teaser_registration 
   teaserpp::teaser_io
@@ -290,16 +279,15 @@ target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES}
 
 # cloudfilter_test (testing cloudfilter.cpp/cloudfilter.h)
 add_executable(cloudfilter_test src/cloudfilter_test.cpp)
-target_link_libraries(cloudfilter_test ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(cloudfilter_test cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # seam_detection_tf
 add_executable(seam_detection_tf src/seam_detection_tf.cpp)
 target_link_libraries(seam_detection_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # filter_cloud
-#add_executable(filter_cloud src/filter_cloud.cpp)
-#target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
+add_executable(filter_cloud src/filter_cloud.cpp)
+target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # filter_cloud_tf
 add_executable(filter_cloud_tf src/filter_cloud_tf.cpp)
@@ -309,7 +297,7 @@ target_link_libraries(filter_cloud_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(hue_segmentation src/hue_segmentation.cpp)
 target_link_libraries(hue_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# crg_segmentation - color based region growing segmentation
+# crg_segmentation 
 add_executable(crg_segmentation src/crg_segmentation.cpp)
 target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
@@ -389,7 +377,7 @@ target_link_libraries(save_rgbcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 #add_executable(teach_points src/teach_points.cpp)
 #target_link_libraries(teach_points ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# scan2cloud 
+# scan2cloud (from SZ)
 #add_executable(scan2cloud src/scan2cloud.cpp)
 #add_dependencies(scan2cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) # from sz
 #target_link_libraries(scan2cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})

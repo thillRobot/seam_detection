@@ -1,29 +1,24 @@
 #ifndef CLOUDFILTER_H
 #define CLOUDFILTER_H
 
-#include <string> 
-#include <ros/ros.h>
+#include <string>
 
 class CloudFilter
 {
 
   private:
-
-    //std::string config;
-    //ros::NodeHandle node;
     
-    //void setConfig(const std::string cfg);
-    //int loadConfig(void);
+    int foo;    
+    std::string config;
 
   public: 
       
-    //CloudFilter();
+    CloudFilter();
     
-    CloudFilter(const std::string cfg = "cloudfilter");
-    //std::string getConfig(void);
+    void loadConfig(std::string cfg);
 
-    int foo;    
-    
+    std::string getConfig(void);
+   
 };
 
 

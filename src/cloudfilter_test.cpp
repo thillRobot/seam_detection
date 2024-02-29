@@ -1,10 +1,13 @@
 #include "cloudfilter.h"
+#include <iostream>
 
 int main(){
 
   CloudFilter filter;   
 
-  //std::cout<<"main.cpp using config: "<<filter.x<<std::endl;
+  filter.loadConfig("filtercloud_test");
+
+  std::cout<<"loading config: "<<filter.getConfig()<<std::endl;
  
   return 0;
 
