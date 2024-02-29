@@ -1,0 +1,19 @@
+<launch>
+
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
+
+  <arg name="config" default="cloudfilter_test" />
+
+  <!-- read value of arg -->
+  <param name="param" value="$(arg config)"/> 
+  
+  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
+
+  <node                     
+    pkg="seam_detection"          
+    name="cloudfilter_test"   
+    type="cloudfilter_test"
+    output="screen"  
+   />
+   
+</launch>

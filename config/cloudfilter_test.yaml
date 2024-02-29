@@ -1,0 +1,18 @@
+---
+cloudfilter/input_file: "pcd_images/shape1_shape2/shape2_45deg.pcd"
+cloudfilter/output_file: "pcd_images/shape1_shape2/shape2_45deg_filtered.pcd"
+cloudfilter/target_file: "pcd_images/shape1_shape2/shape2.pcd"
+
+save_output: true
+translate_output: false
+automatic_bounds: false
+use_clustering: true # false crashes filter_cloud, fix this
+
+new_scan: false
+transform_input: false
+
+cloudfilter/pre_rotation:    [0.0, 0.0, 0.0]
+cloudfilter/pre_translation: [0.0, 0.0, 0.0]
+
+cloudfilter/filter_box: [-1.0, 1.0, -1.0, -0.4, 0.005, 0.5] # bounding box limits
+cloudfilter/voxel_leaf_size: 0.005                          # voxel leaf size

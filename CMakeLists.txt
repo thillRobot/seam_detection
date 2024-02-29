@@ -288,13 +288,18 @@ target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES}
 ## uncomment to enable compile                      ##
 ######################################################
 
+# cloudfilter_test (testing cloudfilter.cpp/cloudfilter.h)
+add_executable(cloudfilter_test src/cloudfilter_test.cpp)
+target_link_libraries(cloudfilter_test ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 # seam_detection_tf
 add_executable(seam_detection_tf src/seam_detection_tf.cpp)
 target_link_libraries(seam_detection_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # filter_cloud
-add_executable(filter_cloud src/filter_cloud.cpp)
-target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#add_executable(filter_cloud src/filter_cloud.cpp)
+#target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 
 # filter_cloud_tf
 add_executable(filter_cloud_tf src/filter_cloud_tf.cpp)
