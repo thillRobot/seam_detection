@@ -2,9 +2,9 @@
 
 int main(){
 
-  CloudFilter filter();   
+  CloudFilter filter;   
 
- // std::cout<<"main.cpp using config: "<<filter.getConfig()<<std::endl;
+  //std::cout<<"main.cpp using config: "<<filter.x<<std::endl;
  
   return 0;
 

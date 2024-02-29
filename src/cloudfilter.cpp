@@ -12,7 +12,7 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/passthrough.h>
 
-#include "ros/package.h"
+//#include "ros/package.h"
 //#include <ros/ros.h>
 
 #include "cloudfilter.h"
@@ -21,26 +21,28 @@
 
 
 // default constructor
-CloudFilter :: CloudFilter()
-  : config("cloudfilter"), node(ros::NodeHandle n)
-{
-  loadConfig()
-}
+CloudFilter :: CloudFilter() {}
+
+
+
+//  : config("cloudfilter"), node(ros::NodeHandle n)
 
 CloudFilter :: CloudFilter(const std::string cfg)
-{
-  config=cfg;
-  node=ros::NodeHandle n;
-}
+{}
+//  config=cfg;
+//  node=ros::NodeHandle n;
+//}
 
 
+/*
 void CloudFilter :: setConfig(const std::string cfg) { // ROS::Rate rate(5) is in intializer list
   
   config=cfg;
 
 }
+*/
 
-
+/*
 // function to load the config file(yaml) to pick the data files and set parameters 
 int CloudFilter :: loadConfig(void) {
 
@@ -62,4 +64,4 @@ std::string CloudFilter :: getConfig(void){
   return config;
 
 }
-
+*/

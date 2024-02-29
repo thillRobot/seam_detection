@@ -9,21 +9,20 @@ class CloudFilter
 
   private:
 
-    std::string config;
-
-    ros::NodeHandle node;
+    //std::string config;
+    //ros::NodeHandle node;
     
-    void setConfig(const std::string cfg);
-    
-    int loadConfig(void);
+    //void setConfig(const std::string cfg);
+    //int loadConfig(void);
 
   public: 
       
-    CloudFilter();
+    //CloudFilter();
     
     CloudFilter(const std::string cfg = "cloudfilter");
-    
-    std::string getConfig(void);
+    //std::string getConfig(void);
+
+    int foo;    
     
 };
 
