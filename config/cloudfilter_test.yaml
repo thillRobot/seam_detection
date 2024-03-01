@@ -14,5 +14,5 @@ transform_input: false
 cloudfilter/pre_rotation:    [0.0, 0.0, 0.0]
 cloudfilter/pre_translation: [0.0, 0.0, 0.0]
 
-cloudfilter/filter_box: [-1.0, 1.0, -1.0, -0.4, 0.005, 0.5] # bounding box limits
-cloudfilter/voxel_leaf_size: 0.005                          # voxel leaf size
+bounding_box: [-1.0, 1.0, -1.0, -0.4, 0.005, 0.5] # bounding box limits
+voxel_leaf_size: 0.005                          # voxel leaf size
