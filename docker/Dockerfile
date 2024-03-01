@@ -10,7 +10,7 @@ RUN apt update && apt upgrade -y && apt update && apt install -y apt-utils build
 RUN apt install -y python3-catkin-tools
 
 RUN apt update && \
-DEBIAN_FRONTEND=noninteractive apt install -y ros-noetic-pcl-ros ros-noetic-laser-geometry ros-noetic-pcl-conversions
+DEBIAN_FRONTEND=noninteractive apt install -y ros-noetic-pcl-ros ros-noetic-laser-geometry ros-noetic-pcl-conversions ros-noetic-rqt-reconfigure
 
 RUN apt update && apt install -y ros-noetic-tf2-geometry-msgs ros-noetic-rviz python3-pip
 

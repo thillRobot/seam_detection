@@ -40,7 +40,7 @@ class CloudFilter
 
     std::vector<double> getBoundingBox(void);
 
-    void boundCloud(PointCloud &input, PointCloud &output);
+    void boundCloud(PointCloud &input, PointCloud &output, std::vector<double> box);
 
 
     // PUBLIC attributes

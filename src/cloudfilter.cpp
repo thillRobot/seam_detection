@@ -64,8 +64,7 @@ std::vector<double> CloudFilter::getBoundingBox(void){
 
 
 // apply bounding box to PointCloud with XYZRGB points
-void CloudFilter::boundCloud(PointCloud &input, PointCloud &output){
-
+void CloudFilter::boundCloud(PointCloud &input, PointCloud &output, std::vector<double> box){
 
   PointCloud::Ptr cloud (new PointCloud);      // working copy for this routine
   for (int i=0; i<input.size(); i++) { // add points to cluster cloud
@@ -98,20 +97,28 @@ void CloudFilter::boundCloud(PointCloud &input, PointCloud &output){
  
   //Apply Bounding Box Filter
   pcl::PassThrough<PointT> pass; //input_cloud
+  
+  std::cout<<"--- bound cloud debug --- "<<std::endl;
   pass.setInputCloud(cloud);
 
+  std::cout<<"--- bounding_box --- "<<std::endl
+             <<"X["<<box[0]<<","<<box[1]<<"]"<<std::endl
+             <<"Y["<<box[2]<<","<<box[3]<<"]"<<std::endl
+             <<"Z["<<box[4]<<","<<box[5]<<"]"<<std::endl;
+
   pass.setFilterFieldName ("x");
-  pass.setFilterLimits(bounding_box[0],bounding_box[1]);
+  pass.setFilterLimits(box[0],box[1]);
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("y");
-  pass.setFilterLimits(bounding_box[2],bounding_box[3]);
+  pass.setFilterLimits(box[2],box[3]);
   pass.filter (*cloud);
 
   pass.setFilterFieldName ("z");
-  pass.setFilterLimits(bounding_box[4],bounding_box[5]);
+  pass.setFilterLimits(box[4],box[5]);
   pass.filter (*cloud);
     
+  std::cout<<"--- bound cloud debug --- "<<std::endl;
   pcl::copyPointCloud(*cloud, output);
   std::cout<<"after bounding there are "<<output.size()<<"points in the cloud"<<std::endl;
 }

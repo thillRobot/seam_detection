@@ -71,6 +71,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
+#include "cloudfilter.h"
 
 namespace bf = boost::filesystem;
 using namespace std::chrono_literals;
@@ -170,11 +171,11 @@ class FilterDataset {
       }
          
       // parameters that contain vectors of doubles
-      std::vector<double> bounding_box_vec;
-      node.getParam("bounding_box",  bounding_box_vec);
-      for(unsigned i=0; i < bounding_box_vec.size(); i++){
-        bounding_box[i]=bounding_box_vec[i]; // copy from vector to array 
-      }
+      std::vector<double> bounding_box;
+      node.getParam("bounding_box",  bounding_box);
+      //for(unsigned i=0; i < bounding_box_vec.size(); i++){
+      //  bounding_box[i]=bounding_box_vec[i]; // copy from vector to array 
+      //}
       node.getParam("auto_bounds",  auto_bounds);
       return 0;
    
@@ -687,7 +688,7 @@ class FilterDataset {
 
     }
 
-
+    /*
     // function to apply bounding box to PointCloud with XYZRGB points
     void boundCloud(PointCloud &input, PointCloud &output, double box[]){
 
@@ -740,7 +741,7 @@ class FilterDataset {
       pcl::copyPointCloud(*cloud, output);
       std::cout<<"after bounding there are "<<output.size()<<"points in the cloud"<<std::endl;
     }
-
+    */
 
     // function to apply translation and rotation without scaling to PointCloud
     void transformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3d rotation, Eigen::Vector3d translation){
@@ -902,7 +903,10 @@ class FilterDataset {
       }
       // bounding box 
       if(bounding){
-        boundCloud(*cloud, *cloud, bounding_box);
+        CloudFilter filter;
+        filter.loadConfig("filter_dataset");
+        filter.boundCloud(*cloud, *cloud, bounding_box);
+        //boundCloud(*cloud, *cloud, bounding_box);
       }
       // moving least squares smoothing  
       if(smoothing){
@@ -939,7 +943,8 @@ class FilterDataset {
     std::string package_path, input_path, output_path, input_dir, output_dir, input_file, output_file, 
                 input_bag, input_bag_path, output_bag_dir, output_bag_path;
  
-    double bounding_box[6];
+    //double bounding_box[6];
+    std::vector<double> bounding_box;
     Eigen::Vector3d pre_rotation, pre_translation;
 
     double voxel_size;

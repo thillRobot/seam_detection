@@ -237,7 +237,7 @@ target_link_libraries(seam-detection ${catkin_LIBRARIES} ${PCL_LIBRARIES}
 
 # filter_dataset (class approach)
 add_executable(filter_dataset src/filter_dataset.cpp)
-target_link_libraries(filter_dataset ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
+target_link_libraries(filter_dataset cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
   Eigen3::Eigen  
 )
 
@@ -287,7 +287,7 @@ target_link_libraries(seam_detection_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # filter_cloud
 add_executable(filter_cloud src/filter_cloud.cpp)
-target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(filter_cloud cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # filter_cloud_tf
 add_executable(filter_cloud_tf src/filter_cloud_tf.cpp)
