@@ -554,6 +554,11 @@ The process from the summer 2023 season needs documentation!
 
 #### Things To Do (priority top to bottom):
 
+- [ ] IN PROGRESS - test multiview part reconstructions (needs new name maybe, find standard name)
+
+- [ ] IN PROGRESS - use a .cpp class with header file to create sharable functions for project, see cloudfilter.cpp, cloudfilter.h
+                    trying hard to follow standard cpp class convention for usability
+
 - [ ] IN PROGRESS - use a .cpp class to improve RGB pointcloud filtering and file management, see `filter_dataset.cpp` 
 
 - [ ] IN PROGRESS - use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated! - see devel
