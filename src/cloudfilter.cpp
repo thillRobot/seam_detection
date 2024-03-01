@@ -6,18 +6,37 @@
 
 */
 
-#include <string>
+
 #include "cloudfilter.h"
+#include <string>
+#include <ros/ros.h>
+#include <ros/package.h>
+
 
 // DEFINITIONS
 
 
 // default constructor
-CloudFilter::CloudFilter() {}
+
+CloudFilter::CloudFilter() 
+  : config("cloudfilter")
+{}
+
+CloudFilter::CloudFilter(std::string cfg="cloudfilter") 
+  : config(cfg)
+{}
+
+CloudFilter::~CloudFilter()
+{}
+
 
 void CloudFilter::loadConfig(std::string cfg){
 
+  std::string input_file, output_file;
+
   config=cfg;
+  node.getParam("input_file", input_file);    
+  node.getParam("output_file", output_file);
 
 } 
 

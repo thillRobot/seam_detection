@@ -1,11 +1,17 @@
 #include "cloudfilter.h"
 #include <iostream>
+#include <ros/ros.h>
 
-int main(){
-
+int main(int argc, char** argv)
+{
+  // initialize ROS node
+  ros::init(argc,argv,"cloudfilter_test");
+  
   CloudFilter filter;   
 
-  filter.loadConfig("filtercloud_test");
+  std::cout<<"default config: "<<filter.getConfig()<<std::endl;
+  
+  filter.loadConfig("cloudfilter_test");
 
   std::cout<<"loading config: "<<filter.getConfig()<<std::endl;
  
