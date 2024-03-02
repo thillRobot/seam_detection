@@ -171,12 +171,14 @@ class FilterDataset {
       }
          
       // parameters that contain vectors of doubles
-      std::vector<double> bounding_box;
+      //std::vector<double> bounding_box;
       node.getParam("bounding_box",  bounding_box);
+      std::cout<<"bounding_box size: "<< bounding_box.size()<<std::endl;      
       //for(unsigned i=0; i < bounding_box_vec.size(); i++){
       //  bounding_box[i]=bounding_box_vec[i]; // copy from vector to array 
       //}
       node.getParam("auto_bounds",  auto_bounds);
+      std::cout<<"bounding_box size: "<< bounding_box.size()<<std::endl;
       return 0;
    
     }
@@ -295,80 +297,28 @@ class FilterDataset {
               }
  
               if (!strcmp(tf.header.frame_id.c_str(), "world") && !strcmp(tf.child_frame_id.c_str(), "T6")){
-                std::cout<<"tf recieved"<<std::endl;
-                std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
-                std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
+                //std::cout<<"tf recieved"<<std::endl;
+                //std::cout<<"frame: "<<tf.header.frame_id<<std::endl;
+                //std::cout<<"child frame: "<<tf.child_frame_id<<std::endl;
                 
                 tf_T6_base.transform=tf.transform;        // use the transform from tf (world->T6) and
                 tf_T6_base.header.frame_id="base_link";   // re-broadcast as the transform fot tf (base_link-T6)
                 tf_T6_base.child_frame_id="T6";            
                 tf_T6_base.header.stamp=ros::Time::now();
-                chain_complete=true;
+                //chain_complete=true;
               } 
             
             }  
             
             // broadcast the bag transform from the end effector to the base of the robot 
-            if (chain_complete){
+            //if (chain_complete){
               //if(broadcast_bag_tfs){
-              br.sendTransform(tf_T6_base);
+            br.sendTransform(tf_T6_base);
               //}
               
-              chain_complete=false; 
+              //chain_complete=false; 
               
-              // combine transformation section not needed, use tf lookup instead 
-              //T_camera_base.translation.x=T_tripod_base.translation.x+T_camera_tripod.translation.x;              
-              // calculate the total translation vector as the sum of translation vectors
-              //T_camera_base.translation.y=T_tripod_base.translation.y+T_camera_tripod.translation.y;              
-              //T_camera_base.translation.z=T_tripod_base.translation.z+T_camera_tripod.translation.z;              
-                            
-              //T_T6_world.translation.x=T_T6_base.translation.x+T_base_world.translation.x;              
-              //T_T6_world.translation.y=T_T6_base.translation.y+T_base_world.translation.y;              
-              //T_T6_world.translation.z=T_T6_base.translation.z+T_base_world.translation.z;              
-              
-              // calculate the total quaternion as the product of the quaternion vectors  
-              // do not operate directly on the mgs, convert first
-              //tf2::Quaternion q_tripod_base, q_camera_tripod, 
-              //tf2::Quaternion q_camera_base, q_T6_base, q_base_world, q_T6_world;
-              //tf2::fromMsg(T_tripod_base.rotation, q_tripod_base); 
-              //tf2::fromMsg(T_camera_tripod.rotation, q_camera_tripod);          
-              //q_camera_base=q_tripod_base*q_camera_tripod;    // multiply to combine quaternions   
-              //tf2::fromMsg(T_T6_base.rotation, q_T6_base); 
-              //tf2::fromMsg(T_base_world.rotation, q_base_world);          
-              
-              //q_camera_base=q_camera_tripod*q_tripod_base;      // order matters 
-              //T_camera_base.rotation=tf2::toMsg(q_camera_base); // convert from tf2 to geometry msg
-               
-              //q_T6_world=q_T6_base*q_base_world;      // order matters 
-              //T_T6_world.rotation=tf2::toMsg(q_T6_world); // convert from tf2 to geometry msg
-              // now put that in a stamped transform to be re-broadcasted in the tf topic
-              //geometry_msgs::TransformStamped tf_camera_base;      
-              //tf_camera_base.header.frame_id="base_link";       // create new header info
-              //tf_camera_base.child_frame_id="camera_link_test"; // check loop closure in rviz to validate tf operations
-             
-              //tf_T6_base.header.frame_id="base_link";       // create new header info
-              //tf_T6_base.child_frame_id="T6_link";          // check loop closure in rviz to validate tf operations
-              
-              //tf_base_world.header.frame_id="world";       // create new header info
-              //tf_base_world.child_frame_id="base_link";          // check loop closure in rviz to validate tf operations
-              
-              //tf_T6_base.transform=T_T6_base;
-              //tf_base_world.transform=T_base_world;
-
-              //tf_camera_base.transform=T_camera_base;           // add the computed transform to the message 
-              //tf_T6_world.transform=T_T6_world;           // add the computed transform to the message 
-
-              // add transform to stamped transform to be broadcasted 
-              //printTransform(T_tripod_base, "T_tripod_base"); 
-              //printTransform(T_camera_tripod, "T_camera_tripod");
-              //printTransform(T_camera_base, "T_camera_base");
-            
-              // convert the combined transformation to eigen to be used for transforming clouds
-              //tf::vectorMsgToEigen(T_camera_base.translation, camera_translation);// convert translation to eigen vector
-              //tf::quaternionMsgToEigen(T_camera_base.rotation, camera_rotation); // convert rotation to eigen quaternion
-              //tf::vectorMsgToEigen(T_T6_world.translation, T6_world_translation);// convert translation to eigen vector
-              //tf::quaternionMsgToEigen(T_T6_world.rotation, T6_world_rotation); // convert rotation to eigen quaternion
-            }
+            //}
           }     
         }
 
@@ -379,11 +329,11 @@ class FilterDataset {
           try{
             // lookup a transform, this contains the chain from the the camera to the base of the robot 
             tf_camera_base = tfBuffer.lookupTransform("base_link", "camera_link", ros::Time(0)); 
-            std::cout<<"transform heard on bag loop iteration "<<idx<<std::endl;
+            //std::cout<<"transform heard on bag loop iteration "<<idx<<std::endl;
             
             // inverse transfrom is not used, just showing that it is available
             tf_base_camera = tfBuffer.lookupTransform("camera_link", "base_link", ros::Time(0)); 
-            std::cout<<"inverse transform heard on bag loop iteration "<<idx<<std::endl;
+            //std::cout<<"inverse transform heard on bag loop iteration "<<idx<<std::endl;
             
             // convert tranform components to eigen objects to be used in pointcloud transformation 
             tf::vectorMsgToEigen(tf_camera_base.transform.translation, camera_base_translation);
@@ -621,7 +571,8 @@ class FilterDataset {
 
     // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
     template <typename point_t>
-    void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr, Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, 
+    void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr, 
+                          Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, 
                           std::string prefix){
       std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
         
@@ -659,11 +610,9 @@ class FilterDataset {
     // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
     void copyCloud(PointCloud &input, PointCloud &output){
 
-      //std::cout<<"the point cloud input has "<< input.size()<< " points"<<std::endl;
       for (int i=0; i<input.size(); i++) { // add points to cluster cloud
         output.push_back(input[i]);  
       } 
-      //std::cout<<"the point cloud output has "<< output.size()<< " points"<<std::endl;
     
     }
 
@@ -686,109 +635,6 @@ class FilterDataset {
 
       pcl::copyPointCloud(*cloud, output); // this copy is avoided by filtering "output" directly 
 
-    }
-
-    /*
-    // function to apply bounding box to PointCloud with XYZRGB points
-    void boundCloud(PointCloud &input, PointCloud &output, double box[]){
-
-      PointCloud::Ptr cloud (new PointCloud);      // working copy for this routine
-      for (int i=0; i<input.size(); i++) { // add points to cluster cloud
-        cloud->push_back(input[i]);  
-      } 
-
-      std::cout<<"Beginning BoundCloud() function" << std::endl;
-     
-      double box_length, box_width, box_height;
-      box_length=0.25; // default auto_bounds, smart auto bounds not implemented
-      box_width=0.25;     
-      box_height=0.25;
-
-    //  if (auto_bounds){
-    //
-    //    Eigen::Vector4f centroid;
-    //    Eigen::Vector4f min;
-    //    Eigen::Vector4f max;  
-
-    //    pcl::compute3DCentroid(*cloud, centroid);
-
-    //    box[0]=centroid[0]-box_length/2;  // xmin
-    //    box[1]=centroid[0]+box_length/2;  // xmax
-    //    box[2]=centroid[1]-box_width/2;   // ymin
-    //    box[3]=centroid[1]+box_width/2;   // ymax
-    //    box[4]=centroid[2]-box_height/2;  // zmin
-    //    box[5]=centroid[2]+box_height/2;  // zmax
-
-    //  }else{
-    //  }
-
-      //Apply Bounding Box Filter
-      pcl::PassThrough<PointT> pass; //input_cloud
-      pass.setInputCloud(cloud);
-
-      pass.setFilterFieldName ("x");
-      pass.setFilterLimits(box[0],box[1]);
-      pass.filter (*cloud);
-
-      pass.setFilterFieldName ("y");
-      pass.setFilterLimits(box[2],box[3]);
-      pass.filter (*cloud);
-
-      pass.setFilterFieldName ("z");
-      pass.setFilterLimits(box[4],box[5]);
-      pass.filter (*cloud);
-        
-      pcl::copyPointCloud(*cloud, output);
-      std::cout<<"after bounding there are "<<output.size()<<"points in the cloud"<<std::endl;
-    }
-    */
-
-    // function to apply translation and rotation without scaling to PointCloud
-    void transformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3d rotation, Eigen::Vector3d translation){
-
-      PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
-      pcl::copyPointCloud(input,*cloud);
-
-      Eigen::Affine3d transform = Eigen::Affine3d::Identity();
-      // Define a translation 
-      transform.translation() << translation[0], translation[1], translation[2];
-      // define three axis rotation&clouds (RPY)
-      transform.rotate (Eigen::AngleAxisd (rotation[0], Eigen::Vector3d::UnitX()));
-      transform.rotate (Eigen::AngleAxisd (rotation[1], Eigen::Vector3d::UnitY()));
-      transform.rotate (Eigen::AngleAxisd (rotation[2], Eigen::Vector3d::UnitZ()));
-
-      // Print the transformation
-      //std::cout << transform_2.matrix() << std::endl;
-
-      // Execute the transformation on working copy 
-      pcl::transformPointCloud (*cloud, *cloud, transform); 
-      // copy to the output cloud
-      pcl::copyPointCloud(*cloud, output);
-      
-      std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl;
-    }
-
-
-    // overloaded function to apply translation and rotation without scaling to PointCloud using quaternion 
-    void transformCloud(PointCloud &input, PointCloud &output, Eigen::Quaterniond rotation, Eigen::Vector3d translation){
-
-      PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
-      pcl::copyPointCloud(input,*cloud);
-
-      Eigen::Affine3d transform = Eigen::Affine3d::Identity();
-      // set the translation and rotation of the transformation 
-      transform.translation() << translation[0], translation[1], translation[2];
-      transform.rotate(rotation);
-
-      // Print the transformation
-      //std::cout << transform_2.matrix() << std::endl;
-
-      // Execute the transformation on working copy 
-      pcl::transformPointCloud (*cloud, *cloud, transform); 
-      // copy to the output cloud
-      pcl::copyPointCloud(*cloud, output);
-      
-      std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl;
     }
 
 
@@ -895,16 +741,19 @@ class FilterDataset {
       PointCloud::Ptr cloud (new PointCloud);
       pcl::copyPointCloud(input, *cloud);        // this copy ensures that the input data is left unchanged
 
+      CloudFilter filter;
+      filter.loadConfig("filter_dataset");
+      
       // apply series of filters to pointcloud
       //rigid transformation
       if(transforming){
-        //transformCloud(*cloud, *cloud, base_camera_rotation, base_camera_translation);
-        transformCloud(*cloud, *cloud, camera_base_rotation, camera_base_translation);
+        //transformCloud(*cloud, *cloud, base_camera_rotation, base_camera_translation); // inverse
+        //transformCloud(*cloud, *cloud, camera_base_rotation, camera_base_translation);
+        filter.transformCloud(*cloud, *cloud, camera_base_rotation, camera_base_translation);
       }
       // bounding box 
       if(bounding){
-        CloudFilter filter;
-        filter.loadConfig("filter_dataset");
+        
         filter.boundCloud(*cloud, *cloud, bounding_box);
         //boundCloud(*cloud, *cloud, bounding_box);
       }
@@ -932,7 +781,7 @@ class FilterDataset {
     // other parameters from the config file (these do not need to public)
     bool auto_bounds;
     bool save_bag_clouds, save_dir_clouds, 
-        broadcast_bag_tfs, use_bag_tfs, use_config_tfs,
+         broadcast_bag_tfs, use_bag_tfs, use_config_tfs,
          publish_bag_clouds, publish_dir_clouds,  
          transform_bag_clouds, transform_dir_clouds,
          bound_bag_clouds, bound_dir_clouds,
@@ -943,7 +792,6 @@ class FilterDataset {
     std::string package_path, input_path, output_path, input_dir, output_dir, input_file, output_file, 
                 input_bag, input_bag_path, output_bag_dir, output_bag_path;
  
-    //double bounding_box[6];
     std::vector<double> bounding_box;
     Eigen::Vector3d pre_rotation, pre_translation;
 

@@ -42,9 +42,12 @@ class CloudFilter
 
     void boundCloud(PointCloud &input, PointCloud &output, std::vector<double> box);
 
+    void transformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3d rotation, Eigen::Vector3d translation);
+    
+    void transformCloud(PointCloud &input, PointCloud &output, Eigen::Quaterniond rotation, Eigen::Vector3d translation);
 
     // PUBLIC attributes
-    
+
 };
 
 

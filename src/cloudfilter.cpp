@@ -14,8 +14,14 @@
 #include <ros/package.h>
 
 #include <pcl/common/common.h>
+#include <pcl/common/transforms.h>
 #include <pcl/point_cloud.h>
 #include <pcl/filters/passthrough.h>
+
+#include <Eigen/Dense>
+#include <Eigen/Core>
+#include <eigen_conversions/eigen_msg.h>
+#include <Eigen/Geometry> 
 
 // PCL PointClouds with XYZ RGB Points
 typedef pcl::PointXYZRGB PointT;
@@ -121,5 +127,54 @@ void CloudFilter::boundCloud(PointCloud &input, PointCloud &output, std::vector<
   std::cout<<"--- bound cloud debug --- "<<std::endl;
   pcl::copyPointCloud(*cloud, output);
   std::cout<<"after bounding there are "<<output.size()<<"points in the cloud"<<std::endl;
+}
+
+
+// apply translation and rotation without scaling to PointCloud
+void CloudFilter::transformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3d rotation, Eigen::Vector3d translation){
+
+  PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
+  pcl::copyPointCloud(input,*cloud);
+
+  Eigen::Affine3d transform = Eigen::Affine3d::Identity();
+  // Define a translation 
+  transform.translation() << translation[0], translation[1], translation[2];
+  // define three axis rotation&clouds (RPY)
+  transform.rotate (Eigen::AngleAxisd (rotation[0], Eigen::Vector3d::UnitX()));
+  transform.rotate (Eigen::AngleAxisd (rotation[1], Eigen::Vector3d::UnitY()));
+  transform.rotate (Eigen::AngleAxisd (rotation[2], Eigen::Vector3d::UnitZ()));
+
+  // Print the transformation
+  //std::cout << transform_2.matrix() << std::endl;
+
+  // Execute the transformation on working copy 
+  pcl::transformPointCloud (*cloud, *cloud, transform); 
+  // copy to the output cloud
+  pcl::copyPointCloud(*cloud, output);
+  
+  std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl;
+}
+
+
+// overloaded function to apply translation and rotation without scaling to PointCloud using quaternion 
+void CloudFilter::transformCloud(PointCloud &input, PointCloud &output, Eigen::Quaterniond rotation, Eigen::Vector3d translation){
+
+  PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
+  pcl::copyPointCloud(input,*cloud);
+
+  Eigen::Affine3d transform = Eigen::Affine3d::Identity();
+  // set the translation and rotation of the transformation 
+  transform.translation() << translation[0], translation[1], translation[2];
+  transform.rotate(rotation);
+
+  // Print the transformation
+  //std::cout << transform_2.matrix() << std::endl;
+
+  // Execute the transformation on working copy 
+  pcl::transformPointCloud (*cloud, *cloud, transform); 
+  // copy to the output cloud
+  pcl::copyPointCloud(*cloud, output);
+  
+  std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl; 
 }
 
