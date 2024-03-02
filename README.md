@@ -554,7 +554,7 @@ The process from the summer 2023 season needs documentation!
 
 #### Things To Do (priority top to bottom):
 
-- [ ] IN PROGRESS - test multiview part reconstructions (needs new name maybe, find standard name)
+- [x] IN PROGRESS - test multiview part reconstructions (needs new name maybe, find standard name)
 
 - [ ] IN PROGRESS - use a .cpp class with header file to create sharable functions for project, see cloudfilter.cpp, cloudfilter.h
                     trying hard to follow standard cpp class convention for usability
@@ -562,21 +562,6 @@ The process from the summer 2023 season needs documentation!
 - [ ] IN PROGRESS - use a .cpp class to improve RGB pointcloud filtering and file management, see `filter_dataset.cpp` 
 
 - [ ] IN PROGRESS - use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated! - see devel
-
-- [x] design and test process with multi computer cross version setup on robot with LiDAR and RGBD camera
-    -> pointcloud and tf published by arm computer, vision computer subscribes
-    -> registration result tf published by vision computer, arm computer subscribes   
-    [ ] document the process of interfacing with Aubo/RTT robot
-
-- [x] streamline filtering->clustering->registration for testing alongsisde robot
-    -> streamline might not be the best word for it, but this process has been tested 
-
-- [x] use PCL Euclidean cluster extraction to replace segmentation or manual bounding box preparation of lidar scans
-    -> proof of concept shown in `filter_cloud.cpp`, robot body is successfully separated from workpeice, clusters shown in rviz
-    -> this needs testing for robustness and documentation, 
-    -> volume + aspect ratio objective function used, improve this with weighted factors instead of summative
-
-- [x] test clustering with workpeice plus separated objects on table and consider a selection algorithm to determine which cluster is the correct workpeice, cluster size is not a robust metric for selection if the workpeice size varies. The workpeice size will vary.
 
 - [ ] test clustering with workpeice and clamps
     -> older scans 
@@ -588,16 +573,6 @@ The process from the summer 2023 season needs documentation!
     -> synthetic data with clamps 
     -> to be collected new scans
 
-- [x] collect new scan data from auboi10 and rplidar and/or lightware 
-    -> with extra objects and without
-    -> [ ] with clamps and without
-    -> consider collection 3D camera data general purpose research
-    -> carefully consider design of experiments  
-
-- [x] test icp registration from several tracked starting locations to avoid getting stuck in local minimum, compare scores of each result and lowest should be correct
-    -> first pass at this seems to work, four positions were tested and the correct position can be identified with the fitness score 
-    -> code only works for ICP, not TEASER or TEASER_FPFH yet
-
 - [ ] test working data sets from recent scans with Overlap Predator, this is being tested in a different repo
 
     -> Overlap Predator demo was working fine at some point June 29, then the `sh scripts/download_data_weight.sh ` started failing to connect. I do not think this was on my end, but I an not sure. I can test that from the office if it still will not connect tomorrow. Hopefully, they did not kick me out. WOW! Just as I wrote this it finally started working so I guess it was magic or they are spying on me.
@@ -608,43 +583,20 @@ The process from the summer 2023 season needs documentation!
 
     -> these tests are not documented well, and dockerfiles are not in repos so they will be hard to transfer across machines and there is no cloud backup. I would just put them in the forked repos, but .... wait why dont we do that??? why are they in the parent directory anyway? hmmm....
 
-
-- [x] test new LiDAR sensor from lightware, capture new 3D scans for comparison
-    -> test in progress
-
-- [x] update and document config file system to allow for iterative (cascaded) registration, this should be doable without major modifications to the source code
-    -> iteratiion is typically built into registration methods, also it does not seem to produce improved results when interation is performed manually
-
-- [x] test iterative registration on current and previous experimental data sets
-    -> no significant results shown, you have learned this once again so maybe this time you will remember it
-
-- [ ] implement `overlap_predator` registration on experimental data for performance comparision, this might solve orientation issues
-
-- [ ] add separate code for cloud_segmentation to complete separation of steps 
+- [x] test `overlap_predator` registration on experimental data for performance comparision, this might solve orientation issues
+    -> limited success with our data, needs to be revisited
 
 - [ ] re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
 
-- [ ] continue investigating the affects of cloud density on the performance of ICP. It is apparant that this effects the proper convergence of ICP. 
-
-- [ ] investigate and demonstrate the affect of the voxel filter
-
-- [ ] investigate different segmentation models - progress made with multiple planes and `SAC_PERPENDICULAR_PLANE` 
+- [ ] investigate/document the affects of cloud density on the performance of ICP. It is apparant that this effects the proper convergence of ICP. 
 
 - [ ] develope processing multiple parts, two parts only for now
 
-- [ ] add description of the seam to the model - i have begun by creating seam *.pcd* files - lists for seam points are setup in the config file
-
-- [ ] calculate a *measure of accuracy* - i started this in `analyse_results` then moved this to `register_cloud_icp` in a hurry, needs to go back now
-
 - [ ] The tf migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
-- [ ] Improve conversion from `ICP::` to `TF::` in REGISTER_CLOUD_ICP function in `seam_detection.cpp`. Currently it is clunky and overbloated, but it works.
-
-- [ ] improve efficiecy of `seam_detection.cpp` by redcucing the number of extra copies of cloud objects used in the main workflow. Many of these were only used for debugging purposes. 
-
-- [ ] document data collection and calibration process using 3D LiDAR system - update `scan2cloud` package and docs - TAKE NOTE NEXT TIME !
+- [ ] update `scan2cloud` package to work with seam_detection
 
 - [?] prepare a manuscript for ASME IDETC2024 or alternate venue
 
-- [ ] clean up README and test archived and older examples  - update old config files with new parameters lists, maybe we should wait until we finish changing lol
+- [ ] IN_PROGRESS  clean up README and test archived and older examples  - update old config files with new parameters lists, maybe we should wait until we finish changing lol
 
 - [ ] prune this list
