@@ -516,6 +516,8 @@ class FilterDataset {
       }
       return dir_clouds;
     }
+    
+    
     // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
     template <typename point_t>
     void publishCloud(point_t &cloud, std::string topic, std::string frame){
@@ -637,7 +639,7 @@ class FilterDataset {
 
     }
 
-
+    /*
     // function to apply moving least squared smoothing to pointcloud
     void smoothCloud(PointCloud &input, PointCloudNormal &output){
 
@@ -691,7 +693,7 @@ class FilterDataset {
       mls.process (output);
       std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
     } 
-     
+    */ 
 
     void extractPolygonalPrism(PointCloud &input){
        
@@ -752,14 +754,16 @@ class FilterDataset {
         filter.transformCloud(*cloud, *cloud, camera_base_rotation, camera_base_translation);
       }
       // bounding box 
-      if(bounding){
-        
-        filter.boundCloud(*cloud, *cloud, bounding_box);
+      if(bounding){ 
         //boundCloud(*cloud, *cloud, bounding_box);
+        filter.boundCloud(*cloud, *cloud, bounding_box);
       }
       // moving least squares smoothing  
       if(smoothing){
-        smoothCloudT(*cloud, *cloud); // smooth is slow on dense clouds not surprise
+        //smoothCloudT(*cloud, *cloud); // smooth is slow on dense clouds not surprise
+        PointCloudNormal::Ptr cloud_smoothed (new PointCloudNormal);
+        filter.smoothCloudT(*cloud, *cloud_smoothed); // smooth is slow on dense clouds not surprise
+        publishCloud(*cloud_smoothed, "cloud_smoothed", "map");
       }
       // voxel downsampling  
       if(downsampling){

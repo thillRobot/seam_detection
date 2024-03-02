@@ -9,9 +9,13 @@
 #include <pcl/point_cloud.h>
 
 // PCL PointClouds with XYZ RGB Points
-typedef pcl::PointXYZRGB PointT;
+//typedef pcl::PointXYZRGB PointT;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
-typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
+//typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
+// PCL PointClouds with XYZ RGB Normal Points
+//typedef pcl::PointXYZRGBNormal PointNT;
+//typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
+//typedef pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr PointCloudNormalPtr;
 
 
 class CloudFilter
@@ -45,6 +49,11 @@ class CloudFilter
     void transformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3d rotation, Eigen::Vector3d translation);
     
     void transformCloud(PointCloud &input, PointCloud &output, Eigen::Quaterniond rotation, Eigen::Vector3d translation);
+    
+    //void smoothCloud(PointCloud &input, PointCloudNormal &output);
+
+    template <typename point_t, typename point_normal_t> 
+    void smoothCloudT(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_normal_t> &output);
 
     // PUBLIC attributes
 

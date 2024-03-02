@@ -47,7 +47,7 @@ downsample_bag_clouds: false
 
 transform_dir_clouds: false
 bound_dir_clouds: true
-smooth_dir_clouds: false
+smooth_dir_clouds: true
 downsample_dir_clouds: false
 
 #pre_rotation:    [-0.0 5, 3.17, 0.0] #

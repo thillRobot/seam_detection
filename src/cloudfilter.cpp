@@ -17,7 +17,9 @@
 #include <pcl/common/transforms.h>
 #include <pcl/point_cloud.h>
 #include <pcl/filters/passthrough.h>
-
+#include <pcl/search/kdtree.h>
+#include <pcl/surface/mls.h>
+ 
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <eigen_conversions/eigen_msg.h>
@@ -26,7 +28,11 @@
 // PCL PointClouds with XYZ RGB Points
 typedef pcl::PointXYZRGB PointT;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
-typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
+//typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
+// PCL PointCloud with XYZ RGB Normal Points
+//typedef pcl::PointXYZRGBNormal PointNT;
+//typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
+//typedef pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr PointCloudNormalPtr;
 
 // DEFINITIONS
 
@@ -178,3 +184,61 @@ void CloudFilter::transformCloud(PointCloud &input, PointCloud &output, Eigen::Q
   std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl; 
 }
 
+/*
+// function to apply moving least squared smoothing to pointcloud
+void CloudFilter::smoothCloud(PointCloud &input, PointCloudNormal &output){
+
+  PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy for this function 
+  pcl::copyPointCloud(input,*cloud);
+
+  // Create a KD-Tree
+  pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
+
+  // Output has the PointNormal type in order to store the normals calculated by MLS
+  //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; 
+  // modify the function output pointcloud directly instead
+  // Init object (second point type is for the normals, even if unused)
+  pcl::MovingLeastSquares<PointT, pcl::PointXYZRGBNormal> mls;
+
+  // Set parameters
+  mls.setComputeNormals (true);
+  mls.setInputCloud (cloud);
+  mls.setPolynomialOrder (2);
+  mls.setSearchMethod (tree);
+  mls.setSearchRadius (0.03);
+
+  // Reconstruct
+  mls.process (output);
+  std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
+}*/
+
+
+
+// templated function for PCL moving least squares smoothing, normal data generated during this process
+template <typename point_t, typename point_normal_t> 
+void CloudFilter::smoothCloudT(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_normal_t> &output){
+  
+  //allocate memory and make copy to use as the working copy for this function 
+  typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>); 
+  pcl::copyPointCloud(input,*cloud);
+  
+  std::cout<<"before smoothing there are "<<cloud->size()<<"points in the cloud"<<std::endl;
+  // Create a KD-Tree
+  typename pcl::search::KdTree<point_t>::Ptr tree (new pcl::search::KdTree<point_t>);
+
+  pcl::MovingLeastSquares<point_t, point_normal_t> mls;
+
+  // Set parameters
+  mls.setComputeNormals (true);
+  mls.setInputCloud (cloud);
+  mls.setPolynomialOrder (2);
+  mls.setSearchMethod (tree);
+  mls.setSearchRadius (0.03);
+
+  // Reconstruct
+  mls.process (output);
+  std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
+}
+ 
+template void CloudFilter::smoothCloudT< pcl::PointXYZRGB, pcl::PointXYZRGBNormal >
+              (pcl::PointCloud<pcl::PointXYZRGB> &input, pcl::PointCloud<pcl::PointXYZRGBNormal> &output);
