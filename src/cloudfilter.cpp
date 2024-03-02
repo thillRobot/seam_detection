@@ -19,7 +19,8 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/search/kdtree.h>
 #include <pcl/surface/mls.h>
- 
+#include <pcl/filters/voxel_grid.h>
+
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <eigen_conversions/eigen_msg.h>
@@ -216,7 +217,7 @@ void CloudFilter::smoothCloud(PointCloud &input, PointCloudNormal &output){
 
 // templated function for PCL moving least squares smoothing, normal data generated during this process
 template <typename point_t, typename point_normal_t> 
-void CloudFilter::smoothCloudT(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_normal_t> &output){
+void CloudFilter::smoothCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_normal_t> &output){
   
   //allocate memory and make copy to use as the working copy for this function 
   typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>); 
@@ -240,5 +241,30 @@ void CloudFilter::smoothCloudT(pcl::PointCloud<point_t> &input, pcl::PointCloud<
   std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
 }
  
-template void CloudFilter::smoothCloudT< pcl::PointXYZRGB, pcl::PointXYZRGBNormal >
+template void CloudFilter::smoothCloud< pcl::PointXYZRGB, pcl::PointXYZRGBNormal >
               (pcl::PointCloud<pcl::PointXYZRGB> &input, pcl::PointCloud<pcl::PointXYZRGBNormal> &output);
+
+
+// templated function to apply voxel downsampling to pointcloud 
+template <typename point_t>
+void CloudFilter::downsampleCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_t> &output, double leaf_size){
+
+  typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>);
+  pcl::copyPointCloud(input, *cloud);        // this copy ensures that the input data is left unchanged
+
+  // Apply Voxel Filter 
+  if (leaf_size>0){
+    pcl::VoxelGrid<PointT> vox;
+    vox.setInputCloud (cloud); // operate directly on the output PointCloud pointer, removes need for copy below
+    vox.setLeafSize (leaf_size, leaf_size, leaf_size); // use "001f","001f","0001f" or "none" to set voxel leaf size
+    vox.filter (*cloud);
+  }else{
+    std::cout<<"leaf_size>0 false, no voxel filtering"<< std::endl;
+  }
+
+  pcl::copyPointCloud(*cloud, output); // this copy is avoided by filtering "output" directly 
+
+}
+
+template void CloudFilter::downsampleCloud<pcl::PointXYZRGB>
+              (pcl::PointCloud<pcl::PointXYZRGB> &input, pcl::PointCloud<pcl::PointXYZRGB> &output, double leaf_size);

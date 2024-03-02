@@ -53,7 +53,10 @@ class CloudFilter
     //void smoothCloud(PointCloud &input, PointCloudNormal &output);
 
     template <typename point_t, typename point_normal_t> 
-    void smoothCloudT(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_normal_t> &output);
+    void smoothCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_normal_t> &output);
+   
+    template <typename point_t>
+    void downsampleCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_t> &output, double leaf_size);
 
     // PUBLIC attributes
 

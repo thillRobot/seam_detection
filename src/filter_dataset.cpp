@@ -619,82 +619,6 @@ class FilterDataset {
     }
 
 
-    // function to apply voxel downsampling to pointcloud 
-    void downsampleCloud(PointCloud &input, PointCloud &output, double leaf_size){
-
-      PointCloud::Ptr cloud (new PointCloud); 
-      pcl::copyPointCloud(input, *cloud);        // this copy ensures that the input data is left unchanged
- 
-      // Apply Voxel Filter 
-      if (leaf_size>0){
-        pcl::VoxelGrid<PointT> vox;
-        vox.setInputCloud (cloud); // operate directly on the output PointCloud pointer, removes need for copy below
-        vox.setLeafSize (leaf_size, leaf_size, leaf_size); // use "001f","001f","0001f" or "none" to set voxel leaf size
-        vox.filter (*cloud);
-      }else{
-        std::cout<<"leaf_size>0 false, no voxel filtering"<< std::endl;
-      }
-
-      pcl::copyPointCloud(*cloud, output); // this copy is avoided by filtering "output" directly 
-
-    }
-
-    /*
-    // function to apply moving least squared smoothing to pointcloud
-    void smoothCloud(PointCloud &input, PointCloudNormal &output){
-
-      PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy for this function 
-      pcl::copyPointCloud(input,*cloud);
-
-      // Create a KD-Tree
-      pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
-
-      // Output has the PointNormal type in order to store the normals calculated by MLS
-      //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; 
-      // modify the function output pointcloud directly instead
-      // Init object (second point type is for the normals, even if unused)
-      pcl::MovingLeastSquares<PointT, pcl::PointXYZRGBNormal> mls;
-
-      // Set parameters
-      mls.setComputeNormals (true);
-      mls.setInputCloud (cloud);
-      mls.setPolynomialOrder (2);
-      mls.setSearchMethod (tree);
-      mls.setSearchRadius (0.03);
-
-      // Reconstruct
-      mls.process (output);
-      std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
-    }
-
-
-    // templated function for PCL moving least squares smoothing, normal data generated during this process
-    template <typename point_t, typename point_normal_t> 
-    void smoothCloudT(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_normal_t> &output){
-      
-      //allocate memory and make copy to use as the working copy for this function 
-      typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>); 
-      pcl::copyPointCloud(input,*cloud);
-      
-      std::cout<<"before smoothing there are "<<cloud->size()<<"points in the cloud"<<std::endl;
-      // Create a KD-Tree
-      typename pcl::search::KdTree<point_t>::Ptr tree (new pcl::search::KdTree<point_t>);
-
-      pcl::MovingLeastSquares<point_t, point_normal_t> mls;
-
-      // Set parameters
-      mls.setComputeNormals (true);
-      mls.setInputCloud (cloud);
-      mls.setPolynomialOrder (2);
-      mls.setSearchMethod (tree);
-      mls.setSearchRadius (0.03);
-
-      // Reconstruct
-      mls.process (output);
-      std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
-    } 
-    */ 
-
     void extractPolygonalPrism(PointCloud &input){
        
        PointCloudPtr cloud (new PointCloud);
@@ -762,12 +686,13 @@ class FilterDataset {
       if(smoothing){
         //smoothCloudT(*cloud, *cloud); // smooth is slow on dense clouds not surprise
         PointCloudNormal::Ptr cloud_smoothed (new PointCloudNormal);
-        filter.smoothCloudT(*cloud, *cloud_smoothed); // smooth is slow on dense clouds not surprise
+        filter.smoothCloud(*cloud, *cloud_smoothed); // smooth is slow on dense clouds not surprise
         publishCloud(*cloud_smoothed, "cloud_smoothed", "map");
       }
       // voxel downsampling  
       if(downsampling){
-        downsampleCloud(*cloud, *cloud, voxel_size);
+        //downsampleCloud(*cloud, *cloud, voxel_size);
+        filter.downsampleCloud(*cloud, *cloud, voxel_size);
       }          
 
       std::cout<<"after filtering there are "<<cloud->size()<<" points in the cloud"<< std::endl;
