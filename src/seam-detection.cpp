@@ -172,7 +172,7 @@ class SeamDetection {
       return 0;
     }
     
-
+    /*
     // templated function to load pcl::PointCloud<point_t> from PCD file as defined in config
     template <typename point_t>
     int loadCloud( pcl::PointCloud<point_t> &input, std::string file_name ){
@@ -191,7 +191,9 @@ class SeamDetection {
       std::cout << "Loaded "<<input.width * input.height << " data points from input pointcloud file: "<< file_path <<std::endl;
       return 0;  
     } 
+    */
 
+    /*
     
     // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
     template <typename point_t>
@@ -209,6 +211,7 @@ class SeamDetection {
 
     }
 
+    */
 
     // function to publish a vector of PointClouds representing clusters as a ROS topic
     void publishClusters(PointCloudVec &clusters, std::string prefix){
@@ -1660,11 +1663,11 @@ int main(int argc, char** argv)
   cloud_views.push_back(cloud_view4);
 
   cloud_merged=sd.mergeClusters(cloud_views);
-  sd.publishCloud(*cloud_view1, "cloud_view1");
-  sd.publishCloud(*cloud_view2, "cloud_view2");
-  sd.publishCloud(*cloud_view3, "cloud_view3");
-  sd.publishCloud(*cloud_view4, "cloud_view4");
-  sd.publishCloud(*cloud_merged, "cloud_merged");
+  utl.publishCloud(*cloud_view1, "cloud_view1", "base_link");
+  utl.publishCloud(*cloud_view2, "cloud_view2", "base_link");
+  utl.publishCloud(*cloud_view3, "cloud_view3", "base_link");
+  utl.publishCloud(*cloud_view4, "cloud_view4", "base_link");
+  utl.publishCloud(*cloud_merged, "cloud_merged", "base_link");
 
   std::cout<<"|----------- Step 0 Complete ----------|"<<std::endl;  
   
@@ -1678,7 +1681,7 @@ int main(int argc, char** argv)
   PointCloud::Ptr training_bounded (new PointCloud);
   PointCloudNormal::Ptr training_smoothed (new PointCloudNormal);
  
-  sd.loadCloud( *training_input, sd.training_file );
+  utl.loadCloud( *training_input, sd.training_file );
   
   // Step 1.5 - perform voxel-downsampling, pre-transformation, and bounding-box on the training cloud
   CloudFilter filter;   // class defined in seam_detection, see include/cloudfilter.h
@@ -1692,11 +1695,11 @@ int main(int argc, char** argv)
   std::cout<<"training_smoothed has "<<training_bounded->size()<<" points"<<std::endl;
   
   // show the input training clouds in rviz
-  sd.publishCloud(*training_input, "/training_input"); 
-  sd.publishCloud(*training_downsampled, "/training_downsampled");
-  sd.publishCloud(*training_transformed, "/training_transformed"); 
-  sd.publishCloud(*training_bounded, "/training_bounded");
-  sd.publishCloud(*training_smoothed, "/training_smoothed");
+  utl.publishCloud(*training_input, "/training_input", "base_link"); 
+  utl.publishCloud(*training_downsampled, "/training_downsampled", "base_link");
+  utl.publishCloud(*training_transformed, "/training_transformed", "base_link"); 
+  utl.publishCloud(*training_bounded, "/training_bounded", "base_link");
+  utl.publishCloud(*training_smoothed, "/training_smoothed", "base_link");
 
   std::cout<<"|----------- Step 1 Complete ----------|"<<std::endl;    
   
@@ -1747,8 +1750,8 @@ int main(int argc, char** argv)
   sd.getCloudIntersection(*training_euclidean_clusters[0], *training_matches[0], *training_intersection);
   std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;
   
-  sd.publishCloud(*training_intersection, "/training_intersection"); // show in rviz
- 
+  utl.publishCloud(*training_intersection, "/training_intersection", "base_link"); // show in rviz
+
   std::cout<<"|----------- Step 3 Complete ----------|"<<std::endl;  
    
   // [Steps 4-7] - use 'test' image of target object on cluttered table
@@ -1769,10 +1772,10 @@ int main(int argc, char** argv)
   filter.boundCloud(*test_transformed, *test_bounded, sd.bounding_box);
  
   // show the input test clouds in rviz
-  sd.publishCloud(*test_input, "/test_input"); // show the input test and modified test clouds in rviz
-  sd.publishCloud(*test_downsampled, "/test_downsampled");
-  sd.publishCloud(*test_transformed, "/test_transformed"); 
-  sd.publishCloud(*test_bounded, "/test_bounded");
+  utl.publishCloud(*test_input, "/test_input", "base_link"); // show the input test and modified test clouds in rviz
+  utl.publishCloud(*test_downsampled, "/test_downsampled", "base_link");
+  utl.publishCloud(*test_transformed, "/test_transformed", "base_link"); 
+  utl.publishCloud(*test_bounded, "/test_bounded", "base_link");
 
   std::cout<<"|----------- Step 5 Complete ----------|"<<std::endl;  
   
@@ -1837,7 +1840,7 @@ int main(int argc, char** argv)
   final_match=sd.matchClustersMulti(*training_intersection, test_intersections, debug_level); 
  
   std::cout<<"final_match has "<<final_match->size()<<" points"<<std::endl;
-  sd.publishCloud(*final_match, "/final_match"); // show the matching target from the test image         
+  utl.publishCloud(*final_match, "/final_match", "base_link"); // show the matching target from the test image         
   
   std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
     

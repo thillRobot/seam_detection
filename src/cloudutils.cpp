@@ -16,6 +16,7 @@
 #include <pcl/common/common.h>
 #include <pcl/common/transforms.h>
 #include <pcl/io/pcd_io.h>
+#include <pcl_ros/point_cloud.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -93,6 +94,28 @@ template int CloudUtils::loadCloud<pcl::PointXYZRGB>
               (pcl::PointCloud<pcl::PointXYZRGB> &input, std::string file);
 
 
+// templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
+template <typename point_t>
+void CloudUtils::publishCloud(pcl::PointCloud<point_t> &cloud, std::string topic, std::string frame){
+  std::cout<<"|---------- SeamDetection::publishCloud - publishing single cloud ----------|"<<std::endl;
+
+  // advertise a new topic and publish a msg each time this function is called
+  pub_clouds.push_back(node.advertise<pcl::PointCloud<point_t>>(topic, 0, true));
+
+  cloud.header.frame_id = frame; // reference to show cloud in rviz
+
+  pub_clouds[pub_clouds.size()-1].publish(cloud);
+
+  ros::spinOnce();
+
+}
+
+// declare all possible uses of the template here with types
+template void CloudUtils::publishCloud< pcl::PointXYZRGB >
+              (pcl::PointCloud<pcl::PointXYZRGB> &cloud, std::string topic, std::string frame);
+
+template void CloudUtils::publishCloud< pcl::PointXYZRGBNormal >
+              (pcl::PointCloud<pcl::PointXYZRGBNormal> &cloud, std::string topic, std::string frame);
 
 
 

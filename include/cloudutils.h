@@ -28,6 +28,9 @@ class CloudUtils
     ros::NodeHandle node;
     
     std::string config, input_file, output_file;
+    
+    // generic publisher, can this be used for all of the clouds?
+    std::vector<ros::Publisher> pub_clouds;
 
   public:  
     // PUBLIC functions
@@ -42,6 +45,9 @@ class CloudUtils
 
     template <typename point_t>
     int loadCloud(pcl::PointCloud<point_t> &input, std::string file);
+   
+    template <typename point_t> 
+    void publishCloud(pcl::PointCloud<point_t> &cloud, std::string topic, std::string frame);
     
     // PUBLIC attributes
 

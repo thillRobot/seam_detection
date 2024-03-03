@@ -32,8 +32,8 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 
 #include "ros/package.h"
 #include <ros/ros.h>
-#include <sensor_msgs/PointCloud.h>
-#include <sensor_msgs/PointCloud2.h>
+//#include <sensor_msgs/PointCloud.h>
+//#include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/PointStamped.h>
 #include <visualization_msgs/Marker.h>
 #include <geometry_msgs/TransformStamped.h>
@@ -107,7 +107,7 @@ class FilterDataset {
     // function to load the config file(yaml) to pick the data files and set parameters 
     int loadConfig(void){
 
-      std::cout<<"|---------- SeamDetection::LoadConfig - loading configuration file ---------|"<<std::endl;
+      std::cout<<"|---------- FilterDataset::LoadConfig - loading configuration file ---------|"<<std::endl;
 
       // get boolen parameters 
       node.getParam("save_bag_clouds", save_bag_clouds);
@@ -178,7 +178,7 @@ class FilterDataset {
     template <typename point_t>
     int loadCloud(pcl::PointCloud<point_t> &input, std::string file) {
 
-      std::cout<<"|---------- SeamDetection::LoadCloud - loading PCD file ----------|"<<std::endl;
+      std::cout<<"|---------- FilterDataset::LoadCloud - loading PCD file ----------|"<<std::endl;
 
       std::string path;
       //path=package_path+"/"+input_dir+"/"+file;
@@ -199,7 +199,7 @@ class FilterDataset {
     template <typename point_t>
     int saveCloud(pcl::PointCloud<point_t> &output, std::string file){
       // the name output here is very confusing, consider changing this
-      std::cout<<"|---------- SeamDetection::SaveCloud - saving PCD file ----------|"<<std::endl;
+      std::cout<<"|---------- FilterDataset::SaveCloud - saving PCD file ----------|"<<std::endl;
 
       std::string path;
       //path=package_path+"/"+output_dir+"/"+file;
@@ -220,7 +220,7 @@ class FilterDataset {
     // function to load pcd files (and frames?) from bag file
     PointCloudVec filterCloudBag(int num_clouds ){
       
-      std::cout<<"|---------- SeamDetection::filterCloudBag - loading pointclouds from bag file ----------|"<<std::endl;
+      std::cout<<"|---------- FilterDataset::filterCloudBag - loading pointclouds from bag file ----------|"<<std::endl;
       
       rosbag::Bag bag;
       bag.open(input_bag_path, rosbag::bagmode::Read);
@@ -419,7 +419,7 @@ class FilterDataset {
     // function to filter an entire directory of pointclouds, results saved as output_path/*_filtered.pcd
     PointCloudVec filterCloudDir(std::string in){
        
-      std::cout<<"|---------- SeamDetection::filterCloudDir - loading PCD files by directory ----------|"<<std::endl;
+      std::cout<<"|---------- FilterDataset::filterCloudDir - loading PCD files by directory ----------|"<<std::endl;
 
       PointCloudVec dir_clouds;
       // Load Input Directory with boost::filesystem
@@ -509,9 +509,10 @@ class FilterDataset {
     
     
     // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
+    // this template is confusing, should be fixed 
     template <typename point_t>
     void publishCloud(point_t &cloud, std::string topic, std::string frame){
-      std::cout<<"|---------- SeamDetection::publishCloud - publishing single cloud ----------|"<<std::endl;
+      std::cout<<"|---------- FilterDataset::publishCloud - publishing single cloud ----------|"<<std::endl;
 
       // advertise a new topic and publish a msg each time this function is called
       pub_clouds.push_back(node.advertise<pcl::PointCloud<point_t>>(topic, 0, true));
@@ -527,7 +528,7 @@ class FilterDataset {
 
     // function to publish a vector of PointClouds representing clusters as a ROS topic
     void publishClouds(PointCloudVec &clusters, std::string prefix, std::string frame){
-      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
+      std::cout<<"|---------- FilterDataset::publishClusters - publishing clusters ----------|"<<std::endl;
         
       for (int i=0; i<clusters.size(); i++){
         // advertise a topic and publish a msg for each cluster in clusters
@@ -545,7 +546,7 @@ class FilterDataset {
 
     // function to publish a vector of PointClouds with normals representing clusters as a ROS topic
     void publishClusters(PointCloudNormalVec &clusters, std::string prefix){
-      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
+      std::cout<<"|---------- FilterDataset::publishClusters - publishing clusters ----------|"<<std::endl;
         
       for (int i=0; i<clusters.size(); i++){
         // advertise a topic and publish a msg for each cluster in clusters
@@ -566,7 +567,7 @@ class FilterDataset {
     void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr, 
                           Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, 
                           std::string prefix){
-      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
+      std::cout<<"|---------- FilterDataset::publishClusters - publishing clusters ----------|"<<std::endl;
         
       for (int i=0; i<clusters.size(); i++){
         // advertise a topic and publish a msg for each cluster in clusters
