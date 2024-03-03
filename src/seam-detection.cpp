@@ -171,121 +171,7 @@ class SeamDetection {
           
       return 0;
     }
-    
-    /*
-    // templated function to load pcl::PointCloud<point_t> from PCD file as defined in config
-    template <typename point_t>
-    int loadCloud( pcl::PointCloud<point_t> &input, std::string file_name ){
 
-      std::cout<<"|---------- SeamDetection::LoadCloud - loading PCD file ----------|"<<std::endl;
-
-      std::string file_path;
-      file_path=package_path+"/"+file_name;
-
-      std::cout << "Loading input pointcloud file: " << file_path << std::endl;
-      if (pcl::io::loadPCDFile<point_t> (file_path, input) == -1)
-      {
-        std::cout<<"Failed to load input pointcloud file: "<< training_path <<std::endl;
-        return (-1);
-      }
-      std::cout << "Loaded "<<input.width * input.height << " data points from input pointcloud file: "<< file_path <<std::endl;
-      return 0;  
-    } 
-    */
-
-    /*
-    
-    // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
-    template <typename point_t>
-    void publishCloud(point_t &cloud, std::string topic){
-      std::cout<<"|---------- SeamDetection::publishCloud - publishing single cloud ----------|"<<std::endl;
-
-      // advertise a new topic and publish a msg each time this function is called
-      pub_clouds.push_back(node.advertise<pcl::PointCloud<point_t>>(topic, 0, true));
-      
-      cloud.header.frame_id = "base_link";
-
-      pub_clouds[pub_clouds.size()-1].publish(cloud);
-
-      ros::spinOnce();
-
-    }
-
-    */
-
-    // function to publish a vector of PointClouds representing clusters as a ROS topic
-    void publishClusters(PointCloudVec &clusters, std::string prefix){
-      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
-        
-      for (int i=0; i<clusters.size(); i++){
-        // advertise a topic and publish a msg for each cluster in clusters
-        std::stringstream name;
-        name << prefix << i;
-        pub_clusters.push_back(node.advertise<PointCloud>(name.str(), 0, true));
-        clusters[i]->header.frame_id = "base_link";
-        pub_clusters[pub_idx].publish(clusters[i]);
-        pub_idx++;
-      }
-      
-      ros::spinOnce();
-    }
-
-
-    // function to publish a vector of PointClouds with normals representing clusters as a ROS topic
-    void publishClusters(PointCloudNormalVec &clusters, std::string prefix){
-      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
-        
-      for (int i=0; i<clusters.size(); i++){
-        // advertise a topic and publish a msg for each cluster in clusters
-        std::stringstream name;
-        name << prefix << i;
-        pub_clusters.push_back(node.advertise<PointCloudNormal>(name.str(), 0, true));
-        clusters[i]->header.frame_id = "base_link";
-        pub_clusters[pub_idx].publish(clusters[i]);
-        pub_idx++;
-      }
-      
-      ros::spinOnce();
-    }
-
-
-    
-    // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
-    template <typename point_t>
-    void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr, 
-            Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix){
-      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
-        
-      for (int i=0; i<clusters.size(); i++){
-        // advertise a topic and publish a msg for each cluster in clusters
-        std::stringstream name;
-        name << prefix << i;
-        pub_clusters.push_back(node.advertise<point_t>>(name.str(), 0, true)); // this type needs handling too
-        clusters[i]->header.frame_id = "base_link";
-        pub_clusters[pub_idx].publish(clusters[i]);
-        pub_idx++;
-      }
-      
-      ros::spinOnce();
-    }
-    /*
-    // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
-    template <typename T, typename A>
-    void publishClustersT(std::vector< typename pcl::PointCloud<T>::Ptr,A >& clusters, std::string prefix){
-      std::cout<<"|---------- SeamDetection::publishClusters - publishing clusters ----------|"<<std::endl;
-        
-      for (int i=0; i<clusters.size(); i++){
-        // advertise a topic and publish a msg for each cluster in clusters
-        std::stringstream name;
-        name << prefix << i;
-        pub_clusters.push_back(node.advertise<T>>(name.str(), 0, true)); // this type needs handling too
-        clusters[i]->header.frame_id = "base_link";
-        pub_clusters[pub_idx].publish(clusters[i]);
-        pub_idx++;
-      }
-      
-      ros::spinOnce();
-    }*/
  
     // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
     void copyCloud(PointCloud &input, PointCloud &output){
@@ -1715,8 +1601,8 @@ int main(int argc, char** argv)
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
 
   // show the extracted 'training' clusters in rviz
-  sd.publishClusters(training_euclidean_clusters, "/training_euclidean"); // show the euclidean and color based clusters 
-  sd.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
+  utl.publishClusters(training_euclidean_clusters, "/training_euclidean"); // show the euclidean and color based clusters 
+  utl.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
 
   // smooth the bounded training cloud and repeat the color clustering
   //PointCloudNormalVec training_smoothed_color_clusters;
@@ -1741,7 +1627,7 @@ int main(int argc, char** argv)
   training_matches=sd.matchClustersMulti(training_euclidean_clusters, training_color_clusters, debug_level); 
   
   // show the matches to the clusters in rviz
-  sd.publishClusters(training_matches, "/training_match");
+  utl.publishClusters(training_matches, "/training_match");
   
  
   // 3.5 - find intersection of the training data (training_euclidan_clusters[0] , training_matches[0])
@@ -1789,8 +1675,8 @@ int main(int argc, char** argv)
  
   std::cout<<"test_euclidean_clusters size:"<<test_euclidean_clusters.size()<<std::endl;
   std::cout<<"test_color_clusters size:"<<test_color_clusters.size()<<std::endl;
-  sd.publishClusters(test_euclidean_clusters, "/test_euclidean"); // show the euclidean and color based clusters  
-  sd.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
+  utl.publishClusters(test_euclidean_clusters, "/test_euclidean"); // show the euclidean and color based clusters  
+  utl.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
 
   std::cout<<"|----------- Step 6 Complete ----------|"<<std::endl;  
    
@@ -1799,7 +1685,7 @@ int main(int argc, char** argv)
   PointCloudVec test_matches;
   test_matches=sd.matchClustersMulti(test_euclidean_clusters, test_color_clusters, debug_level); 
   // show the matched clusters in rviz
-  sd.publishClusters(test_matches, "/test_match");
+  utl.publishClusters(test_matches, "/test_match");
    
   // Step 7.5 - Extract intersection of the test data (ALL test_euclidan_clusters[:] , all test_matches[:]) 
   PointCloudVec test_intersections; // vector of pointcloud points, dynamic sized 
@@ -1831,7 +1717,7 @@ int main(int argc, char** argv)
   }
 
   std::cout<<"test_intersections has "<<test_intersections.size()<<" clouds"<<std::endl;
-  sd.publishClusters(test_intersections, "/test_intersection");
+  utl.publishClusters(test_intersections, "/test_intersection");
    
   std::cout<<"|----------- Step 7 Complete ----------|"<<std::endl;  
   

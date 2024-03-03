@@ -16,6 +16,10 @@ typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 typedef pcl::PointXYZRGBNormal PointNT;
 typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
 //typedef pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr PointCloudNormalPtr;
+// Vector of PointClouds
+// aligned_allocator - STL compatible allocator to use with types requiring a non-standard alignment 
+typedef std::vector < PointCloud::Ptr, Eigen::aligned_allocator < PointCloud::Ptr > > PointCloudVec;
+typedef std::vector < PointCloudNormal::Ptr, Eigen::aligned_allocator < PointCloudNormal::Ptr > > PointCloudNormalVec;
 
 
 class CloudUtils
@@ -31,12 +35,14 @@ class CloudUtils
     
     // generic publisher, can this be used for all of the clouds?
     std::vector<ros::Publisher> pub_clouds;
-
+    std::vector<ros::Publisher> pub_clusters;
+    int pub_idx;
+  
   public:  
     // PUBLIC functions
 
     CloudUtils(); 
-    CloudUtils(std::string);
+    CloudUtils(std::string, int);
     ~CloudUtils();  
 
     void loadConfig(std::string cfg);
@@ -48,7 +54,12 @@ class CloudUtils
    
     template <typename point_t> 
     void publishCloud(pcl::PointCloud<point_t> &cloud, std::string topic, std::string frame);
-    
+
+    void publishClusters(PointCloudVec &clusters, std::string prefix);
+    void publishClusters(PointCloudNormalVec &clusters, std::string prefix);
+    template <typename point_t>
+    void publishClusters(const std::vector<typename pcl::PointCloud<point_t>::Ptr,
+                    Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix);   
     // PUBLIC attributes
 
     std::string package_path;

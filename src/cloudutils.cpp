@@ -6,9 +6,9 @@
 
 */
 
-
 #include "cloudutils.h"
 #include <string>
+#include <iostream>
 #include <vector>
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -37,7 +37,7 @@ typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
 // default constructor
 
 CloudUtils::CloudUtils() 
-  : config("cloudutils"){
+  : config("cloudutils"), pub_idx(0){
   
   // find the path to the this package (seam_detection)
   package_path = ros::package::getPath("seam_detection");
@@ -45,8 +45,8 @@ CloudUtils::CloudUtils()
 }
 
 
-CloudUtils::CloudUtils(std::string cfg="cloudutils") 
-  : config(cfg){
+CloudUtils::CloudUtils(std::string cfg="cloudutils", int idx=0) 
+  : config(cfg), pub_idx(idx){
 }
 
 CloudUtils::~CloudUtils(){
@@ -110,7 +110,7 @@ void CloudUtils::publishCloud(pcl::PointCloud<point_t> &cloud, std::string topic
 
 }
 
-// declare all possible uses of the template here with types
+// declare all possible types used with the template here 
 template void CloudUtils::publishCloud< pcl::PointXYZRGB >
               (pcl::PointCloud<pcl::PointXYZRGB> &cloud, std::string topic, std::string frame);
 
@@ -118,5 +118,68 @@ template void CloudUtils::publishCloud< pcl::PointXYZRGBNormal >
               (pcl::PointCloud<pcl::PointXYZRGBNormal> &cloud, std::string topic, std::string frame);
 
 
+// function to publish a vector of PointClouds representing clusters as a ROS topic
+void CloudUtils::publishClusters(PointCloudVec &clusters, std::string prefix){
+  std::cout<<"|---------- CloudUtils::publishClusters - publishing clusters ----------|"<<std::endl;
+  std::cout<<"|---------- overloaded for `PointCloudVec` ----------|"<<std::endl;
+
+  std::cout<<"clusters size: "<<clusters.size()<<std::endl;
+
+  for (int i=0; i<clusters.size(); i++){
+    // advertise a topic and publish a msg for each cluster in clusters
+    std::stringstream name;
+    name << prefix << i;
+    pub_clusters.push_back(node.advertise<PointCloud>(name.str(), 0, true));
+    clusters[i]->header.frame_id = "base_link";
+    pub_clusters[pub_idx].publish(clusters[i]);
+    pub_idx++;
+  }
+
+  ros::spinOnce();
+}
+
+
+// overloaded function to publish a vector of PointClouds with normals representing clusters as a ROS topic
+void CloudUtils::publishClusters(PointCloudNormalVec &clusters, std::string prefix){
+  std::cout<<"|---------- CloudUtils::publishClusters - publishing clusters ----------|"<<std::endl;
+  std::cout<<"|---------- overloaded for `PointCloudNormalVec` ----------|"<<std::endl;
+
+  for (int i=0; i<clusters.size(); i++){
+    // advertise a topic and publish a msg for each cluster in clusters
+    std::stringstream name;
+    name << prefix << i;
+    pub_clusters.push_back(node.advertise<PointCloudNormal>(name.str(), 0, true));
+    clusters[i]->header.frame_id = "base_link";
+    pub_clusters[pub_idx].publish(clusters[i]);
+    pub_idx++;
+  }
+
+  ros::spinOnce();
+}
+
+
+// templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
+template <typename point_t>
+void CloudUtils::publishClusters(const std::vector<typename pcl::PointCloud<point_t>::Ptr,
+        Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix){
+  std::cout<<"|---------- CloudUtils::publishClusters - publishing clusters ----------|"<<std::endl;
+  std::cout<<"|---------- templated for `PointCloudVec<pcl::PointCloud<point_t>>` ----------|"<<std::endl;
+
+  for (int i=0; i<clusters.size(); i++){
+    // advertise a topic and publish a msg for each cluster in clusters
+    std::stringstream name;
+    name << prefix << i;
+    pub_clusters.push_back(node.advertise<pcl::PointCloud<point_t>>(name.str(), 0, true)); // this type needs handling too
+    clusters[i]->header.frame_id = "base_link";
+    pub_clusters[pub_idx].publish(clusters[i]);
+    pub_idx++;
+  }
+
+  ros::spinOnce();
+}
+
+template void CloudUtils::publishClusters<pcl::PointXYZRGB>
+              (const std::vector<typename pcl::PointCloud<pcl::PointXYZRGB>::Ptr,
+               Eigen::aligned_allocator<typename pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > &clusters, std::string prefix);
 
 
