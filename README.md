@@ -540,7 +540,7 @@ The process from the summer 2023 season needs documentation!
   - successfully tested in `ros:noetic-robot-focal` container, first time successfully testing in 20.04
   - updated example launch commands in this README
   - testing TEASER++ registration, very sensitive to size of input data 
-- v1.7 (development - main/devel - tagged 06/22/2023)
+- v1.7 (stableish - main/devel - tagged 06/22/2023)
   - added new experimental test scans from RPLiDAR A2 + Aubo i10 - `shape1_shape2`
   - added separate source code for `filter_cloud()` and `registration_examples()` to simpify testing 
   - added functions: `register_cloud_icp()`, `register_cloud_teaser()`, `register_cloud_teaser_fpfh()` to simplify testing
@@ -550,6 +550,23 @@ The process from the summer 2023 season needs documentation!
   - testing new registration mode: LiDAR scan to LiDAR scan - see `shape1_shape2` examples
   - added bounding box to config files to allow for hand cropping input data
   - create ideal data sets `rect_block_02_blndr` and `rect_block_02`  for testing different registration algorithms- needs better docs
+- v1.8 (stablish - main/devel - check dates)
+  - began reorganizing project with class based approach
+  - added functionality for pcl::PointCloud<pcl::PointXYZRGB>
+  - items may be missing from this list (added late)
+- v1.9 (development - main/devel - check dates)
+  - continued reorganizing project with class based approach, preparing to tag 2.0 when complete
+  - tested in docker with realsense and `thillrobot/robot_vision'
+  - added filter_dataset for processing bulk color pcd images
+  - tested euclidean clustering, color clustering, and cluster matching in filter_dataset
+  - added dynamic reconfigure and rqt functionality for tuning camera tf
+  - test docker container deploy with Miller/aubo robot using macvlan network 
+  - added CloudFilter class with header for shared functions and reduced bloat
+  - added, tested multiview reconstruction 
+  - added, testing 8 step process with test and training clouds for part selection, partially effective 
+  
+
+
   
 
 #### Things To Do (priority top to bottom):
