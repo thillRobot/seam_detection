@@ -22,10 +22,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
-#include <pcl/visualization/pcl_visualizer.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/filters/passthrough.h>
+
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/sample_consensus/sac_model_sphere.h>
@@ -35,14 +32,11 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/registration/correspondence_estimation.h>
 #include <pcl/registration/correspondence_rejection.h>
 #include <pcl/registration/correspondence_rejection_surface_normal.h>
-#include <pcl/visualization/pcl_visualizer.h>
 
 #include <pcl/search/kdtree.h>
 #include <pcl/segmentation/extract_clusters.h>
-#include <pcl/visualization/cloud_viewer.h>
-#include <pcl/filters/filter_indices.h> // for pcl::removeNaNFromPointCloud
+#include <pcl/filters/filter_indices.h> 
 #include <pcl/segmentation/region_growing_rgb.h>
-#include <pcl/surface/mls.h>
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
@@ -68,7 +62,6 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
-
 
 #include <cloudfilter.h>
 
@@ -105,10 +98,10 @@ class SeamDetection {
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
       // allocate memory for pointclouds member attributes
-      test_input = new PointCloud;
-      test_downsampled = new PointCloud;
-      test_transformed = new PointCloud;
-      test_bounded = new PointCloud; 
+      //test_input = new PointCloud;
+      //test_downsampled = new PointCloud;
+      //test_transformed = new PointCloud;
+      //test_bounded = new PointCloud; 
 
       //test_target = new PointCloud;
 
@@ -315,151 +308,6 @@ class SeamDetection {
     
     }
 
-    /*
-    // function to apply bounding box to PointCloud with XYZRGB points
-    void boundCloud(PointCloud &input, PointCloud &output, double box[]){
-
-      PointCloud::Ptr cloud (new PointCloud);      // working copy for this routine
-      for (int i=0; i<input.size(); i++) { // add points to cluster cloud
-        cloud->push_back(input[i]);  
-      } 
-
-      std::cout<<"Beginning BoundCloud() function" << std::endl;
-      //std::cout<<"Before bounding there are "<<cloud->width * cloud->height << " points in the cloud. "<< std::endl;
-      std::cout<<"Before bounding there are "<<cloud->width * cloud->height << " points in the cloud. "<< std::endl;
-      
-      double box_length, box_width, box_height;
-      box_length=0.25; // default auto_bounds, smart auto bounds not implemented
-      box_width=0.25;     
-      box_height=0.25;
-
-      if (auto_bounds){
-     
-        Eigen::Vector4f centroid;
-        Eigen::Vector4f min;
-        Eigen::Vector4f max;  
-
-        pcl::compute3DCentroid(*cloud, centroid);
-        std::cout<<"The centroid of the points was found at: ["<<centroid[0]<<","<<centroid[1]<<","<<centroid[2]<<"]"<<std::endl; 
-
-        box[0]=centroid[0]-box_length/2;  // xmin
-        box[1]=centroid[0]+box_length/2;  // xmax
-        box[2]=centroid[1]-box_width/2;   // ymin
-        box[3]=centroid[1]+box_width/2;   // ymax
-        box[4]=centroid[2]-box_height/2;  // zmin
-        box[5]=centroid[2]+box_height/2;  // zmax
-
-        std::cout<<"Using automatic bounding box limits: ["<<box[0]<<","<<box[1]<<","
-                                                           <<box[2]<<","<<box[3]<<","
-                                                           <<box[4]<<","<<box[5]<<"]"<< std::endl;
-      }else{
-        std::cout<<"Using bounding box limits: ["<<box[0]<<","<<box[1]<<","
-                                                 <<box[2]<<","<<box[3]<<","
-                                                 <<box[4]<<","<<box[5]<<"] from config file"<< std::endl;
-      }
-
-      //Apply Bounding Box Filter
-      pcl::PassThrough<PointT> pass; //input_cloud
-      pass.setInputCloud(cloud);
-
-      pass.setFilterFieldName ("x");
-      pass.setFilterLimits(box[0],box[1]);
-      pass.filter (*cloud);
-
-      pass.setFilterFieldName ("y");
-      pass.setFilterLimits(box[2],box[3]);
-      pass.filter (*cloud);
-
-      pass.setFilterFieldName ("z");
-      pass.setFilterLimits(box[4],box[5]);
-      pass.filter (*cloud);
-        
-      std::cout<<"After bounding box filter there are "<<cloud->width * cloud->height << " points in the cloud. "<< std::endl;
-      // copy to the output cloud
-      pcl::copyPointCloud(*cloud, output);
-
-    }
-    */
-    /*
-    // function to apply translation and rotation without scaling to PointCloud
-    void transformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3f rotation, Eigen::Vector3f translation){
-
-      PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
-      pcl::copyPointCloud(input,*cloud);
-
-      Eigen::Affine3f transform = Eigen::Affine3f::Identity();
-     
-      // Define a translation 
-      transform.translation() << translation[0], translation[1], translation[2];
-      // define three axis rotations (RPY)
-      transform.rotate (Eigen::AngleAxisf (rotation[0], Eigen::Vector3f::UnitX()));
-      transform.rotate (Eigen::AngleAxisf (rotation[1], Eigen::Vector3f::UnitY()));
-      transform.rotate (Eigen::AngleAxisf (rotation[2], Eigen::Vector3f::UnitZ()));
-
-      // Print the transformation
-      //std::cout << transform_2.matrix() << std::endl;
-
-      // Execute the transformation on working copy 
-      pcl::transformPointCloud (*cloud, *cloud, transform); 
-      // copy to the output cloud
-      pcl::copyPointCloud(*cloud, output);
-     
-    }
-    */
-    /*void smoothCloud(PointCloud &input, PointCloudNormal &output){
-
-      PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy for this function 
-      pcl::copyPointCloud(input,*cloud);
-
-      // Create a KD-Tree
-      pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
-
-      // Output has the PointNormal type in order to store the normals calculated by MLS
-      //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; // modify the function output pointcloud directly instead
-      // Init object (second point type is for the normals, even if unused)
-      pcl::MovingLeastSquares<PointT, pcl::PointXYZRGBNormal> mls;
-
-      mls.setComputeNormals (true);
-      // Set parameters
-
-      mls.setInputCloud (cloud);
-      mls.setPolynomialOrder (2);
-      mls.setSearchMethod (tree);
-      mls.setSearchRadius (0.03);
-
-      // Reconstruct
-      mls.process (output);
-
-    }*/
-
-    // templated function to perform PCL moving least squares smoothing, normal data is generated during this process
-    template <typename point_t, typename point_normal_t> 
-    void smoothCloudT(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_normal_t> &output){
-
-      typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>);  //use this as the working copy for this function 
-      pcl::copyPointCloud(input,*cloud);
-
-      // Create a KD-Tree
-      typename pcl::search::KdTree<point_t>::Ptr tree (new pcl::search::KdTree<point_t>);
-
-      // Output has the PointNormal type in order to store the normals calculated by MLS
-      //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; // modify the function output pointcloud directly instead
-      // Init object (second point type is for the normals, even if unused)
-      pcl::MovingLeastSquares<point_t, point_normal_t> mls;
-
-      mls.setComputeNormals (true);
-      // Set parameters
-
-      mls.setInputCloud (cloud);
-      //mls.setInputCloud (input);
-      mls.setPolynomialOrder (2);
-      mls.setSearchMethod (tree);
-      mls.setSearchRadius (0.03);
-
-      // Reconstruct
-      mls.process (output);
-
-    }
 
     // function to return the median value of a std::vector
     // it seems like there would be a std method for this
@@ -1799,19 +1647,19 @@ int main(int argc, char** argv)
 {
   // initialize ROS node
   ros::init(argc,argv,"seam_detection");
-  
-  // instantiate an object sd from the SeamDetection class
+ 
+  // instantiate an object sd from the SeamDetection class, defined in this file for now
   SeamDetection sd;
  
   // load ROS parameters, modify values in seam-detection.yaml
   sd.loadConfig(); 
  
   // step0 - test reconstruction by merging different views
-  PointCloudPtr cloud_view1 (new PointCloud);
-  PointCloudPtr cloud_view2 (new PointCloud);
-  PointCloudPtr cloud_view3 (new PointCloud);
-  PointCloudPtr cloud_view4 (new PointCloud); 
-  PointCloudPtr cloud_merged (new PointCloud);
+  PointCloud::Ptr cloud_view1 (new PointCloud);
+  PointCloud::Ptr cloud_view2 (new PointCloud);
+  PointCloud::Ptr cloud_view3 (new PointCloud);
+  PointCloud::Ptr cloud_view4 (new PointCloud); 
+  PointCloud::Ptr cloud_merged (new PointCloud);
   
   sd.loadCloud(*cloud_view1, sd.view1_file);
   sd.loadCloud(*cloud_view2, sd.view2_file);
@@ -1831,25 +1679,24 @@ int main(int argc, char** argv)
   sd.publishCloud(*cloud_view4, "cloud_view4");
   sd.publishCloud(*cloud_merged, "cloud_merged");
 
+  std::cout<<"|----------- Step 0 Complete ----------|"<<std::endl;  
+  
   // [Steps 1-3] - use 'training' image of target object on clean table
 
-  // Step 1 - load the 'training' pointcloud from pcd file
-  
+  // Step 1 - load the 'training' pointcloud from pcd file 
+
   PointCloud::Ptr training_input (new PointCloud);
   PointCloud::Ptr training_downsampled (new PointCloud);
   PointCloud::Ptr training_transformed (new PointCloud);
   PointCloud::Ptr training_bounded (new PointCloud);
   PointCloudNormal::Ptr training_smoothed (new PointCloudNormal);
-  //sd.loadCloud( *sd.training_input, sd.training_file );
+ 
   sd.loadCloud( *training_input, sd.training_file );
+  
   // Step 1.5 - perform voxel-downsampling, pre-transformation, and bounding-box on the training cloud
-  CloudFilter filter;
+  CloudFilter filter;   // class defined in seam_detection, see include/cloudfilter.h
   filter.loadConfig("filter_dataset");
-  
-  // filter.downsampleCloud(*sd.training_input, *sd.training_downsampled, sd.voxel_size); 
-  // filter.transformCloud(*sd.training_downsampled, *sd.training_transformed, sd.pre_rotation, sd.pre_translation);
-  // filter.boundCloud(*sd.training_transformed, *sd.training_bounded, sd.bounding_box);
-  
+   
   filter.downsampleCloud(*training_input, *training_downsampled, sd.voxel_size); 
   filter.transformCloud(*training_downsampled, *training_transformed, sd.pre_rotation, sd.pre_translation);
   filter.boundCloud(*training_transformed, *training_bounded, sd.bounding_box);
@@ -1864,16 +1711,15 @@ int main(int argc, char** argv)
   sd.publishCloud(*training_bounded, "/training_bounded");
   sd.publishCloud(*training_smoothed, "/training_smoothed");
 
-  std::cout<<"|----------- Step 1 Complete ----------|"<<std::endl;  
+  std::cout<<"|----------- Step 1 Complete ----------|"<<std::endl;    
   
-  /*
   // Step 2 - extract clusters from training cloud using euclidean and color algorithms
   PointCloudVec training_euclidean_clusters, training_color_clusters;
   
   // perform Euclidean cluster extraction
-  training_euclidean_clusters=sd.extractEuclideanClusters(*sd.training_bounded); 
+  training_euclidean_clusters=sd.extractEuclideanClusters(*training_bounded); 
   // perform Color Based Region Growing cluster extraction
-  training_color_clusters=sd.extractColorClusters(*sd.training_bounded);
+  training_color_clusters=sd.extractColorClusters(*training_bounded);
     
   std::cout<<"training_euclidean_clusters size:"<<training_euclidean_clusters.size()<<std::endl;
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
@@ -1894,6 +1740,8 @@ int main(int argc, char** argv)
 
   training_smoothed_color_clusters=sd.extractColorClustersT(*training_smoothed);
   
+  std::cout<<"|----------- Step 2 Complete ----------|"<<std::endl;  
+  
   // passing this in causes a argument error 'no matching function call for...', fix this later
   //sd.publishClustersT(training_smoothed_color_clusters, "/training_smoothed_color"); 
 
@@ -1913,37 +1761,52 @@ int main(int argc, char** argv)
   std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;
   
   sd.publishCloud(*training_intersection, "/training_intersection"); // show in rviz
-  
+ 
+  std::cout<<"|----------- Step 3 Complete ----------|"<<std::endl;  
+   
   // [Steps 4-7] - use 'test' image of target object on cluttered table
-  
+  PointCloud::Ptr test_input (new PointCloud);
+  PointCloud::Ptr test_downsampled (new PointCloud);
+  PointCloud::Ptr test_transformed (new PointCloud);
+  PointCloud::Ptr test_bounded (new PointCloud);
+  PointCloudNormal::Ptr test_smoothed (new PointCloudNormal);
+
   // Step 4 - load the 'test' pointcloud from pcd file (this is the cluttered table)
-  sd.loadCloud(*sd.test_input, sd.test_file);
+  sd.loadCloud(*test_input, sd.test_file);
+  
+  std::cout<<"|----------- Step 4 Complete ----------|"<<std::endl;  
   
   // Step 5 - perform voxel-downsampling, pre-transformation, and bounding-box on the test cloud (same params used as in step 1.5)
-  filter.downsampleCloud(*sd.test_input, *sd.test_downsampled, sd.voxel_size); 
-  filter.transformCloud(*sd.test_downsampled, *sd.test_transformed, sd.pre_rotation, sd.pre_translation);
-  filter.boundCloud(*sd.test_transformed, *sd.test_bounded, sd.bounding_box);
+  filter.downsampleCloud(*test_input, *test_downsampled, sd.voxel_size); 
+  filter.transformCloud(*test_downsampled, *test_transformed, sd.pre_rotation, sd.pre_translation);
+  filter.boundCloud(*test_transformed, *test_bounded, sd.bounding_box);
  
   // show the input test clouds in rviz
-  sd.publishCloud(*sd.test_input, "/test_input"); // show the input test and modified test clouds in rviz
-  sd.publishCloud(*sd.test_downsampled, "/test_downsampled");
-  sd.publishCloud(*sd.test_transformed, "/test_transformed"); 
-  sd.publishCloud(*sd.test_bounded, "/test_bounded");
+  sd.publishCloud(*test_input, "/test_input"); // show the input test and modified test clouds in rviz
+  sd.publishCloud(*test_downsampled, "/test_downsampled");
+  sd.publishCloud(*test_transformed, "/test_transformed"); 
+  sd.publishCloud(*test_bounded, "/test_bounded");
 
+  std::cout<<"|----------- Step 5 Complete ----------|"<<std::endl;  
+  
   // Step 6 - extract clusters from test cloud using euclidean and color algorithms
   PointCloudVec test_euclidean_clusters, test_color_clusters;
  
   // preform Euclidean cluster extraction
-  test_euclidean_clusters=sd.extractEuclideanClusters(*sd.test_bounded); 
+  test_euclidean_clusters=sd.extractEuclideanClusters(*test_bounded); 
   // preform Color Based Region Growing cluster extraction
-  test_color_clusters=sd.extractColorClusters(*sd.test_bounded);
+  test_color_clusters=sd.extractColorClusters(*test_bounded);
  
   std::cout<<"test_euclidean_clusters size:"<<test_euclidean_clusters.size()<<std::endl;
   std::cout<<"test_color_clusters size:"<<test_color_clusters.size()<<std::endl;
   sd.publishClusters(test_euclidean_clusters, "/test_euclidean"); // show the euclidean and color based clusters  
   sd.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
 
+  std::cout<<"|----------- Step 6 Complete ----------|"<<std::endl;  
+  
+  /* 
   // Step 7 - correlate test euclidean clusters to test color clusters, use multi objective function 
+  // this should be wrapped up in a function to clean things up
   PointCloudVec test_matches;
   test_matches=sd.matchClustersMulti(test_euclidean_clusters, test_color_clusters, debug_level); 
   // show the matched clusters in rviz
@@ -1981,14 +1844,20 @@ int main(int argc, char** argv)
   std::cout<<"test_intersections has "<<test_intersections.size()<<" clouds"<<std::endl;
   sd.publishClusters(test_intersections, "/test_intersection");
    
+  std::cout<<"|----------- Step 7 Complete ----------|"<<std::endl;  
+  
   // Step 8 compare 'training' target (training_intersection) from steps 1-3 to correlated 'test_intersection' clusters from steps 4-7 
   PointCloudPtr final_match;
   final_match=sd.matchClustersMulti(*training_intersection, test_intersections, debug_level); 
  
   std::cout<<"final_match has "<<final_match->size()<<" points"<<std::endl;
   sd.publishCloud(*final_match, "/final_match"); // show the matching target from the test image         
-  */
+  
+  std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
+  */  
 
+
+  std::cout<<"|----------- seam_detection complete ----------|"<<std::endl;  
   ros::spin();
 
   return 0;
