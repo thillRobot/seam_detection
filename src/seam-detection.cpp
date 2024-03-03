@@ -172,19 +172,7 @@ class SeamDetection {
       return 0;
     }
 
- 
-    // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
-    void copyCloud(PointCloud &input, PointCloud &output){
-
-      std::cout<<"the point cloud input has "<< input.size()<< " points"<<std::endl;
-      for (int i=0; i<input.size(); i++) { // add points to cluster cloud
-        output.push_back(input[i]);  
-      } 
-      std::cout<<"the point cloud output has "<< output.size()<< " points"<<std::endl;
     
-    }
-
-
     // function to return the median value of a std::vector
     // it seems like there would be a std method for this
     double getMedian(std::vector<double> vals){
@@ -330,41 +318,8 @@ class SeamDetection {
       std::cout<<"there are "<<clusters.size()<<" clouds in the cluster intersection"<< std::endl;
       return clusters;
     }
-
-
-    // function to merge a vector of pointclouds into a single pointcloud
-    void mergeClusters(PointCloudVec &clusters, PointCloud &output){
-
-      for (int i=0; i<clusters.size(); i++){
-      
-        for (int j=0; j<clusters[i]->size(); j++){
-          output.push_back(clusters[i]->points[j]);
-        }
-      
-      }
-
-      std::cout<< "the merged cloud has "<< output.size() << " points" <<std::endl;
-    }
-
-    
-    // overloaded function to merge a vector of pointclouds and return pointer to single pointcloud 
-    PointCloudPtr mergeClusters(PointCloudVec &clusters){
-
-      PointCloudPtr output (new PointCloud);
-
-      for (int i=0; i<clusters.size(); i++){
-      
-        for (int j=0; j<clusters[i]->size(); j++){
-          output->push_back(clusters[i]->points[j]);
-        }
-      
-      }
-
-      std::cout<< "the merged cloud has "<< output->size() << " points" <<std::endl;
-      return output;
-    }
-
-    
+   
+ 
     // function to perform Euclidean Cluster Extraction  
     PointCloudVec extractEuclideanClusters(PointCloud &input){
 
@@ -1548,7 +1503,7 @@ int main(int argc, char** argv)
   cloud_views.push_back(cloud_view3);
   cloud_views.push_back(cloud_view4);
 
-  cloud_merged=sd.mergeClusters(cloud_views);
+  cloud_merged=utl.mergeClusters(cloud_views);
   utl.publishCloud(*cloud_view1, "cloud_view1", "base_link");
   utl.publishCloud(*cloud_view2, "cloud_view2", "base_link");
   utl.publishCloud(*cloud_view3, "cloud_view3", "base_link");

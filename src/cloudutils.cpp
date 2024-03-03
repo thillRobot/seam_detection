@@ -160,9 +160,9 @@ void CloudUtils::publishClusters(PointCloudNormalVec &clusters, std::string pref
 
 // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
 template <typename point_t>
-void CloudUtils::publishClusters(const std::vector<typename pcl::PointCloud<point_t>::Ptr,
+void CloudUtils::publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr,
         Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix){
-  std::cout<<"|---------- CloudUtils::publishClusters - publishing clusters ----------|"<<std::endl;
+  std::cout<<"|---------- CloudUtils::publishClustersT - publishing clusters ----------|"<<std::endl;
   std::cout<<"|---------- templated for `PointCloudVec<pcl::PointCloud<point_t>>` ----------|"<<std::endl;
 
   for (int i=0; i<clusters.size(); i++){
@@ -178,8 +178,89 @@ void CloudUtils::publishClusters(const std::vector<typename pcl::PointCloud<poin
   ros::spinOnce();
 }
 
-template void CloudUtils::publishClusters<pcl::PointXYZRGB>
+template void CloudUtils::publishClustersT<pcl::PointXYZRGB>
               (const std::vector<typename pcl::PointCloud<pcl::PointXYZRGB>::Ptr,
                Eigen::aligned_allocator<typename pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > &clusters, std::string prefix);
 
+
+// function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
+void CloudUtils::copyCloud(PointCloud &input, PointCloud &output){
+
+  std::cout<<"the point cloud input has "<< input.size()<< " points"<<std::endl;
+  for (int i=0; i<input.size(); i++) { // add points to cluster cloud
+    output.push_back(input[i]);
+  }
+  std::cout<<"the point cloud output has "<< output.size()<< " points"<<std::endl;
+
+}
+
+
+// function to return the median value of a std::vector
+// it seems like there would be a std method for this
+double CloudUtils::getMedian(std::vector<double> vals){
+
+  size_t size=vals.size();
+
+  if (size==0){
+    return 0; // size 0 vector has no median
+  }else{
+    std::sort(vals.begin(), vals.end());
+    if(size%2==0){
+      return (vals[size/2-1]+vals[size/2])/2;
+    }else{
+      return vals[size/2];
+    }
+  }
+}
+
+
+// overloaded function to return the median value of a Eigen::VectorXd (dynxamic sized vector of doubles)
+double CloudUtils::getMedian(Eigen::VectorXd vals){
+
+  int size=vals.size();
+
+  if (size==0){
+    return 0; // size 0 vector has no median
+  }else{
+    std::sort(vals.data(), vals.data()+vals.size());
+    if(size%2==0){
+      return (vals[size/2-1]+vals[size/2])/2;
+    }else{
+      return vals[size/2];
+    }
+  }
+}
+
+
+// function to merge a vector of pointclouds into a single pointcloud
+void CloudUtils::mergeClusters(PointCloudVec &clusters, PointCloud &output){
+
+  for (int i=0; i<clusters.size(); i++){
+  
+    for (int j=0; j<clusters[i]->size(); j++){
+      output.push_back(clusters[i]->points[j]);
+    }
+  
+  }
+
+  std::cout<< "the merged cloud has "<< output.size() << " points" <<std::endl;
+}
+
+
+// overloaded function to merge a vector of pointclouds and return pointer to single pointcloud 
+PointCloud::Ptr CloudUtils::mergeClusters(PointCloudVec &clusters){
+
+  PointCloud::Ptr output (new PointCloud);
+
+  for (int i=0; i<clusters.size(); i++){
+  
+    for (int j=0; j<clusters[i]->size(); j++){
+      output->push_back(clusters[i]->points[j]);
+    }
+  
+  }
+
+  std::cout<< "the merged cloud has "<< output->size() << " points" <<std::endl;
+  return output;
+}
 

@@ -8,6 +8,12 @@
 #include <pcl/common/common.h>
 #include <pcl/point_cloud.h>
 
+#include <Eigen/Dense>
+#include <Eigen/Core>
+#include <eigen_conversions/eigen_msg.h>
+#include <Eigen/Geometry>
+
+
 // PCL PointClouds with XYZ RGB Points
 typedef pcl::PointXYZRGB PointT;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
@@ -57,9 +63,19 @@ class CloudUtils
 
     void publishClusters(PointCloudVec &clusters, std::string prefix);
     void publishClusters(PointCloudNormalVec &clusters, std::string prefix);
-    template <typename point_t>
-    void publishClusters(const std::vector<typename pcl::PointCloud<point_t>::Ptr,
+    template <typename point_t>  // templated publishClusters not currently working, can deduce template type ...
+    void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr,
                     Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix);   
+    
+    void copyCloud(PointCloud &input, PointCloud &output);
+
+    double getMedian(std::vector<double> vals);
+    double getMedian(Eigen::VectorXd vals);
+   
+    void mergeClusters(PointCloudVec &clusters, PointCloud &output);
+    PointCloud::Ptr mergeClusters(PointCloudVec &clusters);
+    
+ 
     // PUBLIC attributes
 
     std::string package_path;
