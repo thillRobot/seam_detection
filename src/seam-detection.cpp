@@ -97,7 +97,7 @@ class SeamDetection {
       std::cout<<"|----------------------------------------|"<<std::endl;
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
-      // allocate memory for pointclouds member attributes
+      // allocate memory for pointclouds member attributes, moved to main for now
       //test_input = new PointCloud;
       //test_downsampled = new PointCloud;
       //test_transformed = new PointCloud;
@@ -1591,10 +1591,10 @@ class SeamDetection {
     // PUBLIC attributes
 
     // pointcloud pointers, generally use shared pointers instead for the saftey features...
-    pcl::PointCloud<pcl::PointXYZRGBNormal> *cloud;
+    //pcl::PointCloud<pcl::PointXYZRGBNormal> *cloud; // this is a bad idea to take this general name... 
 
-    PointCloud *training_input, *training_downsampled, *training_transformed, *training_bounded; 
-    PointCloud *test_input, *test_downsampled, *test_transformed, *test_bounded; 
+    //PointCloud *training_input, *training_downsampled, *training_transformed, *training_bounded; 
+    //PointCloud *test_input, *test_downsampled, *test_transformed, *test_bounded; 
     //PointCloudPtr test_target;
 
     //PointCloudNormal *training_smoothed;
@@ -1803,8 +1803,7 @@ int main(int argc, char** argv)
   sd.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
 
   std::cout<<"|----------- Step 6 Complete ----------|"<<std::endl;  
-  
-  /* 
+   
   // Step 7 - correlate test euclidean clusters to test color clusters, use multi objective function 
   // this should be wrapped up in a function to clean things up
   PointCloudVec test_matches;
@@ -1818,7 +1817,7 @@ int main(int argc, char** argv)
   int intr_min_size=1; // min points in an intersection
   //test_intersections=sd.getClusterIntersection(test_euclidean_clusters, test_matches, min_points);
 
-  PointCloudPtr cloud (new PointCloud); // tmp cloud
+  PointCloud::Ptr cloud (new PointCloud); // tmp cloud
   for(int i=0; i<test_euclidean_clusters.size(); i++){
 
     sd.getCloudIntersection(*test_euclidean_clusters[i], *test_matches[i], *cloud); // find the points in clusters1[i] AND clusters2[j]
@@ -1847,15 +1846,14 @@ int main(int argc, char** argv)
   std::cout<<"|----------- Step 7 Complete ----------|"<<std::endl;  
   
   // Step 8 compare 'training' target (training_intersection) from steps 1-3 to correlated 'test_intersection' clusters from steps 4-7 
-  PointCloudPtr final_match;
+  PointCloud::Ptr final_match;
   final_match=sd.matchClustersMulti(*training_intersection, test_intersections, debug_level); 
  
   std::cout<<"final_match has "<<final_match->size()<<" points"<<std::endl;
   sd.publishCloud(*final_match, "/final_match"); // show the matching target from the test image         
   
   std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
-  */  
-
+    
 
   std::cout<<"|----------- seam_detection complete ----------|"<<std::endl;  
   ros::spin();

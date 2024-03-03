@@ -6,11 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /PointCloud22
-        - /PointCloud23
         - /PointCloud24
-        - /PointCloud25
-        - /PointCloud26
         - /PointCloud223
         - /PointCloud235
         - /PointCloud247
@@ -19,7 +15,7 @@ Panels:
         - /PointCloud264
         - /PointCloud277
         - /PointCloud2100
-      Splitter Ratio: 0.5078431367874146
+      Splitter Ratio: 0.5128205418586731
     Tree Height: 1068
   - Class: rviz/Selection
     Name: Selection
@@ -131,7 +127,7 @@ Visualization Manager:
       Color: 165; 165; 165
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -146,7 +142,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -159,7 +155,7 @@ Visualization Manager:
       Color: 165; 165; 165
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -174,7 +170,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 0.25
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -215,7 +211,7 @@ Visualization Manager:
       Color: 255; 0; 0
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -230,7 +226,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -251,9 +247,9 @@ Visualization Manager:
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 3
+      Size (Pixels): 2
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean0
       Unreliable: false
       Use Fixed Frame: true
@@ -3288,7 +3284,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.479762077331543
+      Distance: 1.7369716167449951
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -3296,17 +3292,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.2661890685558319
-        Y: -0.355030357837677
-        Z: -0.36774536967277527
+        X: -0.27487221360206604
+        Y: -0.4112919270992279
+        Z: -0.26738134026527405
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5647958517074585
+      Pitch: 0.4547959566116333
       Target Frame: <Fixed Frame>
-      Yaw: 0.9885481595993042
+      Yaw: 0.8935483694076538
     Saved: ~
 Window Geometry:
   Displays:
