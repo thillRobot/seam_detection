@@ -19,7 +19,7 @@ transform_input: true
 seam_detection/pre_rotation:    [0.0, 3.14159, 0.0] # ds435i rgb camera 32inches from table surface pointing down
 seam_detection/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
 
-seam_detection/bounding_box: [-1.0, 1.0, -1.0, 1.0, 0.010, 0.5] # bounding box limits
+seam_detection/bounding_box: [-1.0, 1.0, -1.0, 1.0, -1.0, 1.0] # bounding box limits
 #seam_detection/voxel_size: 0.001  
 seam_detection/voxel_size: 0
 

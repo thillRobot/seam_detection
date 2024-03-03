@@ -90,7 +90,8 @@ void CloudFilter::boundCloud(PointCloud &input, PointCloud &output, std::vector<
   } 
 
   std::cout<<"Beginning BoundCloud() function" << std::endl;
- 
+  std::cout<<"before bounding there are "<<input.size()<<" points in the cloud"<<std::endl;
+  
   double box_length, box_width, box_height;
   box_length=0.25; // default auto_bounds, smart auto bounds not implemented
   box_width=0.25;     
@@ -116,10 +117,10 @@ void CloudFilter::boundCloud(PointCloud &input, PointCloud &output, std::vector<
   //Apply Bounding Box Filter
   pcl::PassThrough<PointT> pass; //input_cloud
   
-  std::cout<<"--- bound cloud debug --- "<<std::endl;
+  //std::cout<<"--- bound cloud debug --- "<<std::endl;
   pass.setInputCloud(cloud);
 
-  std::cout<<"--- bounding_box --- "<<std::endl
+  std::cout<<"--- passthrough bounding_box: --- "<<std::endl
              <<"X["<<box[0]<<","<<box[1]<<"]"<<std::endl
              <<"Y["<<box[2]<<","<<box[3]<<"]"<<std::endl
              <<"Z["<<box[4]<<","<<box[5]<<"]"<<std::endl;
@@ -136,9 +137,9 @@ void CloudFilter::boundCloud(PointCloud &input, PointCloud &output, std::vector<
   pass.setFilterLimits(box[4],box[5]);
   pass.filter (*cloud);
     
-  std::cout<<"--- bound cloud debug --- "<<std::endl;
+  //std::cout<<"--- bound cloud debug --- "<<std::endl;
   pcl::copyPointCloud(*cloud, output);
-  std::cout<<"after bounding there are "<<output.size()<<"points in the cloud"<<std::endl;
+  std::cout<<"after bounding there are "<<output.size()<<" points in the cloud"<<std::endl;
 }
 
 
@@ -200,7 +201,7 @@ void CloudFilter::smoothCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<p
   typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>); 
   pcl::copyPointCloud(input,*cloud);
   
-  std::cout<<"before smoothing there are "<<cloud->size()<<"points in the cloud"<<std::endl;
+  std::cout<<"before smoothing there are "<<cloud->size()<<" points in the cloud"<<std::endl;
   // Create a KD-Tree
   typename pcl::search::KdTree<point_t>::Ptr tree (new pcl::search::KdTree<point_t>);
 
@@ -215,7 +216,7 @@ void CloudFilter::smoothCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<p
 
   // Reconstruct
   mls.process (output);
-  std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
+  std::cout<<"after smoothing there are "<<output.size()<<" points in the cloud"<<std::endl;
 }
  
 template void CloudFilter::smoothCloud< pcl::PointXYZRGB, pcl::PointXYZRGBNormal >

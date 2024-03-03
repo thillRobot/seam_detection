@@ -231,7 +231,7 @@ add_library(cloudfilter
 
 # seam-detection (class approach)
 add_executable(seam-detection src/seam-detection.cpp)
-target_link_libraries(seam-detection ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
+target_link_libraries(seam-detection cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
   Eigen3::Eigen  
 )
 

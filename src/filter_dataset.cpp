@@ -384,6 +384,7 @@ class FilterDataset {
     }
 
     
+ 
     // function to print contents of a geometry messages transform, used for debugging
     void printTransform(geometry_msgs::Transform transform, std::string name){
 
@@ -414,7 +415,6 @@ class FilterDataset {
 
     }
   
- 
     // function to filter an entire directory of pointclouds, results saved as output_path/*_filtered.pcd
     PointCloudVec filterCloudDir(std::string in){
        
@@ -607,44 +607,6 @@ class FilterDataset {
     
     }
 
-    /*
-    void extractPolygonalPrism(PointCloud &input){
-       
-       PointCloudPtr cloud (new PointCloud);
-       pcl::copyPointCloud(input, *cloud);
- 
-       //pcl::PointIndices cloud_indices;
-       pcl::PointIndices::Ptr cloud_indices(new pcl::PointIndices);
-        
-       double z_min = -0.02, z_max = 0.02; // we want the points above the plane, no farther than 5 cm from the surface
-       pcl::PointCloud<pcl::PointXYZRGB>::Ptr hull_points (new pcl::PointCloud<pcl::PointXYZRGB>);
-       pcl::ConvexHull<pcl::PointXYZRGB> hull;
-       
-       hull.setInputCloud (cloud);
-       hull.setDimension(2); // not necessarily needed, but we need to check the dimensionality of the output
-       hull.reconstruct (*hull_points);
-       if (hull.getDimension () == 2){
-         pcl::ExtractPolygonalPrismData<pcl::PointXYZRGB> prism;
-         prism.setInputCloud (cloud);
-         prism.setInputPlanarHull (hull_points); // alternatively use polygon_cloud, defined above
-         prism.setHeightLimits (z_min, z_max);
-         prism.segment(*cloud_indices);
-           
-         pcl::ExtractIndices<pcl::PointXYZRGB> prism_indices;
-         prism_indices.setInputCloud(cloud);
-         prism_indices.setIndices(cloud_indices);
- 
-         PointCloudPtr prism_cloud (new PointCloud);
-         prism_indices.filter(*prism_cloud);
-          
-         publishCloud(*prism_cloud, "prism_cloud", "map");
- 
-         std::cout<<"cloud segemented with polygonal prism has "<<prism_cloud->size()<<" points"<<std::endl;
-       }else{
-         std::cout<<"The input cloud does not represent a planar surface."<<std::endl;
-       }
-     }
-    */
      
     // function to apply series of filters to pointcloud
     void filterCloud(PointCloud &input, PointCloud &output, 
@@ -750,7 +712,7 @@ class FilterDataset {
 int main(int argc, char** argv)
 {
   // initialize ROS node
-  ros::init(argc,argv,"filter_cloud");
+  ros::init(argc,argv,"filter_dataset");
   
   // instantiate a filter object 
   FilterDataset filter;
@@ -773,7 +735,7 @@ int main(int argc, char** argv)
   
   
 
-  std::cout<<"filter_cloud completed"<<std::endl;
+  std::cout<<"filter_dataset completed"<<std::endl;
   ros::spin();
 
   return 0;
