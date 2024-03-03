@@ -20,6 +20,11 @@
 #include <pcl/search/kdtree.h>
 #include <pcl/surface/mls.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/segmentation/extract_polygonal_prism_data.h>
+#include <pcl/surface/convex_hull.h>
+#include <pcl/filters/filter_indices.h> 
+#include <pcl/filters/extract_indices.h>
+#include <pcl/segmentation/extract_clusters.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -185,34 +190,6 @@ void CloudFilter::transformCloud(PointCloud &input, PointCloud &output, Eigen::Q
   std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl; 
 }
 
-/*
-// function to apply moving least squared smoothing to pointcloud
-void CloudFilter::smoothCloud(PointCloud &input, PointCloudNormal &output){
-
-  PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy for this function 
-  pcl::copyPointCloud(input,*cloud);
-
-  // Create a KD-Tree
-  pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
-
-  // Output has the PointNormal type in order to store the normals calculated by MLS
-  //pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points; 
-  // modify the function output pointcloud directly instead
-  // Init object (second point type is for the normals, even if unused)
-  pcl::MovingLeastSquares<PointT, pcl::PointXYZRGBNormal> mls;
-
-  // Set parameters
-  mls.setComputeNormals (true);
-  mls.setInputCloud (cloud);
-  mls.setPolynomialOrder (2);
-  mls.setSearchMethod (tree);
-  mls.setSearchRadius (0.03);
-
-  // Reconstruct
-  mls.process (output);
-  std::cout<<"after smoothing there are "<<output.size()<<"points in the cloud"<<std::endl;
-}*/
-
 
 
 // templated function for PCL moving least squares smoothing, normal data generated during this process
@@ -268,3 +245,43 @@ void CloudFilter::downsampleCloud(pcl::PointCloud<point_t> &input, pcl::PointClo
 
 template void CloudFilter::downsampleCloud<pcl::PointXYZRGB>
               (pcl::PointCloud<pcl::PointXYZRGB> &input, pcl::PointCloud<pcl::PointXYZRGB> &output, double leaf_size);
+
+
+void CloudFilter::extractPolygonalPrism(PointCloud &input){
+
+  PointCloud::Ptr cloud (new PointCloud);
+  pcl::copyPointCloud(input, *cloud);
+
+  //pcl::PointIndices cloud_indices;
+  pcl::PointIndices::Ptr cloud_indices(new pcl::PointIndices);
+    
+  double z_min = -0.02, z_max = 0.02; // we want the points above the plane, no farther than 5 cm from the surface
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr hull_points (new pcl::PointCloud<pcl::PointXYZRGB>);
+  pcl::ConvexHull<pcl::PointXYZRGB> hull;   
+
+  hull.setInputCloud (cloud);
+  hull.setDimension(2); // not necessarily needed, but we need to check the dimensionality of the output
+  hull.reconstruct (*hull_points);
+  if (hull.getDimension () == 2){
+    pcl::ExtractPolygonalPrismData<pcl::PointXYZRGB> prism;
+    prism.setInputCloud (cloud);
+    prism.setInputPlanarHull (hull_points); // alternatively use polygon_cloud, defined above
+    prism.setHeightLimits (z_min, z_max);
+    prism.segment(*cloud_indices);
+
+    pcl::ExtractIndices<pcl::PointXYZRGB> prism_indices;
+    prism_indices.setInputCloud(cloud);
+    prism_indices.setIndices(cloud_indices);
+
+    PointCloud::Ptr prism_cloud (new PointCloud);
+    prism_indices.filter(*prism_cloud);
+
+    //publishCloud(*prism_cloud, "prism_cloud", "map");
+
+    std::cout<<"cloud segemented with polygonal prism has "<<prism_cloud->size()<<" points"<<std::endl;
+  }else{
+    std::cout<<"The input cloud does not represent a planar surface."<<std::endl;
+  }
+}
+
+

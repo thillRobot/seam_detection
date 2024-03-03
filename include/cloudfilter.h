@@ -58,6 +58,7 @@ class CloudFilter
     template <typename point_t>
     void downsampleCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_t> &output, double leaf_size);
 
+    void extractPolygonalPrism(PointCloud &input);
     // PUBLIC attributes
 
 };

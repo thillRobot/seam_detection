@@ -24,21 +24,10 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/filters/passthrough.h>
-#include <pcl/features/normal_3d.h>
-
-#include <pcl/search/kdtree.h>
 #include <pcl/segmentation/extract_clusters.h>
-#include <pcl/visualization/cloud_viewer.h>
-#include <pcl/filters/filter_indices.h> // for pcl::removeNaNFromPointCloud
 #include <pcl/segmentation/region_growing_rgb.h>
-#include <pcl/surface/mls.h>
 #include <pcl/segmentation/extract_polygonal_prism_data.h>
-#include <pcl/surface/convex_hull.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
 
 #include "ros/package.h"
@@ -79,17 +68,17 @@ using namespace std::chrono_literals;
 // PCL PointClouds with XYZ RGB Points
 typedef pcl::PointXYZRGB PointT;
 typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
-typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
+//typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
 
 // PCL PointClouds with XYZ RGB Normal Points
 typedef pcl::PointXYZRGBNormal PointNT;
 typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
-typedef pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr PointCloudNormalPtr;
+//typedef pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr PointCloudNormalPtr;
 
 // Vector of PointClouds
 // aligned_allocator - STL compatible allocator to use with types requiring a non-standard alignment 
-typedef std::vector < PointCloudPtr, Eigen::aligned_allocator < PointCloudPtr > > PointCloudVec;
-typedef std::vector < PointCloudNormalPtr, Eigen::aligned_allocator < PointCloudNormalPtr > > PointCloudNormalVec;
+typedef std::vector < PointCloud::Ptr, Eigen::aligned_allocator < PointCloud::Ptr > > PointCloudVec;
+typedef std::vector < PointCloudNormal::Ptr, Eigen::aligned_allocator < PointCloudNormal::Ptr > > PointCloudNormalVec;
 
 class FilterDataset {
 
@@ -618,7 +607,7 @@ class FilterDataset {
     
     }
 
-
+    /*
     void extractPolygonalPrism(PointCloud &input){
        
        PointCloudPtr cloud (new PointCloud);
@@ -655,7 +644,7 @@ class FilterDataset {
          std::cout<<"The input cloud does not represent a planar surface."<<std::endl;
        }
      }
-   
+    */
      
     // function to apply series of filters to pointcloud
     void filterCloud(PointCloud &input, PointCloud &output, 
@@ -695,6 +684,9 @@ class FilterDataset {
         filter.downsampleCloud(*cloud, *cloud, voxel_size);
       }          
 
+      // testing extract polygonal prism
+      filter.extractPolygonalPrism(*cloud);
+      
       std::cout<<"after filtering there are "<<cloud->size()<<" points in the cloud"<< std::endl;
       pcl::copyPointCloud(*cloud, output); // this copy is avoided by filtering "output" directly 
     }
@@ -779,14 +771,7 @@ int main(int argc, char** argv)
   //filter.publishClouds(dirclouds, "dir_cloud", "base_link");
   
   
-  // testing extract polygonal prism
-  /*
-  PointCloud::Ptr test_cloud (new PointCloud);
-  std::string test_path="bags/reconstruction/part1_x6_y4_theta33_cpitch10_/filtered/part1_x6_y4_theta33_cpitch10_2_filtered.pcd";
-  test_path=filter.package_path+"/"+test_path;
-  filter.loadCloud(*test_cloud, test_path);
-  filter.extractPolygonalPrism(*test_cloud);
-  */
+  
 
   std::cout<<"filter_cloud completed"<<std::endl;
   ros::spin();
