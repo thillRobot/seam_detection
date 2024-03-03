@@ -102,19 +102,14 @@ class SeamDetection {
       //test_downsampled = new PointCloud;
       //test_transformed = new PointCloud;
       //test_bounded = new PointCloud; 
-
       //test_target = new PointCloud;
 
       //training_input = new PointCloud;
       //training_downsampled = new PointCloud;
       //training_transformed = new PointCloud;
-      //training_bounded = new PointCloud;
-      
+      //training_bounded = new PointCloud; 
       //training_smoothed = new PointCloudNormal;
       
-      // working copy for debugging
-      //cloud = new pcl::PointCloud<pcl::PointXYZRGBNormal>; // dont use this name
-
       // find the path to the this package (seam_detection)
       package_path = ros::package::getPath("seam_detection");
   
@@ -154,20 +149,11 @@ class SeamDetection {
       node.getParam("seam_detection/voxel_size", voxel_size);
 
       // parameters that contain vectors of doubles
-      //std::vector<double> bounding_box_vec;
       node.getParam("seam_detection/bounding_box",  bounding_box);
-      //for(unsigned i=0; i < bounding_box_vec.size(); i++){
-      //  bounding_box[i]=bounding_box_vec[i]; // copy from vector to array 
-      // }
 
       // rotation and translation parameters from camera to fixed frame  
-      std::vector<double> pre_rotation_vec, pre_translation_vec;
-      node.getParam("seam_detection/pre_rotation",  pre_rotation_vec);
-      node.getParam("seam_detection/pre_translation",  pre_translation_vec);
-      for(unsigned i=0; i < pre_rotation_vec.size(); i++){
-        pre_rotation[i]=pre_rotation_vec[i]; // copy from std vector to eigen vector3f 
-        pre_translation[i]=pre_translation_vec[i]; 
-      }
+      node.getParam("seam_detection/pre_rotation",  pre_rotation);
+      node.getParam("seam_detection/pre_translation",  pre_translation);
 
       // euclidean cluster extraction parameters
       node.getParam("euclidean_thresh", euclidean_thresh);
@@ -617,7 +603,7 @@ class SeamDetection {
         
       }
 
-     // sort the cluster using user-defined compare function defined above 
+      // sort the cluster using user-defined compare function defined above 
       std::sort(clusters.begin(), clusters.end(), CompareSize);
 
       // if there are fewer clusters than the max, the length will remain the same
@@ -927,6 +913,7 @@ class SeamDetection {
                                             <<dimensions[i][2] << "]" <<std::endl;
       }
     }
+
 
     // function to calculate the the objection function value or score for a pair of PointClouds
     // to be used to find agreement between potentially overlapping clouds 
@@ -1495,7 +1482,6 @@ class SeamDetection {
     }
 
 
-
     // function to find best 1 to 1 correlation between two sets of clusters
     // assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence
     // this version checks all n^2 matches before removing any from the compare set, this is O(n^3), so it may be slow! 
@@ -1592,11 +1578,10 @@ class SeamDetection {
 
     // pointcloud pointers, generally use shared pointers instead for the saftey features...
     //pcl::PointCloud<pcl::PointXYZRGBNormal> *cloud; // this is a bad idea to take this general name... 
-
+    // cloud variables defined in main for now
     //PointCloud *training_input, *training_downsampled, *training_transformed, *training_bounded; 
     //PointCloud *test_input, *test_downsampled, *test_transformed, *test_bounded; 
     //PointCloudPtr test_target;
-
     //PointCloudNormal *training_smoothed;
     //PointCloudNormal::Ptr training_smoothed;
 
@@ -1606,10 +1591,7 @@ class SeamDetection {
     std::string package_path, training_path, test_path, output_path, training_file, test_file, output_file,
                 view1_file, view2_file, view3_file, view4_file; 
    
-    //double bounding_box[6];
-    std::vector<double> bounding_box;
-    Eigen::Vector3d pre_rotation, pre_translation;
-
+    std::vector<double> bounding_box, pre_rotation, pre_translation;
     double voxel_size;
     
     // parameters for the Euclidean Cluster Extraction, values defined in config file

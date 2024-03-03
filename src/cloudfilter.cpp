@@ -143,7 +143,33 @@ void CloudFilter::boundCloud(PointCloud &input, PointCloud &output, std::vector<
 }
 
 
-// apply translation and rotation without scaling to PointCloud
+// apply translation and rotation without scaling to PointCloud using std vectors 
+void CloudFilter::transformCloud(PointCloud &input, PointCloud &output, std::vector<double> rotation, std::vector<double> translation){
+
+  PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
+  pcl::copyPointCloud(input,*cloud);
+
+  Eigen::Affine3d transform = Eigen::Affine3d::Identity();
+  // Define a translation 
+  transform.translation() << translation[0], translation[1], translation[2];
+  // define three axis rotation&clouds (RPY)
+  transform.rotate (Eigen::AngleAxisd (rotation[0], Eigen::Vector3d::UnitX()));
+  transform.rotate (Eigen::AngleAxisd (rotation[1], Eigen::Vector3d::UnitY()));
+  transform.rotate (Eigen::AngleAxisd (rotation[2], Eigen::Vector3d::UnitZ()));
+
+  // Print the transformation
+  //std::cout << transform_2.matrix() << std::endl;
+
+  // Execute the transformation on working copy 
+  pcl::transformPointCloud (*cloud, *cloud, transform); 
+  // copy to the output cloud
+  pcl::copyPointCloud(*cloud, output);
+  
+  std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl;
+}
+
+
+// overload function to apply translation and rotation without scaling to PointCloud using eigen vectors
 void CloudFilter::transformCloud(PointCloud &input, PointCloud &output, Eigen::Vector3d rotation, Eigen::Vector3d translation){
 
   PointCloud::Ptr cloud (new PointCloud);  //use this as the working copy of the training cloud
@@ -190,7 +216,6 @@ void CloudFilter::transformCloud(PointCloud &input, PointCloud &output, Eigen::Q
   
   std::cout<<"after transformation there are "<<output.size()<<" points"<<std::endl; 
 }
-
 
 
 // templated function for PCL moving least squares smoothing, normal data generated during this process
