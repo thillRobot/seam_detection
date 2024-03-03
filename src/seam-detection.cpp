@@ -64,6 +64,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <tf2_ros/transform_listener.h>
 
 #include <cloudfilter.h>
+#include <cloudutils.h>
 
 
 using namespace std::chrono_literals;
@@ -1630,7 +1631,7 @@ int main(int argc, char** argv)
   // initialize ROS node
   ros::init(argc,argv,"seam_detection");
  
-  // instantiate an object sd from the SeamDetection class, defined in this file for now
+  // instantiate object sd from the SeamDetection class, defined in this file for now
   SeamDetection sd;
  
   // load ROS parameters, modify values in seam-detection.yaml
@@ -1642,11 +1643,15 @@ int main(int argc, char** argv)
   PointCloud::Ptr cloud_view3 (new PointCloud);
   PointCloud::Ptr cloud_view4 (new PointCloud); 
   PointCloud::Ptr cloud_merged (new PointCloud);
-  
-  sd.loadCloud(*cloud_view1, sd.view1_file);
-  sd.loadCloud(*cloud_view2, sd.view2_file);
-  sd.loadCloud(*cloud_view3, sd.view3_file);
-  sd.loadCloud(*cloud_view4, sd.view4_file);
+ 
+  // instantiate object utl from the CloudUtils class, see include/cloudutils.h
+ 
+  CloudUtils utl;
+
+  utl.loadCloud(*cloud_view1, sd.view1_file);
+  utl.loadCloud(*cloud_view2, sd.view2_file);
+  utl.loadCloud(*cloud_view3, sd.view3_file);
+  utl.loadCloud(*cloud_view4, sd.view4_file);
 
   PointCloudVec cloud_views;
   cloud_views.push_back(cloud_view1);
@@ -1754,7 +1759,7 @@ int main(int argc, char** argv)
   PointCloudNormal::Ptr test_smoothed (new PointCloudNormal);
 
   // Step 4 - load the 'test' pointcloud from pcd file (this is the cluttered table)
-  sd.loadCloud(*test_input, sd.test_file);
+  utl.loadCloud(*test_input, sd.test_file);
   
   std::cout<<"|----------- Step 4 Complete ----------|"<<std::endl;  
   

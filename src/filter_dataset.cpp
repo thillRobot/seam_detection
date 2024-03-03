@@ -61,6 +61,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #define foreach BOOST_FOREACH
 
 #include "cloudfilter.h"
+#include "cloudutils.h"
 
 namespace bf = boost::filesystem;
 using namespace std::chrono_literals;

@@ -140,6 +140,9 @@ add_definitions(${PCL_DEFINITIONS})
 add_library(cloudfilter
   src/cloudfilter.cpp
 )
+add_library(cloudutils
+  src/cloudutils.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -231,13 +234,13 @@ add_library(cloudfilter
 
 # seam-detection (class approach)
 add_executable(seam-detection src/seam-detection.cpp)
-target_link_libraries(seam-detection cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
+target_link_libraries(seam-detection cloudfilter cloudutils ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
   Eigen3::Eigen  
 )
 
 # filter_dataset (class approach)
 add_executable(filter_dataset src/filter_dataset.cpp)
-target_link_libraries(filter_dataset cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
+target_link_libraries(filter_dataset cloudfilter cloudutils ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
   Eigen3::Eigen  
 )
 
