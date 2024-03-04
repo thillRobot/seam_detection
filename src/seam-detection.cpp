@@ -1490,12 +1490,12 @@ int main(int argc, char** argv)
  
   // instantiate object utl from the CloudUtils class, see include/cloudutils.h
  
-  CloudUtils utl;
+  CloudUtils util;
 
-  utl.loadCloud(*cloud_view1, sd.view1_file);
-  utl.loadCloud(*cloud_view2, sd.view2_file);
-  utl.loadCloud(*cloud_view3, sd.view3_file);
-  utl.loadCloud(*cloud_view4, sd.view4_file);
+  util.loadCloud(*cloud_view1, sd.view1_file);
+  util.loadCloud(*cloud_view2, sd.view2_file);
+  util.loadCloud(*cloud_view3, sd.view3_file);
+  util.loadCloud(*cloud_view4, sd.view4_file);
 
   PointCloudVec cloud_views;
   cloud_views.push_back(cloud_view1);
@@ -1503,12 +1503,12 @@ int main(int argc, char** argv)
   cloud_views.push_back(cloud_view3);
   cloud_views.push_back(cloud_view4);
 
-  cloud_merged=utl.mergeClusters(cloud_views);
-  utl.publishCloud(*cloud_view1, "cloud_view1", "base_link");
-  utl.publishCloud(*cloud_view2, "cloud_view2", "base_link");
-  utl.publishCloud(*cloud_view3, "cloud_view3", "base_link");
-  utl.publishCloud(*cloud_view4, "cloud_view4", "base_link");
-  utl.publishCloud(*cloud_merged, "cloud_merged", "base_link");
+  cloud_merged=util.mergeClusters(cloud_views);
+  util.publishCloud(*cloud_view1, "cloud_view1", "base_link");
+  util.publishCloud(*cloud_view2, "cloud_view2", "base_link");
+  util.publishCloud(*cloud_view3, "cloud_view3", "base_link");
+  util.publishCloud(*cloud_view4, "cloud_view4", "base_link");
+  util.publishCloud(*cloud_merged, "cloud_merged", "base_link");
 
   std::cout<<"|----------- Step 0 Complete ----------|"<<std::endl;  
   
@@ -1522,7 +1522,7 @@ int main(int argc, char** argv)
   PointCloud::Ptr training_bounded (new PointCloud);
   PointCloudNormal::Ptr training_smoothed (new PointCloudNormal);
  
-  utl.loadCloud( *training_input, sd.training_file );
+  util.loadCloud( *training_input, sd.training_file );
   
   // Step 1.5 - perform voxel-downsampling, pre-transformation, and bounding-box on the training cloud
   CloudFilter filter;   // class defined in seam_detection, see include/cloudfilter.h
@@ -1536,11 +1536,11 @@ int main(int argc, char** argv)
   std::cout<<"training_smoothed has "<<training_bounded->size()<<" points"<<std::endl;
   
   // show the input training clouds in rviz
-  utl.publishCloud(*training_input, "/training_input", "base_link"); 
-  utl.publishCloud(*training_downsampled, "/training_downsampled", "base_link");
-  utl.publishCloud(*training_transformed, "/training_transformed", "base_link"); 
-  utl.publishCloud(*training_bounded, "/training_bounded", "base_link");
-  utl.publishCloud(*training_smoothed, "/training_smoothed", "base_link");
+  util.publishCloud(*training_input, "/training_input", "base_link"); 
+  util.publishCloud(*training_downsampled, "/training_downsampled", "base_link");
+  util.publishCloud(*training_transformed, "/training_transformed", "base_link"); 
+  util.publishCloud(*training_bounded, "/training_bounded", "base_link");
+  util.publishCloud(*training_smoothed, "/training_smoothed", "base_link");
 
   std::cout<<"|----------- Step 1 Complete ----------|"<<std::endl;    
   
@@ -1556,8 +1556,8 @@ int main(int argc, char** argv)
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
 
   // show the extracted 'training' clusters in rviz
-  utl.publishClusters(training_euclidean_clusters, "/training_euclidean"); // show the euclidean and color based clusters 
-  utl.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
+  util.publishClusters(training_euclidean_clusters, "/training_euclidean"); // show the euclidean and color based clusters 
+  util.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
 
   // smooth the bounded training cloud and repeat the color clustering
   //PointCloudNormalVec training_smoothed_color_clusters;
@@ -1582,7 +1582,7 @@ int main(int argc, char** argv)
   training_matches=sd.matchClustersMulti(training_euclidean_clusters, training_color_clusters, debug_level); 
   
   // show the matches to the clusters in rviz
-  utl.publishClusters(training_matches, "/training_match");
+  util.publishClusters(training_matches, "/training_match");
   
  
   // 3.5 - find intersection of the training data (training_euclidan_clusters[0] , training_matches[0])
@@ -1591,7 +1591,7 @@ int main(int argc, char** argv)
   sd.getCloudIntersection(*training_euclidean_clusters[0], *training_matches[0], *training_intersection);
   std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;
   
-  utl.publishCloud(*training_intersection, "/training_intersection", "base_link"); // show in rviz
+  util.publishCloud(*training_intersection, "/training_intersection", "base_link"); // show in rviz
 
   std::cout<<"|----------- Step 3 Complete ----------|"<<std::endl;  
    
@@ -1603,7 +1603,7 @@ int main(int argc, char** argv)
   PointCloudNormal::Ptr test_smoothed (new PointCloudNormal);
 
   // Step 4 - load the 'test' pointcloud from pcd file (this is the cluttered table)
-  utl.loadCloud(*test_input, sd.test_file);
+  util.loadCloud(*test_input, sd.test_file);
   
   std::cout<<"|----------- Step 4 Complete ----------|"<<std::endl;  
   
@@ -1613,10 +1613,10 @@ int main(int argc, char** argv)
   filter.boundCloud(*test_transformed, *test_bounded, sd.bounding_box);
  
   // show the input test clouds in rviz
-  utl.publishCloud(*test_input, "/test_input", "base_link"); // show the input test and modified test clouds in rviz
-  utl.publishCloud(*test_downsampled, "/test_downsampled", "base_link");
-  utl.publishCloud(*test_transformed, "/test_transformed", "base_link"); 
-  utl.publishCloud(*test_bounded, "/test_bounded", "base_link");
+  util.publishCloud(*test_input, "/test_input", "base_link"); // show the input test and modified test clouds in rviz
+  util.publishCloud(*test_downsampled, "/test_downsampled", "base_link");
+  util.publishCloud(*test_transformed, "/test_transformed", "base_link"); 
+  util.publishCloud(*test_bounded, "/test_bounded", "base_link");
 
   std::cout<<"|----------- Step 5 Complete ----------|"<<std::endl;  
   
@@ -1630,8 +1630,8 @@ int main(int argc, char** argv)
  
   std::cout<<"test_euclidean_clusters size:"<<test_euclidean_clusters.size()<<std::endl;
   std::cout<<"test_color_clusters size:"<<test_color_clusters.size()<<std::endl;
-  utl.publishClusters(test_euclidean_clusters, "/test_euclidean"); // show the euclidean and color based clusters  
-  utl.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
+  util.publishClusters(test_euclidean_clusters, "/test_euclidean"); // show the euclidean and color based clusters  
+  util.publishClusters(test_color_clusters, "/test_color");         // for the test cloud  
 
   std::cout<<"|----------- Step 6 Complete ----------|"<<std::endl;  
    
@@ -1640,7 +1640,7 @@ int main(int argc, char** argv)
   PointCloudVec test_matches;
   test_matches=sd.matchClustersMulti(test_euclidean_clusters, test_color_clusters, debug_level); 
   // show the matched clusters in rviz
-  utl.publishClusters(test_matches, "/test_match");
+  util.publishClusters(test_matches, "/test_match");
    
   // Step 7.5 - Extract intersection of the test data (ALL test_euclidan_clusters[:] , all test_matches[:]) 
   PointCloudVec test_intersections; // vector of pointcloud points, dynamic sized 
@@ -1672,7 +1672,7 @@ int main(int argc, char** argv)
   }
 
   std::cout<<"test_intersections has "<<test_intersections.size()<<" clouds"<<std::endl;
-  utl.publishClusters(test_intersections, "/test_intersection");
+  util.publishClusters(test_intersections, "/test_intersection");
    
   std::cout<<"|----------- Step 7 Complete ----------|"<<std::endl;  
   
@@ -1681,7 +1681,7 @@ int main(int argc, char** argv)
   final_match=sd.matchClustersMulti(*training_intersection, test_intersections, debug_level); 
  
   std::cout<<"final_match has "<<final_match->size()<<" points"<<std::endl;
-  utl.publishCloud(*final_match, "/final_match", "base_link"); // show the matching target from the test image         
+  util.publishCloud(*final_match, "/final_match", "base_link"); // show the matching target from the test image         
   
   std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
     

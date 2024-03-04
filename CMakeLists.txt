@@ -137,11 +137,15 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
+# these should be modules of the same library maybe...
 add_library(cloudfilter
   src/cloudfilter.cpp
 )
 add_library(cloudutils
   src/cloudutils.cpp
+)
+add_library(cloudregistration
+  src/cloudregistration.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -283,6 +287,10 @@ target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES}
 # cloudfilter_test (testing cloudfilter.cpp/cloudfilter.h)
 add_executable(cloudfilter_test src/cloudfilter_test.cpp)
 target_link_libraries(cloudfilter_test cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# cloudregisration_test (testing cloudfilter.cpp/cloudfilter.h)
+add_executable(cloudregistration_test src/cloudregistration_test.cpp)
+target_link_libraries(cloudregistration_test cloudregistration ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # seam_detection_tf
 add_executable(seam_detection_tf src/seam_detection_tf.cpp)
