@@ -10,32 +10,16 @@ camera_pitch: 0.0
 camera_yaw: -90.0
 
 camera_x: 0.0
-camera_y: 0.0
-camera_z: 0.0
+camera_y: 2.0
+camera_z: -1.0
 
 camera_mount_roll: 51.5
 camera_mount_pitch: 0.0
 camera_mount_yaw: 0.0
 
-camera_mount_x: 1.5
-camera_mount_y: 5.0
-camera_mount_z: 8.75
-
-camera_roll: 0.0
-camera_pitch: 0.0
-camera_yaw: -90.0
-
-#  camera_x: 0.0
-#  camera_y: 2.0
-#  camera_z: -1.0
-#
-#  camera_mount_roll: 51.5
-#  camera_mount_pitch: 0.0
-#  camera_mount_yaw: 0.0
-#
-#  camera_mount_x: 3.5
-#  camera_mount_y: 2.0
-#  camera_mount_z: 7.75
+camera_mount_x: 3.5
+camera_mount_y: 2.0
+camera_mount_z: 7.75
 
 # tripod_roll: 30.0
 # tripod_pitch: 0.0

@@ -14,9 +14,6 @@
   <node pkg="seam_detection" type="reconfigure_tf" name="reconfigure_tf" output="screen"/>  
   <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen"/> 
  
-   <!--
-  <node pkg="seam_detection" type="realsense_tf" name="realsense_tf" output="screen"/> 
-  -->  
 
   <include file="$(find realsense2_camera)/launch/rs_camera.launch" >
     <arg name="publish_odom_tf" value="false"/> 
@@ -27,7 +24,7 @@
     <arg name="depth_width" value="848" />
     <arg name="depth_height" value="480" />
     <arg name="depth_fps" value="15" />
-   <!-- <arg name="initial_reset" value="true" /> -->
+    <!-- <arg name="initial_reset" value="true" /> -->
     <arg name="enable_infra" value="true" />
     <arg name="filters" value="pointcloud, spatial, hole_filling" />
   </include>     
