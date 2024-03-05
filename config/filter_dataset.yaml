@@ -1,25 +1,41 @@
 ---
-input_bag: "bags/reconstruction/part1_x12_y9_theta180_cpos3_.bag"
-output_bag_dir: "bags/reconstruction/part1_x12_y9_theta180_cpos3_"
+input_bag: "bags/reconstruction/part1_x4_y9_theta0_cpos4_.bag"
+output_bag_dir: "bags/reconstruction/part1_x4_y9_theta0_cpos4_"
 
-input_dir: "bags/reconstruction/part1_x12_y9_theta180_cpos3_"
-output_dir: "bags/reconstruction/part1_x12_y9_theta180_cpos3_/filtered"
+input_dir: "bags/reconstruction/part1_x4_y9_theta0_cpos4_"
+output_dir: "bags/reconstruction/part1_x4_y9_theta0_cpos4_/filtered"
 
 camera_roll: 0.0
 camera_pitch: 0.0
 camera_yaw: -90.0
 
 camera_x: 0.0
-camera_y: 2.0
-camera_z: -1.0
+camera_y: 0.0
+camera_z: 0.0
 
-camera_mount_roll: 51.5
+camera_mount_roll: 51.0
 camera_mount_pitch: 0.0
 camera_mount_yaw: 0.0
 
-camera_mount_x: 3.5
-camera_mount_y: 2.0
-camera_mount_z: 7.75
+camera_mount_x: 1.5
+camera_mount_y: 3.75
+camera_mount_z: 8.5
+
+#  camera_roll: 0.0
+#  camera_pitch: 0.0
+#  camera_yaw: -90.0
+#
+#  camera_x: 0.0
+#  camera_y: 2.0
+#  camera_z: -1.0
+#
+#  camera_mount_roll: 51.5
+#  camera_mount_pitch: 0.0
+#  camera_mount_yaw: 0.0
+#
+#  camera_mount_x: 3.5
+#  camera_mount_y: 2.0
+#  camera_mount_z: 7.75
 
 # tripod_roll: 30.0
 # tripod_pitch: 0.0
@@ -29,9 +45,9 @@ camera_mount_z: 7.75
 # tripod_y: 0.0
 # tripod_z: 65.25
 
-num_bag_clouds: 1000
-save_bag_clouds: false
-save_dir_clouds: false
+num_bag_clouds: 10
+save_bag_clouds: true
+save_dir_clouds: true
 
 publish_bag_clouds: true
 publish_dir_clouds: true
