@@ -15,13 +15,13 @@ camera_x: 0.0
 camera_y: 0.0
 camera_z: 0.0
 
-camera_mount_roll: 50.0
+camera_mount_roll: 51.0
 camera_mount_pitch: 0.0
 camera_mount_yaw: 0.0
 
-camera_mount_x: 3.5
-camera_mount_y: 2.0
-camera_mount_z: 8.0
+camera_mount_x: 1.5
+camera_mount_y: 3.75
+camera_mount_z: 8.5
 
 #tripod_roll: 0.0
 #tripod_pitch: 0.0

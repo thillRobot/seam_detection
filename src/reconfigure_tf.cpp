@@ -169,6 +169,11 @@ int main(int argc, char** argv){
       broadcaster.sendTransform( 
         tf::StampedTransform(
         tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
+        ros::Time::now(),"world","map"));
+
+      broadcaster.sendTransform( 
+        tf::StampedTransform(
+        tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
         ros::Time::now(),"map","base_link"));
 
 //     broadcaster.sendTransform( 

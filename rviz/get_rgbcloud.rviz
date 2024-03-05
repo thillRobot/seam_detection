@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1
-        - /TF1/Status1
         - /TF1/Frames1
         - /DepthCloud1
         - /DepthCloud1/Auto Size1
@@ -51,11 +50,9 @@ Visualization Manager:
         T6:
           Value: true
         T7:
-          Value: true
+          Value: false
         base_link:
           Value: true
-        camera_aligned_depth_to_color_frame:
-          Value: false
         camera_color_frame:
           Value: false
         camera_color_optical_frame:
@@ -67,7 +64,7 @@ Visualization Manager:
         camera_link:
           Value: true
         camera_mount:
-          Value: true
+          Value: false
         map:
           Value: false
         world:
@@ -83,11 +80,9 @@ Visualization Manager:
           T6:
             camera_mount:
               camera_link:
-                camera_aligned_depth_to_color_frame:
+                camera_color_frame:
                   camera_color_optical_frame:
                     {}
-                camera_color_frame:
-                  {}
                 camera_depth_frame:
                   camera_depth_optical_frame:
                     {}
@@ -290,7 +285,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.047701120376587
+      Distance: 2.0781381130218506
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -298,17 +293,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.4598604440689087
-        Y: -0.4791279733181
-        Z: -0.3965405225753784
+        X: 0.48515403270721436
+        Y: -0.24909880757331848
+        Z: -0.18427741527557373
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.30020368099212646
+      Pitch: 0.7102037072181702
       Target Frame: <Fixed Frame>
-      Yaw: 3.3967747688293457
+      Yaw: 3.6317758560180664
     Saved: ~
 Window Geometry:
   Displays:
