@@ -1511,7 +1511,7 @@ int main(int argc, char** argv)
   util.publishCloud(*cloud_merged, "cloud_merged", "base_link");
 
   std::cout<<"|----------- Step 0 Complete ----------|"<<std::endl;  
-  
+  /* 
   // [Steps 1-3] - use 'training' image of target object on clean table
 
   // Step 1 - load the 'training' pointcloud from pcd file 
@@ -1684,7 +1684,7 @@ int main(int argc, char** argv)
   util.publishCloud(*final_match, "/final_match", "base_link"); // show the matching target from the test image         
   
   std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
-    
+  */  
 
   std::cout<<"|----------- seam_detection complete ----------|"<<std::endl;  
   ros::spin();

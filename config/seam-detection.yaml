@@ -14,11 +14,15 @@ seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b_1705440053
 #view3_file: "bags/reconstruction/part1_x4_y8_theta0_cpos3_/filtered/part1_x4_y8_theta0_cpos3_10_filtered.pcd"
 #view4_file: "bags/reconstruction/part1_x4_y8_theta0_cpos4_/filtered/part1_x4_y8_theta0_cpos4_10_filtered.pcd"
 
-view1_file: "bags/reconstruction/part1_x4_y9_theta0_cpos1_/filtered/part1_x4_y9_theta0_cpos1_5_filtered.pcd"
-view2_file: "bags/reconstruction/part1_x4_y9_theta0_cpos2_/filtered/part1_x4_y9_theta0_cpos2_5_filtered.pcd"
-view3_file: "bags/reconstruction/part1_x4_y9_theta0_cpos3_/filtered/part1_x4_y9_theta0_cpos3_5_filtered.pcd"
-view4_file: "bags/reconstruction/part1_x4_y9_theta0_cpos4_/filtered/part1_x4_y9_theta0_cpos4_5_filtered.pcd"
+#view1_file: "bags/reconstruction/part1_x4_y9_theta0_cpos1_/filtered/part1_x4_y9_theta0_cpos1_5_filtered.pcd"
+#view2_file: "bags/reconstruction/part1_x4_y9_theta0_cpos2_/filtered/part1_x4_y9_theta0_cpos2_5_filtered.pcd"
+#view3_file: "bags/reconstruction/part1_x4_y9_theta0_cpos3_/filtered/part1_x4_y9_theta0_cpos3_5_filtered.pcd"
+#view4_file: "bags/reconstruction/part1_x4_y9_theta0_cpos4_/filtered/part1_x4_y9_theta0_cpos4_5_filtered.pcd"
 
+view1_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos1_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos1_5_filtered.pcd"
+view2_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos2_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos2_5_filtered.pcd"
+view3_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos3_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos3_5_filtered.pcd"
+view4_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos4_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos4_5_filtered.pcd"
 
 save_output: true
 translate_output: false
