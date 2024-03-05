@@ -1,37 +1,53 @@
 ---
-input_bag: "bags/reconstruction/part1_x2_y4_theta0_cpos4_.bag"
-output_bag_dir: "bags/reconstruction/part1_x2_y4_theta0_cpos4_"
+input_bag: "bags/reconstruction/part1_x12_y9_theta180_cpos3_.bag"
+output_bag_dir: "bags/reconstruction/part1_x12_y9_theta180_cpos3_"
 
-input_dir: "bags/reconstruction/part1_x2_y4_theta0_cpos4_"
-output_dir: "bags/reconstruction/part1_x2_y4_theta0_cpos4_/filtered"
+input_dir: "bags/reconstruction/part1_x12_y9_theta180_cpos3_"
+output_dir: "bags/reconstruction/part1_x12_y9_theta180_cpos3_/filtered"
 
 camera_roll: 0.0
 camera_pitch: 0.0
 camera_yaw: -90.0
 
 camera_x: 0.0
-camera_y: 2.0
-camera_z: -1.0
+camera_y: 0.0
+camera_z: 0.0
 
 camera_mount_roll: 51.5
 camera_mount_pitch: 0.0
 camera_mount_yaw: 0.0
 
-camera_mount_x: 3.5
-camera_mount_y: 2.0
-camera_mount_z: 7.75
+camera_mount_x: 1.5
+camera_mount_y: 5.0
+camera_mount_z: 8.75
 
-tripod_roll: 30.0
-tripod_pitch: 0.0
-tripod_yaw: 0.0
+camera_roll: 0.0
+camera_pitch: 0.0
+camera_yaw: -90.0
 
-tripod_x: 0.0
-tripod_y: 0.0
-tripod_z: 65.25
+#  camera_x: 0.0
+#  camera_y: 2.0
+#  camera_z: -1.0
+#
+#  camera_mount_roll: 51.5
+#  camera_mount_pitch: 0.0
+#  camera_mount_yaw: 0.0
+#
+#  camera_mount_x: 3.5
+#  camera_mount_y: 2.0
+#  camera_mount_z: 7.75
 
-num_bag_clouds: 2
-save_bag_clouds: true
-save_dir_clouds: true
+# tripod_roll: 30.0
+# tripod_pitch: 0.0
+# tripod_yaw: 0.0
+
+# tripod_x: 0.0
+# tripod_y: 0.0
+# tripod_z: 65.25
+
+num_bag_clouds: 1000
+save_bag_clouds: false
+save_dir_clouds: false
 
 publish_bag_clouds: true
 publish_dir_clouds: true
@@ -47,7 +63,7 @@ downsample_bag_clouds: false
 
 transform_dir_clouds: false
 bound_dir_clouds: true
-smooth_dir_clouds: true
+smooth_dir_clouds: false
 downsample_dir_clouds: true
 
 #pre_rotation:    [-0.0 5, 3.17, 0.0] #
@@ -55,4 +71,4 @@ downsample_dir_clouds: true
 auto_bounds: false
 
 bounding_box: [-1.0, 1.0, -0.9, -0.25, 0.005, 0.5] # bounding box limits
-voxel_size: 0.005
+voxel_size: 0.001

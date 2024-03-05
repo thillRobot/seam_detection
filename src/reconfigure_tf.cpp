@@ -66,9 +66,9 @@ int main(int argc, char** argv){
     double camera_roll, camera_yaw, camera_pitch,  
 	        camera_x, camera_y, camera_z, 
           camera_mount_x, camera_mount_y, camera_mount_z,
-          camera_mount_roll, camera_mount_yaw, camera_mount_pitch,   
-          tripod_roll, tripod_yaw, tripod_pitch,
-          tripod_x, tripod_y, tripod_z; 
+          camera_mount_roll, camera_mount_yaw, camera_mount_pitch;   
+          //tripod_roll, tripod_yaw, tripod_pitch,
+          //tripod_x, tripod_y, tripod_z; 
  
     // get parameter values from rosparam
     node.getParam("camera_roll", camera_roll);
@@ -79,13 +79,13 @@ int main(int argc, char** argv){
     node.getParam("camera_y", camera_y);
     node.getParam("camera_z", camera_z);
     
-    node.getParam("tripod_roll", tripod_roll);
-    node.getParam("tripod_pitch", tripod_pitch);
-    node.getParam("tripod_yaw", tripod_yaw);
+    //node.getParam("tripod_roll", tripod_roll);
+    //node.getParam("tripod_pitch", tripod_pitch);
+    //node.getParam("tripod_yaw", tripod_yaw);
     
-    node.getParam("tripod_x", tripod_x);
-    node.getParam("tripod_y", tripod_y);
-    node.getParam("tripod_z", tripod_z);
+    //node.getParam("tripod_x", tripod_x);
+    //node.getParam("tripod_y", tripod_y);
+    //node.getParam("tripod_z", tripod_z);
     
     node.getParam("camera_mount_roll", camera_mount_roll);
     node.getParam("camera_mount_pitch", camera_mount_pitch);
@@ -99,6 +99,7 @@ int main(int argc, char** argv){
     reconfigureDouble("camera_roll", camera_roll);
     reconfigureDouble("camera_pitch",camera_pitch);
     reconfigureDouble("camera_yaw",camera_yaw);
+    
     reconfigureDouble("camera_x",camera_x);
     reconfigureDouble("camera_y",camera_y);
     reconfigureDouble("camera_z",camera_z);
@@ -106,6 +107,7 @@ int main(int argc, char** argv){
     reconfigureDouble("camera_mount_roll", camera_mount_roll);
     reconfigureDouble("camera_mount_pitch",camera_mount_pitch);
     reconfigureDouble("camera_mount_yaw",camera_mount_yaw);
+    
     reconfigureDouble("camera_mount_x",camera_mount_x);
     reconfigureDouble("camera_mount_y",camera_mount_y);
     reconfigureDouble("camera_mount_z",camera_mount_z);
@@ -122,13 +124,13 @@ int main(int argc, char** argv){
       node.getParam("/reconfigure_server/camera_y", camera_y);
       node.getParam("/reconfigure_server/camera_z", camera_z);
       
-      node.getParam("/reconfigure_server/tripod_roll", tripod_roll);
-      node.getParam("/reconfigure_server/tripod_pitch", tripod_pitch);
-      node.getParam("/reconfigure_server/tripod_yaw", tripod_yaw);
+      //node.getParam("/reconfigure_server/tripod_roll", tripod_roll);
+      //node.getParam("/reconfigure_server/tripod_pitch", tripod_pitch);
+      //node.getParam("/reconfigure_server/tripod_yaw", tripod_yaw);
       
-      node.getParam("/reconfigure_server/tripod_x", tripod_x);
-      node.getParam("/reconfigure_server/tripod_y", tripod_y);
-      node.getParam("/reconfigure_server/tripod_z", tripod_z);
+      //node.getParam("/reconfigure_server/tripod_x", tripod_x);
+      //node.getParam("/reconfigure_server/tripod_y", tripod_y);
+      //node.getParam("/reconfigure_server/tripod_z", tripod_z);
       
       node.getParam("/reconfigure_server/camera_mount_roll", camera_mount_roll);
       node.getParam("/reconfigure_server/camera_mount_pitch", camera_mount_pitch);
@@ -147,13 +149,13 @@ int main(int argc, char** argv){
       camera_y=camera_y*in2m;
       camera_z=camera_z*in2m;
 
-      tripod_roll=tripod_roll*d2r;
-      tripod_pitch=tripod_pitch*d2r;
-      tripod_yaw=tripod_yaw*d2r;
+      //tripod_roll=tripod_roll*d2r;
+      //tripod_pitch=tripod_pitch*d2r;
+      //tripod_yaw=tripod_yaw*d2r;
       
-      tripod_x=tripod_x*in2m;
-      tripod_y=tripod_y*in2m;
-      tripod_z=tripod_z*in2m;
+      //tripod_x=tripod_x*in2m;
+      //tripod_y=tripod_y*in2m;
+      //tripod_z=tripod_z*in2m;
 
       camera_mount_roll=camera_mount_roll*d2r;
       camera_mount_pitch=camera_mount_pitch*d2r;
@@ -169,15 +171,15 @@ int main(int argc, char** argv){
         tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
         ros::Time::now(),"map","base_link"));
 
-//      broadcaster.sendTransform( 
+//     broadcaster.sendTransform( 
 //        tf::StampedTransform(
 //        tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
 //        ros::Time::now(),"world","base_link"));
       
-    //  broadcaster.sendTransform( 
-    //    tf::StampedTransform(
-    //    tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
-    //    ros::Time::now(),"map","world"));
+//     broadcaster.sendTransform( 
+//        tf::StampedTransform(
+//        tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0.0)),
+//        ros::Time::now(),"map","world"));
 
 //     broadcaster.sendTransform(
 //        tf::StampedTransform(
@@ -210,7 +212,7 @@ int main(int argc, char** argv){
 //         tf::Transform(tf::createQuaternionFromRPY(0,0,0), tf::Vector3(0.0, 0.0, 0)),
 //         ros::Time::now(),"camera_link","camera_color_optical_frame"));
 //     }
-//     
+     
       rate.sleep();
       ros::spinOnce();
     }

@@ -36,7 +36,7 @@ int main(int argc, char** argv){
     float in2m=0.0254;
       
     float camera_roll, camera_yaw, camera_pitch,  
-	  camera_x, camera_y, camera_z, 
+	        camera_x, camera_y, camera_z, 
           camera_mount_x, camera_mount_y, camera_mount_z,
           camera_mount_roll, camera_mount_yaw, camera_mount_pitch,   
           tripod_roll, tripod_yaw, tripod_pitch,
@@ -77,7 +77,6 @@ int main(int argc, char** argv){
     tripod_x=tripod_x*in2m;
     tripod_y=tripod_y*in2m;
     tripod_z=tripod_z*in2m;
-
 
     node.getParam("camera_mount_roll", camera_mount_roll);
     node.getParam("camera_mount_pitch", camera_mount_pitch);
