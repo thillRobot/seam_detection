@@ -6,21 +6,72 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /PointCloud22
+        - /PointCloud23
         - /PointCloud24
-        - /PointCloud27
-        - /PointCloud28
-        - /PointCloud29
-        - /PointCloud210
+        - /PointCloud25
         - /PointCloud211
+        - /PointCloud212
+        - /PointCloud213
+        - /PointCloud214
+        - /PointCloud215
+        - /PointCloud216
         - /PointCloud223
-        - /PointCloud235
+        - /PointCloud224
+        - /PointCloud225
+        - /PointCloud226
+        - /PointCloud227
+        - /PointCloud228
         - /PointCloud247
         - /PointCloud259
+        - /PointCloud260
+        - /PointCloud261
+        - /PointCloud262
         - /PointCloud263
         - /PointCloud264
+        - /PointCloud265
+        - /PointCloud266
+        - /PointCloud267
+        - /PointCloud268
+        - /PointCloud269
+        - /PointCloud270
         - /PointCloud277
+        - /PointCloud278
+        - /PointCloud279
+        - /PointCloud280
+        - /PointCloud281
+        - /PointCloud282
+        - /PointCloud283
+        - /PointCloud284
+        - /PointCloud285
+        - /PointCloud286
+        - /PointCloud287
+        - /PointCloud288
+        - /PointCloud289
+        - /PointCloud290
+        - /PointCloud291
+        - /PointCloud292
+        - /PointCloud293
+        - /PointCloud294
+        - /PointCloud295
+        - /PointCloud296
+        - /PointCloud297
+        - /PointCloud298
+        - /PointCloud299
         - /PointCloud2100
-      Splitter Ratio: 0.5128205418586731
+        - /PointCloud2101
+        - /PointCloud2102
+        - /PointCloud2103
+        - /PointCloud2104
+        - /PointCloud2105
+        - /PointCloud2106
+        - /PointCloud2107
+        - /PointCloud2108
+        - /PointCloud2109
+        - /PointCloud2110
+        - /PointCloud2111
+        - /PointCloud2112
+      Splitter Ratio: 0.516765296459198
     Tree Height: 735
   - Class: rviz/Selection
     Name: Selection
@@ -130,7 +181,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 165; 165; 165
-      Color Transformer: FlatColor
+      Color Transformer: RGB8
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
@@ -158,7 +209,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 165; 165; 165
-      Color Transformer: FlatColor
+      Color Transformer: RGB8
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
@@ -228,34 +279,6 @@ Visualization Manager:
       Size (m): 0.0010000000474974513
       Style: Points
       Topic: /training_smoothed
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 0; 0
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 2
-      Size (m): 0.0010000000474974513
-      Style: Points
-      Topic: /training_euclidean0
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -384,7 +407,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -399,7 +422,35 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 0; 0
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 2
+      Size (m): 0.0010000000474974513
+      Style: Points
+      Topic: /training_euclidean0
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -422,7 +473,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean1
       Unreliable: false
       Use Fixed Frame: true
@@ -450,7 +501,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean2
       Unreliable: false
       Use Fixed Frame: true
@@ -478,7 +529,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean3
       Unreliable: false
       Use Fixed Frame: true
@@ -506,7 +557,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean4
       Unreliable: false
       Use Fixed Frame: true
@@ -534,7 +585,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean5
       Unreliable: false
       Use Fixed Frame: true
@@ -562,7 +613,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Squares
       Topic: /training_euclidean6
       Unreliable: false
       Use Fixed Frame: true
@@ -590,7 +641,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean7
       Unreliable: false
       Use Fixed Frame: true
@@ -618,7 +669,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean8
       Unreliable: false
       Use Fixed Frame: true
@@ -646,7 +697,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean9
       Unreliable: false
       Use Fixed Frame: true
@@ -674,7 +725,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean10
       Unreliable: false
       Use Fixed Frame: true
@@ -702,7 +753,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_euclidean11
       Unreliable: false
       Use Fixed Frame: true
@@ -730,7 +781,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color0
       Unreliable: false
       Use Fixed Frame: true
@@ -758,7 +809,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color1
       Unreliable: false
       Use Fixed Frame: true
@@ -786,7 +837,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color2
       Unreliable: false
       Use Fixed Frame: true
@@ -814,7 +865,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color3
       Unreliable: false
       Use Fixed Frame: true
@@ -842,7 +893,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color4
       Unreliable: false
       Use Fixed Frame: true
@@ -870,7 +921,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color5
       Unreliable: false
       Use Fixed Frame: true
@@ -898,7 +949,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color6
       Unreliable: false
       Use Fixed Frame: true
@@ -926,7 +977,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color7
       Unreliable: false
       Use Fixed Frame: true
@@ -954,7 +1005,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color8
       Unreliable: false
       Use Fixed Frame: true
@@ -982,7 +1033,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color9
       Unreliable: false
       Use Fixed Frame: true
@@ -1010,7 +1061,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color10
       Unreliable: false
       Use Fixed Frame: true
@@ -1038,7 +1089,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_color11
       Unreliable: false
       Use Fixed Frame: true
@@ -1066,7 +1117,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /training_smoothed_color0
       Unreliable: false
       Use Fixed Frame: true
@@ -1754,7 +1805,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 165; 165; 165
-      Color Transformer: FlatColor
+      Color Transformer: RGB8
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
@@ -1766,7 +1817,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: test_input
       Unreliable: false
       Use Fixed Frame: true
@@ -1782,7 +1833,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 165; 165; 165
-      Color Transformer: FlatColor
+      Color Transformer: RGB8
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
@@ -1794,7 +1845,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_downsampled
       Unreliable: false
       Use Fixed Frame: true
@@ -1810,7 +1861,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 165; 165; 165
-      Color Transformer: FlatColor
+      Color Transformer: RGB8
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
@@ -1822,7 +1873,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_transformed
       Unreliable: false
       Use Fixed Frame: true
@@ -1850,7 +1901,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_bounded
       Unreliable: false
       Use Fixed Frame: true
@@ -1878,8 +1929,8 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
-      Topic: /test_euclidean0
+      Style: Points
+      Topic: /test_match0
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -1906,8 +1957,8 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
-      Topic: /test_match0
+      Style: Points
+      Topic: /test_euclidean0
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -1934,7 +1985,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean1
       Unreliable: false
       Use Fixed Frame: true
@@ -1962,7 +2013,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean2
       Unreliable: false
       Use Fixed Frame: true
@@ -1990,7 +2041,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean3
       Unreliable: false
       Use Fixed Frame: true
@@ -2018,7 +2069,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean4
       Unreliable: false
       Use Fixed Frame: true
@@ -2046,7 +2097,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean5
       Unreliable: false
       Use Fixed Frame: true
@@ -2074,7 +2125,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean6
       Unreliable: false
       Use Fixed Frame: true
@@ -2102,7 +2153,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean7
       Unreliable: false
       Use Fixed Frame: true
@@ -2130,7 +2181,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean8
       Unreliable: false
       Use Fixed Frame: true
@@ -2158,7 +2209,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean9
       Unreliable: false
       Use Fixed Frame: true
@@ -2186,7 +2237,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean10
       Unreliable: false
       Use Fixed Frame: true
@@ -2214,7 +2265,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_euclidean11
       Unreliable: false
       Use Fixed Frame: true
@@ -2232,7 +2283,7 @@ Visualization Manager:
       Color: 255; 0; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2242,12 +2293,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color0
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2260,7 +2311,7 @@ Visualization Manager:
       Color: 0; 255; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2270,12 +2321,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color1
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2288,7 +2339,7 @@ Visualization Manager:
       Color: 0; 0; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2298,12 +2349,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color2
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 0.25
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2316,7 +2367,7 @@ Visualization Manager:
       Color: 0; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2326,12 +2377,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color3
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2344,7 +2395,7 @@ Visualization Manager:
       Color: 255; 0; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2354,12 +2405,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color4
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2372,7 +2423,7 @@ Visualization Manager:
       Color: 255; 255; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2382,12 +2433,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color5
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2400,7 +2451,7 @@ Visualization Manager:
       Color: 255; 100; 100
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2410,12 +2461,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color6
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2428,7 +2479,7 @@ Visualization Manager:
       Color: 100; 255; 100
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2438,12 +2489,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color7
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2456,7 +2507,7 @@ Visualization Manager:
       Color: 100; 100; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2466,12 +2517,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color8
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 0.25
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2484,7 +2535,7 @@ Visualization Manager:
       Color: 100; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2494,12 +2545,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color9
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2512,7 +2563,7 @@ Visualization Manager:
       Color: 255; 100; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2522,12 +2573,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color10
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2540,7 +2591,7 @@ Visualization Manager:
       Color: 255; 255; 100
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2550,12 +2601,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_color11
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2568,7 +2619,7 @@ Visualization Manager:
       Color: 0; 255; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2578,12 +2629,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match1
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2596,7 +2647,7 @@ Visualization Manager:
       Color: 0; 0; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2606,12 +2657,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match2
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 0.25
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2624,7 +2675,7 @@ Visualization Manager:
       Color: 0; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2634,12 +2685,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match3
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2652,7 +2703,7 @@ Visualization Manager:
       Color: 255; 0; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2662,12 +2713,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match4
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2680,7 +2731,7 @@ Visualization Manager:
       Color: 255; 255; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2690,12 +2741,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match5
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2708,7 +2759,7 @@ Visualization Manager:
       Color: 255; 100; 100
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2718,12 +2769,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match6
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2736,7 +2787,7 @@ Visualization Manager:
       Color: 100; 255; 100
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2746,12 +2797,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match7
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2764,7 +2815,7 @@ Visualization Manager:
       Color: 100; 100; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2774,12 +2825,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match8
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 0.25
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2792,7 +2843,7 @@ Visualization Manager:
       Color: 100; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2802,12 +2853,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match9
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2820,7 +2871,7 @@ Visualization Manager:
       Color: 255; 100; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2830,12 +2881,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match10
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2848,7 +2899,7 @@ Visualization Manager:
       Color: 255; 255; 100
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2858,12 +2909,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_match11
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2876,7 +2927,7 @@ Visualization Manager:
       Color: 255; 0; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2886,12 +2937,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection0
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2904,7 +2955,7 @@ Visualization Manager:
       Color: 0; 255; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2914,12 +2965,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection1
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2932,7 +2983,7 @@ Visualization Manager:
       Color: 0; 0; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2942,12 +2993,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection2
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 0.25
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2960,7 +3011,7 @@ Visualization Manager:
       Color: 0; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2970,12 +3021,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection3
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -2988,7 +3039,7 @@ Visualization Manager:
       Color: 255; 0; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2998,12 +3049,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection4
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3016,7 +3067,7 @@ Visualization Manager:
       Color: 255; 255; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3031,7 +3082,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3044,7 +3095,7 @@ Visualization Manager:
       Color: 255; 100; 100
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3054,12 +3105,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection6
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 0.25
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3072,7 +3123,7 @@ Visualization Manager:
       Color: 100; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3082,12 +3133,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection7
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3100,7 +3151,7 @@ Visualization Manager:
       Color: 255; 100; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3110,12 +3161,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection8
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3128,7 +3179,7 @@ Visualization Manager:
       Color: 100; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3138,12 +3189,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection9
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3156,7 +3207,7 @@ Visualization Manager:
       Color: 255; 100; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3166,12 +3217,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0024999999441206455
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection10
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3182,9 +3233,9 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 255; 255; 100
-      Color Transformer: FlatColor
+      Color Transformer: ""
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3194,12 +3245,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: /test_intersection11
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -3212,7 +3263,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -3222,12 +3273,12 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
-      Style: Flat Squares
+      Style: Points
       Topic: final_match
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Class: rviz/Marker
       Enabled: false
       Marker Topic: /target_marker
@@ -3289,7 +3340,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.6401324272155762
+      Distance: 0.6275057196617126
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -3297,17 +3348,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.006027095951139927
-        Y: -0.643800675868988
-        Z: -0.05696865916252136
+        X: -0.009227174334228039
+        Y: -0.6226525902748108
+        Z: -0.042272429913282394
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8047972321510315
+      Pitch: 0.7447972893714905
       Target Frame: <Fixed Frame>
-      Yaw: 5.941734313964844
+      Yaw: 5.8017144203186035
     Saved: ~
 Window Geometry:
   Displays:

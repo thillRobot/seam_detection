@@ -94,6 +94,31 @@ template int CloudUtils::loadCloud<pcl::PointXYZRGB>
               (pcl::PointCloud<pcl::PointXYZRGB> &input, std::string file);
 
 
+// templated function to save pcl::PointCloud<point_t> to PCD file as defined in config
+template <typename point_t>
+int CloudUtils::saveCloud(pcl::PointCloud<point_t> &output, std::string file){
+  // the name output here is very confusing, consider changing this
+  std::cout<<"|---------- FilterDataset::SaveCloud - saving PCD file ----------|"<<std::endl;
+
+  std::string path;
+  path=package_path+"/"+file;
+  //path=file;
+  // save filtered cloud 
+
+  std::cout << "Saving output pointcloud file: " << path << std::endl;
+  if (  pcl::io::savePCDFileASCII(path, output) == -1)
+  {
+    std::cout<<"Failed to save ouput pointcloud file: "<< path <<std::endl;
+    return (-1);
+  }
+  std::cout << "Saved "<<output.width * output.height << " data points to output pointcloud file: "<< path <<std::endl;
+  return 0;
+}
+ 
+template int CloudUtils::saveCloud<pcl::PointXYZRGB>
+            ( pcl::PointCloud<pcl::PointXYZRGB> &output, std::string file );   
+
+
 // templated function to publish a single pcl::PointCloud<point_t> as a ROS topic 
 template <typename point_t>
 void CloudUtils::publishCloud(pcl::PointCloud<point_t> &cloud, std::string topic, std::string frame){
@@ -263,4 +288,5 @@ PointCloud::Ptr CloudUtils::mergeClusters(PointCloudVec &clusters){
   std::cout<< "the merged cloud has "<< output->size() << " points" <<std::endl;
   return output;
 }
+
 

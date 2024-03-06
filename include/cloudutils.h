@@ -75,7 +75,9 @@ class CloudUtils
     void mergeClusters(PointCloudVec &clusters, PointCloud &output);
     PointCloud::Ptr mergeClusters(PointCloudVec &clusters);
     
- 
+    template <typename point_t>
+    int saveCloud(pcl::PointCloud<point_t> &output, std::string file);
+  
     // PUBLIC attributes
 
     std::string package_path;

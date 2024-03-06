@@ -140,6 +140,7 @@ class SeamDetection {
       node.getParam("view2_file", view2_file);
       node.getParam("view3_file", view3_file);
       node.getParam("view4_file", view4_file);
+      node.getParam("merged_file", merged_file);
 
       // generate absolute file paths to inputs (does this belong here?)
       training_path=package_path+'/'+training_file; // i dont think so
@@ -1434,7 +1435,7 @@ class SeamDetection {
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
     std::string package_path, training_path, test_path, output_path, training_file, test_file, output_file,
-                view1_file, view2_file, view3_file, view4_file; 
+                view1_file, view2_file, view3_file, view4_file, merged_file; 
    
     std::vector<double> bounding_box, pre_rotation, pre_translation;
     double voxel_size;
@@ -1480,7 +1481,8 @@ int main(int argc, char** argv)
  
   // load ROS parameters, modify values in seam-detection.yaml
   sd.loadConfig(); 
- 
+
+   
   // step0 - test reconstruction by merging different views
   PointCloud::Ptr cloud_view1 (new PointCloud);
   PointCloud::Ptr cloud_view2 (new PointCloud);
@@ -1510,8 +1512,11 @@ int main(int argc, char** argv)
   util.publishCloud(*cloud_view4, "cloud_view4", "base_link");
   util.publishCloud(*cloud_merged, "cloud_merged", "base_link");
 
+  // save resulting merge to pcd file
+  util.saveCloud(*cloud_merged, sd.merged_file);
+
   std::cout<<"|----------- Step 0 Complete ----------|"<<std::endl;  
-  /* 
+   
   // [Steps 1-3] - use 'training' image of target object on clean table
 
   // Step 1 - load the 'training' pointcloud from pcd file 
@@ -1544,6 +1549,7 @@ int main(int argc, char** argv)
 
   std::cout<<"|----------- Step 1 Complete ----------|"<<std::endl;    
   
+   
   // Step 2 - extract clusters from training cloud using euclidean and color algorithms
   PointCloudVec training_euclidean_clusters, training_color_clusters;
   
@@ -1601,7 +1607,8 @@ int main(int argc, char** argv)
   PointCloud::Ptr test_transformed (new PointCloud);
   PointCloud::Ptr test_bounded (new PointCloud);
   PointCloudNormal::Ptr test_smoothed (new PointCloudNormal);
-
+  
+  
   // Step 4 - load the 'test' pointcloud from pcd file (this is the cluttered table)
   util.loadCloud(*test_input, sd.test_file);
   
@@ -1684,7 +1691,7 @@ int main(int argc, char** argv)
   util.publishCloud(*final_match, "/final_match", "base_link"); // show the matching target from the test image         
   
   std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
-  */  
+    
 
   std::cout<<"|----------- seam_detection complete ----------|"<<std::endl;  
   ros::spin();
