@@ -172,46 +172,8 @@ class SeamDetection {
           
       return 0;
     }
-
-    
-    // function to return the median value of a std::vector
-    // it seems like there would be a std method for this
-    double getMedian(std::vector<double> vals){
-
-      size_t size=vals.size();
-
-      if (size==0){
-        return 0; // size 0 vector has no median
-      }else{
-        std::sort(vals.begin(), vals.end());
-        if(size%2==0){
-          return (vals[size/2-1]+vals[size/2])/2;
-        }else{
-          return vals[size/2];
-        }
-      }
-    }
-    
-    
-    // overloaded function to return the median value of a Eigen::VectorXd (dynxamic sized vector of doubles)
-    // it seems like there would be a std method for this
-    double getMedian(Eigen::VectorXd vals){
-
-      int size=vals.size();
-
-      if (size==0){
-        return 0; // size 0 vector has no median
-      }else{
-        std::sort(vals.data(), vals.data()+vals.size());
-        if(size%2==0){
-          return (vals[size/2-1]+vals[size/2])/2;
-        }else{
-          return vals[size/2];
-        }
-      }
-    }
-    
-
+  
+ 
     // function to find the intersection cloud3 of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
     // this is based on exact comparison and will not work for approximate cloud points 
     void getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2, PointCloud &cloud3){
@@ -783,6 +745,9 @@ class SeamDetection {
       Eigen::Matrix3f compare_eigenvectors;  
       getPCABox(cloud2, compare_quaternion, compare_translation, compare_size, compare_eigenvectors);
 
+      //find median color values for the first cloud
+      std::cout<<"cloud1 median red: "<< cloud1[0].r <<std::endl;
+
       // calculate separate terms for the objective function between the two clouds
 
       // term1 - position of centroid
@@ -912,7 +877,7 @@ class SeamDetection {
       return matches;
     }
 
-
+    // used in step 2
     // function to find best match between sets of clusters using multi-objective optimization
     PointCloudVec matchClustersMulti(PointCloudVec clusters, PointCloudVec compares, int verbosity){
 
@@ -944,6 +909,8 @@ class SeamDetection {
       Eigen::Vector3f compare_translation, compare_size;
       Eigen::Matrix3f compare_eigenvectors;  
 
+      CloudUtils utl;
+      
       if (clusters.size()<=compares.size()){  // clusters has fewer clusters than compares
         n=clusters.size();
       }else{
@@ -978,12 +945,20 @@ class SeamDetection {
           // square root of squared difference in aspect ratios - l
           aspect_ratio_diffs.at(j)= std::abs(cloud_aspect_ratio - compare_aspect_ratio); 
 
+          // term 4 - color metric
+          //std::uint32_t red, green, blue;
+          //float red, green, blue;
+          //red=clusters[i]->points[10].r;
+          //green=clusters[i]->points[10].g;
+          //blue=clusters[i]->points[10].b;
+          utl.getMedianColor(*clusters[i]);
+ 
         }
 
         // find the median value for each objective 
-        centroid_diffs_median=getMedian(centroid_diffs);
-        volume_diffs_median=getMedian(volume_diffs);
-        aspect_ratio_diffs_median=getMedian(aspect_ratio_diffs);
+        centroid_diffs_median=utl.getMedian(centroid_diffs);
+        volume_diffs_median=utl.getMedian(volume_diffs);
+        aspect_ratio_diffs_median=utl.getMedian(aspect_ratio_diffs);
         
         // find pair with min sum objective difference using median normalized differences 
         //double score, score_min;
@@ -1106,12 +1081,15 @@ class SeamDetection {
         // square root of squared difference in aspect ratios - l
         aspect_ratio_diffs[j]= std::abs(cloud_aspect_ratio - compare_aspect_ratio); 
 
-      }
+        // term4 - color metric
+        std::cout<<"cloud red value: "<<cloud.points[10].r<<std::endl;
 
+      }
+      CloudUtils utl;
       // find the median value for each objective 
-      centroid_diffs_median=getMedian(centroid_diffs);
-      volume_diffs_median=getMedian(volume_diffs);
-      aspect_ratio_diffs_median=getMedian(aspect_ratio_diffs);
+      centroid_diffs_median=utl.getMedian(centroid_diffs);
+      volume_diffs_median=utl.getMedian(volume_diffs);
+      aspect_ratio_diffs_median=utl.getMedian(aspect_ratio_diffs);
 
       // normalize diffs by dividing by median difference for each objective 
       centroid_diffs_norm=centroid_diffs/centroid_diffs_median; // use vectorized row operations from library Eigen
@@ -1220,11 +1198,13 @@ class SeamDetection {
       }
 
       std::cout<<"DEBUG: finished calculating diffs"<<std::endl;
+      
+      CloudUtils utl;
 
       // find the median value for each objective from cloud and compare1
-      centroid_diffs_median=getMedian(centroid_diffs1);
-      volume_diffs_median=getMedian(volume_diffs1);
-      aspect_ratio_diffs_median=getMedian(aspect_ratio_diffs1);
+      centroid_diffs_median=utl.getMedian(centroid_diffs1);
+      volume_diffs_median=utl.getMedian(volume_diffs1);
+      aspect_ratio_diffs_median=utl.getMedian(aspect_ratio_diffs1);
       
       // normalize diffs by dividing by median difference for each objective from cloud and compare 1
       centroid_diffs1_norm=centroid_diffs1/centroid_diffs_median; // use vectorized row operations from library Eigen
@@ -1237,9 +1217,9 @@ class SeamDetection {
       //aspect_ratio_diffs1_norm=aspect_ratio_diffs1/getMedian(aspect_ratio_diffs1);
 
       // find the median value for each objective from cloud and compare2
-      centroid_diffs_median=getMedian(centroid_diffs2);
-      volume_diffs_median=getMedian(volume_diffs2);
-      aspect_ratio_diffs_median=getMedian(aspect_ratio_diffs2);
+      centroid_diffs_median=utl.getMedian(centroid_diffs2);
+      volume_diffs_median=utl.getMedian(volume_diffs2);
+      aspect_ratio_diffs_median=utl.getMedian(aspect_ratio_diffs2);
 
       // normalize diffs by dividing by median difference for each objective from cloud and compare 2
       centroid_diffs2_norm=centroid_diffs2/centroid_diffs_median; // use vectorized row operations from library Eigen
@@ -1564,14 +1544,16 @@ int main(int argc, char** argv)
   std::cout<<"training_euclidean_clusters size:"<<training_euclidean_clusters.size()<<std::endl;
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
 
-  // show the extracted 'training' clusters in rviz
-  util.publishClusters(training_euclidean_clusters, "/training_euclidean"); // show the euclidean and color based clusters 
-  util.publishClusters(training_color_clusters, "/training_color");         // for the training cloud  
+  // show the extracted 'training' clusters in rviz 
+  // show the euclidean and color based clusters for the training cloud
+  util.publishClusters(training_euclidean_clusters, "/training_euclidean");
+  util.publishClusters(training_color_clusters, "/training_color");     
 
   // smooth the bounded training cloud and repeat the color clustering
   //PointCloudNormalVec training_smoothed_color_clusters;
   //std::vector<typename pcl::PointCloud<PointNT>::Ptr, 
-  //            Eigen::aligned_allocator<typename pcl::PointCloud<PointNT>::Ptr> > training_smoothed_color_clusters;
+  //            Eigen::aligned_allocator<typename pcl::PointCloud<PointNT>::Ptr> > 
+  // training_smoothed_color_clusters;
 
   using PointCloudPtrType = typename pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr;
   using AllocatorType = Eigen::aligned_allocator<PointCloudPtrType>;
@@ -1585,9 +1567,11 @@ int main(int argc, char** argv)
   // passing this in causes a argument error 'no matching function call for...', fix this later
   //sd.publishClustersT(training_smoothed_color_clusters, "/training_smoothed_color"); 
 
-  // Step 3 - choose proper euclidean clusters and color clusters using correlation routine between training euclidean and training color 
-  int debug_level=1; // controls debug printing, 0-no print, 1-print search results, 2-print search data and search results 
-  PointCloudVec training_matches; // keep in mind that this vector contains pointers to the original clusters data, no data copies made
+  // Step 3 - choose proper euclidean clusters and color clusters using correlation routine 
+  // between training euclidean and training color 
+  // controls debug printing, 0-no print, 1-print search results, 2-print search data and search results 
+  int debug_level=1;
+  PointCloudVec training_matches; // this vector contains pointers to the original clusters data
   training_matches=sd.matchClustersMulti(training_euclidean_clusters, training_color_clusters, debug_level); 
   
   // show the matches to the clusters in rviz
@@ -1617,14 +1601,15 @@ int main(int argc, char** argv)
   
   std::cout<<"|----------- Step 4 Complete ----------|"<<std::endl;  
   
-  // Step 5 - perform voxel-downsampling, pre-transformation, and bounding-box on the test cloud (same params used as in step 1.5)
+  // Step 5 - voxel-downsampling, pre-transformation, and bounding-box 
+  // on the test cloud (same params used as in step 1.5)
   filter.downsampleCloud(*test_input, *test_downsampled, sd.voxel_size); 
   filter.transformCloud(*test_downsampled, *test_transformed, sd.pre_rotation, sd.pre_translation);
   filter.boundCloud(*test_transformed, *test_bounded, sd.bounding_box); 
   filter.removeOutliers(*test_bounded, *test_inliers); 
 
   // show the input test clouds in rviz
-  util.publishCloud(*test_input, "/test_input", "base_link"); // show the input test and modified test clouds in rviz
+  util.publishCloud(*test_input, "/test_input", "base_link"); 
   util.publishCloud(*test_downsampled, "/test_downsampled", "base_link");
   util.publishCloud(*test_transformed, "/test_transformed", "base_link"); 
   util.publishCloud(*test_bounded, "/test_bounded", "base_link");

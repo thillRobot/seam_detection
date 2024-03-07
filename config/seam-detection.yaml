@@ -46,8 +46,8 @@ seam_detection/bounding_box: [-1.0, 1.0, -1.0, 1.0, -1.0, 1.0] # bounding box li
 seam_detection/voxel_size: 0.001  
 
 
-outliers_mean_k: 200 # parameters for statistical outliers removal filter
-outliers_stddev_mul_thresh: 0.5
+outliers_mean_k: 100 # parameters for statistical outliers removal filter
+outliers_stddev_mul_thresh: 1.0
 
 euclidean_thresh: 0.005 # parameters for the Euclidean Cluster Extraction
 euclidean_min_size: 200 

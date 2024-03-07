@@ -290,3 +290,41 @@ PointCloud::Ptr CloudUtils::mergeClusters(PointCloudVec &clusters){
 }
 
 
+
+
+// function to return the median value of a std::vector
+// it seems like there would be a std method for this
+std::vector<double> CloudUtils::getMedianColor(pcl::PointCloud<pcl::PointXYZRGB>      &input ){
+
+  //size_t size=vals.size();
+
+  // term 4 - color metric
+  //std::uint32_t red, green, blue;
+  //int i = 1;
+  double red, green, blue;
+  red=input.points[10].r;
+  blue=input.points[10].g;
+  green=input.points[10].b;
+
+  std::cout<<"cloud [red, green ,blue] values : ["<<red<<", "<<green<<", "<<blue<<" ]"<<std::endl;
+
+  /*
+  if (size==0){
+    return 0; // size 0 vector has no median
+  }else{
+    std::sort(vals.begin(), vals.end());
+    if(size%2==0){
+      return (vals[size/2-1]+vals[size/2])/2;
+    }else{
+      return vals[size/2];
+    }
+  }*/
+
+  std::vector<double> median_colors;
+  median_colors.push_back(red);
+  median_colors.push_back(green);
+  median_colors.push_back(blue);
+
+  return median_colors;
+}
+
