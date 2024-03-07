@@ -1525,8 +1525,9 @@ int main(int argc, char** argv)
   PointCloud::Ptr training_downsampled (new PointCloud);
   PointCloud::Ptr training_transformed (new PointCloud);
   PointCloud::Ptr training_bounded (new PointCloud);
-  PointCloudNormal::Ptr training_smoothed (new PointCloudNormal);
- 
+  PointCloud::Ptr training_inliers (new PointCloud);
+  //PointCloudNormal::Ptr training_smoothed (new PointCloudNormal); 
+  
   util.loadCloud( *training_input, sd.training_file );
   
   // Step 1.5 - perform voxel-downsampling, pre-transformation, and bounding-box on the training cloud
@@ -1536,7 +1537,8 @@ int main(int argc, char** argv)
   filter.downsampleCloud(*training_input, *training_downsampled, sd.voxel_size); 
   filter.transformCloud(*training_downsampled, *training_transformed, sd.pre_rotation, sd.pre_translation);
   filter.boundCloud(*training_transformed, *training_bounded, sd.bounding_box);
-  filter.smoothCloud(*training_bounded, *training_smoothed);
+  filter.removeOutliers(*training_bounded, *training_inliers); 
+  //filter.smoothCloud(*training_bounded, *training_smoothed);
 
   std::cout<<"training_smoothed has "<<training_bounded->size()<<" points"<<std::endl;
   
@@ -1545,7 +1547,8 @@ int main(int argc, char** argv)
   util.publishCloud(*training_downsampled, "/training_downsampled", "base_link");
   util.publishCloud(*training_transformed, "/training_transformed", "base_link"); 
   util.publishCloud(*training_bounded, "/training_bounded", "base_link");
-  util.publishCloud(*training_smoothed, "/training_smoothed", "base_link");
+  util.publishCloud(*training_inliers, "/training_inliers", "base_link");
+  //util.publishCloud(*training_smoothed, "/training_smoothed", "base_link");
 
   std::cout<<"|----------- Step 1 Complete ----------|"<<std::endl;    
   
@@ -1575,7 +1578,7 @@ int main(int argc, char** argv)
   using VectorType = std::vector<PointCloudPtrType, AllocatorType>;
   VectorType training_smoothed_color_clusters;
 
-  training_smoothed_color_clusters=sd.extractColorClustersT(*training_smoothed);
+  //training_smoothed_color_clusters=sd.extractColorClustersT(*training_smoothed);
   
   std::cout<<"|----------- Step 2 Complete ----------|"<<std::endl;  
   
@@ -1606,8 +1609,8 @@ int main(int argc, char** argv)
   PointCloud::Ptr test_downsampled (new PointCloud);
   PointCloud::Ptr test_transformed (new PointCloud);
   PointCloud::Ptr test_bounded (new PointCloud);
-  PointCloudNormal::Ptr test_smoothed (new PointCloudNormal);
-  
+  PointCloud::Ptr test_inliers (new PointCloud); 
+  //PointCloudNormal::Ptr test_smoothed (new PointCloudNormal);
   
   // Step 4 - load the 'test' pointcloud from pcd file (this is the cluttered table)
   util.loadCloud(*test_input, sd.test_file);
@@ -1617,13 +1620,15 @@ int main(int argc, char** argv)
   // Step 5 - perform voxel-downsampling, pre-transformation, and bounding-box on the test cloud (same params used as in step 1.5)
   filter.downsampleCloud(*test_input, *test_downsampled, sd.voxel_size); 
   filter.transformCloud(*test_downsampled, *test_transformed, sd.pre_rotation, sd.pre_translation);
-  filter.boundCloud(*test_transformed, *test_bounded, sd.bounding_box);
- 
+  filter.boundCloud(*test_transformed, *test_bounded, sd.bounding_box); 
+  filter.removeOutliers(*test_bounded, *test_inliers); 
+
   // show the input test clouds in rviz
   util.publishCloud(*test_input, "/test_input", "base_link"); // show the input test and modified test clouds in rviz
   util.publishCloud(*test_downsampled, "/test_downsampled", "base_link");
   util.publishCloud(*test_transformed, "/test_transformed", "base_link"); 
   util.publishCloud(*test_bounded, "/test_bounded", "base_link");
+  util.publishCloud(*test_inliers, "/test_inliers", "base_link");
 
   std::cout<<"|----------- Step 5 Complete ----------|"<<std::endl;  
   

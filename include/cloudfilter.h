@@ -30,6 +30,7 @@ class CloudFilter
     bool auto_bounds;
     std::string config, input_file, output_file;
     std::vector<double> bounding_box;  
+    double outliers_mean_k, outliers_stddev_mul_thresh;
 
   public:  
     // PUBLIC functions
@@ -59,6 +60,10 @@ class CloudFilter
     void downsampleCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_t> &output, double leaf_size);
 
     void extractPolygonalPrism(PointCloud &input);
+
+    template <typename point_t>
+    void removeOutliers(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_t> &output);
+
     // PUBLIC attributes
 
 };

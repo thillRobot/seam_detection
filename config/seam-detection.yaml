@@ -43,8 +43,11 @@ seam_detection/pre_rotation:    [0.0, 0.0, 0.0] # ds435i rgb camera 32inches fro
 seam_detection/pre_translation: [0.0, 0.0, 0.0] # 32.0*0.0254 
 
 seam_detection/bounding_box: [-1.0, 1.0, -1.0, 1.0, -1.0, 1.0] # bounding box limits
-seam_detection/voxel_size: 0.005  
+seam_detection/voxel_size: 0.001  
 
+
+outliers_mean_k: 200 # parameters for statistical outliers removal filter
+outliers_stddev_mul_thresh: 0.5
 
 euclidean_thresh: 0.005 # parameters for the Euclidean Cluster Extraction
 euclidean_min_size: 200 

@@ -6,7 +6,6 @@
 
 */
 
-
 #include "cloudfilter.h"
 #include <string>
 #include <vector>
@@ -25,6 +24,7 @@
 #include <pcl/filters/filter_indices.h> 
 #include <pcl/filters/extract_indices.h>
 #include <pcl/segmentation/extract_clusters.h>
+#include <pcl/filters/statistical_outlier_removal.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -65,6 +65,9 @@ void CloudFilter::loadConfig(std::string cfg){
   node.getParam("output_file", output_file);
   node.getParam("bounding_box",  bounding_box);
   node.getParam("auto_bounds",  auto_bounds);
+
+  node.getParam("outliers_stddev_mul_thresh", outliers_stddev_mul_thresh);
+  node.getParam("outliers_mean_k", outliers_mean_k);
 
 } 
 
@@ -309,5 +312,44 @@ void CloudFilter::extractPolygonalPrism(PointCloud &input){
     std::cout<<"The input cloud does not represent a planar surface."<<std::endl;
   }
 }
+
+
+template <typename point_t>
+void CloudFilter::removeOutliers(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_t> &output){
+
+  typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>);
+  pcl::copyPointCloud(input, *cloud);
+  
+  std::cerr << "Cloud before filtering: " << std::endl;
+  std::cerr << *cloud << std::endl;
+  typename pcl::PointCloud<point_t>::Ptr cloud_filtered (new pcl::PointCloud<point_t>);
+
+  // Create the filtering object
+
+  pcl::StatisticalOutlierRemoval<point_t> sor;
+  sor.setInputCloud(cloud);
+  sor.setMeanK (outliers_mean_k);
+  sor.setStddevMulThresh (outliers_stddev_mul_thresh);
+  sor.filter (*cloud_filtered);
+
+  std::cerr << "Cloud after filtering: " << std::endl;
+  std::cerr << *cloud_filtered << std::endl;
+
+  //pcl::PCDWriter writer;
+  //writer.write<pcl::PointXYZ> ("table_scene_lms400_inliers.pcd", *cloud_filtered, false);
+
+  //sor.setNegative (true);
+  sor.filter (*cloud_filtered);
+
+  pcl::copyPointCloud(*cloud_filtered, output);
+
+}
+
+template void CloudFilter::removeOutliers<pcl::PointXYZRGB>
+              (pcl::PointCloud<pcl::PointXYZRGB> &input, pcl::PointCloud<pcl::PointXYZRGB> &output);
+
+template void CloudFilter::removeOutliers<pcl::PointXYZRGBNormal>
+              (pcl::PointCloud<pcl::PointXYZRGBNormal> &input, pcl::PointCloud<pcl::PointXYZRGBNormal> &output);
+
 
 
