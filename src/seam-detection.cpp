@@ -842,8 +842,11 @@ class SeamDetection {
                       centroid_diffs_norm(compares.size()), // normalized vectors of differences 
                       volume_diffs_norm(compares.size()), 
                       aspect_ratio_diffs_norm(compares.size()),
+                      med_red_diffs(compares.size()),
                       med_red_diffs_norm(compares.size()),
-                      med_green_diffs_norm(compares.size()), 
+                      med_green_diffs(compares.size()),
+                      med_green_diffs_norm(compares.size()),
+                      med_blue_diffs(compares.size()), 
                       med_blue_diffs_norm(compares.size()),
                       scores(compares.size());  // vector of objective function values (scores)      
                       
@@ -899,6 +902,10 @@ class SeamDetection {
         //std::cout<<"calculating term 4 - color metric" <<std::endl;
         cloud_med_rgb=utl.getMedianColor(cloud);
         compare_med_rgb=utl.getMedianColor(*compares[j]);
+                  
+        med_red_diffs[j]=std::abs(cloud_med_rgb[0]-compare_med_rgb[0]); 
+        med_green_diffs[j]=std::abs(cloud_med_rgb[1]-compare_med_rgb[1]);
+        med_blue_diffs[j]=std::abs(cloud_med_rgb[2]-compare_med_rgb[2]);
         
         //std::cout<<"cloud_rgb_meds: "<<cloud_med_rgb[0]<<", "
         //                            <<cloud_med_rgb[1]<<", "
@@ -907,7 +914,7 @@ class SeamDetection {
         //                               <<compare_med_rgb[1]<<", " 
         //                               <<compare_med_rgb[2]<<std::endl;      
         
-        med_rgb_diffs.col(j)=cloud_med_rgb-compare_med_rgb; // difference in each channel (r,g,b) median color vals
+        //med_rgb_diffs.col(j)=cloud_med_rgb-compare_med_rgb; // difference in each channel (r,g,b) median color vals
         
         //std::cout<<"med_rgb_diffs(:,col(j)): "<<med_rgb_diffs.col(j)[0]<<", "
         //                                      <<med_rgb_diffs.col(j)[1]<<", "
@@ -920,17 +927,17 @@ class SeamDetection {
       centroid_diffs_median=utl.getMedian(centroid_diffs);
       volume_diffs_median=utl.getMedian(volume_diffs);
       aspect_ratio_diffs_median=utl.getMedian(aspect_ratio_diffs);
-      med_red_diffs_median=utl.getMedian(med_rgb_diffs.row(0));
-      med_green_diffs_median=utl.getMedian(med_rgb_diffs.row(1));
-      med_blue_diffs_median=utl.getMedian(med_rgb_diffs.row(2));
+      med_red_diffs_median=utl.getMedian(med_red_diffs);
+      med_green_diffs_median=utl.getMedian(med_green_diffs);
+      med_blue_diffs_median=utl.getMedian(med_blue_diffs);
       
       // normalize diffs by dividing by median difference for each objective 
       centroid_diffs_norm=centroid_diffs/centroid_diffs_median; // use vectorized row operations from library Eigen
       volume_diffs_norm=volume_diffs/volume_diffs_median;       
       aspect_ratio_diffs_norm=aspect_ratio_diffs/aspect_ratio_diffs_median;
-      med_red_diffs_norm=med_rgb_diffs.row(0)/med_red_diffs_median;
-      med_green_diffs_norm=med_rgb_diffs.row(1)/med_green_diffs_median;
-      med_blue_diffs_norm=med_rgb_diffs.row(2)/med_blue_diffs_median;
+      med_red_diffs_norm=med_red_diffs/med_red_diffs_median;
+      med_green_diffs_norm=med_green_diffs/med_green_diffs_median;
+      med_blue_diffs_norm=med_blue_diffs/med_blue_diffs_median;
 
       //scores=centroid_diffs_norm+volume_diffs_norm+aspect_ratio_diffs_norm;
       // return the score as the sum of the normalized terms for each pair   
@@ -1158,23 +1165,25 @@ class SeamDetection {
 
       for (int i=0; i<n; i++){  // compare each cluster in clusters to each cluster in compares 
           
-        scores=scoreCloudsMulti(*clusters[i], compares); // get the scores for clusters[i] and all compares
- 
+        scores=scoreCloudsMulti(*clusters[i], compares); // get the scores for clusters[i] and all compares        
+
+  
         // find pair with min sum objective difference using median normalized differences 
         j_min=0; // default value for the search index, in case it is not set
         
-        // seed the minimization with the first set of differences 
+        // seed the minimization with the first score in the set
         score_min=scores[j_min];        
 
         // search for lowest score in vector of scores found previously        
         for(int j=0; j<scores.size(); j++){ // re-check each possible pair
+          std::cout<<"scores["<<j<<"]:"<<scores[j]<<std::endl;
           if (scores[j]<score_min){ // find the lowest score
             score_min=scores[j];
             j_min=j;            // record the index of the lowest score
 
           }
         }          
-
+        std::cout<<"scores_min: "<<score_min<<" found at "<<j_min<<std::endl;
         // add the compare with the best score to matches
         matches.at(i)=compares[j_min];
         // remove the match from the compare set for next iteration
@@ -1493,9 +1502,9 @@ int main(int argc, char** argv)
   PointCloudVec training_euclidean_clusters, training_color_clusters;
   
   // perform Euclidean cluster extraction
-  training_euclidean_clusters=sd.extractEuclideanClusters(*training_bounded); 
+  training_euclidean_clusters=sd.extractEuclideanClusters(*training_inliers); 
   // perform Color Based Region Growing cluster extraction
-  training_color_clusters=sd.extractColorClusters(*training_bounded);
+  training_color_clusters=sd.extractColorClusters(*training_inliers);
     
   std::cout<<"training_euclidean_clusters size:"<<training_euclidean_clusters.size()<<std::endl;
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
@@ -1578,9 +1587,9 @@ int main(int argc, char** argv)
   PointCloudVec test_euclidean_clusters, test_color_clusters;
  
   // preform Euclidean cluster extraction
-  test_euclidean_clusters=sd.extractEuclideanClusters(*test_bounded); 
+  test_euclidean_clusters=sd.extractEuclideanClusters(*test_inliers); 
   // preform Color Based Region Growing cluster extraction
-  test_color_clusters=sd.extractColorClusters(*test_bounded);
+  test_color_clusters=sd.extractColorClusters(*test_inliers);
  
   std::cout<<"test_euclidean_clusters size:"<<test_euclidean_clusters.size()<<std::endl;
   std::cout<<"test_color_clusters size:"<<test_color_clusters.size()<<std::endl;
