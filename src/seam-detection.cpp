@@ -834,24 +834,27 @@ class SeamDetection {
     Eigen::VectorXd scoreCloudsMulti(PointCloud &cloud, PointCloudVec compares){
     // function to return the objective function value (score) for a pointcloud vs. each pointcloud in compares
     // this uses a media normalized (scaled) multi objective function
-
+      std::cout<<"|---------- SeamDetection::scoreCloudsMulti() ----------|"<<std::endl;
+    
       Eigen::VectorXd centroid_diffs(compares.size()), // vectors of differences, using eigen for vectorized ops (maybe)
                       volume_diffs(compares.size()),   // size might not be required as these are Xd 
                       aspect_ratio_diffs(compares.size()),
                       centroid_diffs_norm(compares.size()), // normalized vectors of differences 
                       volume_diffs_norm(compares.size()), 
                       aspect_ratio_diffs_norm(compares.size()),
+                      med_red_diffs_norm(compares.size()),
+                      med_green_diffs_norm(compares.size()), 
+                      med_blue_diffs_norm(compares.size()),
                       scores(compares.size());  // vector of objective function values (scores)      
-                      //rgb_med_diffs(compares.size()),
-                      //rgb_med_diffs_norm(compares.size());
-      Eigen::VectorXd cloud_rgb_meds, compare_rgb_meds, rgb_meds_diffs;               
-      //std::vector<double> cloud_rgb_meds, compare_rgb_meds, rgb_med_diffs;
-      // std::vector<double> red_med_diffs, green_med_diffs, blue_med_diffs;      
+                      
+      Eigen::VectorXd cloud_med_rgb, compare_med_rgb;
+      Eigen::MatrixXd med_rgb_diffs(3,compares.size());               
 
       double  distance_x, distance_y, distance_z, 
               cloud_volume, compare_volume, cloud_aspect_ratio, compare_aspect_ratio,
               difference_x, difference_y, difference_z,
               centroid_diffs_median, volume_diffs_median, aspect_ratio_diffs_median,
+              med_red_diffs_median, med_green_diffs_median, med_blue_diffs_median,
               score, score_min;
 
       int n, j_min;
@@ -866,12 +869,11 @@ class SeamDetection {
      
       CloudUtils utl;
       // find the pca min bounding box for the ith cloud in clusters, only required to run once for single cloud 
-      //getPCABox(cloud, cloud_quaternion, cloud_translation, cloud_size, cloud_eigenvectors);
+      getPCABox(cloud, cloud_quaternion, cloud_translation, cloud_size, cloud_eigenvectors);
 
       // compare cloud to each cluster in compares                           
       for (int j=0; j<compares.size(); j++){
 
-        
         // find the pca min bounding box for the jth cloud in compares
         getPCABox(*compares[j], compare_quaternion, compare_translation, compare_size, compare_eigenvectors);
 
@@ -881,58 +883,55 @@ class SeamDetection {
         distance_y=cloud_translation[1]-compare_translation[1];
         distance_z=cloud_translation[2]-compare_translation[2]; 
         // square root of sum of squared component distances between centroids - l
-        //centroid_diffs.at(j) = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0);
         centroid_diffs[j] = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0);
         
         // term2 - volume of bounding box
         cloud_volume=cloud_size[0]*cloud_size[1]*cloud_size[2];
         compare_volume=compare_size[0]*compare_size[1]*compare_size[2];
-        //volume_diffs.at(j) = std::abs(cloud_volume-compare_volume);
         volume_diffs[j]=std::abs(cloud_volume-compare_volume);
         
         // term3 - aspect ratio of bounding box 
         cloud_aspect_ratio=  cloud_size.maxCoeff()/cloud_size.minCoeff(); 
         compare_aspect_ratio=  compare_size.maxCoeff()/compare_size.minCoeff(); 
-        // square root of squared difference in aspect ratios - l
-        //aspect_ratio_diffs.at(j)= std::abs(cloud_aspect_ratio - compare_aspect_ratio); 
-        // square root of squared difference in aspect ratios - l
         aspect_ratio_diffs[j]= std::abs(cloud_aspect_ratio - compare_aspect_ratio); 
 
-        std::cout<<"calculating term 4 - color metric" <<std::endl;
         // term4 - color metric
-        //std::cout<<"cloud red value: "<<cloud.points[10].r<<std::endl;
-        cloud_rgb_meds=utl.getMedianColor(cloud);
-        compare_rgb_meds=utl.getMedianColor(*compares[j]);
-        //red_med_diffs.push_back(cloud_rgb_meds[0]-compare_rgb_meds[0]);
-        //green_med_diffs.push_back(cloud_rgb_meds[1]-compare_rgb_meds[1]);
-        //blue_med_diffs.push_back(cloud_rgb_meds[2]-compare_rgb_meds[2]);
+        std::cout<<"calculating term 4 - color metric" <<std::endl;
+        cloud_med_rgb=utl.getMedianColor(cloud);
+        compare_med_rgb=utl.getMedianColor(*compares[j]);
         
-        std::cout<<"cloud_rgb_meds: "<<cloud_rgb_meds[0]<<", "
-                                     <<cloud_rgb_meds[1]<<", "
-                                     <<cloud_rgb_meds[2]<<std::endl;       
-        std::cout<<"compare_rgb_meds: "<<compare_rgb_meds[0]<<", "
-                                       <<compare_rgb_meds[1]<<", " 
-                                       <<compare_rgb_meds[2]<<std::endl;      
+        std::cout<<"cloud_rgb_meds: "<<cloud_med_rgb[0]<<", "
+                                     <<cloud_med_rgb[1]<<", "
+                                     <<cloud_med_rgb[2]<<std::endl;       
+        std::cout<<"compare_rgb_meds: "<<compare_med_rgb[0]<<", "
+                                       <<compare_med_rgb[1]<<", " 
+                                       <<compare_med_rgb[2]<<std::endl;      
         
-        rgb_meds_diffs=cloud_rgb_meds-compare_rgb_meds;
+        med_rgb_diffs.col(j)=cloud_med_rgb-compare_med_rgb;
         
-        std::cout<<"rgb_meds_diffs: "<<rgb_meds_diffs[0]<<", "
-                                     <<rgb_meds_diffs[1]<<", "
-                                     <<rgb_meds_diffs[2]<<std::endl;       
+        std::cout<<"med_rgb_diffs(:,col(j)): "<<med_rgb_diffs.col(j)[0]<<", "
+                                              <<med_rgb_diffs.col(j)[1]<<", "
+                                              <<med_rgb_diffs.col(j)[2]<<std::endl;       
 
-        //scoreClouds(cloud, compares[j]);
+        //scoreClouds(cloud, compares[j]); // ideally this would call scoreClouds() to keep obj fun in one place
 
       }
       // find the median value for each objective 
       centroid_diffs_median=utl.getMedian(centroid_diffs);
       volume_diffs_median=utl.getMedian(volume_diffs);
       aspect_ratio_diffs_median=utl.getMedian(aspect_ratio_diffs);
-
+      med_red_diffs_median=utl.getMedian(med_rgb_diffs.row(0));
+      med_green_diffs_median=utl.getMedian(med_rgb_diffs.row(1));
+      med_blue_diffs_median=utl.getMedian(med_rgb_diffs.row(2));
+      
       // normalize diffs by dividing by median difference for each objective 
       centroid_diffs_norm=centroid_diffs/centroid_diffs_median; // use vectorized row operations from library Eigen
       // it would be interesting to compare speed again std::vector based method
       volume_diffs_norm=volume_diffs/volume_diffs_median;       
       aspect_ratio_diffs_norm=aspect_ratio_diffs/aspect_ratio_diffs_median;
+      med_red_diffs_norm=med_rgb_diffs.row(0)/med_red_diffs_median;
+      med_green_diffs_norm=med_rgb_diffs.row(1)/med_green_diffs_median;
+      med_blue_diffs_norm=med_rgb_diffs.row(2)/med_blue_diffs_median;
 
       //scores=centroid_diffs_norm+volume_diffs_norm+aspect_ratio_diffs_norm;
       // return the score as the sum of the normalized terms for each pair   
@@ -941,7 +940,6 @@ class SeamDetection {
     }
 
 
-    
     // overloaded function to return the objective function value (score) for a pointcloud vs. each pointcloud 
     // in compares1 and compares2, this uses a media normalized (scaled) multi objective function
     Eigen::VectorXd scoreCloudsMulti2(PointCloud &cloud, PointCloudVec compares1, PointCloudVec compares2){
