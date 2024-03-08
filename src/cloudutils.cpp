@@ -329,9 +329,6 @@ Eigen::VectorXd CloudUtils::getMedianColor(pcl::PointCloud<pcl::PointXYZRGB> &in
   rgb_meds(1)=green_med;
   rgb_meds(2)=blue_med;
   
-  std::cout<<"cloud [red, green ,blue] median values : ["
-           <<rgb_meds[0]<<", "<<rgb_meds[1]<<", "<<rgb_meds[2]<<" ]"<<std::endl;
-  
   return rgb_meds;
 }
 
