@@ -661,7 +661,7 @@ int main(int argc, char** argv)
   ros::Publisher aligned_T01_pub = node.advertise<PointCloud> ("/aligned_source_T01", 1);
   ros::Publisher aligned_T10_pub = node.advertise<PointCloud> ("/aligned_source_T10", 1);
   
-  ros::Publisher gcode_pub = node.advertise<std_msgs::String> ("/register_target_source/gcode", 1,true);
+  ros::Publisher gcode_pub = node.advertise<std_msgs::String> ("/motion/move_cmd", 1,true);
   std_msgs::String gcode_msg;
 
 
