@@ -677,6 +677,7 @@ class SeamDetection {
       dimension[1]=max_point.y-min_point.y;
       dimension[2]=max_point.z-min_point.z;
 
+
       double volume, aspect_ratio;
       volume=dimension[0]*dimension[1]*dimension[2]; // calculate volume as product of dimensions
       aspect_ratio=dimension.maxCoeff()/dimension.minCoeff(); // calculate aspect ratio as max dimension / min dimension
@@ -722,10 +723,11 @@ class SeamDetection {
       }
     }
 
-
+ 
     // function to calculate the the objection function value or score for a pair of PointClouds
     // to be used to find agreement between potentially overlapping clouds 
-    double scoreClouds(PointCloud &cloud1, PointCloud &cloud2, int verbosity){
+    template <typename point_t>
+    double scoreClouds(pcl::PointCloud<point_t> &cloud1, pcl::PointCloud<point_t> &cloud2, int verbosity){
 
       double score=100, f1, f2, f3, f4, 
              distance_x, distance_y, distance_z,
@@ -744,9 +746,6 @@ class SeamDetection {
       Eigen::Vector3f compare_translation, compare_size;
       Eigen::Matrix3f compare_eigenvectors;  
       getPCABox(cloud2, compare_quaternion, compare_translation, compare_size, compare_eigenvectors);
-
-      //find median color values for the first cloud
-      std::cout<<"cloud1 median red: "<< cloud1[0].r <<std::endl;
 
       // calculate separate terms for the objective function between the two clouds
 
@@ -774,14 +773,17 @@ class SeamDetection {
       //std::cout<<"f3: "<<f3<<std::endl;
 
       // term4 - orientation of bounding box
-      difference_x=cloud_size[0]-compare_size[0]; // this does not seem right, does not contain orientation info...
-      difference_y=cloud_size[1]-compare_size[1]; // need to use projection onto fixed framed
-      difference_z=cloud_size[2]-compare_size[2]; 
+      //difference_x=cloud_size[0]-compare_size[0]; // this does not seem right, does not contain orientation info...
+      //difference_y=cloud_size[1]-compare_size[1]; // need to use projection onto fixed framed
+      //difference_z=cloud_size[2]-compare_size[2]; 
       // square root of sum of square dimension differences - l
-      f4 = pow(pow(difference_x,2)+pow(difference_y,2)+pow(difference_z,2), 1.0/2.0); 
+      //f4 = pow(pow(difference_x,2)+pow(difference_y,2)+pow(difference_z,2), 1.0/2.0); 
       f4 = 0; // disabled temporarily 
       //std::cout<<"f4: "<<f4<<std::endl;
       
+      // term4 - color metric
+      
+
       // objective function value is sum of terms 
       score=f1+f2+f3+f4;
       
@@ -793,9 +795,13 @@ class SeamDetection {
                                                           <<compare_translation[1]<<","
                                                           <<compare_translation[2]<<"]"<<std::endl;
 
-        std::cout<<"cloud_size: "<<std::endl<<"["<<cloud_size[0]<<","<<cloud_size[1]<<","<<cloud_size[2]<<"]"<<std::endl;
+        std::cout<<"cloud_size: "<<std::endl<<"["<<cloud_size[0]<<","
+                                                 <<cloud_size[1]<<","
+                                                 <<cloud_size[2]<<"]"<<std::endl;
         std::cout<<"cloud_volume: "<<cloud_volume<<std::endl;
-        std::cout<<"compare_size: "<<std::endl<<"["<<compare_size[0]<<","<<compare_size[1]<<","<<compare_size[2]<<"]"<<std::endl;
+        std::cout<<"compare_size: "<<std::endl<<"["<<compare_size[0]<<","
+                                                   <<compare_size[1]<<","
+                                                   <<compare_size[2]<<"]"<<std::endl;
         std::cout<<"compare_volume: "<<compare_volume<<std::endl;
 
         std::cout<<"cloud_eigenvectors: "<<std::endl<<"[" << cloud_eigenvectors(0,0)<<","
@@ -823,207 +829,11 @@ class SeamDetection {
       
       return score=f1+f2+f3+f4;
     }
+    
 
-
-    // function to find best 1 to 1 correlation between two sets of clusters
-    // for now this assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence 
-    PointCloudVec matchClusters(PointCloudVec clusters, PointCloudVec compares, int verbosity){
-
-      double score, score_min;
-      int j_min, success;
-
-      PointCloudVec matches;
-      matches=clusters; // make a copy to get the size, fix this soon
-
-      if (clusters.size()<=compares.size()){         // clusters has fewer clusters than compares
-         
-        for (int i=0; i<clusters.size(); i++){               // for each cluster in clusters find best match from compares 
-          
-          score_min=scoreClouds(*clusters[0], *compares[0], verbosity);  // seed the search with the score of first pair 
-          j_min=0;                                              // dont forget to initialize the search index  ! 
-
-          for (int j=0; j<compares.size(); j++){
-            score=scoreClouds(*clusters[i], *compares[j], verbosity);
-
-            if (score<score_min){
-              score_min=score;    // store the min score
-              j_min=j;            // and the index of the min
-            }
-
-            if(verbosity>1){  // show the pairs score as the search is performed 
-              std::cout <<"clusters["<<i<<"] (size:" <<clusters[i]->size()<<") and compares["<<j
-                        <<"] (size:"<<compares[j]->size()<<") have a score "<<score<<std::endl<<std::endl;
-            }  
-      
-          }
-
-          // after checking all potential matches, push the best match into the vector of matches with the recorded index
-          matches.at(i)=compares[j_min];
-          compares.erase(compares.begin()+j_min); // remove the match from the set of compares for 1-1 correspondence 
-
-        }
-        
-        if (verbosity>0){  
-          for (int k=0; k<clusters.size(); k++){ // show the results after the search is complete
-            std::cout<<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
-            <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
-          }
-        }
-
-      }else{       // compares has fewer clusters than clusters, empty return 
-        std::cout<<"warning: ( clusters.size() <= compares.size() ) failed, no matches returned"<<std::endl;
-      }
-
-      return matches;
-    }
-
-    // used in step 2
-    // function to find best match between sets of clusters using multi-objective optimization
-    PointCloudVec matchClustersMulti(PointCloudVec clusters, PointCloudVec compares, int verbosity){
-
-      PointCloudVec matches;
-      matches=clusters; // make a copy just to get the size, change to an empty copy later
-
-      std::vector<double> scores(compares.size()); // vector of scores, for debugging purposes
-      std::vector<double> centroid_diffs(compares.size()), // vectors of differences 
-                          volume_diffs(compares.size()), 
-                          aspect_ratio_diffs(compares.size());
-
-      std::vector<double> centroid_diffs_norm(compares.size()), // normalized vectors of differences 
-                          volume_diffs_norm(compares.size()), 
-                          aspect_ratio_diffs_norm(compares.size());                    
-
-      double  distance_x, distance_y, distance_z, 
-              cloud_volume, compare_volume, cloud_aspect_ratio, compare_aspect_ratio,
-              difference_x, difference_y, difference_z,
-              centroid_diffs_median, volume_diffs_median, aspect_ratio_diffs_median,
-              score, score_min;
-
-      int n, j_min;
-      
-      Eigen::Quaternionf cloud_quaternion; 
-      Eigen::Vector3f cloud_translation, cloud_size;
-      Eigen::Matrix3f cloud_eigenvectors;
-
-      Eigen::Quaternionf compare_quaternion; 
-      Eigen::Vector3f compare_translation, compare_size;
-      Eigen::Matrix3f compare_eigenvectors;  
-
-      CloudUtils utl;
-      
-      if (clusters.size()<=compares.size()){  // clusters has fewer clusters than compares
-        n=clusters.size();
-      }else{
-        n=compares.size();
-        std::cout<<"( clusters.size() <= compares.size() ) failed, matching clusters[1:compares.size()] to compares[:]"<<std::endl; 
-      } 
-         
-      for (int i=0; i<n; i++){  // compare each cluster in clusters to each cluster in compares 
-                                      
-        for (int j=0; j<compares.size(); j++){
-
-          // find the pca min bounding box for the ith cloud in clusters
-          getPCABox(*clusters[i], cloud_quaternion, cloud_translation, cloud_size, cloud_eigenvectors);
-
-          // find the pca min bounding box for the jth cloud in compares
-          getPCABox(*compares[j], compare_quaternion, compare_translation, compare_size, compare_eigenvectors);
-
-          // calculate the objective differences for each pair 
-          // term1 - position of centroid
-          distance_x=cloud_translation[0]-compare_translation[0];
-          distance_y=cloud_translation[1]-compare_translation[1];
-          distance_z=cloud_translation[2]-compare_translation[2];
-          // square root of sum of squared component distances between centroids - l
-          centroid_diffs.at(j) = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0); 
-          // term2 - volume of bounding box
-          cloud_volume=cloud_size[0]*cloud_size[1]*cloud_size[2];
-          compare_volume=compare_size[0]*compare_size[1]*compare_size[2];
-          volume_diffs.at(j) = std::abs(cloud_volume-compare_volume);
-          // term3 - aspect ratio of bounding box 
-          cloud_aspect_ratio=  cloud_size.maxCoeff()/cloud_size.minCoeff(); 
-          compare_aspect_ratio=  compare_size.maxCoeff()/compare_size.minCoeff(); 
-          // square root of squared difference in aspect ratios - l
-          aspect_ratio_diffs.at(j)= std::abs(cloud_aspect_ratio - compare_aspect_ratio); 
-
-          // term 4 - color metric
-          //std::uint32_t red, green, blue;
-          //float red, green, blue;
-          //red=clusters[i]->points[10].r;
-          //green=clusters[i]->points[10].g;
-          //blue=clusters[i]->points[10].b;
-          utl.getMedianColor(*clusters[i]);
- 
-        }
-
-        // find the median value for each objective 
-        centroid_diffs_median=utl.getMedian(centroid_diffs);
-        volume_diffs_median=utl.getMedian(volume_diffs);
-        aspect_ratio_diffs_median=utl.getMedian(aspect_ratio_diffs);
-        
-        // find pair with min sum objective difference using median normalized differences 
-        //double score, score_min;
-        score_min=10000; // too high to win for now, replace with fn call to score fn
-        j_min=0; // default value for the search index, in case it is not set
-
-        // seed the minimization with the first set of differences 
-        score_min=centroid_diffs_norm[j_min]+volume_diffs_norm[j_min]+aspect_ratio_diffs_norm[j_min];
-        // RHS not previously defined, unknown vals...fix this!
-        
-        for(int j=0; j<compares.size(); j++){ // re-check each possible pair
-          // normalize diffs by dividing by median difference for each objective 
-          centroid_diffs_norm[j]=centroid_diffs[j]/centroid_diffs_median;
-          volume_diffs_norm[j]=volume_diffs[j]/volume_diffs_median;
-          aspect_ratio_diffs_norm[j]=aspect_ratio_diffs[j]/aspect_ratio_diffs_median;  
-
-          // calculate the score as the sum of the normalized diffs 
-          score=centroid_diffs_norm[j]+volume_diffs_norm[j]+aspect_ratio_diffs_norm[j];
-
-          if (score<score_min){ // find the lowest score
-            score_min=score;
-            j_min=j;            // record the index of the lowest score
-
-          }
-        }          
-
-        // add the compare with the best score to matches
-        matches.at(i)=compares[j_min];
-        // remove the match from the compare set for next iteration
-        compares.erase(compares.begin()+j_min);
-
-        if(verbosity>1){ // show the values as the search is performed
-
-          std::cout<<std::endl<<"iteration "<<i<<std::endl;
-
-          for (int j=0; j<scores.size(); j++){
-            std::cout <<"centroid_diffs["<<j<<"]: "<<centroid_diffs[j]
-                      <<", volume_diffs["<<j<<"]: "<<volume_diffs[j]
-                      <<", aspect_ratio_diffs["<<j<<"]: "<<aspect_ratio_diffs[j]<<std::endl;
-          }
-          std::cout <<"centroid_diffs_median: "<<centroid_diffs_median
-                    <<", volume_diffs_median:"<<volume_diffs_median
-                    <<", aspect_ratio_diffs_median: "<<aspect_ratio_diffs_median<<std::endl; 
-          std::cout<<"iteration "<<i<<" normalized with median" <<std::endl;
-          for (int j=0; j<scores.size(); j++){
-            std::cout <<"centroid_diffs_norm["<<j<<"]: "<<centroid_diffs_norm[j]
-                      <<", volume_diffs_norm["<<j<<"]: "<<volume_diffs_norm[j]
-                      <<", aspect_ratio_diffs_norm["<<j<<"]: "<<aspect_ratio_diffs_norm[j]<<std::endl;
-          }
-        }
-      }  
-      
-      if(verbosity>0){ // show the results of the search after complete
-        for (int k=0; k<clusters.size(); k++){
-          std::cout <<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
-                    <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
-        }             
-      }
-      return matches;
-    }// end of matchClustersMulti() function
-
-
+    Eigen::VectorXd scoreCloudsMulti(PointCloud &cloud, PointCloudVec compares){
     // function to return the objective function value (score) for a pointcloud vs. each pointcloud in compares
     // this uses a media normalized (scaled) multi objective function
-    Eigen::VectorXd scoreCloudsMulti(PointCloud &cloud, PointCloudVec compares){
 
       Eigen::VectorXd centroid_diffs(compares.size()), // vectors of differences, using eigen for vectorized ops (maybe)
                       volume_diffs(compares.size()),   // size might not be required as these are Xd 
@@ -1032,7 +842,12 @@ class SeamDetection {
                       volume_diffs_norm(compares.size()), 
                       aspect_ratio_diffs_norm(compares.size()),
                       scores(compares.size());  // vector of objective function values (scores)      
-                    
+                      //rgb_med_diffs(compares.size()),
+                      //rgb_med_diffs_norm(compares.size());
+      Eigen::VectorXd cloud_rgb_meds, compare_rgb_meds, rgb_meds_diffs;               
+      //std::vector<double> cloud_rgb_meds, compare_rgb_meds, rgb_med_diffs;
+      // std::vector<double> red_med_diffs, green_med_diffs, blue_med_diffs;      
+
       double  distance_x, distance_y, distance_z, 
               cloud_volume, compare_volume, cloud_aspect_ratio, compare_aspect_ratio,
               difference_x, difference_y, difference_z,
@@ -1049,12 +864,14 @@ class SeamDetection {
       Eigen::Vector3f compare_translation, compare_size;
       Eigen::Matrix3f compare_eigenvectors;                      
      
+      CloudUtils utl;
       // find the pca min bounding box for the ith cloud in clusters, only required to run once for single cloud 
-      getPCABox(cloud, cloud_quaternion, cloud_translation, cloud_size, cloud_eigenvectors);
+      //getPCABox(cloud, cloud_quaternion, cloud_translation, cloud_size, cloud_eigenvectors);
 
       // compare cloud to each cluster in compares                           
       for (int j=0; j<compares.size(); j++){
 
+        
         // find the pca min bounding box for the jth cloud in compares
         getPCABox(*compares[j], compare_quaternion, compare_translation, compare_size, compare_eigenvectors);
 
@@ -1081,11 +898,31 @@ class SeamDetection {
         // square root of squared difference in aspect ratios - l
         aspect_ratio_diffs[j]= std::abs(cloud_aspect_ratio - compare_aspect_ratio); 
 
+        std::cout<<"calculating term 4 - color metric" <<std::endl;
         // term4 - color metric
-        std::cout<<"cloud red value: "<<cloud.points[10].r<<std::endl;
+        //std::cout<<"cloud red value: "<<cloud.points[10].r<<std::endl;
+        cloud_rgb_meds=utl.getMedianColor(cloud);
+        compare_rgb_meds=utl.getMedianColor(*compares[j]);
+        //red_med_diffs.push_back(cloud_rgb_meds[0]-compare_rgb_meds[0]);
+        //green_med_diffs.push_back(cloud_rgb_meds[1]-compare_rgb_meds[1]);
+        //blue_med_diffs.push_back(cloud_rgb_meds[2]-compare_rgb_meds[2]);
+        
+        std::cout<<"cloud_rgb_meds: "<<cloud_rgb_meds[0]<<", "
+                                     <<cloud_rgb_meds[1]<<", "
+                                     <<cloud_rgb_meds[2]<<std::endl;       
+        std::cout<<"compare_rgb_meds: "<<compare_rgb_meds[0]<<", "
+                                       <<compare_rgb_meds[1]<<", " 
+                                       <<compare_rgb_meds[2]<<std::endl;      
+        
+        rgb_meds_diffs=cloud_rgb_meds-compare_rgb_meds;
+        
+        std::cout<<"rgb_meds_diffs: "<<rgb_meds_diffs[0]<<", "
+                                     <<rgb_meds_diffs[1]<<", "
+                                     <<rgb_meds_diffs[2]<<std::endl;       
+
+        //scoreClouds(cloud, compares[j]);
 
       }
-      CloudUtils utl;
       // find the median value for each objective 
       centroid_diffs_median=utl.getMedian(centroid_diffs);
       volume_diffs_median=utl.getMedian(volume_diffs);
@@ -1104,9 +941,10 @@ class SeamDetection {
     }
 
 
+    
     // overloaded function to return the objective function value (score) for a pointcloud vs. each pointcloud 
     // in compares1 and compares2, this uses a media normalized (scaled) multi objective function
-    Eigen::VectorXd scoreCloudsMulti(PointCloud &cloud, PointCloudVec compares1, PointCloudVec compares2){
+    Eigen::VectorXd scoreCloudsMulti2(PointCloud &cloud, PointCloudVec compares1, PointCloudVec compares2){
 
       Eigen::VectorXd centroid_diffs1(compares1.size()), // vectors of differences, using eigen for vectorized ops (maybe)
                       volume_diffs1(compares1.size()),   // size might not be required as these are Xd 
@@ -1240,6 +1078,217 @@ class SeamDetection {
               centroid_diffs2_norm+volume_diffs2_norm+aspect_ratio_diffs2_norm; 
       
     }
+    
+
+    // function to find best 1 to 1 correlation between two sets of clusters
+    // for now this assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence 
+    PointCloudVec matchClusters(PointCloudVec clusters, PointCloudVec compares, int verbosity){
+
+      double score, score_min;
+      int j_min, success;
+
+      PointCloudVec matches;
+      matches=clusters; // make a copy to get the size, fix this soon
+
+      if (clusters.size()<=compares.size()){         // clusters has fewer clusters than compares
+         
+        for (int i=0; i<clusters.size(); i++){               // for each cluster in clusters find best match from compares 
+          
+          score_min=scoreClouds(*clusters[0], *compares[0], verbosity);  // seed the search with the score of first pair 
+          j_min=0;                                              // dont forget to initialize the search index  ! 
+
+          for (int j=0; j<compares.size(); j++){
+            score=scoreClouds(*clusters[i], *compares[j], verbosity);
+
+            if (score<score_min){
+              score_min=score;    // store the min score
+              j_min=j;            // and the index of the min
+            }
+
+            if(verbosity>1){  // show the pairs score as the search is performed 
+              std::cout <<"clusters["<<i<<"] (size:" <<clusters[i]->size()<<") and compares["<<j
+                        <<"] (size:"<<compares[j]->size()<<") have a score "<<score<<std::endl<<std::endl;
+            }  
+      
+          }
+
+          // after checking all potential matches, push the best match into the vector of matches with the recorded index
+          matches.at(i)=compares[j_min];
+          compares.erase(compares.begin()+j_min); // remove the match from the set of compares for 1-1 correspondence 
+
+        }
+        
+        if (verbosity>0){  
+          for (int k=0; k<clusters.size(); k++){ // show the results after the search is complete
+            std::cout<<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
+            <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
+          }
+        }
+
+      }else{       // compares has fewer clusters than clusters, empty return 
+        std::cout<<"warning: ( clusters.size() <= compares.size() ) failed, no matches returned"<<std::endl;
+      }
+
+      return matches;
+    }
+
+  
+    
+    // used in step 2
+    // function to find best match between sets of clusters using multi-objective optimization
+    PointCloudVec matchClustersMulti(PointCloudVec clusters, PointCloudVec compares, int verbosity){
+
+      PointCloudVec matches;
+      matches=clusters; // make a copy just to get the size, change to an empty copy later
+
+      std::vector<double> scores(compares.size()); // vector of scores, for debugging purposes
+      std::vector<double> centroid_diffs(compares.size()), // vectors of differences 
+                          volume_diffs(compares.size()), 
+                          aspect_ratio_diffs(compares.size());
+
+      std::vector<double> centroid_diffs_norm(compares.size()), // normalized vectors of differences 
+                          volume_diffs_norm(compares.size()), 
+                          aspect_ratio_diffs_norm(compares.size());                    
+
+      double  distance_x, distance_y, distance_z, 
+              cloud_volume, compare_volume, cloud_aspect_ratio, compare_aspect_ratio,
+              difference_x, difference_y, difference_z,
+              centroid_diffs_median, volume_diffs_median, aspect_ratio_diffs_median,
+              score, score_min;
+
+      int n, j_min;
+      
+      Eigen::Quaternionf cloud_quaternion; 
+      Eigen::Vector3f cloud_translation, cloud_size;
+      Eigen::Matrix3f cloud_eigenvectors;
+
+      Eigen::Quaternionf compare_quaternion; 
+      Eigen::Vector3f compare_translation, compare_size;
+      Eigen::Matrix3f compare_eigenvectors;  
+
+      CloudUtils utl;
+      
+      if (clusters.size()<=compares.size()){  // clusters has fewer clusters than compares
+        n=clusters.size();
+      }else{
+        n=compares.size();
+        std::cout<<"( clusters.size() <= compares.size() ) failed, matching clusters[1:compares.size()] to compares[:]"<<std::endl; 
+      } 
+      
+      std::cout<<"calling scoreCloudsMulti()"<<std::endl; 
+      Eigen::VectorXd score_check;
+      score_check=scoreCloudsMulti(*clusters[0], compares);
+
+      for (int i=0; i<n; i++){  // compare each cluster in clusters to each cluster in compares 
+                                      
+        for (int j=0; j<compares.size(); j++){
+          
+          
+          // find the pca min bounding box for the ith cloud in clusters
+          getPCABox(*clusters[i], cloud_quaternion, cloud_translation, cloud_size, cloud_eigenvectors);
+
+          // find the pca min bounding box for the jth cloud in compares
+          getPCABox(*compares[j], compare_quaternion, compare_translation, compare_size, compare_eigenvectors);
+
+          // calculate the objective differences for each pair 
+          // term1 - position of centroid
+          distance_x=cloud_translation[0]-compare_translation[0];
+          distance_y=cloud_translation[1]-compare_translation[1];
+          distance_z=cloud_translation[2]-compare_translation[2];
+          // square root of sum of squared component distances between centroids - l
+          centroid_diffs.at(j) = pow(pow(distance_x,2)+pow(distance_y,2)+pow(distance_z,2), 1.0/2.0); 
+          // term2 - volume of bounding box
+          cloud_volume=cloud_size[0]*cloud_size[1]*cloud_size[2];
+          compare_volume=compare_size[0]*compare_size[1]*compare_size[2];
+          volume_diffs.at(j) = std::abs(cloud_volume-compare_volume);
+          // term3 - aspect ratio of bounding box 
+          cloud_aspect_ratio=  cloud_size.maxCoeff()/cloud_size.minCoeff(); 
+          compare_aspect_ratio=  compare_size.maxCoeff()/compare_size.minCoeff(); 
+          // square root of squared difference in aspect ratios - l
+          aspect_ratio_diffs.at(j)= std::abs(cloud_aspect_ratio - compare_aspect_ratio); 
+
+
+
+          // term 4 - color metric
+          //std::vector<double> rgb_median;
+          //rgb_median=utl.getMedianColor(*compares[j]);
+          //std::cout<<"median rgb vals: ["
+          //         << rgb_median[0] <<", "<<rgb_median[1]<<", "<<rgb_median[2]<<" ]"<<std::endl;
+          
+          //int debug_level=0;  
+          //scoreClouds(*clusters[i], *compares[j], debug_level);    
+
+        }
+
+        // find the median value for each objective 
+        centroid_diffs_median=utl.getMedian(centroid_diffs);
+        volume_diffs_median=utl.getMedian(volume_diffs);
+        aspect_ratio_diffs_median=utl.getMedian(aspect_ratio_diffs);
+        
+        // find pair with min sum objective difference using median normalized differences 
+        //double score, score_min;
+        score_min=10000; // too high to win for now, replace with fn call to score fn
+        j_min=0; // default value for the search index, in case it is not set
+
+        // seed the minimization with the first set of differences 
+        score_min=centroid_diffs_norm[j_min]+volume_diffs_norm[j_min]+aspect_ratio_diffs_norm[j_min];
+        // RHS not previously defined, unknown vals...fix this!
+        
+        for(int j=0; j<compares.size(); j++){ // re-check each possible pair
+          // normalize diffs by dividing by median difference for each objective 
+          centroid_diffs_norm[j]=centroid_diffs[j]/centroid_diffs_median;
+          volume_diffs_norm[j]=volume_diffs[j]/volume_diffs_median;
+          aspect_ratio_diffs_norm[j]=aspect_ratio_diffs[j]/aspect_ratio_diffs_median;  
+
+          // calculate the score as the sum of the normalized diffs 
+          score=centroid_diffs_norm[j]+volume_diffs_norm[j]+aspect_ratio_diffs_norm[j];
+          if (score<score_min){ // find the lowest score
+            score_min=score;
+            j_min=j;            // record the index of the lowest score
+
+          }
+        }          
+
+        // add the compare with the best score to matches
+        matches.at(i)=compares[j_min];
+        // remove the match from the compare set for next iteration
+        compares.erase(compares.begin()+j_min);
+
+        if(verbosity>1){ // show the values as the search is performed
+
+          std::cout<<std::endl<<"iteration "<<i<<std::endl;
+
+          for (int j=0; j<scores.size(); j++){
+            std::cout <<"centroid_diffs["<<j<<"]: "<<centroid_diffs[j]
+                      <<", volume_diffs["<<j<<"]: "<<volume_diffs[j]
+                      <<", aspect_ratio_diffs["<<j<<"]: "<<aspect_ratio_diffs[j]<<std::endl;
+          }
+          std::cout <<"centroid_diffs_median: "<<centroid_diffs_median
+                    <<", volume_diffs_median:"<<volume_diffs_median
+                    <<", aspect_ratio_diffs_median: "<<aspect_ratio_diffs_median<<std::endl; 
+          std::cout<<"iteration "<<i<<" normalized with median" <<std::endl;
+          for (int j=0; j<scores.size(); j++){
+            std::cout <<"centroid_diffs_norm["<<j<<"]: "<<centroid_diffs_norm[j]
+                      <<", volume_diffs_norm["<<j<<"]: "<<volume_diffs_norm[j]
+                      <<", aspect_ratio_diffs_norm["<<j<<"]: "<<aspect_ratio_diffs_norm[j]<<std::endl;
+          }
+        }
+        
+      
+       // Eigen::VectorXd score_check;
+       // score_check=scoreCloudsMulti(*clusters[i], compares);
+      }  
+      
+      if(verbosity>0){ // show the results of the search after complete
+        for (int k=0; k<clusters.size(); k++){
+          std::cout <<"cluster["<<k<<"] has "<< clusters[k]->size()<< " points " 
+                    <<" and matches["<<k<<"] has "<<matches[k]->size()<< " points"<<std::endl;
+        }             
+      }
+      return matches;
+    }// end of matchClustersMulti() function
+    
+
 
 
     // overloaded function to find best match between single pointcloud and set of clusters using multi-objective optimization
@@ -1279,7 +1328,7 @@ class SeamDetection {
     PointCloudPtr matchClustersMulti(PointCloud &cloud, PointCloudVec compares1, PointCloudVec compares2, int verbosity){
 
       Eigen::VectorXd scores;
-      scores=scoreCloudsMulti(cloud, compares1, compares2);  
+      scores=scoreCloudsMulti2(cloud, compares1, compares2);  
 
       // find pair with min sum objective difference using median normalized differences, replace with std::min for speed
       int j_min;
@@ -1307,7 +1356,8 @@ class SeamDetection {
       return compares1[j_min];  // return the compare1 with the best score to matches, this may need changing
     }
 
-
+      
+    /*
     // function to find best 1 to 1 correlation between two sets of clusters
     // assumes size of clusters is less than or equal to size of compares to ensure 1-1 correspondence
     // this version checks all n^2 matches before removing any from the compare set, this is O(n^3), so it may be slow! 
@@ -1386,6 +1436,7 @@ class SeamDetection {
       //std::cout<<"matches contains "<<matches.size()<<" clusters after matching complete"<<std::endl;
       return matches;
     } // end of matchClusters3() function
+    */
 
 
     // function to convert to eigen vector 3 double
@@ -1596,6 +1647,7 @@ int main(int argc, char** argv)
   PointCloud::Ptr test_inliers (new PointCloud); 
   //PointCloudNormal::Ptr test_smoothed (new PointCloudNormal);
   
+  /*  
   // Step 4 - load the 'test' pointcloud from pcd file (this is the cluttered table)
   util.loadCloud(*test_input, sd.test_file);
   
@@ -1682,6 +1734,7 @@ int main(int argc, char** argv)
   
   std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
     
+  */
 
   std::cout<<"|----------- seam_detection complete ----------|"<<std::endl;  
   ros::spin();

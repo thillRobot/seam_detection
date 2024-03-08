@@ -52,13 +52,13 @@ outliers_stddev_mul_thresh: 1.0
 euclidean_thresh: 0.005 # parameters for the Euclidean Cluster Extraction
 euclidean_min_size: 200 
 euclidean_max_size: 1000000
-euclidean_max_clusters: 5
+euclidean_max_clusters: 8
 
 color_min_size: 200 # parameters for the Color-Based Region-Growing Segmentation (aka color cluster extraction)
 color_distance_thresh: 10
 color_point_thresh: 5
 color_region_thresh: 5 
-color_max_clusters: 5
+color_max_clusters: 8
 
 
 

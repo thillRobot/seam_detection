@@ -320,8 +320,8 @@ void CloudFilter::removeOutliers(pcl::PointCloud<point_t> &input, pcl::PointClou
   typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>);
   pcl::copyPointCloud(input, *cloud);
   
-  std::cerr << "Cloud before filtering: " << std::endl;
-  std::cerr << *cloud << std::endl;
+  //std::cerr << "Cloud before filtering: " << std::endl;
+  //std::cerr << *cloud << std::endl;
   typename pcl::PointCloud<point_t>::Ptr cloud_filtered (new pcl::PointCloud<point_t>);
 
   // Create the filtering object
@@ -332,8 +332,8 @@ void CloudFilter::removeOutliers(pcl::PointCloud<point_t> &input, pcl::PointClou
   sor.setStddevMulThresh (outliers_stddev_mul_thresh);
   sor.filter (*cloud_filtered);
 
-  std::cerr << "Cloud after filtering: " << std::endl;
-  std::cerr << *cloud_filtered << std::endl;
+  //std::cerr << "Cloud after filtering: " << std::endl;
+  //std::cerr << *cloud_filtered << std::endl;
 
   //pcl::PCDWriter writer;
   //writer.write<pcl::PointXYZ> ("table_scene_lms400_inliers.pcd", *cloud_filtered, false);

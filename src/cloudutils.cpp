@@ -256,6 +256,100 @@ double CloudUtils::getMedian(Eigen::VectorXd vals){
   }
 }
 
+/*
+// function to return the median value of a std::vector
+// it seems like there would be a std method for this
+std::vector<double> CloudUtils::getMedianColor(pcl::PointCloud<pcl::PointXYZRGB> &input ){
+
+  //size_t size=vals.size();
+
+  // term 4 - color metric
+  //std::uint32_t red, green, blue;
+  //int i = 1;
+  double red_med, green_med, blue_med;
+  //red=input.points[10].r;
+  //blue=input.points[10].g;
+  //green=input.points[10].b;
+
+  int size=input.size();
+  
+  std::vector<double> reds, blues, greens;
+
+  
+  for (int i; i<=size; i++){
+    reds.push_back(input.points[10].r);
+    greens.push_back(input.points[10].g);
+    blues.push_back(input.points[10].b);
+    
+  }
+  int k=11;
+  //std::cout<<"cloud [red, green ,blue] values : ["
+  //         <<reds[k]<<", "<<greens[k]<<", "<<blues[k]<<" ]"<<std::endl; 
+  
+  red_med=getMedian(reds);
+  green_med=getMedian(greens);
+  blue_med=getMedian(blues);
+
+  std::vector<double> rgb_meds;
+  rgb_meds.push_back(red_med);
+  rgb_meds.push_back(green_med);
+  rgb_meds.push_back(blue_med);
+
+  //std::cout<<"cloud [red, green ,blue] median values : ["
+  //         <<red_med<<", "<<green_med<<", "<<blue_med<<" ]"<<std::endl;
+  return rgb_meds;
+}
+*/
+
+// overloaded function to return the median value of a std::vector
+// this returns an Eigen::VectorXd containing the three median color vals
+Eigen::VectorXd CloudUtils::getMedianColor(pcl::PointCloud<pcl::PointXYZRGB> &input ){
+
+  //size_t size=vals.size();
+
+  // term 4 - color metric
+  //std::uint32_t red, green, blue;
+  //int i = 1;
+  double red_med, green_med, blue_med;
+  //red=input.points[10].r;
+  //blue=input.points[10].g;
+  //green=input.points[10].b;
+
+  int size=input.size();
+  
+  std::vector<double> reds, blues, greens;
+
+  
+  for (int i; i<=size; i++){
+    reds.push_back(input.points[10].r);
+    greens.push_back(input.points[10].g);
+    blues.push_back(input.points[10].b);
+    
+  }
+  int k=11;
+  //std::cout<<"cloud [red, green ,blue] values : ["
+  //         <<reds[k]<<", "<<greens[k]<<", "<<blues[k]<<" ]"<<std::endl; 
+  
+  red_med=getMedian(reds);
+  green_med=getMedian(greens);
+  blue_med=getMedian(blues);
+
+  std::cout<<"cloud [red, green ,blue] median values : ["
+           <<red_med<<", "<<green_med<<", "<<blue_med<<" ]"<<std::endl;
+  
+  Eigen::VectorXd rgb_meds(3);
+  rgb_meds(0)=red_med;
+  rgb_meds(1)=green_med;
+  rgb_meds(2)=blue_med;
+  
+  std::cout<<"rgb_meds size"<< rgb_meds.size() <<std::endl;    
+
+  //std::cout<<"cloud [red, green ,blue] median values : ["
+  //         <<rgb_meds[0]<<", "<<rgb_meds[1]<<", "<<rgb_meds[2]<<" ]"<<std::endl;
+  
+  return rgb_meds;
+}
+
 
 // function to merge a vector of pointclouds into a single pointcloud
 void CloudUtils::mergeClusters(PointCloudVec &clusters, PointCloud &output){
@@ -270,6 +364,7 @@ void CloudUtils::mergeClusters(PointCloudVec &clusters, PointCloud &output){
 
   std::cout<< "the merged cloud has "<< output.size() << " points" <<std::endl;
 }
+
 
 
 // overloaded function to merge a vector of pointclouds and return pointer to single pointcloud 
@@ -291,40 +386,4 @@ PointCloud::Ptr CloudUtils::mergeClusters(PointCloudVec &clusters){
 
 
 
-
-// function to return the median value of a std::vector
-// it seems like there would be a std method for this
-std::vector<double> CloudUtils::getMedianColor(pcl::PointCloud<pcl::PointXYZRGB>      &input ){
-
-  //size_t size=vals.size();
-
-  // term 4 - color metric
-  //std::uint32_t red, green, blue;
-  //int i = 1;
-  double red, green, blue;
-  red=input.points[10].r;
-  blue=input.points[10].g;
-  green=input.points[10].b;
-
-  std::cout<<"cloud [red, green ,blue] values : ["<<red<<", "<<green<<", "<<blue<<" ]"<<std::endl;
-
-  /*
-  if (size==0){
-    return 0; // size 0 vector has no median
-  }else{
-    std::sort(vals.begin(), vals.end());
-    if(size%2==0){
-      return (vals[size/2-1]+vals[size/2])/2;
-    }else{
-      return vals[size/2];
-    }
-  }*/
-
-  std::vector<double> median_colors;
-  median_colors.push_back(red);
-  median_colors.push_back(green);
-  median_colors.push_back(blue);
-
-  return median_colors;
-}
 

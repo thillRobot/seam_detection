@@ -71,18 +71,15 @@ class CloudUtils
 
     double getMedian(std::vector<double> vals);
     double getMedian(Eigen::VectorXd vals);
-   
+    //std::vector<double> getMedianColor(pcl::PointCloud<pcl::PointXYZRGB> &input); 
+    Eigen::VectorXd getMedianColor(pcl::PointCloud<pcl::PointXYZRGB> &input);
+
     void mergeClusters(PointCloudVec &clusters, PointCloud &output);
     PointCloud::Ptr mergeClusters(PointCloudVec &clusters);
     
     template <typename point_t>
     int saveCloud(pcl::PointCloud<point_t> &output, std::string file);
-
-    //double getMedian(std::vector<double> vals);
-    //double getMedian(Eigen::VectorXd vals);
   
-    std::vector<double> getMedianColor(pcl::PointCloud<pcl::PointXYZRGB> &input);
-   
     // PUBLIC attributes
 
     std::string package_path;
