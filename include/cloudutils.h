@@ -76,10 +76,21 @@ class CloudUtils
 
     void mergeClusters(PointCloudVec &clusters, PointCloud &output);
     PointCloud::Ptr mergeClusters(PointCloudVec &clusters);
-    
+
+    void mergeClouds(PointCloud &cloud1, PointCloud &cloud2, PointCloud &output);
+  
     template <typename point_t>
     int saveCloud(pcl::PointCloud<point_t> &output, std::string file);
   
+    void getCloudUnion(PointCloud &cloud1, PointCloud &cloud2, PointCloud &output);
+    void getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2, PointCloud &cloud3);
+    PointCloud::Ptr getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2);
+    
+    PointCloudVec getClusterIntersections(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh);
+    
+    void getClusterIntersectionAll(PointCloudVec &clusters1, PointCloudVec &clusters2, PointCloudVec &clusters3, int thresh);
+    PointCloudVec getClusterIntersectionAll(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh);
+
     // PUBLIC attributes
 
     std::string package_path;

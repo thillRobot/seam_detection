@@ -334,6 +334,19 @@ Eigen::VectorXd CloudUtils::getMedianColor(pcl::PointCloud<pcl::PointXYZRGB> &in
 }
 
 
+// function to merge two pointclouds into a single pointcloud
+void CloudUtils::mergeClouds(PointCloud &cloud1, PointCloud &cloud2, PointCloud &output){
+
+  pcl::copyPointCloud(cloud1, output); // start with a copy of cloud1
+  for (int i=0; i<cloud2.size(); i++){
+      // add all the points from cloud2
+      output.push_back(cloud2.points[i]);
+  }
+
+  std::cout<< "the merged cloud has "<< output.size() << " points" <<std::endl;
+}
+
+
 // function to merge a vector of pointclouds into a single pointcloud
 void CloudUtils::mergeClusters(PointCloudVec &clusters, PointCloud &output){
 
@@ -368,5 +381,154 @@ PointCloud::Ptr CloudUtils::mergeClusters(PointCloudVec &clusters){
 }
 
 
+// function to merge two pointclouds into a single pointcloud
+void CloudUtils::getCloudUnion(PointCloud &cloud1, PointCloud &cloud2, PointCloud &output){
+
+  pcl::copyPointCloud(cloud1, output); // start with a copy of cloud1
+  for (int i=0; i<cloud2.size(); i++){
+      // add all the points from cloud2
+      output.push_back(cloud2.points[i]);
+  }
+
+  std::cout<< "the union cloud has "<< output.size() << " points" <<std::endl;
+}
+
+// function to find the intersection cloud3 of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
+// this is based on exact comparison and will not work for approximate cloud points 
+void CloudUtils::getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2, PointCloud &cloud3){
+
+  for (int i=0; i<cloud1.size(); i++) { // add points to cluster cloud
+    for (int j=0; j<cloud2.size(); j++){
+      // check if all three coordinate values are the same
+      if (cloud1.points[i].x==cloud2.points[j].x&&cloud1.points[i].y==cloud2.points[j].y&&cloud1.points[i].z==cloud2.points[j].z){
+        cloud3.push_back(cloud1[i]); // add the shared point to the new cloud
+      }
+    }
+  }
+  std::cout<< "the intersection cloud has "<< cloud3.size() << " points" <<std::endl;
+}
+
+// overloaded function to find and return intersection of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
+// this is based on exact comparison and will not work for approximate cloud points 
+PointCloud::Ptr CloudUtils::getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2){
+
+  PointCloud::Ptr cloud3 (new PointCloud);
+
+  for (int i=0; i<cloud1.size(); i++) { // add points to cluster cloud
+    for (int j=0; j<cloud2.size(); j++){
+      // check if all three coordinate values are the same
+      if (cloud1.points[i].x==cloud2.points[j].x&&cloud1.points[i].y==cloud2.points[j].y&&cloud1.points[i].z==cloud2.points[j].z){
+        cloud3->push_back(cloud1[i]); // add the shared point to the new cloud
+      }
+    }
+  }
+  std::cout<< "the intersection cloud has "<< cloud3->size() << " points" <<std::endl;
+  return cloud3;
+}
 
 
+// function to find cluster of clouds as the intersection of two matching clusters, getCloudIntersection()   
+PointCloudVec CloudUtils::getClusterIntersections(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh){
+  
+  PointCloud::Ptr cloud (new PointCloud); // tmp cloud
+  PointCloudVec intersections;
+
+  for(int i=0; i<clusters1.size(); i++){
+
+    getCloudIntersection(*clusters1[i], *clusters2[i], *cloud); // find the points in clusters1[i] AND clusters2[j]
+
+    if (cloud->size()>thresh){ // check if the intersection passes a threshold
+      std::cout<<"test"<<i<<", cluster1["<<i<<"] intersected with cluster2["<<i<<"] has "<<cloud->size()
+               <<" points and will be added to the intersection cluster"<<std::endl;
+                                            
+      PointCloud::Ptr cluster (new PointCloud); // allocate memory for the pointcloud to be stored and pointed to by the new PointCloudVec 
+      pcl::copyPointCloud(*cloud, *cluster);  // make a copy to avoid the clear below
+
+      intersections.push_back(cluster); // add the intersection to the cluster of intersections
+      std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
+
+    }else{
+      std::cout<<"test"<<i<<", cluster1["<<i<<"] intersected with cluster2["<<i<<"] has "<<cloud->size()
+               <<" points and will NOT be added to the intersection cluster"<<std::endl;
+    }
+    cloud->clear();
+
+  }
+  return intersections;
+}
+
+
+// function to find cluster of clouds as the  intersection of two clusters, calls SeamDetection::getClusterIntersection()   
+// this is a bit confusing and an explanation would help
+void CloudUtils::getClusterIntersectionAll(PointCloudVec &clusters1, PointCloudVec &clusters2, PointCloudVec &clusters3, int thresh){
+
+  PointCloud::Ptr cloud (new PointCloud);
+  //PointCloudVec clusters;
+
+  int k=0; // comparison counter (counts each time)
+  for(int i=0; i<clusters1.size(); i++){ // for each cluster in clusters1
+
+    for (int j=0; j<clusters2.size(); j++){ // compare with each cluster in clusters2
+
+      getCloudIntersection(*clusters1[i], *clusters2[j], *cloud); // find the points in clusters1[i] AND clusters2[j]
+
+      if (cloud->size()>thresh){ // check if the intersection passes a threshold
+        std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "
+                 <<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
+        //clusters.push_back(cloud); // add the intersection to the cluster of intersections
+        clusters3.push_back(cloud);
+      }else{
+        std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "
+                 <<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
+      }
+      cloud->clear(); // empty the tmp cloud for the next intersection
+      k++;
+    }
+  }
+
+  std::cout<<"there are "<<clusters3.size()<<" clouds in the cluster intersection"<< std::endl;
+  //return clusters;
+}
+
+
+// function to find cluster of clouds as the intersection of two clusters, calls SeamDetection::getClusterIntersection()   
+PointCloudVec CloudUtils::getClusterIntersectionAll(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh){
+
+  PointCloud::Ptr cloud (new PointCloud); // tmp memory for kth test intersection 
+  PointCloudVec clusters;
+
+  int k=0; // comparison counter (counts each time)
+  for(int i=0; i<clusters1.size(); i++){ // for each cluster in clusters1
+
+    for (int j=0; j<clusters2.size(); j++){ // compare with each cluster in clusters2
+
+      getCloudIntersection(*clusters1[i], *clusters2[j], *cloud); // find the points in clusters1[i] AND clusters2[j]
+
+      if (cloud->size()>thresh){ // check if the intersection passes a threshold
+        std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "
+                 <<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
+
+        // allocate memory for the pointcloud to be stored and pointed to by the new PointCloudVec  (vector of pointcloud pointers)
+        PointCloud::Ptr cluster (new PointCloud);
+        pcl::copyPointCloud(*cloud, *cluster); // make a copy to avoid the clear below
+
+        //be careful to avoid adding the same cluster multiple time
+        //intersection 'cluster' is unique, new clusters should not have repeat entries
+        clusters.push_back(cluster); // add the intersection to the cluster of intersections
+        //std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points"<<std::endl; 
+        std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
+
+      }else{
+        std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "
+                 <<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
+      }
+      cloud->clear(); // empty the tmp cloud for the next intersection, is this clear wiping both??? YES INDEED ! BUG IS HERE!
+      std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points after the clear"<<std::endl;
+      k++;
+    }
+  }
+  
+  std::cout<<"there are "<<clusters.size()<<" clouds in the cluster intersection"<< std::endl;
+  return clusters;
+
+} 

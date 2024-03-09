@@ -163,115 +163,6 @@ class SeamDetection {
     }
   
  
-    // function to find the intersection cloud3 of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
-    // this is based on exact comparison and will not work for approximate cloud points 
-    void getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2, PointCloud &cloud3){
-
-      for (int i=0; i<cloud1.size(); i++) { // add points to cluster cloud
-        for (int j=0; j<cloud2.size(); j++){
-          // check if all three coordinate values are the same
-          if (cloud1.points[i].x==cloud2.points[j].x&&cloud1.points[i].y==cloud2.points[j].y&&cloud1.points[i].z==cloud2.points[j].z){ 
-            cloud3.push_back(cloud1[i]); // add the shared point to the new cloud
-          }
-        }
-      }
-      std::cout<< "the intersection cloud has "<< cloud3.size() << " points" <<std::endl;
-    }
-
-    // overloaded function to find and return intersection of clouds1 and cloud2 defined by the points in cloud 1 AND cloud 2
-    // this is based on exact comparison and will not work for approximate cloud points 
-    PointCloudPtr getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2){
-
-      PointCloudPtr cloud3 (new PointCloud);
-
-      for (int i=0; i<cloud1.size(); i++) { // add points to cluster cloud
-        for (int j=0; j<cloud2.size(); j++){
-          // check if all three coordinate values are the same
-          if (cloud1.points[i].x==cloud2.points[j].x&&cloud1.points[i].y==cloud2.points[j].y&&cloud1.points[i].z==cloud2.points[j].z){ 
-            cloud3->push_back(cloud1[i]); // add the shared point to the new cloud
-          }
-        }
-      }
-      std::cout<< "the intersection cloud has "<< cloud3->size() << " points" <<std::endl;
-      return cloud3;
-    }
-
-   
-    // function to find cluster of clouds as the  intersection of two clusters, calls SeamDetection::getClusterIntersection()   
-    // this is a bit confusing and an explanation would help
-    void getClusterIntersectionAll(PointCloudVec &clusters1, PointCloudVec &clusters2, PointCloudVec &clusters3, int thresh){
-
-      PointCloudPtr cloud (new PointCloud);
-      //PointCloudVec clusters;
-
-      int k=0; // comparison counter (counts each time)
-      for(int i=0; i<clusters1.size(); i++){ // for each cluster in clusters1
-
-        for (int j=0; j<clusters2.size(); j++){ // compare with each cluster in clusters2
-
-          getCloudIntersection(*clusters1[i], *clusters2[j], *cloud); // find the points in clusters1[i] AND clusters2[j]
-
-          if (cloud->size()>thresh){ // check if the intersection passes a threshold
-            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "
-                     <<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
-            //clusters.push_back(cloud); // add the intersection to the cluster of intersections
-            clusters3.push_back(cloud);
-          }else{
-            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "
-                     <<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
-          }
-          cloud->clear(); // empty the tmp cloud for the next intersection
-          k++;
-        }
-      }
-
-      std::cout<<"there are "<<clusters3.size()<<" clouds in the cluster intersection"<< std::endl;
-      //return clusters;
-    }
-    
-
-    // function to find cluster of clouds as the intersection of two clusters, calls SeamDetection::getClusterIntersection()   
-    PointCloudVec getClusterIntersectionAll(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh){
-
-      PointCloudPtr cloud (new PointCloud); // tmp memory for kth test intersection 
-      PointCloudVec clusters;
-
-      int k=0; // comparison counter (counts each time)
-      for(int i=0; i<clusters1.size(); i++){ // for each cluster in clusters1
-
-        for (int j=0; j<clusters2.size(); j++){ // compare with each cluster in clusters2
-
-          getCloudIntersection(*clusters1[i], *clusters2[j], *cloud); // find the points in clusters1[i] AND clusters2[j]
-
-          if (cloud->size()>thresh){ // check if the intersection passes a threshold
-            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "
-                     <<cloud->size()<<" points and will be added to the intersection cluster"<<std::endl;
-                                             
-            // allocate memory for the pointcloud to be stored and pointed to by the new PointCloudVec  (vector of pointcloud pointers)
-            PointCloudPtr cluster (new PointCloud);
-            pcl::copyPointCloud(*cloud, *cluster); // make a copy to avoid the clear below
-
-            //be careful to avoid adding the same cluster multiple time
-            //intersection 'cluster' is unique, new clusters should not have repeat entries
-            clusters.push_back(cluster); // add the intersection to the cluster of intersections
-            //std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points"<<std::endl; 
-            std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
-            
-          }else{
-            std::cout<<"test"<<k<<", cluster1["<<i<<"] intersected with cluster2["<<j<<"] has "
-                     <<cloud->size()<<" points and will NOT be added to the intersection cluster"<<std::endl;
-          }
-          cloud->clear(); // empty the tmp cloud for the next intersection, is this clear wiping both??? YES INDEED ! BUG IS HERE!
-          std::cout<<"the added cluster has "<<clusters[clusters.size()-1]->size()<<" points after the clear"<<std::endl;
-          k++;
-        }
-      }
-
-      std::cout<<"there are "<<clusters.size()<<" clouds in the cluster intersection"<< std::endl;
-      return clusters;
-    }
-   
- 
     // function to perform Euclidean Cluster Extraction  
     PointCloudVec extractEuclideanClusters(PointCloud &input){
 
@@ -1517,9 +1408,11 @@ int main(int argc, char** argv)
   // 3.5 - find intersection of the training data (training_euclidan_clusters[0] , training_matches[0])
   // memory allocation because the intersection cloud data will be copied to a new pointcloud
   PointCloudPtr training_intersection (new PointCloud); 
-  sd.getCloudIntersection(*training_euclidean_clusters[0], *training_matches[0], *training_intersection);
-  std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;
-  
+  PointCloudPtr training_union (new PointCloud); 
+  util.getCloudIntersection(*training_euclidean_clusters[0], *training_matches[0], *training_intersection);
+  std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;    
+  util.getCloudUnion(*training_euclidean_clusters[0], *training_matches[0], *training_union);
+
   util.publishCloud(*training_intersection, "/training_intersection", "base_link"); // show in rviz
 
   std::cout<<"|----------- Step 3 Complete ----------|"<<std::endl;  
@@ -1582,33 +1475,11 @@ int main(int argc, char** argv)
 
    
   // Step 7.5 - Extract intersection of the test data (ALL test_euclidan_clusters[:] , all test_matches[:]) 
-  PointCloudVec test_intersections; // vector of pointcloud points, dynamic sized 
- 
-  int intr_min_size=1; // min points in an intersection
-  //test_intersections=sd.getClusterIntersection(test_euclidean_clusters, test_matches, min_points);
+  PointCloudVec test_intersections; // vector of pointcloud points, dynamic sized  
+  PointCloudVec test_unions; // vector of pointcloud points, dynamic sized 
 
-  PointCloud::Ptr cloud (new PointCloud); // tmp cloud
-  for(int i=0; i<test_euclidean_clusters.size(); i++){
-
-    sd.getCloudIntersection(*test_euclidean_clusters[i], *test_matches[i], *cloud); // find the points in clusters1[i] AND clusters2[j]
-
-    if (cloud->size()>intr_min_size){ // check if the intersection passes a threshold
-      std::cout<<"test"<<i<<", cluster1["<<i<<"] intersected with cluster2["<<i<<"] has "<<cloud->size()
-               <<" points and will be added to the intersection cluster"<<std::endl;
-                                            
-      PointCloudPtr cluster (new PointCloud); // allocate memory for the pointcloud to be stored and pointed to by the new PointCloudVec 
-      pcl::copyPointCloud(*cloud, *cluster);  // make a copy to avoid the clear below
-
-      test_intersections.push_back(cluster); // add the intersection to the cluster of intersections
-      std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
-
-    }else{
-      std::cout<<"test"<<i<<", cluster1["<<i<<"] intersected with cluster2["<<i<<"] has "<<cloud->size()
-               <<" points and will NOT be added to the intersection cluster"<<std::endl;
-    }
-    cloud->clear();
-
-  }
+  int min_size=1; // min points in an intersection
+  test_intersections=util.getClusterIntersections(test_euclidean_clusters, test_matches, min_size);
 
   std::cout<<"test_intersections has "<<test_intersections.size()<<" clouds"<<std::endl;
   util.publishClusters(test_intersections, "/test_intersection");
@@ -1618,8 +1489,9 @@ int main(int argc, char** argv)
   
   // Step 8 compare 'training' target (training_intersection) from steps 1-3 to correlated 'test_intersection' clusters from steps 4-7 
   PointCloud::Ptr final_match;
-  final_match=sd.matchCloudToClustersMulti(*training_intersection, test_intersections, debug_level); 
- 
+  final_match=sd.matchCloudToClustersMulti(*training_intersection, test_intersections, debug_level);  
+  //final_match=sd.matchCloudToClustersMulti(*training_union, test_unions, debug_level); 
+
   std::cout<<"final_match has "<<final_match->size()<<" points"<<std::endl;
   util.publishCloud(*final_match, "/final_match", "base_link"); // show the matching target from the test image         
   

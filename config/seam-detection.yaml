@@ -48,21 +48,21 @@ scene_name: "seam-detection"
 #view4_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_cpos4_/filtered/part1_x9_y7_theta90_part2_clamp_glove_cpos4_5_filtered.pcd"
 #merged_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_merged.pcd"
 
-#seam_detection/training_file: "bags/reconstruction/part1_x4_y9_theta0_merged.pcd"
+seam_detection/training_file: "bags/reconstruction/part1_x4_y9_theta0_merged.pcd"
 #seam_detection/training_file: "bags/reconstruction/part1_x5_y10_theta45_merged.pcd"
-seam_detection/training_file: "bags/reconstruction/part1_x9_y7_theta90_merged.pcd"
+#seam_detection/training_file: "bags/reconstruction/part1_x9_y7_theta90_merged.pcd"
 
-#training_inliers_file: "bags/reconstruction/part1_x4_y9_theta0_inliers.pcd"
+training_inliers_file: "bags/reconstruction/part1_x4_y9_theta0_inliers.pcd"
 #training_inliers_file: "bags/reconstruction/part1_x5_y10_theta45_inliers.pcd"
-training_inliers_file: "bags/reconstruction/part1_x9_y7_theta90_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x9_y7_theta90_inliers.pcd"
 
-#seam_detection/test_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_merged.pcd"
+seam_detection/test_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_merged.pcd"
-seam_detection/test_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_merged.pcd"
+#seam_detection/test_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_merged.pcd"
 
-#seam_detection/output_file: "bags/reconstruction/part1_x4_y9_theta0_output.pcd"
+seam_detection/output_file: "bags/reconstruction/part1_x4_y9_theta0_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x5_y10_theta45_output.pcd"
-seam_detection/output_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
+#seam_detection/output_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
 
 save_output: true
 translate_output: false
