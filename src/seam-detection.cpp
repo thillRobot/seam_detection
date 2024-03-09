@@ -129,6 +129,7 @@ class SeamDetection {
       node.getParam("view4_file", view4_file);
       node.getParam("merged_file", merged_file);
       node.getParam("training_inliers_file", training_inliers_file);
+     
 
       // generate absolute file paths to inputs (does this belong here?)
       training_path=package_path+'/'+training_file; // i dont think so
@@ -1389,11 +1390,13 @@ int main(int argc, char** argv)
  
   // instantiate object sd from the SeamDetection class, defined in this file for now
   SeamDetection sd;
- 
+  
   // load ROS parameters, modify values in seam-detection.yaml
   sd.loadConfig(); 
 
-   
+  // instantiate object utl from the CloudUtils class, see include/cloudutils.h 
+  CloudUtils util;
+  /* 
   // step0 - test reconstruction by merging different views
   PointCloud::Ptr cloud_view1 (new PointCloud);
   PointCloud::Ptr cloud_view2 (new PointCloud);
@@ -1401,9 +1404,6 @@ int main(int argc, char** argv)
   PointCloud::Ptr cloud_view4 (new PointCloud); 
   PointCloud::Ptr cloud_merged (new PointCloud);
  
-  // instantiate object utl from the CloudUtils class, see include/cloudutils.h
- 
-  CloudUtils util;
 
   util.loadCloud(*cloud_view1, sd.view1_file);
   util.loadCloud(*cloud_view2, sd.view2_file);
@@ -1425,9 +1425,10 @@ int main(int argc, char** argv)
 
   // save resulting merge to pcd file
   util.saveCloud(*cloud_merged, sd.merged_file);
-
+  
   std::cout<<"|----------- Step 0 Complete ----------|"<<std::endl;  
-   
+  */
+ 
   // [Steps 1-3] - use 'training' image of target object on clean table
 
   // Step 1 - load the 'training' pointcloud from pcd file 
@@ -1498,7 +1499,7 @@ int main(int argc, char** argv)
   //training_smoothed_color_clusters=sd.extractColorClustersT(*training_smoothed);
   
   std::cout<<"|----------- Step 2 Complete ----------|"<<std::endl;  
-  /*
+  
   
   //sd.publishClustersT(training_smoothed_color_clusters, "/training_smoothed_color"); 
 
@@ -1623,7 +1624,9 @@ int main(int argc, char** argv)
   util.publishCloud(*final_match, "/final_match", "base_link"); // show the matching target from the test image         
   
   std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
-  */  
+    
+  // save resulting filtered image to pcd file
+  util.saveCloud(*final_match, sd.output_file);
   
   std::cout<<"|----------- seam_detection complete ----------|"<<std::endl;  
   ros::spin();
