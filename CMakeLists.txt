@@ -144,10 +144,9 @@ add_library(cloudfilter
 add_library(cloudutils
   src/cloudutils.cpp
 )
-
-#add_library(cloudregistration
-#  src/cloudregistration.cpp
-#)
+add_library(cloudregistration
+  src/cloudregistration.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -260,20 +259,13 @@ target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES}
 
 # register_clouds - Registration Algorithm Testing Node(s) 
 add_executable(register_clouds src/register_clouds.cpp)
-target_link_libraries(register_clouds ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
+target_link_libraries(register_clouds cloudregistration ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
   Eigen3::Eigen 
   teaserpp::teaser_registration 
   teaserpp::teaser_io
   teaserpp::teaser_features
 )
 
-# register_target_source - Registration Algorithm Testing Node(s) ##
-#add_executable(register_target_source src/register_target_source.cpp)
-#target_link_libraries(register_target_source
-#  ${catkin_LIBRARIES} 
-#  ${PCL_LIBRARIES} 
-#  Eigen3::Eigen 
-#)
 
 # seam_detection_RANSAC # this node needs updating
 add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
@@ -285,13 +277,17 @@ target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES}
 ## uncomment to enable compile                      ##
 ######################################################
 
+# cloudutils_test (testing cloudutils.cpp/cloudutils.h)
+add_executable(cloudutils_test src/test/cloudutils_test.cpp)
+target_link_libraries(cloudutils_test cloudutils ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 # cloudfilter_test (testing cloudfilter.cpp/cloudfilter.h)
-add_executable(cloudfilter_test src/cloudfilter_test.cpp)
+add_executable(cloudfilter_test src/test/cloudfilter_test.cpp)
 target_link_libraries(cloudfilter_test cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# cloudregisration_test (testing cloudfilter.cpp/cloudfilter.h)
-#add_executable(cloudregistration_test src/cloudregistration_test.cpp)
-#target_link_libraries(cloudregistration_test cloudregistration ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# cloudregisration_test (testing cloudregistration.cpp/cloudregistration.h)
+add_executable(cloudregistration_test src/test/cloudregistration_test.cpp)
+target_link_libraries(cloudregistration_test cloudregistration ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # seam_detection_tf
 add_executable(seam_detection_tf src/seam_detection_tf.cpp)
@@ -305,13 +301,17 @@ target_link_libraries(filter_cloud cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARI
 add_executable(filter_cloud_tf src/filter_cloud_tf.cpp)
 target_link_libraries(filter_cloud_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+# rotate_cloud
+#add_executable(rotate_cloud src/rotate_cloud.cpp)
+#target_link_libraries(rotate_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 # hue_segmentation
-add_executable(hue_segmentation src/hue_segmentation.cpp)
-target_link_libraries(hue_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#add_executable(hue_segmentation src/hue_segmentation.cpp)
+#target_link_libraries(hue_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # crg_segmentation 
-add_executable(crg_segmentation src/crg_segmentation.cpp)
-target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#add_executable(crg_segmentation src/crg_segmentation.cpp)
+#target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # cad_cloud
 # add_executable(cad_cloud src/cad_cloud.cpp)
@@ -336,12 +336,12 @@ add_dependencies(reconfigure_tf ${PROJECT_NAME}_gencfg)
 target_link_libraries(reconfigure_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # realsense_playback_tf
-add_executable(realsense_playback_tf src/realsense_playback_tf.cpp)
-target_link_libraries(realsense_playback_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#add_executable(realsense_playback_tf src/realsense_playback_tf.cpp)
+#target_link_libraries(realsense_playback_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # realsense_playback_tf2
-add_executable(realsense_playback_tf2 src/realsense_playback_tf2.cpp)
-target_link_libraries(realsense_playback_tf2 ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#add_executable(realsense_playback_tf2 src/realsense_playback_tf2.cpp)
+#target_link_libraries(realsense_playback_tf2 ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # save_rgbcloud
 add_executable(save_rgbcloud src/save_rgbcloud.cpp)
@@ -385,13 +385,17 @@ target_link_libraries(aubo_cmd ${catkin_LIBRARIES})
 #add_executable(filter_source src/filter_source.cpp)
 #target_link_libraries(filter_source ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# rotate_cloud
-#add_executable(rotate_cloud src/rotate_cloud.cpp)
-#target_link_libraries(rotate_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
 # teach_points
 #add_executable(teach_points src/teach_points.cpp)
 #target_link_libraries(teach_points ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# register_target_source - Registration and task execution with aubo arm
+add_executable(register_target_source src/register_target_source.cpp)
+target_link_libraries(register_target_source
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+)
 
 # scan2cloud (from SZ)
 #add_executable(scan2cloud src/scan2cloud.cpp)

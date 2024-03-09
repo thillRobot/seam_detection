@@ -17,20 +17,20 @@
 
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
-//#include <tf/LinearMath/Matrix3x3.h>
+#include <tf/LinearMath/Matrix3x3.h>
 //#include <tf_conversions/tf_eigen.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 //#include <geometry_msgs/TransformStamped.h>
 #include <pcl/registration/icp.h>
 
 
-
 // PCL PointClouds with XYZ RGB Points
-typedef pcl::PointXYZRGB PointT;
-typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
+//typedef pcl::PointXYZRGB PointT;
+//typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 //typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
 // PCL PointCloud with XYZ RGB Normal Points
-typedef pcl::PointXYZRGBNormal PointNT;
-typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
+//typedef pcl::PointXYZRGBNormal PointNT;
+//typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
 //typedef pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr PointCloudNormalPtr;
 
 // DEFINITIONS
@@ -58,9 +58,17 @@ void CloudRegistration::loadConfig(std::string cfg){
 
   config=cfg;
   
+  std::cout<<"|---------- CloudRegistration::loadConfig() ------------|"<<std::endl; 
+ 
   node.getParam("input_file", input_file);    
   node.getParam("output_file", output_file);
  
+  node.getParam("icp_max_corr_dist", icp_max_corr_dist);    
+  node.getParam("icp_max_iter", icp_max_iter);
+  node.getParam("icp_trns_epsl", icp_trns_epsl);    
+  node.getParam("icp_ecld_fitn_epsl", icp_ecld_fitn_epsl);   
+  node.getParam("icp_ran_rej_thrsh", icp_ran_rej_thrsh);
+
 } 
 
 std::string CloudRegistration::getConfig(void){
@@ -71,11 +79,16 @@ std::string CloudRegistration::getConfig(void){
 
 
 // function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
-double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, 
-                          geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, 
-                          double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, 
-                          double ran_rej_thrsh, double e_results[],double c_offset[]){
+
+template <typename point_t>
+double CloudRegistration::registerCloudICP( pcl::PointCloud<point_t> &source, pcl::PointCloud<point_t> &target, 
+                                              tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, 
+                                              geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA){
+
+  std::cout<<"|---------- CloudRegistration::registerCloudICP ----------|"<<std::endl;  
   
+  //loadConfig(config);  
+
   // get size of inputs clouds
   int Ns = source.size();
   int Nt = target.size();
@@ -83,35 +96,37 @@ double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTra
   std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
   
   std::cout<<"Using Search Parameters:"<< std::endl;
-  std::cout<<"Max Correspondence Distance = "<< max_corr_dist <<std::endl;
-  std::cout<<"Maximum Number of Iterations = "<< max_iter <<std::endl;
-  std::cout<<"Transformation Epsilon = "<< trns_epsl <<std::endl;
-  std::cout<<"Euclidean Distance Difference Epsilon = "<< ecld_fitn_epsl <<std::endl;
-  
+  std::cout<<"Max Correspondence Distance = "<< icp_max_corr_dist <<std::endl;
+  std::cout<<"Maximum Number of Iterations = "<< icp_max_iter <<std::endl;
+  std::cout<<"Transformation Epsilon = "<< icp_trns_epsl <<std::endl;
+  std::cout<<"Euclidean Distance Difference Epsilon = "<< icp_ecld_fitn_epsl <<std::endl;
+  std::cout<<"RANASC Rejection Threshold = "<< icp_ran_rej_thrsh <<std::endl;
+
   // perform ICP on the lidar and cad clouds
-  pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
-  pcl::PointCloud<pcl::PointXYZ> Final;
+  pcl::IterativeClosestPoint<point_t, point_t> icp;
+  pcl::PointCloud<point_t> Final;
   
   Eigen::MatrixXf T_result, T_inverse;
   
   // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-  icp.setMaxCorrespondenceDistance (max_corr_dist);
+  icp.setMaxCorrespondenceDistance (icp_max_corr_dist);
   // Set the maximum number of iterations (criterion 1)
-  icp.setMaximumIterations (max_iter);
+  icp.setMaximumIterations (icp_max_iter);
   // Set the transformation epsilon (criterion 2)
-  icp.setTransformationEpsilon (trns_epsl);
+  icp.setTransformationEpsilon (icp_trns_epsl);
   // Set the euclidean distance difference epsilon (criterion 3)
-  
-  icp.setEuclideanFitnessEpsilon (ecld_fitn_epsl);
+  icp.setEuclideanFitnessEpsilon (icp_ecld_fitn_epsl);
   // Set the RANSAC Outlier Rejection Threshold
-  icp.setRANSACOutlierRejectionThreshold (ran_rej_thrsh);
+  icp.setRANSACOutlierRejectionThreshold (icp_ran_rej_thrsh);
   
   // these copies seem like a waste to me, figure out how to cut these out
-  // make a copy of the LiDAR(source) cloud 
-  PointCloud::Ptr src (new PointCloud);       //use this as the working copy of the source cloud
+  // make a copy of the LiDAR(source) cloud  
+  //working copy of the source cloud
+  typename pcl::PointCloud<point_t>::Ptr src (new pcl::PointCloud<point_t>);      
   pcl::copyPointCloud(source,*src);
   // make a copy of the CAD(target) cloud 
-  PointCloud::Ptr tgt (new PointCloud);       //use this as the working copy of the target cloud
+  //working copy of the target cloud
+  typename pcl::PointCloud<point_t>::Ptr tgt (new pcl::PointCloud<point_t>);       
   pcl::copyPointCloud(target,*tgt);
   
   icp.setInputSource(src); // source (moved during ICP) cloud
@@ -141,7 +156,8 @@ double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTra
   
   tf::Quaternion q_inverse;
   tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
-  // instantiate a 3x3 rotation matrix from the transformation matrix // I feel like this is done in a method somewhere
+  // instantiate a 3x3 rotation matrix from the transformation matrix 
+  // I feel like this is done in a method somewhere
   
   tf::Matrix3x3 R_result( T_result(0,0),T_result(0,1),T_result(0,2),
                           T_result(1,0),T_result(1,1),T_result(1,2),
@@ -181,7 +197,17 @@ double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTra
   tf::transformStampedTFToMsg(T_AB,msg_AB);
   tf::transformStampedTFToMsg(T_BA,msg_BA);
 
-  return fit_score;
   std::cout << "END OF REGISTER_CLOUD_ICP FUNCTION" << std::endl;
+  return fit_score;
 }
 
+// define all template types that may be used with the function
+template double CloudRegistration::registerCloudICP <pcl::PointXYZ>
+                (pcl::PointCloud<pcl::PointXYZ> &source, pcl::PointCloud<pcl::PointXYZ> &target, 
+                 tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, 
+                 geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA);
+
+template double CloudRegistration::registerCloudICP <pcl::PointXYZRGB>
+                (pcl::PointCloud<pcl::PointXYZRGB> &source, pcl::PointCloud<pcl::PointXYZRGB> &target, 
+                 tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, 
+                 geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA);

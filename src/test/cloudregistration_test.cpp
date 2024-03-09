@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 
   // simple test of calling public members
   std::cout<<"default config: "<<registration.getConfig()<<std::endl; 
-  registration.loadConfig("cloudregistration_test");
+  registration.loadConfig("test/cloudregistration_test");
   std::cout<<"loading config: "<<registration.getConfig()<<std::endl;
 
   return 0;

@@ -5,6 +5,11 @@ scene_name: "seam-detection"
 #seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b_1705440053802620.pcd"
 
 seam_detection/training_file: "bags/reconstruction/part1_x4_y9_theta0_merged.pcd"
+
+training_inliers_file: "bags/reconstruction/part1_x4_y9_theta0_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x5_y10_theta45_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x9_y7_theta90_inliers.pcd"
+
 seam_detection/test_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_merged.pcd"
 
 #view1_file: "bags/reconstruction/part1_x2_y4_theta0_cpos1_/filtered/part1_x2_y4_theta0_cpos1_10_filtered.pcd"
@@ -17,17 +22,41 @@ seam_detection/test_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_gl
 #view3_file: "bags/reconstruction/part1_x4_y8_theta0_cpos3_/filtered/part1_x4_y8_theta0_cpos3_10_filtered.pcd"
 #view4_file: "bags/reconstruction/part1_x4_y8_theta0_cpos4_/filtered/part1_x4_y8_theta0_cpos4_10_filtered.pcd"
 
-#view1_file: "bags/reconstruction/part1_x4_y9_theta0_cpos1_/filtered/part1_x4_y9_theta0_cpos1_5_filtered.pcd"
-#view2_file: "bags/reconstruction/part1_x4_y9_theta0_cpos2_/filtered/part1_x4_y9_theta0_cpos2_5_filtered.pcd"
-#view3_file: "bags/reconstruction/part1_x4_y9_theta0_cpos3_/filtered/part1_x4_y9_theta0_cpos3_5_filtered.pcd"
-#view4_file: "bags/reconstruction/part1_x4_y9_theta0_cpos4_/filtered/part1_x4_y9_theta0_cpos4_5_filtered.pcd"
-#merged_file: "bags/reconstruction/part1_x4_y9_theta0_merged.pcd"
+view1_file: "bags/reconstruction/part1_x4_y9_theta0_cpos1_/filtered/part1_x4_y9_theta0_cpos1_5_filtered.pcd"
+view2_file: "bags/reconstruction/part1_x4_y9_theta0_cpos2_/filtered/part1_x4_y9_theta0_cpos2_5_filtered.pcd"
+view3_file: "bags/reconstruction/part1_x4_y9_theta0_cpos3_/filtered/part1_x4_y9_theta0_cpos3_5_filtered.pcd"
+view4_file: "bags/reconstruction/part1_x4_y9_theta0_cpos4_/filtered/part1_x4_y9_theta0_cpos4_5_filtered.pcd"
+merged_file: "bags/reconstruction/part1_x4_y9_theta0_merged.pcd"
 
-view1_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos1_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos1_5_filtered.pcd"
-view2_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos2_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos2_5_filtered.pcd"
-view3_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos3_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos3_5_filtered.pcd"
-view4_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos4_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos4_5_filtered.pcd"
-merged_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_merged.pcd"
+#view1_file: "bags/reconstruction/part1_x5_y10_theta45_cpos1_/filtered/part1_x5_y10_theta45_cpos1_5_filtered.pcd"
+#view2_file: "bags/reconstruction/part1_x5_y10_theta45_cpos2_/filtered/part1_x5_y10_theta45_cpos2_5_filtered.pcd"
+#view3_file: "bags/reconstruction/part1_x5_y10_theta45_cpos3_/filtered/part1_x5_y10_theta45_cpos3_5_filtered.pcd"
+#view4_file: "bags/reconstruction/part1_x5_y10_theta45_cpos4_/filtered/part1_x5_y10_theta45_cpos4_5_filtered.pcd"
+#merged_file: "bags/reconstruction/part1_x5_y10_theta45_merged.pcd"
+
+#view1_file: "bags/reconstruction/part1_x9_y7_theta90_cpos1_/filtered/part1_x9_y7_theta90_cpos1_5_filtered.pcd"
+#view2_file: "bags/reconstruction/part1_x9_y7_theta90_cpos2_/filtered/part1_x9_y7_theta90_cpos2_5_filtered.pcd"
+#view3_file: "bags/reconstruction/part1_x9_y7_theta90_cpos3_/filtered/part1_x9_y7_theta90_cpos3_5_filtered.pcd"
+#view4_file: "bags/reconstruction/part1_x9_y7_theta90_cpos4_/filtered/part1_x9_y7_theta90_cpos4_5_filtered.pcd"
+#merged_file: "bags/reconstruction/part1_x9_y7_theta90_merged.pcd"
+
+#view1_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos1_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos1_5_filtered.pcd"
+#view2_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos2_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos2_5_filtered.pcd"
+#view3_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos3_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos3_5_filtered.pcd"
+#view4_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos4_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos4_5_filtered.pcd"
+#merged_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_merged.pcd"
+
+#view1_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_cpos1_/filtered/part1_x5_y10_theta45_part2_clamp_glove_cpos1_5_filtered.pcd"
+#view2_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_cpos2_/filtered/part1_x5_y10_theta45_part2_clamp_glove_cpos2_5_filtered.pcd"
+#view3_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_cpos3_/filtered/part1_x5_y10_theta45_part2_clamp_glove_cpos3_5_filtered.pcd"
+#view4_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_cpos4_/filtered/part1_x5_y10_theta45_part2_clamp_glove_cpos4_5_filtered.pcd"
+#merged_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_merged.pcd"
+
+#view1_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_cpos1_/filtered/part1_x9_y7_theta90_part2_clamp_glove_cpos1_5_filtered.pcd"
+#view2_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_cpos2_/filtered/part1_x9_y7_theta90_part2_clamp_glove_cpos2_5_filtered.pcd"
+#view3_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_cpos3_/filtered/part1_x9_y7_theta90_part2_clamp_glove_cpos3_5_filtered.pcd"
+#view4_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_cpos4_/filtered/part1_x9_y7_theta90_part2_clamp_glove_cpos4_5_filtered.pcd"
+#merged_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_merged.pcd"
 
 save_output: true
 translate_output: false

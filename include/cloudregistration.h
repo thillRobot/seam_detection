@@ -8,21 +8,21 @@
 #include <pcl/common/common.h>
 #include <pcl/point_cloud.h>
 
- #include <tf/transform_broadcaster.h>
- #include <tf/transform_listener.h>
+#include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 
 // PCL PointClouds with XYZ RGB Points
-typedef pcl::PointXYZRGB PointT;
-typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
+//typedef pcl::PointXYZRGB PointT;
+//typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
 //typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
 // PCL PointClouds with XYZ RGB Normal Points
-typedef pcl::PointXYZRGBNormal PointNT;
-typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
+//typedef pcl::PointXYZRGBNormal PointNT;
+//typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
 //typedef pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr PointCloudNormalPtr;
 // Vector of PointClouds
 // aligned_allocator - STL compatible allocator to use with types requiring a non-standard alignment 
-typedef std::vector < PointCloud::Ptr, Eigen::aligned_allocator < PointCloud::Ptr > > PointCloudVec;
-typedef std::vector < PointCloudNormal::Ptr, Eigen::aligned_allocator < PointCloudNormal::Ptr > > PointCloudNormalVec;
+//typedef std::vector < PointCloud::Ptr, Eigen::aligned_allocator < PointCloud::Ptr > > PointCloudVec;
+//typedef std::vector < PointCloudNormal::Ptr, Eigen::aligned_allocator < PointCloudNormal::Ptr > > PointCloudNormalVec;
 
 
 class CloudRegistration
@@ -48,11 +48,13 @@ class CloudRegistration
 
     std::string getConfig(void);
 
+    template <typename point_t>
+    double registerCloudICP(pcl::PointCloud<point_t> &source, pcl::PointCloud<point_t> &target, 
+                              tf::StampedTransform &T_AB, tf::StampedTransform &T_BA,
+                              geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA);
     //PUBLIC attributes
-    double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA,
-                           geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA,
-                           double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl,
-                           double ran_rej_thrsh, double e_results[],double c_offset[]);
+
+    double icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh;
 
 };
 

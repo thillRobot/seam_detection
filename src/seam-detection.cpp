@@ -128,6 +128,7 @@ class SeamDetection {
       node.getParam("view3_file", view3_file);
       node.getParam("view4_file", view4_file);
       node.getParam("merged_file", merged_file);
+      node.getParam("training_inliers_file", training_inliers_file);
 
       // generate absolute file paths to inputs (does this belong here?)
       training_path=package_path+'/'+training_file; // i dont think so
@@ -1345,7 +1346,7 @@ class SeamDetection {
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
     std::string package_path, training_path, test_path, output_path, training_file, test_file, output_file,
-                view1_file, view2_file, view3_file, view4_file, merged_file; 
+                view1_file, view2_file, view3_file, view4_file, merged_file, training_inliers_file; 
    
     std::vector<double> bounding_box, pre_rotation, pre_translation;
     double voxel_size;
@@ -1450,6 +1451,9 @@ int main(int argc, char** argv)
   filter.removeOutliers(*training_bounded, *training_inliers); 
   //filter.smoothCloud(*training_bounded, *training_smoothed);
 
+  // save resulting filtered image to pcd file
+  util.saveCloud(*training_inliers, sd.training_inliers_file);
+  
   std::cout<<"training_smoothed has "<<training_bounded->size()<<" points"<<std::endl;
   
   // show the input training clouds in rviz

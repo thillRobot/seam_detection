@@ -1,9 +1,14 @@
 
 # register_clouds params
 scene_name: "register_clouds" # change this to config_name ?
-register_clouds/source_file: "pcd_images/shape1_shape2/shape1_0deg_filtered.pcd"
-register_clouds/target_file: "pcd_images/shape1_shape2/shape1.pcd"
-register_clouds/aligned_file: "pcd_images/aubo_i10/aubo_source_aligned.pcd"
+#register_clouds/source_file: "pcd_images/shape1_shape2/shape1_0deg_filtered.pcd"
+#register_clouds/target_file: "pcd_images/shape1_shape2/shape1.pcd"
+#register_clouds/aligned_file: "pcd_images/aubo_i10/aubo_source_aligned.pcd"
+
+register_clouds/source_file: "bags/reconstruction/part1_x4_y9_theta0_inliers.pcd"
+register_clouds/target_file: "bags/reconstruction/part1_x5_y10_theta45_inliers.pcd"
+register_clouds/aligned_file: "bags/reconstruction/part1_inliers_aligned.pcd"
+
 part1_name: "shape1"
 part1_type: "square_tube"
 part2_name: "none"

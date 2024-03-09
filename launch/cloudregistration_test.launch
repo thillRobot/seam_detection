@@ -2,7 +2,7 @@
 
   <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
 
-  <arg name="config" default="test/cloudfilter_test" />
+  <arg name="config" default="cloudregistration" />
 
   <!-- read value of arg -->
   <param name="param" value="$(arg config)"/> 
@@ -11,8 +11,8 @@
 
   <node                     
     pkg="seam_detection"          
-    name="cloudfilter_test"   
-    type="cloudfilter_test"
+    name="cloudregistration_test"   
+    type="cloudregistration_test"
     output="screen"  
    />
    
