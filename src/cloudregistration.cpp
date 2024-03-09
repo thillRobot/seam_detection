@@ -23,16 +23,6 @@
 //#include <geometry_msgs/TransformStamped.h>
 #include <pcl/registration/icp.h>
 
-
-// PCL PointClouds with XYZ RGB Points
-//typedef pcl::PointXYZRGB PointT;
-//typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
-//typedef pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudPtr;
-// PCL PointCloud with XYZ RGB Normal Points
-//typedef pcl::PointXYZRGBNormal PointNT;
-//typedef pcl::PointCloud<pcl::PointXYZRGBNormal> PointCloudNormal;
-//typedef pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr PointCloudNormalPtr;
-
 // DEFINITIONS
 
 // default constructor

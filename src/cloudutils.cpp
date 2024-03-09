@@ -7,7 +7,9 @@
 */
 
 #include "cloudutils.h"
-#include <string>
+#include <string> 
+#include <boost/thread/thread.hpp>
+#include <thread>
 #include <iostream>
 #include <vector>
 #include <ros/ros.h>
@@ -185,8 +187,8 @@ void CloudUtils::publishClusters(PointCloudNormalVec &clusters, std::string pref
 
 // templated function to publish a vector of PointClouds with normals representing clusters as a ROS topic
 template <typename point_t>
-void CloudUtils::publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr,
-        Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix){
+void CloudUtils::publishClustersT(std::vector< typename pcl::PointCloud<point_t>::Ptr,
+        Eigen::aligned_allocator< typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix){
   std::cout<<"|---------- CloudUtils::publishClustersT - publishing clusters ----------|"<<std::endl;
   std::cout<<"|---------- templated for `PointCloudVec<pcl::PointCloud<point_t>>` ----------|"<<std::endl;
 
@@ -204,9 +206,8 @@ void CloudUtils::publishClustersT(const std::vector<typename pcl::PointCloud<poi
 }
 
 template void CloudUtils::publishClustersT<pcl::PointXYZRGB>
-              (const std::vector<typename pcl::PointCloud<pcl::PointXYZRGB>::Ptr,
+              (std::vector< typename pcl::PointCloud<pcl::PointXYZRGB>::Ptr,
                Eigen::aligned_allocator<typename pcl::PointCloud<pcl::PointXYZRGB>::Ptr> > &clusters, std::string prefix);
-
 
 // function to copy PointCloud with XYZRGB points - not needed, use pcl::copyPointCloud()
 void CloudUtils::copyCloud(PointCloud &input, PointCloud &output){

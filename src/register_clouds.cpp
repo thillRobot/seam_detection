@@ -72,28 +72,17 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 //#include <teaser/point_cloud.h>
 //#include <teaser/features.h>
 
-//#include <cloudutils.h>
+#include <cloudutils.h>
 #include <cloudregistration.h>
+#include <cloudfilter.h>
 
-typedef pcl::PointXYZ PointT;
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+//typedef pcl::PointXYZ PointT;
+//typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
 bool filter_cloud_complete=0;
 bool registration_complete=0;
-
-void filter_cloud_stateCallback(const std_msgs::Bool::ConstPtr& msg)
-{
-  //ROS_INFO("I heard scan_state: [%d]", msg->data);
-  if (!msg->data){
-    ROS_INFO("filter_cloud in progress, waiting to begin registration ...");
-  }
-  else if (msg->data&&!filter_cloud_complete){
-    ROS_INFO("filter_cloud complete, beginning registration");
-    filter_cloud_complete=1;
-  }
-}
 
 
 /* // function moved to CloudRegistration::registerCloudICP(), other reg functions to be moved soon 
@@ -530,7 +519,7 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(2);
 
   // setup subcribers for filter_cloud_state
-  ros::Subscriber filter_cloud_state_sub = node.subscribe("/filter_cloud/filter_cloud_state", 1000, filter_cloud_stateCallback);
+  //ros::Subscriber filter_cloud_state_sub = node.subscribe("/filter_cloud/filter_cloud_state", 1000, filter_cloud_stateCallback);
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds v1.9                            "<<endl;
@@ -653,6 +642,14 @@ int main(int argc, char** argv)
   
   std::cout<<"file loading loop complete"<<std::endl;    
 
+
+  // downsample the clouds before registration to reduce computation
+  CloudFilter filter;
+  //pcl::PointCloud<pcl::PointXYZRGB>::Ptr target_downsampled (new pcl::PointCloud<pcl::PointXYZRGB>);
+  filter.downsampleCloud(*target_cloud, *target_cloud, 0.0025); 
+  filter.downsampleCloud(*source_cloud, *source_cloud, 0.0025);
+
+
   // for now each tf has three objects associated with it (more objects == more fun)
   // 1) '<name>' (tf::transform)      // needed for transforms with pcl_ros
   // 2) '<name>_tf2' (tf2::transform) // not used
@@ -702,12 +699,14 @@ int main(int argc, char** argv)
   EigenCor cor_src_pts, cor_tgt_pts;
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
 
-
   double fscore; // fitness score (lower is better)
   double fscore_min=1000;
 
-  double alphas[4]={0, 90, 180, 270}; // array of starting angles
-  int N=4; // number of starting positions
+  double alphas[1]={0}; // array of starting angles
+  int N=1;  
+
+  //double alphas[4]={0, 90, 180, 270}; // array of starting angles
+  //int N=4; // number of starting positions
 
   // set rotation and origin of a quaternion for the tf transform object
   double alpha, beta, gamma, dtr, intm;
@@ -757,7 +756,7 @@ int main(int argc, char** argv)
       reg.loadConfig(reg.getConfig()); // use values in default config, this is goofy fix this     
       std::cout<<"CloudRegistration config: "<<reg.getConfig()<<std::endl;
       std::cout<<"CloudRegistration icp_max_corr_dist: "<<reg.icp_max_corr_dist<<std::endl;
-      fscore=reg.registerCloudICP(*source_cloud_intr,*target_cloud,*T_10_intr, *T_01_intr, *T_10_intr_msg, *T_01_intr_msg);
+      fscore=reg.registerCloudICP(*source_cloud_intr, *target_cloud, *T_10_intr, *T_01_intr, *T_10_intr_msg, *T_01_intr_msg);
       std::cout << "ICP completed with fitness score: " << fscore << std::endl;
     }
     

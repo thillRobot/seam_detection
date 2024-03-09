@@ -259,7 +259,7 @@ target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES}
 
 # register_clouds - Registration Algorithm Testing Node(s) 
 add_executable(register_clouds src/register_clouds.cpp)
-target_link_libraries(register_clouds cloudregistration ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
+target_link_libraries(register_clouds cloudregistration cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
   Eigen3::Eigen 
   teaserpp::teaser_registration 
   teaserpp::teaser_io

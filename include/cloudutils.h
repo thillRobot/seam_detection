@@ -63,9 +63,9 @@ class CloudUtils
 
     void publishClusters(PointCloudVec &clusters, std::string prefix);
     void publishClusters(PointCloudNormalVec &clusters, std::string prefix);
-    template <typename point_t>  // templated publishClusters not currently working, can deduce template type ...
-    void publishClustersT(const std::vector<typename pcl::PointCloud<point_t>::Ptr,
-                    Eigen::aligned_allocator<typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix);   
+    template <typename point_t>  // templated publishClusters not currently working, cannot deduce template type ...
+    void publishClustersT(std::vector< typename pcl::PointCloud<point_t>::Ptr,
+                    Eigen::aligned_allocator< typename pcl::PointCloud<point_t>::Ptr> > &clusters, std::string prefix);   
     
     void copyCloud(PointCloud &input, PointCloud &output);
 

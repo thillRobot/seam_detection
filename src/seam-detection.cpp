@@ -1466,15 +1466,16 @@ int main(int argc, char** argv)
 
   std::cout<<"|----------- Step 1 Complete ----------|"<<std::endl;    
   
-   
+ 
   // Step 2 - extract clusters from training cloud using euclidean and color algorithms
   PointCloudVec training_euclidean_clusters, training_color_clusters;
-  
+
   // perform Euclidean cluster extraction
   training_euclidean_clusters=sd.extractEuclideanClusters(*training_inliers); 
   // perform Color Based Region Growing cluster extraction
   training_color_clusters=sd.extractColorClusters(*training_inliers);
     
+
   std::cout<<"training_euclidean_clusters size:"<<training_euclidean_clusters.size()<<std::endl;
   std::cout<<"training_color_clusters size:"<<training_color_clusters.size()<<std::endl;
 
@@ -1489,14 +1490,15 @@ int main(int argc, char** argv)
   //            Eigen::aligned_allocator<typename pcl::PointCloud<PointNT>::Ptr> > 
   // training_smoothed_color_clusters;
 
-  using PointCloudPtrType = typename pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr;
-  using AllocatorType = Eigen::aligned_allocator<PointCloudPtrType>;
-  using VectorType = std::vector<PointCloudPtrType, AllocatorType>;
-  VectorType training_smoothed_color_clusters;
+  //using PointCloudPtrType = typename pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr;
+  //using AllocatorType = Eigen::aligned_allocator<PointCloudPtrType>;
+  //using VectorType = std::vector<PointCloudPtrType, AllocatorType>;
+  //VectorType training_smoothed_color_clusters;
 
   //training_smoothed_color_clusters=sd.extractColorClustersT(*training_smoothed);
   
   std::cout<<"|----------- Step 2 Complete ----------|"<<std::endl;  
+  /*
   
   //sd.publishClustersT(training_smoothed_color_clusters, "/training_smoothed_color"); 
 
@@ -1621,7 +1623,7 @@ int main(int argc, char** argv)
   util.publishCloud(*final_match, "/final_match", "base_link"); // show the matching target from the test image         
   
   std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
-    
+  */  
   
   std::cout<<"|----------- seam_detection complete ----------|"<<std::endl;  
   ros::spin();
