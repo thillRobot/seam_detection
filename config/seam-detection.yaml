@@ -48,24 +48,21 @@ scene_name: "seam-detection"
 #view4_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_cpos4_/filtered/part1_x9_y7_theta90_part2_clamp_glove_cpos4_5_filtered.pcd"
 #merged_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_merged.pcd"
 
-#seam_detection/training_file: "pcd_images/ds435i_table_parts/training_12_1705704311402640.pcd"
-#seam_detection/test_file: "pcd_images/ds435i_table_parts/training_05b_1705440053802620.pcd"
-
-seam_detection/training_file: "bags/reconstruction/part1_x4_y9_theta0_merged.pcd"
+#seam_detection/training_file: "bags/reconstruction/part1_x4_y9_theta0_merged.pcd"
 #seam_detection/training_file: "bags/reconstruction/part1_x5_y10_theta45_merged.pcd"
-#seam_detection/training_file: "bags/reconstruction/part1_x9_y7_theta90_merged.pcd"
+seam_detection/training_file: "bags/reconstruction/part1_x9_y7_theta90_merged.pcd"
 
-training_inliers_file: "bags/reconstruction/part1_x4_y9_theta0_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x4_y9_theta0_inliers.pcd"
 #training_inliers_file: "bags/reconstruction/part1_x5_y10_theta45_inliers.pcd"
-#training_inliers_file: "bags/reconstruction/part1_x9_y7_theta90_inliers.pcd"
+training_inliers_file: "bags/reconstruction/part1_x9_y7_theta90_inliers.pcd"
 
-seam_detection/test_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_merged.pcd"
+#seam_detection/test_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_merged.pcd"
-#seam_detection/test_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_merged.pcd"
+seam_detection/test_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_merged.pcd"
 
-seam_detection/output_file: "bags/reconstruction/part1_x4_y9_theta0_output.pcd"
+#seam_detection/output_file: "bags/reconstruction/part1_x4_y9_theta0_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x5_y10_theta45_output.pcd"
-#seam_detection/output_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
+seam_detection/output_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
 
 save_output: true
 translate_output: false
@@ -74,8 +71,6 @@ use_clustering: true
 new_scan: false
 transform_input: true
 
-#seam_detection/pre_rotation:    [0.0, 3.14159, 0.0] # ds435i rgb camera 32inches from table surface pointing down
-#seam_detection/pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
 
 seam_detection/pre_rotation:    [0.0, 0.0, 0.0] # ds435i rgb camera 32inches from table surface pointing down
 seam_detection/pre_translation: [0.0, 0.0, 0.0] # 32.0*0.0254 
