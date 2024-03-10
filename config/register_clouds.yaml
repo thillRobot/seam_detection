@@ -6,8 +6,8 @@ scene_name: "register_clouds" # change this to config_name ?
 #register_clouds/aligned_file: "pcd_images/aubo_i10/aubo_source_aligned.pcd"
 
 register_clouds/source_file: "bags/reconstruction/part1_x4_y9_theta0_output.pcd"
-#register_clouds/target_file: "bags/reconstruction/part1_x5_y10_theta45_output.pcd"
-register_clouds/target_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
+register_clouds/target_file: "bags/reconstruction/part1_x5_y10_theta45_output.pcd"
+#register_clouds/target_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
 register_clouds/aligned_file: "bags/reconstruction/part1_inliers_aligned.pcd"
 
 part1_name: "shape1"
@@ -16,8 +16,11 @@ part2_name: "none"
 part2_type: "none"
 save_part1_segment: false
 save_part2_segment: false
+
+use_icp: true
 use_teaser: false
 use_teaser_fpfh: false
+
 wait_for_filter: false
 
 register_clouds/filter_box: [0.0, 0.5, -0.9, -0.4, -0.01, 0.23] # bounding box limits (!check that these are used!)

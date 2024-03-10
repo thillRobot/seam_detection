@@ -147,7 +147,12 @@ add_library(cloudutils
 add_library(cloudregistration
   src/cloudregistration.cpp
 )
-
+target_link_libraries(cloudregistration ${catkin_LIBRARIES} ${PCL_LIBRARIES}
+   Eigen3::Eigen
+   teaserpp::teaser_registration
+   teaserpp::teaser_io
+   teaserpp::teaser_features
+)
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
