@@ -1287,7 +1287,7 @@ int main(int argc, char** argv)
 
   // instantiate object utl from the CloudUtils class, see include/cloudutils.h 
   CloudUtils util;
-  /* 
+  
   // step0 - image reconstruction by merging different views
   PointCloud::Ptr cloud_view1 (new PointCloud);
   PointCloud::Ptr cloud_view2 (new PointCloud);
@@ -1317,7 +1317,7 @@ int main(int argc, char** argv)
   util.saveCloud(*cloud_merged, sd.merged_file);
   
   std::cout<<"|----------- Step 0 Complete ----------|"<<std::endl;  
-  */
+  
  
   // [Steps 1-3] - use 'training' image of target object on clean table
 
