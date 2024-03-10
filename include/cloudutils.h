@@ -92,6 +92,9 @@ class CloudUtils
     void getClusterIntersectionAll(PointCloudVec &clusters1, PointCloudVec &clusters2, PointCloudVec &clusters3, int thresh);
     PointCloudVec getClusterIntersectionAll(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh);
 
+    template<typename point_t>
+    void trimCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_t> &output, int output_size);
+    
     // PUBLIC attributes
 
     std::string package_path;

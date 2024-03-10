@@ -202,13 +202,21 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<endl<<endl;
 
   // instantiate cloud objects
-  PointCloud::Ptr source_cloud (new PointCloud);  // source cloud
-  PointCloud::Ptr source_cloud_intr (new PointCloud);  // intermediate source cloud
-  PointCloud::Ptr source_cloud_intr_min (new PointCloud);  // min fscore intermediate source cloud
-  PointCloud::Ptr target_cloud (new PointCloud);  // target cloud
-  PointCloud::Ptr corrs_cloud (new PointCloud );  // correspondence cloud   
-  PointCloud::Ptr aligned_cloud_T10 (new PointCloud);  // alinged source cloud (using registration results)
-  PointCloud::Ptr aligned_cloud_T01 (new PointCloud);  // alinged source cloud (using registration inverse results)
+  //PointCloud::Ptr source_cloud (new PointCloud);  // source cloud
+  //PointCloud::Ptr source_cloud_intr (new PointCloud);  // intermediate source cloud
+  //PointCloud::Ptr source_cloud_intr_min (new PointCloud);  // min fscore intermediate source cloud
+  //PointCloud::Ptr target_cloud (new PointCloud);  // target cloud
+  //PointCloud::Ptr corrs_cloud (new PointCloud );  // correspondence cloud   
+  //PointCloud::Ptr aligned_cloud_T10 (new PointCloud);  // alinged source cloud (using registration results)
+  //PointCloud::Ptr aligned_cloud_T01 (new PointCloud);  // alinged source cloud (using registration inverse results)
+  
+  PointCloudNormal::Ptr source_cloud (new PointCloudNormal);  // source cloud
+  PointCloudNormal::Ptr source_cloud_intr (new PointCloudNormal);  // intermediate source cloud
+  PointCloudNormal::Ptr source_cloud_intr_min (new PointCloudNormal);  // min fscore intermediate source cloud
+  PointCloudNormal::Ptr target_cloud (new PointCloudNormal);  // target cloud
+  PointCloudNormal::Ptr corrs_cloud (new PointCloudNormal);  // correspondence cloud   
+  PointCloudNormal::Ptr aligned_cloud_T10 (new PointCloudNormal);  // alinged source cloud (using registration results)
+  PointCloudNormal::Ptr aligned_cloud_T01 (new PointCloudNormal);  // alinged source cloud (using registration inverse results)
   
   // wait for pointclouds from filter_cloud
   while(!filter_cloud_complete && wait_for_filter){
@@ -227,7 +235,7 @@ int main(int argc, char** argv)
     // load the source cloud from PCD file, files generated with src/cad_cloud.cpp
        
     try{
-      if (pcl::io::loadPCDFile<PointT> (source_cloud_path, *source_cloud) == -1)
+      if (pcl::io::loadPCDFile<PointNT> (source_cloud_path, *source_cloud) == -1)
       {
         std::cout<<"Couldn't read image file:"<<source_cloud_path;
       }else if (!source_loaded){
@@ -235,7 +243,7 @@ int main(int argc, char** argv)
         source_loaded=1;  
       }
       // load the target cloud from PCD file
-      if (pcl::io::loadPCDFile<PointT> (target_cloud_path, *target_cloud) == -1)
+      if (pcl::io::loadPCDFile<PointNT> (target_cloud_path, *target_cloud) == -1)
       {
         std::cout<<"Couldn't read image file:"<<target_cloud_path;
       }else if(!target_loaded){
@@ -250,14 +258,6 @@ int main(int argc, char** argv)
   }
   
   std::cout<<"file loading loop complete"<<std::endl;    
-
-
-  // downsample the clouds before registration to reduce computation
-  CloudFilter filter;
-  //pcl::PointCloud<pcl::PointXYZRGB>::Ptr target_downsampled (new pcl::PointCloud<pcl::PointXYZRGB>);
-  filter.downsampleCloud(*target_cloud, *target_cloud, 0.0025); 
-  filter.downsampleCloud(*source_cloud, *source_cloud, 0.0025);
-
 
   // for now each tf has three objects associated with it (more objects == more fun)
   // 1) '<name>' (tf::transform)      // needed for transforms with pcl_ros
@@ -304,6 +304,17 @@ int main(int argc, char** argv)
   std::cout<<"                    register_clouds: processing pointcloud data     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
+  // instantiate a filter object from the cloudfilter lib defined in this package
+  CloudFilter filter;
+  
+  // downsample the clouds before registration to reduce computation
+  filter.downsampleCloud(*target_cloud, *target_cloud, 0.003); 
+  filter.downsampleCloud(*source_cloud, *source_cloud, 0.003);
+
+  // smooth the clouds with normal smoothing
+  filter.smoothCloud(*target_cloud, *target_cloud); 
+  filter.smoothCloud(*source_cloud, *source_cloud);
+
   int N_cor=100;
   EigenCor cor_src_pts, cor_tgt_pts;
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
@@ -311,14 +322,14 @@ int main(int argc, char** argv)
   double fscore; // fitness score (lower is better)
   double fscore_min=1000;
 
-  //double alphas[1]={0}; // array of starting angles
-  //int N=1;  
+  double alphas[1]={0}; // array of starting angles
+  int N=1;  
 
-  double alphas[4]={0, 90, 180, 270}; // array of starting angles
-  int N=4; // number of starting positions
+  //double alphas[4]={0, 90, 180, 270}; // array of starting angles
+  //int N=4; // number of starting positions
 
   // set rotation and origin of a quaternion for the tf transform object
-  double alpha, beta, gamma, dtr, intm;
+  double al, bt, gm, dtr, intm; // alpha beta gamma for short
   dtr=M_PI/180.0; // degrees to radians
   intm=0.0254;  // inches to meters
 
@@ -327,20 +338,21 @@ int main(int argc, char** argv)
   for (int i=0;i<N;i++){
 
     // rotation angles for yaw pitch roll
-    alpha=alphas[i]*dtr;beta=0*dtr;gamma=0*dtr; 
+    al=alphas[i]*dtr;bt=0*dtr;gm=0*dtr; 
 
     // rotation matrix for Yaw Pitch Roll by alpha gamma beta
-    tf::Matrix3x3 R_intr(cos(alpha)*cos(beta), cos(alpha)*sin(beta)*sin(gamma)-sin(alpha)*cos(gamma), cos(alpha)*sin(beta)*cos(gamma)+sin(alpha)*sin(gamma),
-                         sin(alpha)*cos(beta), sin(alpha)*sin(beta)*sin(gamma)+cos(alpha)*cos(gamma), sin(alpha)*sin(beta)*cos(gamma)-cos(alpha)*sin(gamma),
-                         -sin(beta)          , cos(beta)*sin(gamma)                                 , cos(beta)*cos(gamma));  
+    tf::Matrix3x3 R_intr(cos(al)*cos(bt), cos(al)*sin(bt)*sin(gm)-sin(al)*cos(gm), cos(al)*sin(bt)*cos(gm)+sin(al)*sin(gm),
+                         sin(al)*cos(bt), sin(al)*sin(bt)*sin(gm)+cos(al)*cos(gm), sin(al)*sin(bt)*cos(gm)-cos(al)*sin(gm),
+                         -sin(bt)          , cos(bt)*sin(gm)                                 , cos(bt)*cos(gm));  
 
     // quaternion for previous rotation matrix
     tf::Quaternion q_intr;
-    R_intr.getRotation(q_intr); // sets quaternion q_intr with rotation from R_intr (returns normalized quaternion?, check on this)
+    R_intr.getRotation(q_intr); // sets quaternion q_intr with rotation from R_intr 
+                                //(returns normalized quaternion?, check on this)
 
     T_intr->setRotation(q_intr);
     T_intr->setOrigin(tf::Vector3(0, 0, 0)); // no translation component of the transformation (is 0,0,0 default?)
-    // need to normalize quaternion here?
+                                             // need to normalize quaternion here?
 
     T_intr_inv->setData(T_intr->inverse()); // get the inverse intermediate transformation, use setData() to copy from pointer to pointer
 
@@ -361,14 +373,15 @@ int main(int argc, char** argv)
     }else if (use_teaser){
       // Perform TEASER++ cloud registration
       double teaser_params[3]={1,2,3}; // temporary place holder 
-      reg.registerCloudTeaser(*source_cloud_intr,*target_cloud,  *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params);
+      
+      reg.registerCloudTeaser(*source_cloud_intr,*target_cloud,  *T_10_intr, *T_01_intr, *T_10_intr_msg, *T_01_intr_msg, teaser_params);
     
     }else if(use_teaser_fpfh){
       // Perform TEASER++ cloud registration with Fast Point Feature Histograms (FPFH) descriptors  
       double teaser_params[3]={1,2,3}; // temporary place holder 
       teaser::FPFHEstimation features;   
       corrs=reg.registerCloudTeaserFPFH(*source_cloud_intr, *target_cloud, *corrs_cloud, 
-                                        *T_10, *T_01, *T_10_msg, *T_01_msg, teaser_params, features);
+                                        *T_10_intr, *T_01_intr, *T_10_intr_msg, *T_01_intr_msg, teaser_params, features);
       std::cout<<"registerCloudTeaserFPFH() correspondences"<<std::endl;
       std::cout<<"size: "<<corrs.size()<<std::endl;
     }
@@ -529,7 +542,6 @@ int main(int argc, char** argv)
   visualization_msgs::Marker source_marker, target_marker;
   source_marker.header.frame_id = "base_link";
   source_marker.header.stamp = ros::Time();
-  //marker.ns = "my_namespace";
   source_marker.type = visualization_msgs::Marker::SPHERE;
   source_marker.action = visualization_msgs::Marker::ADD;
   source_marker.pose.orientation.x = 0.0;
@@ -555,12 +567,12 @@ int main(int argc, char** argv)
   target_marker.scale.x = 0.005;
   target_marker.scale.y = 0.005;
   target_marker.scale.z = 0.005;
-  target_marker.color.a = 1.0; // Don't forget to set the alpha!
+  target_marker.color.a = 1.0; 
   target_marker.color.r = 255.0/255.0;
   target_marker.color.g = 16.0/255.0;
   target_marker.color.b = 240.0/255.0;
   
-  if(use_teaser_fpfh){
+  if(use_teaser_fpfh){ // show fpfh correspondence points
     for(size_t i = 0; i < corrs.cols(); i++){  
       source_marker.id = i;
       source_marker.pose.position.x = corrs(0,i);

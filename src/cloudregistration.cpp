@@ -209,6 +209,11 @@ template double CloudRegistration::registerCloudICP <pcl::PointXYZRGB>
                  tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, 
                  geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA);
 
+template double CloudRegistration::registerCloudICP <pcl::PointXYZRGBNormal>
+                (pcl::PointCloud<pcl::PointXYZRGBNormal> &source, pcl::PointCloud<pcl::PointXYZRGBNormal> &target, 
+                 tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, 
+                 geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA);
+
 
 // templated function REGISTER_CLOUD_TEASER finds the transform between two pointclouds
 // based on examples/teaser_cpp_ply.cc
@@ -220,39 +225,39 @@ void CloudRegistration::registerCloudTeaser(pcl::PointCloud<point_t> &source,
                                             geometry_msgs::TransformStamped &msg_AB, 
                                             geometry_msgs::TransformStamped &msg_BA, 
                                             double tparams[]){
- 
-   //teaserpp::teaser_features 
- 
+  
    // get size of inputs clouds
    int Ns = source.size();
    int Nt = target.size();
    int P = 50; //number to print
    int M = -1; //number of matches
+  
    std::cout <<"BEGINNING REGISTER_CLOUD_TEASER"<< std::endl;
    std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
- 
-   // instantiate teaser pointclouds (not used?)
-   //teaser::PointCloud src_cloud;
-   //teaser::PointCloud tgt_cloud;
- 
-   // Convert the input point clouds to Eigen
+   if(Nt>Ns){ // if the target is larger, only use as many target points as are in the source
+     Nt=Ns;
+   } 
+   
+  // Convert the input point clouds to Eigen
    Eigen::Matrix<double, 3, Eigen::Dynamic> src(3, Ns);
    Eigen::Matrix<double, 3, Eigen::Dynamic> tgt(3, Nt);
- 
+    
    for (size_t i = 0; i < Ns; ++i) {
      src.col(i) << source[i].x, source[i].y, source[i].z;
    }
    for (size_t i = 0; i < Nt; ++i) {
      tgt.col(i) << target[i].x, target[i].y, target[i].z;
    }
- 
-   // Run TEASER++ registration
+    
+   std::cout <<"Processing "<< src.size() << " source points and " <<tgt.size()<<" target points" << std::endl ;
+   
+// Run TEASER++ registration
    // Prepare solver parameters
    teaser::RobustRegistrationSolver::Params params;
    params.noise_bound = 0.05;
    params.cbar2 = 1;
    params.estimate_scaling = false;
-   params.rotation_max_iterations = 10000;
+   params.rotation_max_iterations = 100;
    params.rotation_gnc_factor = 1.4;
    params.rotation_estimation_algorithm =
        teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
@@ -261,7 +266,9 @@ void CloudRegistration::registerCloudTeaser(pcl::PointCloud<point_t> &source,
    // Solve with TEASER++
    teaser::RobustRegistrationSolver solver(params);
    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-   solver.solve(src, tgt);
+
+   solver.solve(src, tgt); 
+
    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
  
    auto soln = solver.getSolution();
@@ -348,8 +355,20 @@ void CloudRegistration::registerCloudTeaser(pcl::PointCloud<point_t> &source,
  
  }
  
+template void CloudRegistration::registerCloudTeaser<pcl::PointXYZ>
+              (pcl::PointCloud<pcl::PointXYZ> &source, pcl::PointCloud<pcl::PointXYZ> &target, 
+               tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, 
+               geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, 
+               double tparams[]);
+
 template void CloudRegistration::registerCloudTeaser<pcl::PointXYZRGB>
               (pcl::PointCloud<pcl::PointXYZRGB> &source, pcl::PointCloud<pcl::PointXYZRGB> &target, 
+               tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, 
+               geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, 
+               double tparams[]);
+
+template void CloudRegistration::registerCloudTeaser<pcl::PointXYZRGBNormal>
+              (pcl::PointCloud<pcl::PointXYZRGBNormal> &source, pcl::PointCloud<pcl::PointXYZRGBNormal> &target, 
                tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, 
                geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, 
                double tparams[]);
@@ -398,7 +417,6 @@ Eigen::Matrix<double, 6, Eigen::Dynamic> CloudRegistration::registerCloudTeaserF
 
   //std::vector<std::pair<int, int>> correspondences = matcher.calculateCorrespondences(
   //src, tgt, *obj_descriptors, *scene_descriptors, false, true, false, 0.95);
-
   //std::vector<std::pair<float, float>> corrs_points_pairs;
 
   int Nc=correspondences.size();
@@ -418,10 +436,10 @@ Eigen::Matrix<double, 6, Eigen::Dynamic> CloudRegistration::registerCloudTeaserF
   // Run TEASER++ registration
   // Prepare solver parameters
   teaser::RobustRegistrationSolver::Params params;
-  params.noise_bound = 0.05;
+  params.noise_bound = 0.001;
   params.cbar2 = 1;
   params.estimate_scaling = false;
-  params.rotation_max_iterations = 10000;
+  params.rotation_max_iterations = 1000;
   params.rotation_gnc_factor = 1.4;
   params.rotation_estimation_algorithm =
       teaser::RobustRegistrationSolver::ROTATION_ESTIMATION_ALGORITHM::GNC_TLS;
@@ -509,10 +527,30 @@ Eigen::Matrix<double, 6, Eigen::Dynamic> CloudRegistration::registerCloudTeaserF
 
 }
 
+template Eigen::Matrix<double, 6, Eigen::Dynamic> CloudRegistration::registerCloudTeaserFPFH<pcl::PointXYZ>
+                                                                         (pcl::PointCloud<pcl::PointXYZ> &source, 
+                                                                          pcl::PointCloud<pcl::PointXYZ> &target,
+                                                                          pcl::PointCloud<pcl::PointXYZ> &corrs,
+                                                                          tf::StampedTransform &T_AB, 
+                                                                          tf::StampedTransform &T_BA,
+                                                                          geometry_msgs::TransformStamped &msg_AB, 
+                                                                          geometry_msgs::TransformStamped &msg_BA,
+                                                                          double tparams[], teaser::FPFHEstimation features);
+
 template Eigen::Matrix<double, 6, Eigen::Dynamic> CloudRegistration::registerCloudTeaserFPFH<pcl::PointXYZRGB>
                                                                          (pcl::PointCloud<pcl::PointXYZRGB> &source, 
                                                                           pcl::PointCloud<pcl::PointXYZRGB> &target,
                                                                           pcl::PointCloud<pcl::PointXYZRGB> &corrs,
+                                                                          tf::StampedTransform &T_AB, 
+                                                                          tf::StampedTransform &T_BA,
+                                                                          geometry_msgs::TransformStamped &msg_AB, 
+                                                                          geometry_msgs::TransformStamped &msg_BA,
+                                                                          double tparams[], teaser::FPFHEstimation features);
+
+template Eigen::Matrix<double, 6, Eigen::Dynamic> CloudRegistration::registerCloudTeaserFPFH<pcl::PointXYZRGBNormal>
+                                                                         (pcl::PointCloud<pcl::PointXYZRGBNormal> &source, 
+                                                                          pcl::PointCloud<pcl::PointXYZRGBNormal> &target,
+                                                                          pcl::PointCloud<pcl::PointXYZRGBNormal> &corrs,
                                                                           tf::StampedTransform &T_AB, 
                                                                           tf::StampedTransform &T_BA,
                                                                           geometry_msgs::TransformStamped &msg_AB, 

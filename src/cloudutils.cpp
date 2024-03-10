@@ -563,4 +563,30 @@ PointCloudVec CloudUtils::getClusterIntersectionAll(PointCloudVec &clusters1, Po
   std::cout<<"there are "<<clusters.size()<<" clouds in the cluster intersection"<< std::endl;
   return clusters;
 
-} 
+}
+
+
+// function to trim point cloud to a given size, primarily to keep teaser from crashing 
+template <typename point_t>
+void CloudUtils::trimCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_t> &output, int output_size){
+
+  typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>);
+     
+  int input_size=input.size();
+  if (input_size>output_size){
+  
+    for (int i=0; i<input_size; i++){
+
+      output.push_back(input.points[i]);  
+
+    } 
+  
+  }
+
+  std::cout<<"trimmed pointcloud has "<<output.size()<<" points"<<std::endl;
+  
+}
+
+template void CloudUtils::trimCloud<pcl::PointXYZRGB>
+              (pcl::PointCloud<pcl::PointXYZRGB> &input, pcl::PointCloud<pcl::PointXYZRGB> &output, int output_size);
+ 

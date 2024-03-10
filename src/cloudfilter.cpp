@@ -250,6 +250,9 @@ void CloudFilter::smoothCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<p
 template void CloudFilter::smoothCloud< pcl::PointXYZRGB, pcl::PointXYZRGBNormal >
               (pcl::PointCloud<pcl::PointXYZRGB> &input, pcl::PointCloud<pcl::PointXYZRGBNormal> &output);
 
+template void CloudFilter::smoothCloud< pcl::PointXYZRGBNormal, pcl::PointXYZRGBNormal >
+              (pcl::PointCloud<pcl::PointXYZRGBNormal> &input, pcl::PointCloud<pcl::PointXYZRGBNormal> &output);
+
 
 // templated function to apply voxel downsampling to pointcloud 
 template <typename point_t>
@@ -260,7 +263,7 @@ void CloudFilter::downsampleCloud(pcl::PointCloud<point_t> &input, pcl::PointClo
 
   // Apply Voxel Filter 
   if (leaf_size>0){
-    pcl::VoxelGrid<PointT> vox;
+    pcl::VoxelGrid<point_t> vox;
     vox.setInputCloud (cloud); // operate directly on the output PointCloud pointer, removes need for copy below
     vox.setLeafSize (leaf_size, leaf_size, leaf_size); // use "001f","001f","0001f" or "none" to set voxel leaf size
     vox.filter (*cloud);
@@ -274,6 +277,9 @@ void CloudFilter::downsampleCloud(pcl::PointCloud<point_t> &input, pcl::PointClo
 
 template void CloudFilter::downsampleCloud<pcl::PointXYZRGB>
               (pcl::PointCloud<pcl::PointXYZRGB> &input, pcl::PointCloud<pcl::PointXYZRGB> &output, double leaf_size);
+
+template void CloudFilter::downsampleCloud<pcl::PointXYZRGBNormal>
+              (pcl::PointCloud<pcl::PointXYZRGBNormal> &input, pcl::PointCloud<pcl::PointXYZRGBNormal> &output, double leaf_size);
 
 
 void CloudFilter::extractPolygonalPrism(PointCloud &input){
