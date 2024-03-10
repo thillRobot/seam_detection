@@ -6,9 +6,10 @@ scene_name: "register_clouds" # change this to config_name ?
 #register_clouds/aligned_file: "pcd_images/aubo_i10/aubo_source_aligned.pcd"
 
 register_clouds/source_file: "bags/reconstruction/part1_x4_y9_theta0_output.pcd"
+#register_clouds/source_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
 register_clouds/target_file: "bags/reconstruction/part1_x5_y10_theta45_output.pcd"
 #register_clouds/target_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
-register_clouds/aligned_file: "bags/reconstruction/part1_inliers_aligned.pcd"
+register_clouds/aligned_file: "bags/reconstruction/part1_aligned.pcd"
 
 part1_name: "shape1"
 part1_type: "square_tube"
