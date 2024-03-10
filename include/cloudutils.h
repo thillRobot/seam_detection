@@ -87,6 +87,7 @@ class CloudUtils
     PointCloud::Ptr getCloudIntersection(PointCloud &cloud1, PointCloud &cloud2);
     
     PointCloudVec getClusterIntersections(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh);
+    PointCloudVec getClusterUnions(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh);
     
     void getClusterIntersectionAll(PointCloudVec &clusters1, PointCloudVec &clusters2, PointCloudVec &clusters3, int thresh);
     PointCloudVec getClusterIntersectionAll(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh);

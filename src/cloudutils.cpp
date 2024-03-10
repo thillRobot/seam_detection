@@ -334,7 +334,7 @@ Eigen::VectorXd CloudUtils::getMedianColor(pcl::PointCloud<pcl::PointXYZRGB> &in
 }
 
 
-// function to merge two pointclouds into a single pointcloud
+// function to merge two pointclouds into a single pointcloud, same function as getCloudUnion()
 void CloudUtils::mergeClouds(PointCloud &cloud1, PointCloud &cloud2, PointCloud &output){
 
   pcl::copyPointCloud(cloud1, output); // start with a copy of cloud1
@@ -431,7 +431,7 @@ PointCloud::Ptr CloudUtils::getCloudIntersection(PointCloud &cloud1, PointCloud 
 PointCloudVec CloudUtils::getClusterIntersections(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh){
   
   PointCloud::Ptr cloud (new PointCloud); // tmp cloud
-  PointCloudVec intersections;
+  PointCloudVec cloud_intersections;
 
   for(int i=0; i<clusters1.size(); i++){
 
@@ -444,7 +444,7 @@ PointCloudVec CloudUtils::getClusterIntersections(PointCloudVec &clusters1, Poin
       PointCloud::Ptr cluster (new PointCloud); // allocate memory for the pointcloud to be stored and pointed to by the new PointCloudVec 
       pcl::copyPointCloud(*cloud, *cluster);  // make a copy to avoid the clear below
 
-      intersections.push_back(cluster); // add the intersection to the cluster of intersections
+      cloud_intersections.push_back(cluster); // add the intersection to the cluster of intersections
       std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
 
     }else{
@@ -454,7 +454,39 @@ PointCloudVec CloudUtils::getClusterIntersections(PointCloudVec &clusters1, Poin
     cloud->clear();
 
   }
-  return intersections;
+  return cloud_intersections;
+}
+
+
+// function to find cluster of clouds as the intersection of two matching clusters, getCloudIntersection()   
+PointCloudVec CloudUtils::getClusterUnions(PointCloudVec &clusters1, PointCloudVec &clusters2, int thresh){
+  
+  PointCloud::Ptr cloud (new PointCloud); // tmp cloud
+  PointCloudVec cloud_unions;
+
+  for(int i=0; i<clusters1.size(); i++){
+
+    getCloudUnion(*clusters1[i], *clusters2[i], *cloud); // find the points in clusters1[i] AND clusters2[j]
+
+    if (cloud->size()>thresh){ // check if the union passes a threshold
+      std::cout<<"test"<<i<<", cluster1["<<i<<"] intersected with cluster2["<<i<<"] has "<<cloud->size()
+               <<" points and will be added to the intersection cluster"<<std::endl;
+      
+      // allocate memory for the pointcloud to be stored and pointed to by the new PointCloudVec                                      
+      PointCloud::Ptr cluster (new PointCloud); 
+      pcl::copyPointCloud(*cloud, *cluster);  // make a copy to avoid the clear below
+
+      cloud_unions.push_back(cluster); // add the intersection to the cluster of intersections
+      std::cout<<"the added cluster has "<<cluster->size()<<" points"<<std::endl;
+
+    }else{
+      std::cout<<"test"<<i<<", cluster1["<<i<<"] intersected with cluster2["<<i<<"] has "<<cloud->size()
+               <<" points and will NOT be added to the intersection cluster"<<std::endl;
+    }
+    cloud->clear();
+
+  }
+  return cloud_unions;
 }
 
 

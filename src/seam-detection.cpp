@@ -1288,14 +1288,13 @@ int main(int argc, char** argv)
   // instantiate object utl from the CloudUtils class, see include/cloudutils.h 
   CloudUtils util;
   /* 
-  // step0 - test reconstruction by merging different views
+  // step0 - image reconstruction by merging different views
   PointCloud::Ptr cloud_view1 (new PointCloud);
   PointCloud::Ptr cloud_view2 (new PointCloud);
   PointCloud::Ptr cloud_view3 (new PointCloud);
   PointCloud::Ptr cloud_view4 (new PointCloud); 
   PointCloud::Ptr cloud_merged (new PointCloud);
  
-
   util.loadCloud(*cloud_view1, sd.view1_file);
   util.loadCloud(*cloud_view2, sd.view2_file);
   util.loadCloud(*cloud_view3, sd.view3_file);
@@ -1409,11 +1408,15 @@ int main(int argc, char** argv)
   // memory allocation because the intersection cloud data will be copied to a new pointcloud
   PointCloudPtr training_intersection (new PointCloud); 
   PointCloudPtr training_union (new PointCloud); 
+
   util.getCloudIntersection(*training_euclidean_clusters[0], *training_matches[0], *training_intersection);
   std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;    
-  util.getCloudUnion(*training_euclidean_clusters[0], *training_matches[0], *training_union);
 
+  util.getCloudUnion(*training_euclidean_clusters[0], *training_matches[0], *training_union);
+  std::cout<<"training_union has "<<training_union->size()<<" points"<<std::endl;
+    
   util.publishCloud(*training_intersection, "/training_intersection", "base_link"); // show in rviz
+  util.publishCloud(*training_union, "/training_union", "base_link"); // show in rviz
 
   std::cout<<"|----------- Step 3 Complete ----------|"<<std::endl;  
    
@@ -1480,26 +1483,35 @@ int main(int argc, char** argv)
 
   int min_size=1; // min points in an intersection
   test_intersections=util.getClusterIntersections(test_euclidean_clusters, test_matches, min_size);
+  test_unions=util.getClusterUnions(test_euclidean_clusters, test_matches, min_size);
 
   std::cout<<"test_intersections has "<<test_intersections.size()<<" clouds"<<std::endl;
   util.publishClusters(test_intersections, "/test_intersection");
    
+  std::cout<<"test_unions has "<<test_unions.size()<<" clouds"<<std::endl;
+  util.publishClusters(test_unions, "/test_unions");
+  
   std::cout<<"|----------- Step 7 Complete ----------|"<<std::endl;  
     
   
-  // Step 8 compare 'training' target (training_intersection) from steps 1-3 to correlated 'test_intersection' clusters from steps 4-7 
-  PointCloud::Ptr final_match;
-  final_match=sd.matchCloudToClustersMulti(*training_intersection, test_intersections, debug_level);  
-  //final_match=sd.matchCloudToClustersMulti(*training_union, test_unions, debug_level); 
-
-  std::cout<<"final_match has "<<final_match->size()<<" points"<<std::endl;
-  util.publishCloud(*final_match, "/final_match", "base_link"); // show the matching target from the test image         
+  // Step 8 compare 'training' target from steps 1-3 to correlated 'test_intersection' clusters from steps 4-7 
+  PointCloud::Ptr final_intersection, final_union;
+  final_intersection=sd.matchCloudToClustersMulti(*training_intersection, test_intersections, debug_level);  
+  final_union=sd.matchCloudToClustersMulti(*training_union, test_unions, debug_level); 
   
+  // show the matching target intersection and union
+  std::cout<<"final_intersection has "<<final_intersection->size()<<" points"<<std::endl;
+  util.publishCloud(*final_intersection, "/final_intersection", "base_link");        
+  
+  std::cout<<"final_union has "<<final_union->size()<<" points"<<std::endl;
+  util.publishCloud(*final_union, "/final_union", "base_link"); 
+ 
+ 
   std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
     
   // save resulting filtered image to pcd file
-  util.saveCloud(*final_match, sd.output_file);
-  
+  util.saveCloud(*final_union, sd.output_file); 
+
   std::cout<<"|----------- seam_detection complete ----------|"<<std::endl;  
   ros::spin();
 
