@@ -123,13 +123,21 @@ class SeamDetection {
       node.getParam("seam_detection/output_file", output_file);
 
       // file paths for multiview reconstruction
-      node.getParam("view1_file", view1_file);
-      node.getParam("view2_file", view2_file);
-      node.getParam("view3_file", view3_file);
-      node.getParam("view4_file", view4_file);
-      node.getParam("merged_file", merged_file);
+      node.getParam("training_view1_file", training_view1_file);
+      node.getParam("training_view2_file", training_view2_file);
+      node.getParam("training_view3_file", training_view3_file);
+      node.getParam("training_view4_file", training_view4_file);
+      node.getParam("training_merged_file", training_merged_file);
       node.getParam("training_inliers_file", training_inliers_file);
-     
+      node.getParam("training_merged_file", training_merged_file);
+      
+      node.getParam("test_view1_file", test_view1_file);
+      node.getParam("test_view2_file", test_view2_file);
+      node.getParam("test_view3_file", test_view3_file);
+      node.getParam("test_view4_file", test_view4_file);
+      node.getParam("test_merged_file", test_merged_file);
+      node.getParam("test_inliers_file", test_inliers_file);
+      node.getParam("test_merged_file", test_merged_file);
 
       // generate absolute file paths to inputs (does this belong here?)
       training_path=package_path+'/'+training_file; // i dont think so
@@ -763,9 +771,10 @@ class SeamDetection {
 
       return matches;
     }
+
     // function to return the objective function value (score) for a pointcloud vs. each pointcloud in compares
     // this uses a media normalized (scaled) multi objective function
-    Eigen::VectorXd scoreCloudsMulti(PointCloud &cloud, PointCloudVec compares){
+    Eigen::VectorXd scoreCloudsMulti(PointCloud &cloud, PointCloudVec compares, float use_centroid){
       
       std::cout<<"|---------- SeamDetection::scoreCloudsMulti() ----------|"<<std::endl;
     
@@ -862,7 +871,7 @@ class SeamDetection {
 
       //scores=centroid_diffs_norm+volume_diffs_norm+aspect_ratio_diffs_norm;
       // return the score as the sum of the normalized terms for each pair   
-      return centroid_diffs_norm+volume_diffs_norm+aspect_ratio_diffs_norm
+      return centroid_diffs_norm*use_centroid+volume_diffs_norm+aspect_ratio_diffs_norm
              +med_red_diffs_norm+med_green_diffs_norm+med_blue_diffs_norm; 
       
     }
@@ -870,7 +879,7 @@ class SeamDetection {
    
     // function to find best match between sets of clusters using multi-objective optimization
     // used to correlate sets of clusters from different algorithms 
-    PointCloudVec matchClustersMulti(PointCloudVec clusters, PointCloudVec compares, int verbosity){
+    PointCloudVec matchClustersMulti(PointCloudVec clusters, PointCloudVec compares, int verbosity, float use_centroid){
       
       std::cout<<"|---------- SeamDetection::matchClustersMulti() ----------|"<<std::endl;
        
@@ -894,7 +903,7 @@ class SeamDetection {
 
       for (int i=0; i<n; i++){  // compare each cluster in clusters to each cluster in compares 
           
-        scores=scoreCloudsMulti(*clusters[i], compares); // get the scores for clusters[i] and all compares        
+        scores=scoreCloudsMulti(*clusters[i], compares, use_centroid); // get the scores for clusters[i] and all compares        
 
   
         // find pair with min sum objective difference using median normalized differences 
@@ -935,10 +944,10 @@ class SeamDetection {
     
 
     // overloaded function to find best match between single pointcloud and set of clusters using multi-objective optimization
-    PointCloudPtr matchCloudToClustersMulti(PointCloud &cloud, PointCloudVec compares, int verbosity){
+    PointCloudPtr matchCloudToClustersMulti(PointCloud &cloud, PointCloudVec compares, int verbosity, float use_centroid){
 
       Eigen::VectorXd scores;
-      scores=scoreCloudsMulti(cloud, compares);  
+      scores=scoreCloudsMulti(cloud, compares, use_centroid);  
 
       // find pair with min sum objective difference using median normalized differences, replace with std::min for speed
       int j_min;
@@ -1238,8 +1247,11 @@ class SeamDetection {
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
     std::string package_path, training_path, test_path, output_path, training_file, test_file, output_file,
-                view1_file, view2_file, view3_file, view4_file, merged_file, training_inliers_file; 
-   
+                training_view1_file, training_view2_file, training_view3_file, training_view4_file, 
+                training_merged_file, training_inliers_file,  
+                test_view1_file, test_view2_file, test_view3_file, test_view4_file, 
+                test_merged_file, test_inliers_file; 
+
     std::vector<double> bounding_box, pre_rotation, pre_translation;
     double voxel_size;
     
@@ -1287,18 +1299,19 @@ int main(int argc, char** argv)
 
   // instantiate object utl from the CloudUtils class, see include/cloudutils.h 
   CloudUtils util;
-  /* 
-  // step0 - image reconstruction by merging different views
+ 
+  // step 0 - reconstruction 
+  // step 0.1 - training image reconstruction by merging different views
   PointCloud::Ptr cloud_view1 (new PointCloud);
   PointCloud::Ptr cloud_view2 (new PointCloud);
   PointCloud::Ptr cloud_view3 (new PointCloud);
   PointCloud::Ptr cloud_view4 (new PointCloud); 
   PointCloud::Ptr cloud_merged (new PointCloud);
  
-  util.loadCloud(*cloud_view1, sd.view1_file);
-  util.loadCloud(*cloud_view2, sd.view2_file);
-  util.loadCloud(*cloud_view3, sd.view3_file);
-  util.loadCloud(*cloud_view4, sd.view4_file);
+  util.loadCloud(*cloud_view1, sd.training_view1_file);
+  util.loadCloud(*cloud_view2, sd.training_view2_file);
+  util.loadCloud(*cloud_view3, sd.training_view3_file);
+  util.loadCloud(*cloud_view4, sd.training_view4_file);
 
   PointCloudVec cloud_views;
   cloud_views.push_back(cloud_view1);
@@ -1307,17 +1320,45 @@ int main(int argc, char** argv)
   cloud_views.push_back(cloud_view4);
 
   cloud_merged=util.mergeClusters(cloud_views);
-  util.publishCloud(*cloud_view1, "cloud_view1", "base_link");
-  util.publishCloud(*cloud_view2, "cloud_view2", "base_link");
-  util.publishCloud(*cloud_view3, "cloud_view3", "base_link");
-  util.publishCloud(*cloud_view4, "cloud_view4", "base_link");
-  util.publishCloud(*cloud_merged, "cloud_merged", "base_link");
+  util.publishCloud(*cloud_view1, "training_cloud_view1", "base_link");
+  util.publishCloud(*cloud_view2, "training_cloud_view2", "base_link");
+  util.publishCloud(*cloud_view3, "training_cloud_view3", "base_link");
+  util.publishCloud(*cloud_view4, "training_cloud_view4", "base_link");
+  util.publishCloud(*cloud_merged, "training_cloud_merged", "base_link");
 
   // save resulting merge to pcd file
-  util.saveCloud(*cloud_merged, sd.merged_file);
+  util.saveCloud(*cloud_merged, sd.training_merged_file);
+  
+  // step 0.2 - test image reconstruction by merging different views
+  //PointCloud::Ptr cloud_view1 (new PointCloud);
+  //PointCloud::Ptr cloud_view2 (new PointCloud);
+  //PointCloud::Ptr cloud_view3 (new PointCloud);
+  //PointCloud::Ptr cloud_view4 (new PointCloud); 
+  PointCloud::Ptr test_cloud_merged (new PointCloud);
+ 
+  util.loadCloud(*cloud_view1, sd.test_view1_file);
+  util.loadCloud(*cloud_view2, sd.test_view2_file);
+  util.loadCloud(*cloud_view3, sd.test_view3_file);
+  util.loadCloud(*cloud_view4, sd.test_view4_file);
+
+  PointCloudVec test_cloud_views;
+  test_cloud_views.push_back(cloud_view1);
+  test_cloud_views.push_back(cloud_view2);
+  test_cloud_views.push_back(cloud_view3);
+  test_cloud_views.push_back(cloud_view4);
+
+  test_cloud_merged=util.mergeClusters(test_cloud_views);
+  util.publishCloud(*cloud_view1, "test_cloud_view1", "base_link");
+  util.publishCloud(*cloud_view2, "test_cloud_view2", "base_link");
+  util.publishCloud(*cloud_view3, "test_cloud_view3", "base_link");
+  util.publishCloud(*cloud_view4, "test_cloud_view4", "base_link");
+  util.publishCloud(*test_cloud_merged, "test_cloud_merged", "base_link");
+
+  // save resulting merge to pcd file
+  util.saveCloud(*test_cloud_merged, sd.test_merged_file);
   
   std::cout<<"|----------- Step 0 Complete ----------|"<<std::endl;  
-  */
+  
  
   // [Steps 1-3] - use 'training' image of target object on clean table
 
@@ -1398,7 +1439,8 @@ int main(int argc, char** argv)
   // controls debug printing, 0-no print, 1-print search results, 2-print search data and search results 
   int debug_level=1;
   PointCloudVec training_matches; // this vector contains pointers to the original clusters data
-  training_matches=sd.matchClustersMulti(training_euclidean_clusters, training_color_clusters, debug_level); 
+  float centroid_wt=1;
+  training_matches=sd.matchClustersMulti(training_euclidean_clusters, training_color_clusters, debug_level, centroid_wt); 
   
   // show the matches to the clusters in rviz
   util.publishClusters(training_matches, "/training_match");
@@ -1408,11 +1450,12 @@ int main(int argc, char** argv)
   // memory allocation because the intersection cloud data will be copied to a new pointcloud
   PointCloudPtr training_intersection (new PointCloud); 
   PointCloudPtr training_union (new PointCloud); 
-
-  util.getCloudIntersection(*training_euclidean_clusters[0], *training_matches[0], *training_intersection);
+  
+  int idx=0;
+  util.getCloudIntersection(*training_euclidean_clusters[idx], *training_matches[idx], *training_intersection);
   std::cout<<"training_intersection has "<<training_intersection->size()<<" points"<<std::endl;    
 
-  util.getCloudUnion(*training_euclidean_clusters[0], *training_matches[0], *training_union);
+  util.getCloudUnion(*training_euclidean_clusters[idx], *training_matches[idx], *training_union);
   std::cout<<"training_union has "<<training_union->size()<<" points"<<std::endl;
     
   util.publishCloud(*training_intersection, "/training_intersection", "base_link"); // show in rviz
@@ -1470,7 +1513,8 @@ int main(int argc, char** argv)
   // Step 7 - correlate test euclidean clusters to test color clusters, use multi objective function 
   // this should be wrapped up in a function to clean things up
   PointCloudVec test_matches;
-  test_matches=sd.matchClustersMulti(test_euclidean_clusters, test_color_clusters, debug_level); 
+  centroid_wt=2;
+  test_matches=sd.matchClustersMulti(test_euclidean_clusters, test_color_clusters, debug_level, centroid_wt); 
   // show the matched clusters in rviz
   util.publishClusters(test_matches, "/test_match");
   
@@ -1496,8 +1540,9 @@ int main(int argc, char** argv)
   
   // Step 8 compare 'training' target from steps 1-3 to correlated 'test_intersection' clusters from steps 4-7 
   PointCloud::Ptr final_intersection, final_union;
-  final_intersection=sd.matchCloudToClustersMulti(*training_intersection, test_intersections, debug_level);  
-  final_union=sd.matchCloudToClustersMulti(*training_union, test_unions, debug_level); 
+  centroid_wt=0;
+  final_intersection=sd.matchCloudToClustersMulti(*training_intersection, test_intersections, debug_level, centroid_wt);  
+  final_union=sd.matchCloudToClustersMulti(*training_union, test_unions, debug_level, centroid_wt); 
   
   // show the matching target intersection and union
   std::cout<<"final_intersection has "<<final_intersection->size()<<" points"<<std::endl;

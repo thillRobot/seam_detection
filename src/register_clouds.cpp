@@ -322,11 +322,11 @@ int main(int argc, char** argv)
   double fscore; // fitness score (lower is better)
   double fscore_min=1000;
 
-  double alphas[1]={0}; // array of starting angles
-  int N=1;  
+  //double alphas[1]={0}; // array of starting angles
+  //int N=1;  
 
-  //double alphas[4]={0, 90, 180, 270}; // array of starting angles
-  //int N=4; // number of starting positions
+  double alphas[4]={0, 90, 180, 270}; // array of starting angles
+  int N=4; // number of starting positions
 
   // set rotation and origin of a quaternion for the tf transform object
   double al, bt, gm, dtr, intm; // alpha beta gamma for short
