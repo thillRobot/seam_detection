@@ -94,6 +94,12 @@ class CloudUtils
 
     template<typename point_t>
     void trimCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<point_t> &output, int output_size);
+ 
+    template<typename point_t>
+    void getPCABox( pcl::PointCloud<point_t> &input,
+                    Eigen::Quaternionf& rotation,
+                    Eigen::Vector3f& translation,
+                    Eigen::Vector3f& dimension);    
     
     // PUBLIC attributes
 

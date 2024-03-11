@@ -276,6 +276,9 @@ int main(int argc, char** argv)
   //tf::StampedTransform *T_01_intr_min (new tf::StampedTransform);
   //tf::StampedTransform *T_10_intr_min (new tf::StampedTransform); 
 
+  tf::StampedTransform *T_source_target (new tf::StampedTransform);
+  tf::StampedTransform *T_target_source (new tf::StampedTransform);     
+  
   static tf2_ros::StaticTransformBroadcaster static_broadcaster; // this is the new 'TF2' way to broadcast tfs
   
   geometry_msgs::TransformStamped *T_01_msg (new geometry_msgs::TransformStamped);      // frames with parent frame base_link
@@ -294,11 +297,16 @@ int main(int argc, char** argv)
   geometry_msgs::TransformStamped *T_10_intr_msg (new geometry_msgs::TransformStamped);
   T_10_intr_msg->header.frame_id = "base_link"; T_10_intr_msg->child_frame_id = "T_10_intr";
 
-   geometry_msgs::TransformStamped *T_01_intr_min_msg (new geometry_msgs::TransformStamped);  
+  geometry_msgs::TransformStamped *T_01_intr_min_msg (new geometry_msgs::TransformStamped);  
   T_01_intr_min_msg->header.frame_id = "base_link"; T_01_intr_min_msg->child_frame_id = "T_01_intr_min";
   geometry_msgs::TransformStamped *T_10_intr_min_msg (new geometry_msgs::TransformStamped);
   T_10_intr_min_msg->header.frame_id = "base_link"; T_10_intr_min_msg->child_frame_id = "T_10_intr_min";
 
+  geometry_msgs::TransformStamped *T_source_target_msg (new geometry_msgs::TransformStamped);
+  T_source_target_msg->header.frame_id = "source"; T_source_target_msg->child_frame_id = "target";
+
+  geometry_msgs::TransformStamped *T_target_source_msg (new geometry_msgs::TransformStamped);
+  T_target_source_msg->header.frame_id = "source"; T_target_source_msg->child_frame_id = "target";
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: processing pointcloud data     "<<endl;
@@ -315,6 +323,70 @@ int main(int argc, char** argv)
   filter.smoothCloud(*target_cloud, *target_cloud); 
   filter.smoothCloud(*source_cloud, *source_cloud);
 
+  // hardcode ground truth points for each dataset, replace hardcoded points with ref from centroid
+  int ksize=6;
+  Eigen::MatrixXf known_poses(ksize,4);
+  Eigen::MatrixXf known_poses_in(ksize,4);
+  Eigen::MatrixXf known_points(ksize,3);   
+  //Eigen::MatrixXf known_posesB(3,4);
+  
+  float mmtoin=1/25.4;
+  float degtorad=M_PI/180.0;
+
+  // recorded by SC on table
+  known_poses_in << 0.5, -19.5, 2.0, 0.0,       // x3_y9_theta0
+                    6.5, -21.0, 2.0,  45.0,     // x7_y5_theta45 
+                    -2*cos(45*degtorad) ,-28-2*cos(45*degtorad), 2.0,   45.5,   // x3_y11_theta135 
+                    -10.0, -30.0,  2.0,  45.0,  // x4_y5_theta45
+                    -2.0, -36.0, 2.0,  90.0,    // x9_y2_theta90   
+                    -3.0, -24.0, 2.0, 30.0;     // x8_y6_theta30
+   
+  // recorded by TH in rviz
+  known_poses <<  20.0, -540.0, 50.8, 0.0,      // x3_y9_theta0
+                  165.0, -530.0, 50.8, 45.0,    // x7_y5_theta45
+                  -20.0, -740.0, 50.8, 135.9,   // x3_y11_theta135
+                  -235.0,-765.0, 50.8, 45.0,    // x4_y5_theta45   
+                  -30.0, -900.0, 50.8,  90.0,    // x9_y2_theta90
+                  -40.0, -610.0, 50.8,  30.0;   // x8_y6_theta30
+
+  //known_posesB << 125.0, -500.0, 50.8,  0.0,  // x4_y9_theta0  // this set recorded in prev session
+  //                65.0, -300.0, 50.8,  90.0,  // x9_y7_theta90   
+  //                85.0, -775.0, 50.8,  45.0,  // x5_y10_theta45
+
+  known_points << known_poses.col(0), known_poses.col(1), known_poses.col(2);
+                  
+  std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
+  for (int k=0; k<ksize; k++){
+    std::cout << k <<", "<< known_poses(k,0) << ", " 
+                         << known_poses(k,1) << ", " 
+                         << known_poses(k,2) << ", " 
+                         << known_poses(k,3) << std::endl;
+  }
+
+  std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
+  for (int k=0; k<ksize; k++){
+    std::cout << k <<", "<< known_poses_in(k,0)/mmtoin << ", " 
+                         << known_poses_in(k,1)/mmtoin << ", " 
+                         << known_poses_in(k,2)/mmtoin << ", " 
+                         << known_poses_in(k,3) << std::endl;
+  }
+  
+  std::cout <<"known poses (idx,in,in,in,deg): "<<std::endl;
+  for (int k=0; k<ksize; k++){
+    std::cout << k <<", "<< known_poses(k,0)*mmtoin << ", " 
+                         << known_poses(k,1)*mmtoin << ", " 
+                         << known_poses(k,2)*mmtoin << ", " 
+                         << known_poses(k,3) << std::endl;
+  }
+  
+  std::cout <<"known poses (idx,in,in,in,deg): "<<std::endl;
+  for (int k=0; k<ksize; k++){
+    std::cout << k <<", "<< known_poses_in(k,0) << ", " 
+                         << known_poses_in(k,1) << ", " 
+                         << known_poses_in(k,2) << ", " 
+                         << known_poses_in(k,3) << std::endl;
+  }
+  
   int N_cor=100;
   EigenCor cor_src_pts, cor_tgt_pts;
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
@@ -353,8 +425,8 @@ int main(int argc, char** argv)
     T_intr->setRotation(q_intr);
     T_intr->setOrigin(tf::Vector3(0, 0, 0)); // no translation component of the transformation (is 0,0,0 default?)
                                              // need to normalize quaternion here?
-
-    T_intr_inv->setData(T_intr->inverse()); // get the inverse intermediate transformation, use setData() to copy from pointer to pointer
+    // get the inverse intermediate transformation, use setData() to copy from pointer to pointer
+    T_intr_inv->setData(T_intr->inverse()); 
 
     // transform source cloud to ith intermediate starting position 
     pcl_ros::transformPointCloud(*source_cloud, *source_cloud_intr, *T_intr);
@@ -398,7 +470,7 @@ int main(int argc, char** argv)
 
       // align the source cloud using the resulting transformation only if fscore has improved
       pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_cloud_T01, *T_01_intr);
-      pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_cloud_T10, *T_10_intr); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+      pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_cloud_T10, *T_10_intr); 
       pcl_ros::transformPointCloud(*source_cloud, *source_cloud_intr_min, *T_intr);
 
       // align weld seam points using transformation
@@ -416,7 +488,7 @@ int main(int argc, char** argv)
       //tf::Vector3 P1_target_inches(0, 2, 4.5-6);
       //tf::Vector3 P2_target_inches(12.5, 2, 4.5-6);
 
-      // points for shape2
+      // points for shape2 (i think shape2 and shape2 names are now swapped)
       tf::Vector3 P0_target_inches(0, 0, 0-9);   // weld points in inches
       tf::Vector3 P1_target_inches(0, 0, 2-9);
       tf::Vector3 P2_target_inches(14, 0, 2-9);
@@ -461,6 +533,7 @@ int main(int argc, char** argv)
       // update the messages to be published after updating transforms upon finding minimum
       //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
       tf::transformStampedTFToMsg(*T_intr_inv, *T_intr_min_msg);
+      
       tf::transformStampedTFToMsg(*T_01_intr, *T_01_intr_min_msg);
       tf::transformStampedTFToMsg(*T_10_intr, *T_10_intr_min_msg);
 
@@ -472,14 +545,6 @@ int main(int argc, char** argv)
       std::cout << "Score not improved from starting position "<< i << ", skipping" << std::endl;
     }
   }
-
-  // update the messages to be published after updating transforms
-  //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
-  //tf::transformStampedTFToMsg(*T_intr_min, *T_intr_min_msg);
-  //tf::transformStampedTFToMsg(*T_01_intr_min, *T_01_intr_min_msg);
-  //tf::transformStampedTFToMsg(*T_10_intr_min, *T_10_intr_min_msg);
-  //tf::transformStampedTFToMsg(*T_01_intr, *T_01_intr_msg);
-  //tf::transformStampedTFToMsg(*T_10_intr, *T_10_intr_msg);
 
   std::cout << "Cloud aligned from starting position "<< i_min << " using best registration results" << std::endl;
    
@@ -499,8 +564,6 @@ int main(int argc, char** argv)
 
   T_01_intr_min_msg->header.frame_id = "base_link"; T_01_intr_min_msg->child_frame_id = "T_01_intr_min";
   T_10_intr_min_msg->header.frame_id = "base_link"; T_10_intr_min_msg->child_frame_id = "T_10_intr_min";
-
-
   
   // save aligned cloud in PCD file (alignment still needs some work, revisit next!)
   if(save_aligned){
