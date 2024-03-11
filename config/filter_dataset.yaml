@@ -1,4 +1,5 @@
 ---
+
 input_bag: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_cpos4_.bag"
 output_bag_dir: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_cpos4_"
 

@@ -1300,8 +1300,11 @@ int main(int argc, char** argv)
   // instantiate object utl from the CloudUtils class, see include/cloudutils.h 
   CloudUtils util;
  
-  // step 0 - reconstruction 
-  // step 0.1 - training image reconstruction by merging different views
+  // step 0 - reconstruction reconstruction by merging different views
+  // step 0.1 - training image
+  
+  // step0 - image reconstruction by merging different views
+
   PointCloud::Ptr cloud_view1 (new PointCloud);
   PointCloud::Ptr cloud_view2 (new PointCloud);
   PointCloud::Ptr cloud_view3 (new PointCloud);

@@ -253,14 +253,14 @@ target_link_libraries(filter_dataset cloudfilter cloudutils ${catkin_LIBRARIES} 
   Eigen3::Eigen  
 )
 
-# seam_detection
-add_executable(seam_detection src/seam_detection.cpp)
-target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
-  Eigen3::Eigen 
-  teaserpp::teaser_registration 
-  teaserpp::teaser_io
-  teaserpp::teaser_features
-)
+## seam_detection
+#add_executable(seam_detection src/seam_detection.cpp)
+#target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
+#  Eigen3::Eigen 
+#  teaserpp::teaser_registration 
+#  teaserpp::teaser_io
+#  teaserpp::teaser_features
+#)
 
 # register_clouds - Registration Algorithm Testing Node(s) 
 add_executable(register_clouds src/register_clouds.cpp)
@@ -327,8 +327,8 @@ target_link_libraries(filter_cloud_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # realsense_tf
-add_executable(realsense_tf src/realsense_tf.cpp)
-target_link_libraries(realsense_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#add_executable(realsense_tf src/realsense_tf.cpp)
+#target_link_libraries(realsense_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # reconfigure_server
 add_executable(reconfigure_server src/reconfigure_server.cpp)
@@ -349,8 +349,8 @@ target_link_libraries(reconfigure_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 #target_link_libraries(realsense_playback_tf2 ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # save_rgbcloud
-add_executable(save_rgbcloud src/save_rgbcloud.cpp)
-target_link_libraries(save_rgbcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#add_executable(save_rgbcloud src/save_rgbcloud.cpp)
+#target_link_libraries(save_rgbcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 ###########################################################
 ## Aubo Robot system interface nodes                     ## 
