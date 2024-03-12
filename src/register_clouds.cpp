@@ -148,7 +148,9 @@ int main(int argc, char** argv)
   node.getParam("use_teaser", use_teaser);
   node.getParam("use_teaser_fpfh", use_teaser_fpfh);
   node.getParam("save_aligned", save_aligned);
-
+  
+  int tgt_idx;
+  node.getParam("register_clouds/tgt_idx",tgt_idx);
   // parameters that contain strings  
   std::string source_cloud_path, target_cloud_path, aligned_cloud_path, 
               source_cloud_file, target_cloud_file, aligned_cloud_file;
@@ -497,47 +499,37 @@ int main(int argc, char** argv)
    
 
   // hardcode ground truth points for each dataset, replace hardcoded points with ref from centroid
-  int ksize=6;
-  Eigen::MatrixXf known_poses(ksize,4);
+  int ksize=9;
   Eigen::MatrixXf known_poses_in(ksize,4);
-  Eigen::MatrixXf known_points(ksize,3);   
-  Eigen::MatrixXf known_points_in(ksize,3);   
-  //Eigen::MatrixXf known_posesB(3,4);
-  
+  Eigen::MatrixXf known_poses_mm(ksize,4);
+
+  float mmtom=1/1000;
   float mmtoin=1/25.4;
   float degtorad=M_PI/180.0;
   float intom=0.0254;
 
   // recorded by SC on table
-  known_poses_in << 0.5, -19.5, 2.0, 0.0,       // x3_y9_theta0
-                    6.5, -21.0, 2.0,  45.0,     // x7_y5_theta45 
-                    -2*cos(45*degtorad) ,-28-2*cos(45*degtorad), 2.0,   45.5,   // x3_y11_theta135 
-                    -10.0, -30.0,  2.0,  45.0,  // x4_y5_theta45
-                    -2.0, -36.0, 2.0,  90.0,    // x9_y2_theta90   
-                    -3.0, -24.0, 2.0, 30.0;     // x8_y6_theta30
+  known_poses_in << 0.5, -19.5, 2.0, 0.0,         // x3_y9_theta0
+                    6.5, -21.0, 2.0,  45.0,       // x7_y5_theta45 
+                    -0.787402, -29.1339, 2, 135.0, // x3_y11_theta135 
+                    -10.0, -30.0,  2.0,  45.0,    // x4_y5_theta45
+                    -2.0+0.5, -36.0+0.25, 2.0,  90.0,      // x9_y2_theta90   
+                    -3.0, -24.0, 2.0, 30.0,       // x8_y6_theta30
+                     4.92126, -19.685, 2, 0,      // x4_y9_theta0  // this set recorded in prev session    
+                     2.55906, -11.811, 2, 90,     // x9_y7_theta90  
+                     3.34646, -30.5118, 2, 45;    // x5_y10_theta4
    
-  // recorded by TH in rviz
-  known_poses <<  20.0, -540.0, 50.8, 0.0,      // x3_y9_theta0
-                  165.0, -530.0, 50.8, 45.0,    // x7_y5_theta45
-                  -20.0, -740.0, 50.8, 135.9,   // x3_y11_theta135
-                  -235.0,-765.0, 50.8, 45.0,    // x4_y5_theta45   
-                  -30.0, -900.0, 50.8,  90.0,    // x9_y2_theta90
-                  -40.0, -610.0, 50.8,  30.0;   // x8_y6_theta30
+   // recorded by TH in rviz
+   known_poses_mm <<  20.0, -540.0, 50.8, 0.0,      // x3_y9_theta0
+                    165.0, -530.0, 50.8, 45.0,    // x7_y5_theta45
+                    -20.0, -740.0, 50.8, 135.0,   // x3_y11_theta135
+                    -235.0,-765.0, 50.8, 45.0,    // x4_y5_theta45   
+                   -30.0, -900.0, 50.8,  90.0,    // x9_y2_theta90
+                    -40.0, -610.0, 50.8,  30.0,   // x8_y6_theta30
+                    125.0, -500.0, 50.8,  0.0,   // x4_y9_theta0  // this set recorded in prev session
+                    65.0, -300.0, 50.8,  90.0,  // x9_y7_theta90   
+                    85.0, -775.0, 50.8,  45.0;  // x5_y10_theta45
 
-  //known_posesB << 125.0, -500.0, 50.8,  0.0,  // x4_y9_theta0  // this set recorded in prev session
-  //                65.0, -300.0, 50.8,  90.0,  // x9_y7_theta90   
-  //                85.0, -775.0, 50.8,  45.0,  // x5_y10_theta45
-
-  known_points << known_poses.col(0), known_poses.col(1), known_poses.col(2);
-  known_points_in << known_poses_in.col(0), known_poses_in.col(1), known_poses_in.col(2);
-                  
-  std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
-  for (int k=0; k<ksize; k++){
-    std::cout << k <<", "<< known_poses(k,0) << ", " 
-                         << known_poses(k,1) << ", " 
-                         << known_poses(k,2) << ", " 
-                         << known_poses(k,3) << std::endl;
-  }
 
   std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
   for (int k=0; k<ksize; k++){
@@ -549,20 +541,13 @@ int main(int argc, char** argv)
   
   std::cout <<"known poses (idx,in,in,in,deg): "<<std::endl;
   for (int k=0; k<ksize; k++){
-    std::cout << k <<", "<< known_poses(k,0)*mmtoin << ", " 
-                         << known_poses(k,1)*mmtoin << ", " 
-                         << known_poses(k,2)*mmtoin << ", " 
-                         << known_poses(k,3) << std::endl;
+    std::cout << k <<", "<< known_poses_mm(k,0)*mmtoin << ", " 
+                         << known_poses_mm(k,1)*mmtoin << ", " 
+                         << known_poses_mm(k,2)*mmtoin << ", " 
+                         << known_poses_mm(k,3) << std::endl;
   }
   
-  std::cout <<"known poses (idx,in,in,in,deg): "<<std::endl;
-  for (int k=0; k<ksize; k++){
-    std::cout << k <<", "<< known_poses_in(k,0) << ", " 
-                         << known_poses_in(k,1) << ", " 
-                         << known_poses_in(k,2) << ", " 
-                         << known_poses_in(k,3) << std::endl;
-  }
-
+   
   // create a transform to a point in the list
   //tf::Vector3 source_p0, target_p0;
    
@@ -572,15 +557,18 @@ int main(int argc, char** argv)
   tf::StampedTransform T_target_base;
   tf::StampedTransform T_source_base;
   tf::StampedTransform T_source_target;
-  tf::StampedTransform T_false_target;
  
   // create a transform to a point in the list
   tf::Vector3 source_p0, target_p0, source_target_p0, false_target_p0;
   
-  int tgt_idx=0; 
+  // index set in config file
   target_p0[0]=known_poses_in(tgt_idx,0)*intom; 
   target_p0[1]=known_poses_in(tgt_idx,1)*intom; 
   target_p0[2]=known_poses_in(tgt_idx,2)*intom; 
+  
+  //target_p0[0]=known_poses_mm(tgt_idx,0)*mmtom; 
+  //target_p0[1]=known_poses_mm(tgt_idx,1)*mmtom; 
+  //target_p0[2]=known_poses_mm(tgt_idx,2)*mmtom; 
   
   T_target_base.setOrigin(target_p0);  
 

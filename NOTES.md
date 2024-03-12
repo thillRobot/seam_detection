@@ -121,3 +121,68 @@
   - `part1_x8_y6_theta30_part2_clamp_glove`
 
 
+##### Datasets to use in IDETC2024
+###### set1
+training1:
+target: (idx=0)
+ `bags/reconstruction/part1_x3_y9_theta0_5_output.pcd`
+
+test1:
+source:
+ `bags/reconstruction/part1_x7_y5_theta45_5_output.pcd`
+
+test2:
+source:
+ `bags/reconstruction/part1_x4_y5_theta45_5_output.pcd`
+
+test3:
+source
+ `bags/reconstruction/part1_x3_y11_theta135_5_output.pcd`
+
+test4:
+source
+ `bags/reconstruction/part1_x4_y9_theta0_5_output.pcd`
+
+test5:
+source
+ `bags/reconstruction/part1_x8_y6_theta30_5_output.pcd`
+
+test6:
+source
+ `bags/reconstruction/part1_x5_y10_theta45_5_output.pcd`
+
+
+###### set2
+training2:
+target: (idx=4)
+ `bags/reconstruction/part1_x9_y2_theta90_5_output.pcd`
+
+test1:
+source:
+ `bags/reconstruction/part1_x7_y5_theta45_5_output.pcd`
+
+test2:
+source:
+ `bags/reconstruction/part1_x4_y5_theta45_5_output.pcd`
+
+test3:
+source
+ `bags/reconstruction/part1_x3_y11_theta135_5_output.pcd`
+
+test4: (this test fails by 180)
+source
+ `bags/reconstruction/part1_x4_y9_theta0_5_output.pcd`
+
+test5: (this test fails by 180)
+source
+ `bags/reconstruction/part1_x8_y6_theta30_5_output.pcd`
+
+test6: 
+source
+ `bags/reconstruction/part1_x5_y10_theta45_5_output.pcd`
+
+
+
+
+
+
