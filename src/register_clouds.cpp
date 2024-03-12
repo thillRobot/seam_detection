@@ -86,9 +86,11 @@ bool registration_complete=0;
 
 
 // function calculates a difference detween the measured and expected transformation and prints the info to the console
-void analyze_results(tf::Transform &tf_measured, tf::Transform &tf_expected,  tf::Vector3 P_target, tf::Vector3 P_source, tf::Vector3 P_expected_source)
+void analyze_results(tf::Transform &tf_measured, tf::Transform &tf_expected,  tf::Vector3 P_target, tf::Vector3 P_source, tf::Vector3 P_expected_source, int tgt_idx, int src_idx)
 {
   
+  std::cout<<"|---------- target: "<<tgt_idx+1<<", source: "<<src_idx<<" ----------|"<<std::endl;
+
   std::cout<<"Measured Rotation Matrix:"<<std::endl;  
   std::cout<<"["<<tf_measured.getBasis()[0][0]<<","<<tf_measured.getBasis()[0][1]<<","<<tf_measured.getBasis()[0][2]<<","<<std::endl;
   std::cout     <<tf_measured.getBasis()[1][0]<<","<<tf_measured.getBasis()[1][1]<<","<<tf_measured.getBasis()[1][2]<<","<<std::endl;
@@ -553,13 +555,13 @@ int main(int argc, char** argv)
   // recorded by SC on table
   known_poses_in << 0.5, -19.5-2.0, 2.0, 0.0,         // x3_y9_theta0// first (adjusted -2.0 in y)
                     6.5, -21.0, 2.0, 45.0,       // x7_y5_theta45 //second
-                    -0.787402, -29.1339, 2, 45.0, // x3_y11_theta135 
-                    -10.0, -30.0,  2.0,  -45.0,    // x4_y5_theta45
+                    -0.787402, -29.1339, 2,-45.0, // x3_y11_theta135 
+                    -10.0, -30.0,  2.0,  -135.0,    // x4_y5_theta45
                     -2.0+0.5, -36.0+0.25, 2.0,  90.0,      // x9_y2_theta90   
-                    -3.0, -24.0, 2.0, 30.0,       // x8_y6_theta30
-                     4.92126, -19.685, 2, 0,      // x4_y9_theta0  // this set recorded in prev session    
+                    -3.0, -24.0, 2.0, 150.0,       // x8_y6_theta30
+                     5.0, -21.5, 2, 0,      // x4_y9_theta0  // this set recorded in prev session    
                      2.55906, -11.811, 2, 90,     // x9_y7_theta90  
-                     3.34646, -30.5118, 2, 45;    // x5_y10_theta4
+                     2.0, -30.5118, 2, -45;    // x5_y10_theta4
    
    // recorded by TH in rviz
    known_poses_mm <<  20.0, -540.0, 50.8, 0.0,      // x3_y9_theta0
@@ -632,7 +634,7 @@ int main(int argc, char** argv)
   expected_source_p0[2]=known_poses_in(src_idx,2)*intom; 
   
   expected_p0=expected_source_p0-target_p0;
-  expected_q0.setRPY(0.0, 0.0, known_poses_in(src_idx,3)*degtorad);  
+  expected_q0.setRPY(0.0, 0.0, (known_poses_in(tgt_idx,3)+known_poses_in(src_idx,3))*degtorad);  
   //expected_q0.setRPY(0.0, 0.0, 45.0*degtorad);  
   T_expected.setRotation(expected_q0);
   T_expected.setOrigin(expected_p0); 
@@ -676,7 +678,7 @@ int main(int argc, char** argv)
   std::cout<<"                    register_clouds: analyzing results              "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
-  analyze_results(*T_src_tgt, T_expected, target_p0, source_p0, expected_source_p0);
+  analyze_results(*T_src_tgt, T_expected, target_p0, source_p0, expected_source_p0, tgt_idx, src_idx);
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: preparing visualization        "<<endl;
