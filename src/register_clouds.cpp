@@ -264,6 +264,8 @@ int main(int argc, char** argv)
   // 2) '<name>_tf2' (tf2::transform) // not used
   // 3) '<name>_msg' (geometry_msgs)  // needed for bradcasting frames
 
+  tf::Transform *T_src_tgt (new tf::Transform);  
+
   tf::StampedTransform *T_01 (new tf::StampedTransform);    // these are from the old 'TF'
   tf::StampedTransform *T_10 (new tf::StampedTransform);    // they are stil used for pcl_ros::transformPointCloud
   tf::StampedTransform *T_01_min (new tf::StampedTransform);    
@@ -276,10 +278,6 @@ int main(int argc, char** argv)
   //tf::StampedTransform *T_01_intr_min (new tf::StampedTransform);
   //tf::StampedTransform *T_10_intr_min (new tf::StampedTransform); 
 
-  tf::StampedTransform *T_target_base (new tf::StampedTransform);
-  tf::StampedTransform *T_source_target (new tf::StampedTransform);
-  tf::StampedTransform *T_target_source (new tf::StampedTransform);     
-  
   static tf2_ros::StaticTransformBroadcaster static_broadcaster; // this is the new 'TF2' way to broadcast tfs
   
   geometry_msgs::TransformStamped *T_01_msg (new geometry_msgs::TransformStamped);      // frames with parent frame base_link
@@ -305,6 +303,9 @@ int main(int argc, char** argv)
 
   geometry_msgs::TransformStamped *T_target_base_msg (new geometry_msgs::TransformStamped);
   T_target_base_msg->header.frame_id = "base_link"; T_target_base_msg->child_frame_id = "target";
+  
+  geometry_msgs::TransformStamped *T_source_base_msg (new geometry_msgs::TransformStamped);
+  T_source_base_msg->header.frame_id = "base_link"; T_source_base_msg->child_frame_id = "source";
   
   geometry_msgs::TransformStamped *T_source_target_msg (new geometry_msgs::TransformStamped);
   T_source_target_msg->header.frame_id = "target"; T_source_target_msg->child_frame_id = "source";
@@ -394,40 +395,13 @@ int main(int argc, char** argv)
                          << known_poses_in(k,3) << std::endl;
   }
 
-  //geometry_msgs::Transform T_source_target, T_target_source;
-  //geometry_msgs::TransformStamped tf_source_target, tf_target_source;
- 
-  //tf_source_target, tf_target_source;
-
   // create a transform to a point in the list
   tf::Vector3 source_p0, target_p0;
-  
+   
   target_p0[0]=known_poses_in(0,0)*intom; 
   target_p0[1]=known_poses_in(0,1)*intom; 
   target_p0[2]=known_poses_in(0,2)*intom; 
- 
-  source_p0[0]=known_poses_in(0,0)*intom; 
-  source_p0[1]=known_poses_in(0,1)*intom; 
-  source_p0[2]=known_poses_in(0,2)*intom; 
-
-  //T_source_target.translation(source_p0);
-  T_target_base->setOrigin(target_p0);  
-  T_source_target->setOrigin(source_p0);  
   
-  tf::Quaternion target_q0, source_q0;
-  target_q0.setRPY(0.0, 0.0, 0.0);
-  source_q0.setRPY(0.0, 0.0, 0.0);
-  
-  T_target_base->setRotation(target_q0);
-  T_source_target->setRotation(source_q0);
-
-  tf::transformStampedTFToMsg(*T_target_base, *T_target_base_msg);
-  tf::transformStampedTFToMsg(*T_source_target, *T_source_target_msg);
-
-  //T_source_target->frame_id="source";
-  //T_source_target->child_frame_id="target";
-  
- 
   int N_cor=100;
   EigenCor cor_src_pts, cor_tgt_pts;
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
@@ -435,11 +409,11 @@ int main(int argc, char** argv)
   double fscore; // fitness score (lower is better)
   double fscore_min=1000;
 
-  //double alphas[1]={0}; // array of starting angles
-  //int N=1;  
+  double alphas[1]={0}; // array of starting angles
+  int N=1;  
 
-  double alphas[4]={0, 90, 180, 270}; // array of starting angles
-  int N=4; // number of starting positions
+  //double alphas[4]={0, 90, 180, 270}; // array of starting angles
+  //int N=4; // number of starting positions
 
   // set rotation and origin of a quaternion for the tf transform object
   double al, bt, gm, dtr, intm; // alpha beta gamma for short
@@ -472,6 +446,7 @@ int main(int argc, char** argv)
     // transform source cloud to ith intermediate starting position 
     pcl_ros::transformPointCloud(*source_cloud, *source_cloud_intr, *T_intr);
 
+   
     CloudRegistration reg;
     // perform registration starting from intermediate starting position
     
@@ -538,6 +513,8 @@ int main(int argc, char** argv)
       P1_target=P1_target_inches*intm;
       P2_target=P2_target_inches*intm;
 
+      *T_src_tgt=T_intr->inverse()*T_01_intr_tmp; // record the total transformation including the intermediate step
+      
       P0_source=T_intr_tmp.inverse()*T_01_intr_tmp*P0_target;
       P1_source=T_intr_tmp.inverse()*T_01_intr_tmp*P1_target;
       P2_source=T_intr_tmp.inverse()*T_01_intr_tmp*P2_target;
@@ -589,6 +566,40 @@ int main(int argc, char** argv)
 
   std::cout << "Cloud aligned from starting position "<< i_min << " using best registration results" << std::endl;
    
+  tf::StampedTransform T_target_base;
+  tf::StampedTransform T_source_base;
+  //tf::StampedTransform *T_source_target (new tf::StampedTransform);
+  //tf::StampedTransform T_source_base (*T_src_tgt, ros::Time::now() ,"target","source"); 
+  
+  //T_source_target = T_src_tgt;
+  //tf::StampedTransform *T_target_source (new tf::StampedTransform);     
+  
+  //geometry_msgs::Transform T_source_target, T_target_source;
+  //geometry_msgs::TransformStamped tf_source_target, tf_target_source;
+ 
+  //tf_source_target, tf_target_source;
+
+  // create a transform to a point in the list
+  //tf::Vector3 source_p0, target_p0;
+ 
+
+  T_target_base.setOrigin(target_p0);  
+
+  tf::Quaternion target_q0, source_q0;
+  target_q0.setRPY(0.0, 0.0, 0.0);  
+  T_target_base.setRotation(target_q0);
+  
+  source_p0=*T_src_tgt*target_p0;
+  
+  T_source_base.setOrigin(source_p0);  
+  T_source_base.setRotation(T_src_tgt->getRotation());
+
+  tf::transformStampedTFToMsg(T_target_base, *T_target_base_msg);
+  tf::transformStampedTFToMsg(T_source_base, *T_source_base_msg);
+
+  //T_source_target->frame_id="source";
+  //T_source_target->child_frame_id="target";
+    
   // set relative frame references (this seems like it is repeated, check on this)
   
   T_01_msg->header.frame_id = "T_intr_min"; T_01_msg->child_frame_id = "T_01"; // frames with parent frame base_link
@@ -606,8 +617,9 @@ int main(int argc, char** argv)
   T_01_intr_min_msg->header.frame_id = "base_link"; T_01_intr_min_msg->child_frame_id = "T_01_intr_min";
   T_10_intr_min_msg->header.frame_id = "base_link"; T_10_intr_min_msg->child_frame_id = "T_10_intr_min";
   
+  T_source_base_msg->header.frame_id = "base_link"; T_source_base_msg->child_frame_id = "source"; 
   T_target_base_msg->header.frame_id = "base_link"; T_target_base_msg->child_frame_id = "target"; 
-  T_source_target_msg->header.frame_id = "target"; T_source_target_msg->child_frame_id = "source";
+  //T_source_target_msg->header.frame_id = "target"; T_source_target_msg->child_frame_id = "source";
 
   // save aligned cloud in PCD file (alignment still needs some work, revisit next!)
   if(save_aligned){
@@ -721,7 +733,7 @@ int main(int argc, char** argv)
       T_10_intr_min_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_intr_min_msg);
       
       T_target_base_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_target_base_msg);
-      T_source_target_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_source_target_msg);
+      T_source_base_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_source_base_msg);
 
       source_pub.publish(source_cloud);
       source_intr_min_pub.publish(source_cloud_intr_min);
