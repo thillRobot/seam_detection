@@ -272,7 +272,7 @@ Visualization Manager:
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: false
+      Show Names: true
       Tree:
         world:
           map:
@@ -343,7 +343,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.5222883820533752
+      Distance: 0.5682373642921448
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -351,17 +351,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.05931301414966583
-        Y: -0.7023221254348755
-        Z: -0.00410880520939827
+        X: -0.24449802935123444
+        Y: -0.5544475317001343
+        Z: 0.014754856936633587
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5647974014282227
+      Pitch: 0.6247968077659607
       Target Frame: <Fixed Frame>
-      Yaw: 4.038147926330566
+      Yaw: 4.413149833679199
     Saved: ~
 Window Geometry:
   Displays:

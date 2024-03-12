@@ -86,39 +86,76 @@ bool registration_complete=0;
 
 
 // function calculates a difference detween the measured and expected transformation and prints the info to the console
-void analyze_results(tf::Transform &tf_in, tf::Vector3 P_target, tf::Vector3 P_source)
+void analyze_results(tf::Transform &tf_measured, tf::Transform &tf_expected,  tf::Vector3 P_target, tf::Vector3 P_source, tf::Vector3 P_expected_source)
 {
   
   std::cout<<"Measured Rotation Matrix:"<<std::endl;  
-  std::cout<<"["<<tf_in.getBasis()[0][0]<<","<<tf_in.getBasis()[0][1]<<","<<tf_in.getBasis()[0][2]<<","<<std::endl;
-  std::cout     <<tf_in.getBasis()[1][0]<<","<<tf_in.getBasis()[1][1]<<","<<tf_in.getBasis()[1][2]<<","<<std::endl;
-  std::cout     <<tf_in.getBasis()[2][0]<<","<<tf_in.getBasis()[2][1]<<","<<tf_in.getBasis()[2][2]<<"]"<<std::endl;
+  std::cout<<"["<<tf_measured.getBasis()[0][0]<<","<<tf_measured.getBasis()[0][1]<<","<<tf_measured.getBasis()[0][2]<<","<<std::endl;
+  std::cout     <<tf_measured.getBasis()[1][0]<<","<<tf_measured.getBasis()[1][1]<<","<<tf_measured.getBasis()[1][2]<<","<<std::endl;
+  std::cout     <<tf_measured.getBasis()[2][0]<<","<<tf_measured.getBasis()[2][1]<<","<<tf_measured.getBasis()[2][2]<<"]"<<std::endl;
 
-  std::cout<<"Measured Translation: ["<<tf_in.getOrigin().getX()<<","
-                                      <<tf_in.getOrigin().getY()<<","
-                                      <<tf_in.getOrigin().getZ()<<"]"<<std::endl;
+  //std::cout<<"Measured Translation: ["<<tf_in.getOrigin().getX()<<","
+  //                                    <<tf_in.getOrigin().getY()<<","
+  //                                    <<tf_in.getOrigin().getZ()<<"]"<<std::endl<<std::endl;
+ 
+  std::cout<<"Expected Rotation Matrix:"<<std::endl;
+  std::cout<<"["<<tf_expected.getBasis()[0][0]<<","<<tf_expected.getBasis()[0][1]<<","<<tf_expected.getBasis()[0][2]<<","<<std::endl;
+  std::cout     <<tf_expected.getBasis()[1][0]<<","<<tf_expected.getBasis()[1][1]<<","<<tf_expected.getBasis()[1][2]<<","<<std::endl;
+  std::cout     <<tf_expected.getBasis()[2][0]<<","<<tf_expected.getBasis()[2][1]<<","<<tf_expected.getBasis()[2][2]<<"]"<<std::endl;
+
+  //std::cout<<"Expected Translation: ["<<tf_expected.getOrigin().getX()<<","
+  //                                  <<tf_expected.getOrigin().getY()<<","
+  //                                  <<tf_expected.getOrigin().getZ()<<"]"<<std::endl;
+
+  tf::Matrix3x3 R_measured(tf_measured.getRotation());
+  double measured_roll, measured_pitch, measured_yaw;
+  R_measured.getRPY(measured_roll, measured_pitch, measured_yaw);
+  
+  tf::Matrix3x3 R_expected(tf_expected.getRotation());
+  double expected_roll, expected_pitch, expected_yaw;
+  R_expected.getRPY(expected_roll, expected_pitch, expected_yaw);
+  
+  double diff_roll, diff_pitch, diff_yaw;
+  diff_roll=measured_roll-expected_roll; 
+  diff_yaw=measured_pitch-expected_pitch;
+  diff_pitch=measured_yaw-expected_yaw;
+
+  std::cout<<"Measured Axis Rotations: [ "<<measured_roll<<", "<<measured_pitch<<", "<<measured_yaw<<" ]"<<std::endl;
+  std::cout<<"Expected Axis Rotations: [ "<<expected_roll<<", "<<expected_pitch<<", "<<expected_yaw<<" ]"<<std::endl;
+  std::cout<<"Difference Axis Rotations: [ "<<diff_roll<<", "<<diff_pitch<<", "<<diff_yaw<<" ]"<<std::endl;
+
+  tf::Vector3 P_target_source, P_target_expected_source, P_diff;
+  P_target_source=P_target-P_source; 
+  P_target_expected_source=P_target-P_expected_source;
+  
+  P_diff=P_target_source-P_target_expected_source; 
 
   std::cout<<"P_target: ["<<P_target.x()<<","<<P_target.y()<<","<<P_target.z()<<"]"<<std::endl;
-  std::cout<<"P_source: ["<<P_source.x()<<","<<P_source.y()<<","<<P_source.z()<<"]"<<std::endl;
+  std::cout<<"P_source: ["<<P_source.x()<<","<<P_source.y()<<","<<P_source.z()<<"]"<<std::endl; 
+  std::cout<<"P_target_source: ["<<P_target_source.x()<<","<<P_target_source.y()<<","<<P_target_source.z()<<"]"<<std::endl;
+  
+  std::cout<<"P_expected_source: ["<<P_expected_source.x()<<","<<P_expected_source.y()<<","<<P_expected_source.z()<<"]"<<std::endl; 
+  std::cout<<"P_target_expected_source: ["<<P_target_source.x()<<","<<P_target_source.y()<<","<<P_target_source.z()<<"]"<<std::endl;
 
+  std::cout<<"P_diff: ["<<P_diff.x()<<","<<P_diff.y()<<","<<P_diff.z()<<"]"<<std::endl<<std::endl;
   /*
-  std::cout<<"Expected,Translation: ["<<e_results[0]<<","
-                                      <<e_results[1]<<","
-                                      <<e_results[2]<<"]"<<std::endl;
-  std::cout<<"Difference Translation: ["<<e_results[0]-tf_in.getOrigin().getX()<<","
-                                      <<e_results[1]-tf_in.getOrigin().getY()<<","
-                                      <<e_results[2]-tf_in.getOrigin().getZ()<<"]"<<std::endl;
+  std::cout<<"Expected,Translation: ["<<tf_expected[0]<<","
+                                      <<tf_expected[1]<<","
+                                      <<tf_expected[2]<<"]"<<std::endl;
+  std::cout<<"Difference Translation: ["<tf_expected[0]-tf_in.getOrigin().getX()<<","
+                                      <<tf_expected[1]-tf_in.getOrigin().getY()<<","
+                                      <<tf_expected[2]-tf_in.getOrigin().getZ()<<"]"<<std::endl;
 
   std::cout<<"Measured Rotation: [" <<tf_in.getRotation().getAxis().getX()
                                     <<","<<tf_in.getRotation().getAxis().getY()
                                     <<","<<tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
-  std::cout<<"Expected Rotation: [" <<e_results[3]<<","
-                                    <<e_results[4]<<","
-                                    <<e_results[5]<<"]"<<std::endl;
-  std::cout<<"Difference Rotation: [" <<e_results[3]-tf_in.getRotation().getAxis().getX()
-                                    <<","<<e_results[4]-tf_in.getRotation().getAxis().getY()
-                                    <<","<<e_results[5]-tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
-  */
+  std::cout<<"Expected Rotation: [" <<tf_expected[3]<<","
+                                    <<tf_expected[4]<<","
+                                    <<tf_expected[5]<<"]"<<std::endl;
+  std::cout<<"Difference Rotation: [" <<tf_expected[3]-tf_in.getRotation().getAxis().getX()
+                                    <<","<<tf_expected[4]-tf_in.getRotation().getAxis().getY()
+                                    <<","<<tf_expected[5]-tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
+*/  
 
 }
 
@@ -153,8 +190,9 @@ int main(int argc, char** argv)
   node.getParam("use_teaser_fpfh", use_teaser_fpfh);
   node.getParam("save_aligned", save_aligned);
   
-  int tgt_idx;
-  node.getParam("register_clouds/tgt_idx",tgt_idx);
+  int tgt_idx, src_idx;
+  node.getParam("register_clouds/tgt_idx", tgt_idx);
+  node.getParam("register_clouds/src_idx", src_idx);
   // parameters that contain strings  
   std::string source_cloud_path, target_cloud_path, aligned_cloud_path, 
               source_cloud_file, target_cloud_file, aligned_cloud_file;
@@ -501,7 +539,7 @@ int main(int argc, char** argv)
 
   std::cout << "Cloud aligned from starting position "<< i_min << " using best registration results" << std::endl;
    
-
+  
   // hardcode ground truth points for each dataset, replace hardcoded points with ref from centroid
   int ksize=9;
   Eigen::MatrixXf known_poses_in(ksize,4);
@@ -513,10 +551,10 @@ int main(int argc, char** argv)
   float intom=0.0254;
 
   // recorded by SC on table
-  known_poses_in << 0.5, -19.5, 2.0, 0.0,         // x3_y9_theta0
-                    6.5, -21.0, 2.0,  45.0,       // x7_y5_theta45 
-                    -0.787402, -29.1339, 2, 135.0, // x3_y11_theta135 
-                    -10.0, -30.0,  2.0,  45.0,    // x4_y5_theta45
+  known_poses_in << 0.5, -19.5-2.0, 2.0, 0.0,         // x3_y9_theta0// first (adjusted -2.0 in y)
+                    6.5, -21.0, 2.0, 45.0,       // x7_y5_theta45 //second
+                    -0.787402, -29.1339, 2, 45.0, // x3_y11_theta135 
+                    -10.0, -30.0,  2.0,  -45.0,    // x4_y5_theta45
                     -2.0+0.5, -36.0+0.25, 2.0,  90.0,      // x9_y2_theta90   
                     -3.0, -24.0, 2.0, 30.0,       // x8_y6_theta30
                      4.92126, -19.685, 2, 0,      // x4_y9_theta0  // this set recorded in prev session    
@@ -561,22 +599,20 @@ int main(int argc, char** argv)
   tf::StampedTransform T_target_base;
   tf::StampedTransform T_source_base;
   tf::StampedTransform T_source_target;
- 
+  tf::StampedTransform T_expected;
+   
   // create a transform to a point in the list
-  tf::Vector3 source_p0, target_p0, source_target_p0, false_target_p0;
+  tf::Vector3 source_p0, target_p0, source_target_p0, expected_p0, expected_source_p0;
   
   // index set in config file
   target_p0[0]=known_poses_in(tgt_idx,0)*intom; 
   target_p0[1]=known_poses_in(tgt_idx,1)*intom; 
   target_p0[2]=known_poses_in(tgt_idx,2)*intom; 
   
-  //target_p0[0]=known_poses_mm(tgt_idx,0)*mmtom; 
-  //target_p0[1]=known_poses_mm(tgt_idx,1)*mmtom; 
-  //target_p0[2]=known_poses_mm(tgt_idx,2)*mmtom; 
-  
   T_target_base.setOrigin(target_p0);  
 
-  tf::Quaternion target_q0, source_q0, source_target_q0, false_target_q0;
+  tf::Quaternion target_q0, source_q0, source_target_q0, expected_q0;
+  //target_q0.setRPY(0.0, 0.0, known_poses_in(tgt_idx,3)*degtorad);  
   target_q0.setRPY(0.0, 0.0, 0.0);  
   T_target_base.setRotation(target_q0);
   
@@ -588,7 +624,19 @@ int main(int argc, char** argv)
   source_target_p0=source_p0-target_p0;
   T_source_target.setOrigin(source_target_p0); 
   T_source_target.setRotation(T_src_tgt->getRotation());
- 
+
+
+  // index set in config file
+  expected_source_p0[0]=known_poses_in(src_idx,0)*intom; 
+  expected_source_p0[1]=known_poses_in(src_idx,1)*intom; 
+  expected_source_p0[2]=known_poses_in(src_idx,2)*intom; 
+  
+  expected_p0=expected_source_p0-target_p0;
+  expected_q0.setRPY(0.0, 0.0, known_poses_in(src_idx,3)*degtorad);  
+  //expected_q0.setRPY(0.0, 0.0, 45.0*degtorad);  
+  T_expected.setRotation(expected_q0);
+  T_expected.setOrigin(expected_p0); 
+  
   tf::transformStampedTFToMsg(T_target_base, *T_target_base_msg);
   //tf::transformStampedTFToMsg(T_source_base, *T_source_base_msg);
   tf::transformStampedTFToMsg(T_source_target, *T_source_target_msg);
@@ -628,7 +676,7 @@ int main(int argc, char** argv)
   std::cout<<"                    register_clouds: analyzing results              "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
-  analyze_results(*T_src_tgt, target_p0, source_p0);
+  analyze_results(*T_src_tgt, T_expected, target_p0, source_p0, expected_source_p0);
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: preparing visualization        "<<endl;

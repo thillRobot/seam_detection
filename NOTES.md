@@ -127,6 +127,8 @@ training1:
 target: (idx=0)
  `bags/reconstruction/part1_x3_y9_theta0_5_output.pcd`
 
+(no registration data for single cloud)
+
 test1:
 source:
  `bags/reconstruction/part1_x7_y5_theta45_5_output.pcd`
