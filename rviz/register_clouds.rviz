@@ -6,9 +6,10 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Axes2
+        - /Axes2/Status1
         - /PointCloud21
         - /PointCloud22
-        - /PointCloud23
         - /MarkerArray1
         - /MarkerArray2
         - /TF1
@@ -93,6 +94,24 @@ Visualization Manager:
       Plane: XY
       Plane Cell Count: 2
       Reference Frame: <Fixed Frame>
+      Value: true
+    - Alpha: 1
+      Class: rviz/Axes
+      Enabled: true
+      Length: 0.05000000074505806
+      Name: Axes
+      Radius: 0.004999999888241291
+      Reference Frame: <Fixed Frame>
+      Show Trail: false
+      Value: true
+    - Alpha: 1
+      Class: rviz/Axes
+      Enabled: true
+      Length: 0.05000000074505806
+      Name: Axes
+      Radius: 0.004999999888241291
+      Reference Frame: target
+      Show Trail: false
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -222,15 +241,6 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: true
-    - Alpha: 1
-      Class: rviz/Axes
-      Enabled: true
-      Length: 0.05000000074505806
-      Name: Axes
-      Radius: 0.004999999888241291
-      Reference Frame: <Fixed Frame>
-      Show Trail: false
-      Value: true
     - Class: rviz/TF
       Enabled: true
       Filter (blacklist): ""
@@ -239,15 +249,15 @@ Visualization Manager:
       Frames:
         All Enabled: false
         T_01:
-          Value: true
+          Value: false
         T_01_intr_min:
-          Value: true
+          Value: false
         T_10:
-          Value: true
+          Value: false
         T_10_intr_min:
-          Value: true
+          Value: false
         T_intr_min:
-          Value: true
+          Value: false
         base_link:
           Value: true
         map:
@@ -255,9 +265,9 @@ Visualization Manager:
         source:
           Value: true
         target:
-          Value: true
+          Value: false
         world:
-          Value: true
+          Value: false
       Marker Alpha: 1
       Marker Scale: 0.25
       Name: TF
@@ -277,10 +287,9 @@ Visualization Manager:
                   {}
                 T_10:
                   {}
-              source:
-                {}
               target:
-                {}
+                source:
+                  {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -334,7 +343,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -0.03999999165534973
+      Angle: -2.60770320892334e-08
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -344,10 +353,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 1789.3719482421875
+      Scale: 2461.132568359375
       Target Frame: <Fixed Frame>
-      X: 0.006410482805222273
-      Y: -0.5100196599960327
+      X: -0.15120865404605865
+      Y: -0.546686589717865
     Saved: ~
 Window Geometry:
   Displays:

@@ -313,6 +313,9 @@ int main(int argc, char** argv)
   geometry_msgs::TransformStamped *T_target_source_msg (new geometry_msgs::TransformStamped);
   T_target_source_msg->header.frame_id = "source"; T_target_source_msg->child_frame_id = "target";
 
+  //geometry_msgs::TransformStamped *T_false_target_msg (new geometry_msgs::TransformStamped);
+  //T_false_target_msg->header.frame_id = "s"; T_target_source_msg->child_frame_id = "target";
+  
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: processing pointcloud data     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
@@ -327,80 +330,6 @@ int main(int argc, char** argv)
   // smooth the clouds with normal smoothing
   filter.smoothCloud(*target_cloud, *target_cloud); 
   filter.smoothCloud(*source_cloud, *source_cloud);
-
-  // hardcode ground truth points for each dataset, replace hardcoded points with ref from centroid
-  int ksize=6;
-  Eigen::MatrixXf known_poses(ksize,4);
-  Eigen::MatrixXf known_poses_in(ksize,4);
-  Eigen::MatrixXf known_points(ksize,3);   
-  Eigen::MatrixXf known_points_in(ksize,3);   
-  //Eigen::MatrixXf known_posesB(3,4);
-  
-  float mmtoin=1/25.4;
-  float degtorad=M_PI/180.0;
-  float intom=0.0254;
-
-  // recorded by SC on table
-  known_poses_in << 0.5, -19.5, 2.0, 0.0,       // x3_y9_theta0
-                    6.5, -21.0, 2.0,  45.0,     // x7_y5_theta45 
-                    -2*cos(45*degtorad) ,-28-2*cos(45*degtorad), 2.0,   45.5,   // x3_y11_theta135 
-                    -10.0, -30.0,  2.0,  45.0,  // x4_y5_theta45
-                    -2.0, -36.0, 2.0,  90.0,    // x9_y2_theta90   
-                    -3.0, -24.0, 2.0, 30.0;     // x8_y6_theta30
-   
-  // recorded by TH in rviz
-  known_poses <<  20.0, -540.0, 50.8, 0.0,      // x3_y9_theta0
-                  165.0, -530.0, 50.8, 45.0,    // x7_y5_theta45
-                  -20.0, -740.0, 50.8, 135.9,   // x3_y11_theta135
-                  -235.0,-765.0, 50.8, 45.0,    // x4_y5_theta45   
-                  -30.0, -900.0, 50.8,  90.0,    // x9_y2_theta90
-                  -40.0, -610.0, 50.8,  30.0;   // x8_y6_theta30
-
-  //known_posesB << 125.0, -500.0, 50.8,  0.0,  // x4_y9_theta0  // this set recorded in prev session
-  //                65.0, -300.0, 50.8,  90.0,  // x9_y7_theta90   
-  //                85.0, -775.0, 50.8,  45.0,  // x5_y10_theta45
-
-  known_points << known_poses.col(0), known_poses.col(1), known_poses.col(2);
-  known_points_in << known_poses_in.col(0), known_poses_in.col(1), known_poses_in.col(2);
-                  
-  std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
-  for (int k=0; k<ksize; k++){
-    std::cout << k <<", "<< known_poses(k,0) << ", " 
-                         << known_poses(k,1) << ", " 
-                         << known_poses(k,2) << ", " 
-                         << known_poses(k,3) << std::endl;
-  }
-
-  std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
-  for (int k=0; k<ksize; k++){
-    std::cout << k <<", "<< known_poses_in(k,0)/mmtoin << ", " 
-                         << known_poses_in(k,1)/mmtoin << ", " 
-                         << known_poses_in(k,2)/mmtoin << ", " 
-                         << known_poses_in(k,3) << std::endl;
-  }
-  
-  std::cout <<"known poses (idx,in,in,in,deg): "<<std::endl;
-  for (int k=0; k<ksize; k++){
-    std::cout << k <<", "<< known_poses(k,0)*mmtoin << ", " 
-                         << known_poses(k,1)*mmtoin << ", " 
-                         << known_poses(k,2)*mmtoin << ", " 
-                         << known_poses(k,3) << std::endl;
-  }
-  
-  std::cout <<"known poses (idx,in,in,in,deg): "<<std::endl;
-  for (int k=0; k<ksize; k++){
-    std::cout << k <<", "<< known_poses_in(k,0) << ", " 
-                         << known_poses_in(k,1) << ", " 
-                         << known_poses_in(k,2) << ", " 
-                         << known_poses_in(k,3) << std::endl;
-  }
-
-  // create a transform to a point in the list
-  tf::Vector3 source_p0, target_p0;
-   
-  target_p0[0]=known_poses_in(0,0)*intom; 
-  target_p0[1]=known_poses_in(0,1)*intom; 
-  target_p0[2]=known_poses_in(0,2)*intom; 
   
   int N_cor=100;
   EigenCor cor_src_pts, cor_tgt_pts;
@@ -409,11 +338,11 @@ int main(int argc, char** argv)
   double fscore; // fitness score (lower is better)
   double fscore_min=1000;
 
-  double alphas[1]={0}; // array of starting angles
-  int N=1;  
+  //double alphas[1]={0}; // array of starting angles
+  //int N=1;  
 
-  //double alphas[4]={0, 90, 180, 270}; // array of starting angles
-  //int N=4; // number of starting positions
+  double alphas[4]={0, 90, 180, 270}; // array of starting angles
+  int N=4; // number of starting positions
 
   // set rotation and origin of a quaternion for the tf transform object
   double al, bt, gm, dtr, intm; // alpha beta gamma for short
@@ -566,26 +495,96 @@ int main(int argc, char** argv)
 
   std::cout << "Cloud aligned from starting position "<< i_min << " using best registration results" << std::endl;
    
-  tf::StampedTransform T_target_base;
-  tf::StampedTransform T_source_base;
-  //tf::StampedTransform *T_source_target (new tf::StampedTransform);
-  //tf::StampedTransform T_source_base (*T_src_tgt, ros::Time::now() ,"target","source"); 
+
+  // hardcode ground truth points for each dataset, replace hardcoded points with ref from centroid
+  int ksize=6;
+  Eigen::MatrixXf known_poses(ksize,4);
+  Eigen::MatrixXf known_poses_in(ksize,4);
+  Eigen::MatrixXf known_points(ksize,3);   
+  Eigen::MatrixXf known_points_in(ksize,3);   
+  //Eigen::MatrixXf known_posesB(3,4);
   
-  //T_source_target = T_src_tgt;
-  //tf::StampedTransform *T_target_source (new tf::StampedTransform);     
+  float mmtoin=1/25.4;
+  float degtorad=M_PI/180.0;
+  float intom=0.0254;
+
+  // recorded by SC on table
+  known_poses_in << 0.5, -19.5, 2.0, 0.0,       // x3_y9_theta0
+                    6.5, -21.0, 2.0,  45.0,     // x7_y5_theta45 
+                    -2*cos(45*degtorad) ,-28-2*cos(45*degtorad), 2.0,   45.5,   // x3_y11_theta135 
+                    -10.0, -30.0,  2.0,  45.0,  // x4_y5_theta45
+                    -2.0, -36.0, 2.0,  90.0,    // x9_y2_theta90   
+                    -3.0, -24.0, 2.0, 30.0;     // x8_y6_theta30
+   
+  // recorded by TH in rviz
+  known_poses <<  20.0, -540.0, 50.8, 0.0,      // x3_y9_theta0
+                  165.0, -530.0, 50.8, 45.0,    // x7_y5_theta45
+                  -20.0, -740.0, 50.8, 135.9,   // x3_y11_theta135
+                  -235.0,-765.0, 50.8, 45.0,    // x4_y5_theta45   
+                  -30.0, -900.0, 50.8,  90.0,    // x9_y2_theta90
+                  -40.0, -610.0, 50.8,  30.0;   // x8_y6_theta30
+
+  //known_posesB << 125.0, -500.0, 50.8,  0.0,  // x4_y9_theta0  // this set recorded in prev session
+  //                65.0, -300.0, 50.8,  90.0,  // x9_y7_theta90   
+  //                85.0, -775.0, 50.8,  45.0,  // x5_y10_theta45
+
+  known_points << known_poses.col(0), known_poses.col(1), known_poses.col(2);
+  known_points_in << known_poses_in.col(0), known_poses_in.col(1), known_poses_in.col(2);
+                  
+  std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
+  for (int k=0; k<ksize; k++){
+    std::cout << k <<", "<< known_poses(k,0) << ", " 
+                         << known_poses(k,1) << ", " 
+                         << known_poses(k,2) << ", " 
+                         << known_poses(k,3) << std::endl;
+  }
+
+  std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
+  for (int k=0; k<ksize; k++){
+    std::cout << k <<", "<< known_poses_in(k,0)/mmtoin << ", " 
+                         << known_poses_in(k,1)/mmtoin << ", " 
+                         << known_poses_in(k,2)/mmtoin << ", " 
+                         << known_poses_in(k,3) << std::endl;
+  }
   
-  //geometry_msgs::Transform T_source_target, T_target_source;
-  //geometry_msgs::TransformStamped tf_source_target, tf_target_source;
- 
-  //tf_source_target, tf_target_source;
+  std::cout <<"known poses (idx,in,in,in,deg): "<<std::endl;
+  for (int k=0; k<ksize; k++){
+    std::cout << k <<", "<< known_poses(k,0)*mmtoin << ", " 
+                         << known_poses(k,1)*mmtoin << ", " 
+                         << known_poses(k,2)*mmtoin << ", " 
+                         << known_poses(k,3) << std::endl;
+  }
+  
+  std::cout <<"known poses (idx,in,in,in,deg): "<<std::endl;
+  for (int k=0; k<ksize; k++){
+    std::cout << k <<", "<< known_poses_in(k,0) << ", " 
+                         << known_poses_in(k,1) << ", " 
+                         << known_poses_in(k,2) << ", " 
+                         << known_poses_in(k,3) << std::endl;
+  }
 
   // create a transform to a point in the list
   //tf::Vector3 source_p0, target_p0;
+   
+  //target_p0[0]=known_poses_in(0,0)*intom; 
+  //target_p0[1]=known_poses_in(0,1)*intom; 
+  //target_p0[2]=known_poses_in(0,2)*intom; 
+  tf::StampedTransform T_target_base;
+  tf::StampedTransform T_source_base;
+  tf::StampedTransform T_source_target;
+  tf::StampedTransform T_false_target;
  
-
+  // create a transform to a point in the list
+  tf::Vector3 source_p0, target_p0, source_target_p0, false_target_p0;
+  
+  int tgt_idx=0; 
+  target_p0[0]=known_poses_in(tgt_idx,0)*intom; 
+  target_p0[1]=known_poses_in(tgt_idx,1)*intom; 
+  target_p0[2]=known_poses_in(tgt_idx,2)*intom; 
+  
   T_target_base.setOrigin(target_p0);  
 
-  tf::Quaternion target_q0, source_q0;
+  tf::Quaternion target_q0, source_q0, source_target_q0, false_target_q0;
   target_q0.setRPY(0.0, 0.0, 0.0);  
   T_target_base.setRotation(target_q0);
   
@@ -594,11 +593,13 @@ int main(int argc, char** argv)
   T_source_base.setOrigin(source_p0);  
   T_source_base.setRotation(T_src_tgt->getRotation());
 
+  source_target_p0=source_p0-target_p0;
+  T_source_target.setOrigin(source_target_p0); 
+  T_source_target.setRotation(T_src_tgt->getRotation());
+ 
   tf::transformStampedTFToMsg(T_target_base, *T_target_base_msg);
-  tf::transformStampedTFToMsg(T_source_base, *T_source_base_msg);
-
-  //T_source_target->frame_id="source";
-  //T_source_target->child_frame_id="target";
+  //tf::transformStampedTFToMsg(T_source_base, *T_source_base_msg);
+  tf::transformStampedTFToMsg(T_source_target, *T_source_target_msg);
     
   // set relative frame references (this seems like it is repeated, check on this)
   
@@ -617,9 +618,11 @@ int main(int argc, char** argv)
   T_01_intr_min_msg->header.frame_id = "base_link"; T_01_intr_min_msg->child_frame_id = "T_01_intr_min";
   T_10_intr_min_msg->header.frame_id = "base_link"; T_10_intr_min_msg->child_frame_id = "T_10_intr_min";
   
-  T_source_base_msg->header.frame_id = "base_link"; T_source_base_msg->child_frame_id = "source"; 
+  //T_source_base_msg->header.frame_id = "base_link"; T_source_base_msg->child_frame_id = "source"; 
   T_target_base_msg->header.frame_id = "base_link"; T_target_base_msg->child_frame_id = "target"; 
-  //T_source_target_msg->header.frame_id = "target"; T_source_target_msg->child_frame_id = "source";
+  
+  T_source_target_msg->header.frame_id = "target"; T_source_target_msg->child_frame_id = "source";
+  //T_target_source_msg->header.frame_id = "source"; T_target_source_msg->child_frame_id = "target";
 
   // save aligned cloud in PCD file (alignment still needs some work, revisit next!)
   if(save_aligned){
@@ -731,9 +734,13 @@ int main(int argc, char** argv)
 
       T_01_intr_min_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_intr_min_msg);
       T_10_intr_min_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_intr_min_msg);
-      
+    
+        
+   //   T_false_target_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_false_target_msg);
       T_target_base_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_target_base_msg);
-      T_source_base_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_source_base_msg);
+   //   T_source_base_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_source_base_msg);
+      T_source_target_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_source_target_msg);
+      //T_target_source_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_target_source_msg);
 
       source_pub.publish(source_cloud);
       source_intr_min_pub.publish(source_cloud_intr_min);
