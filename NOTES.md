@@ -131,26 +131,74 @@ test1:
 source:
  `bags/reconstruction/part1_x7_y5_theta45_5_output.pcd`
 
+Measured Rotation Matrix:
+[0.713715,-0.70011,-0.0213854,
+0.70042,0.713162,0.0284788,
+-0.00468702,-0.0353045,0.999366]
+Measured Translation: [-0.222094,-0.159648,-0.0205973]
+P_target: [0.0127,-0.4953,0.0508]
+P_source: [0.132648,-0.502535,0.0475973]
+
+
 test2:
 source:
  `bags/reconstruction/part1_x4_y5_theta45_5_output.pcd`
+
+Measured Rotation Matrix:
+[-0.713664,0.697676,0.062713,
+-0.700364,-0.712361,-0.0450758,
+0.013226,-0.0760909,0.997013]
+Measured Translation: [0.148246,-1.13778,-0.0369559]
+P_target: [0.0127,-0.4953,0.0508]
+P_source: [-0.203191,-0.796131,0.0515481]
 
 test3:
 source
  `bags/reconstruction/part1_x3_y11_theta135_5_output.pcd`
 
+Measured Rotation Matrix:
+[0.701546,0.712319,-0.0208524,
+-0.712488,0.700541,-0.0400354,
+-0.01391,0.0429438,0.998981]
+Measured Translation: [0.347233,-0.349363,0.0182425]
+P_target: [0.0127,-0.4953,0.0508]
+P_source: [0.00227234,-0.707423,0.047544]
+
 test4:
 source
  `bags/reconstruction/part1_x4_y9_theta0_5_output.pcd`
+
+Measured Rotation Matrix:
+[0.999837,0.0123178,-0.0131965,
+-0.0117661,0.999086,0.0410973,
+0.0136907,-0.0409354,0.999068]
+Measured Translation: [0.103524,-0.00317029,-0.0163166]
+P_target: [0.0127,-0.4953,0.0508]
+P_source: [0.10945,-0.496079,0.0548852]
 
 test5:
 source
  `bags/reconstruction/part1_x8_y6_theta30_5_output.pcd`
 
+Measured Rotation Matrix:
+[-0.904444,-0.425039,-0.0363863,
+0.426576,-0.901875,-0.0682162,
+-0.00382135,-0.0772193,0.997007]
+Measured Translation: [-0.26533,-1.10214,-0.0429448]
+P_target: [0.0127,-0.4953,0.0508]
+P_source: [-0.0681429,-0.653487,0.0459013]
+
 test6:
 source
  `bags/reconstruction/part1_x5_y10_theta45_5_output.pcd`
 
+Measured Rotation Matrix:
+[0.706805,0.706776,0.0298957,
+-0.707401,0.705974,0.0344207,
+0.00322214,-0.045477,0.99896]
+Measured Translation: [0.422514,-0.386578,-0.0202862]
+P_target: [0.0127,-0.4953,0.0508]
+P_source: [0.0829428,-0.743482,0.0530266]
 
 ###### set2
 training2:
@@ -161,26 +209,74 @@ test1:
 source:
  `bags/reconstruction/part1_x7_y5_theta45_5_output.pcd`
 
+Measured Rotation Matrix:
+[-0.698321,-0.714412,-0.0443162,
+0.713371,-0.699711,0.0388073,
+-0.0587329,-0.00451399,0.998264]
+Measured Translation: [-0.500163,-1.14514,-0.0053346]
+P_target: [-0.0381,-0.90805,0.0508]
+P_source: [0.172914,-0.534973,0.0517138]
+
 test2:
 source:
  `bags/reconstruction/part1_x4_y5_theta45_5_output.pcd`
+
+Measured Rotation Matrix:
+[0.703148,0.704752,0.0943776,
+-0.701551,0.709239,-0.0693323,
+-0.115798,-0.0174598,0.993119]
+Measured Translation: [0.418683,-0.145506,-0.0135196]
+P_target: [-0.0381,-0.90805,0.0508]
+P_source: [-0.243262,-0.766323,0.0571971]
 
 test3:
 source
  `bags/reconstruction/part1_x3_y11_theta135_5_output.pcd`
 
-test4: (this test fails by 180)
+Measured Rotation Matrix:
+[0.701449,-0.711309,-0.0448233,
+0.708,0.70265,-0.0708472,
+0.0818893,0.0179608,0.99648]
+Measured Translation: [-0.644716,-0.0811862,0.0126153]
+P_target: [-0.0381,-0.90805,0.0508]
+P_source: [-0.0278142,-0.749801,0.0438072]
+
+
+test4: (this test fails by 180 deg)
 source
  `bags/reconstruction/part1_x4_y9_theta0_5_output.pcd`
+Measured Rotation Matrix:
+[-0.162278,0.985452,-0.0504945,
+0.00772338,0.0524397,0.998594,
+0.986715,0.161659,-0.0161208]
+Measured Translation: [0.651191,-0.518365,0.176533]
+P_target: [-0.0381,-0.90805,0.0508]
+P_source: [-0.240031,-0.515549,-0.00867485]
 
-test5: (this test fails by 180)
+test5: (this test fails by 180 deg)
 source
  `bags/reconstruction/part1_x8_y6_theta30_5_output.pcd`
+
+Measured Rotation Matrix:
+[0.417718,-0.907752,-0.0387098,
+0.90822,0.418369,-0.0102143,
+0.025467,-0.0308903,0.999198]
+Measured Translation: [-0.556542,-0.382605,-0.0240121]
+P_target: [-0.0381,-0.90805,0.0508]
+P_source: [0.24986,-0.797627,0.0538268]
+
 
 test6: 
 source
  `bags/reconstruction/part1_x5_y10_theta45_5_output.pcd`
 
+Measured Rotation Matrix:
+[0.708394,-0.705815,-0.00186529,
+0.705773,0.708376,-0.00931961,
+0.00789925,0.00528548,0.999955]
+Measured Translation: [-0.563405,-0.115711,0.00713087]
+P_target: [-0.0381,-0.90805,0.0508]
+P_source: [0.0504262,-0.786315,0.0528281]
 
 
 

@@ -86,7 +86,7 @@ bool registration_complete=0;
 
 
 // function calculates a difference detween the measured and expected transformation and prints the info to the console
-void analyze_results(tf::Transform &tf_in,double e_results[])
+void analyze_results(tf::Transform &tf_in, tf::Vector3 P_target, tf::Vector3 P_source)
 {
   
   std::cout<<"Measured Rotation Matrix:"<<std::endl;  
@@ -94,27 +94,31 @@ void analyze_results(tf::Transform &tf_in,double e_results[])
   std::cout     <<tf_in.getBasis()[1][0]<<","<<tf_in.getBasis()[1][1]<<","<<tf_in.getBasis()[1][2]<<","<<std::endl;
   std::cout     <<tf_in.getBasis()[2][0]<<","<<tf_in.getBasis()[2][1]<<","<<tf_in.getBasis()[2][2]<<"]"<<std::endl;
 
-  std::cout<<"Expected,Translation: ["<<e_results[0]<<","
-                                      <<e_results[1]<<","
-                                      <<e_results[2]<<"]"<<std::endl;
   std::cout<<"Measured Translation: ["<<tf_in.getOrigin().getX()<<","
                                       <<tf_in.getOrigin().getY()<<","
                                       <<tf_in.getOrigin().getZ()<<"]"<<std::endl;
+
+  std::cout<<"P_target: ["<<P_target.x()<<","<<P_target.y()<<","<<P_target.z()<<"]"<<std::endl;
+  std::cout<<"P_source: ["<<P_source.x()<<","<<P_source.y()<<","<<P_source.z()<<"]"<<std::endl;
+
+  /*
+  std::cout<<"Expected,Translation: ["<<e_results[0]<<","
+                                      <<e_results[1]<<","
+                                      <<e_results[2]<<"]"<<std::endl;
   std::cout<<"Difference Translation: ["<<e_results[0]-tf_in.getOrigin().getX()<<","
                                       <<e_results[1]-tf_in.getOrigin().getY()<<","
                                       <<e_results[2]-tf_in.getOrigin().getZ()<<"]"<<std::endl;
 
-  std::cout<<"Expected Rotation: [" <<e_results[3]<<","
-                                    <<e_results[4]<<","
-                                    <<e_results[5]<<"]"<<std::endl;
   std::cout<<"Measured Rotation: [" <<tf_in.getRotation().getAxis().getX()
                                     <<","<<tf_in.getRotation().getAxis().getY()
                                     <<","<<tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
+  std::cout<<"Expected Rotation: [" <<e_results[3]<<","
+                                    <<e_results[4]<<","
+                                    <<e_results[5]<<"]"<<std::endl;
   std::cout<<"Difference Rotation: [" <<e_results[3]-tf_in.getRotation().getAxis().getX()
                                     <<","<<e_results[4]-tf_in.getRotation().getAxis().getY()
                                     <<","<<e_results[5]-tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
-
-  //std::cout<<"W:"<<tf_in.getRotation().getW()<<std::endl;
+  */
 
 }
 
@@ -624,8 +628,7 @@ int main(int argc, char** argv)
   std::cout<<"                    register_clouds: analyzing results              "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
-  analyze_results(*T_10, expected_results);
-  analyze_results(*T_01, expected_results);
+  analyze_results(*T_src_tgt, target_p0, source_p0);
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: preparing visualization        "<<endl;
