@@ -952,7 +952,7 @@ class SeamDetection {
       // find pair with min sum objective difference using median normalized differences, replace with std::min for speed
       int j_min;
       double score_min;
-
+      verbosity=2;
       j_min=0; // default value for the search index, in case it is not set
       score_min=scores[0]; // assume first may be the minimum
 
@@ -960,8 +960,8 @@ class SeamDetection {
         if (scores[j]<score_min){ // find the lowest score
           score_min=scores[j];
           j_min=j;            // record the index of the lowest score
-
         }
+        std::cout<<"matching score ["<<j<<"]: "<<scores[j]<<std::endl;
       }          
 
       // printing for debugging, optional, controlled by fn arg
@@ -969,7 +969,8 @@ class SeamDetection {
 
       }else if(verbosity>0){ // show the results of the search after complete
         std::cout <<"cloud has "<< cloud.size()<< " points " 
-                  <<" and match has "<<compares[j_min]->size()<< " points"<<std::endl;           
+                  <<" and match has "<<compares[j_min]->size()<< " points "<<std::endl;
+                   
       }
       
       return compares[j_min];  // return the compare with the best score to matches

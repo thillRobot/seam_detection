@@ -7,19 +7,19 @@ scene_name: "register_clouds" # change this to config_name ?
 
 ### IDETC 2024 datasets ###
 
-#register_clouds/target_file: "bags/reconstruction/part1_x3_y9_theta0_5_output.pcd"
-#register_clouds/tgt_idx: 0
-register_clouds/target_file: "bags/reconstruction/part1_x9_y2_theta90_5_output.pcd"
-register_clouds/tgt_idx: 4
+register_clouds/target_file: "bags/reconstruction/part1_x3_y9_theta0_5_output.pcd"
+register_clouds/tgt_idx: 0
+#register_clouds/target_file: "bags/reconstruction/part1_x9_y2_theta90_5_output.pcd"
+#register_clouds/tgt_idx: 4
 
 
-#register_clouds/source_file: "bags/reconstruction/part1_x7_y5_theta45_5_output.pcd"
+register_clouds/source_file: "bags/reconstruction/part1_x7_y5_theta45_5_output.pcd"
 #register_clouds/source_file: "bags/reconstruction/part1_x3_y11_theta135_5_output.pcd"
 #register_clouds/source_file: "bags/reconstruction/part1_x4_y5_theta45_5_output.pcd"
 #register_clouds/source_file: "bags/reconstruction/part1_x4_y9_theta0_5_output.pcd"
 #register_clouds/source_file: "bags/reconstruction/part1_x8_y6_theta30_5_output.pcd"
-register_clouds/source_file: "bags/reconstruction/part1_x5_y10_theta45_output.pcd"
-register_clouds/src_idx: 8
+#register_clouds/source_file: "bags/reconstruction/part1_x5_y10_theta45_output.pcd"
+register_clouds/src_idx: 1
 
 ### end of IDETC 2024 datasets ###
 

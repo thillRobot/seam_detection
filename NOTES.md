@@ -376,4 +376,43 @@ P_diff: [0.000373826,0.0113155,-0.00202814]
 
 
 
+|---------- SeamDetection::scoreCloudsMulti() ----------|
+scores[0]:1.88497
+scores[1]:5.84155
+scores[2]:8.7151
+scores[3]:17.0616
+scores[4]:10.1461
+scores_min: 1.88497 found at 0
+|---------- SeamDetection::scoreCloudsMulti() ----------|
+scores[0]:4.55081
+scores[1]:7.57289
+scores[2]:15.2325
+scores[3]:4.67655
+
+
+
+
+
+
+scores[0]:2.18797
+scores[1]:7.677
+scores[2]:6.37832
+scores[3]:17.3737
+scores[4]:5.22705
+scores_min: 2.18797 found at 0
+|---------- SeamDetection::scoreCloudsMulti() ----------|
+scores[0]:0.511444
+scores[1]:6.70079
+scores[2]:36.6166
+scores[3]:7.31992
+scores_min: 0.511444 found at 0
+|---------- SeamDetection::scoreCloudsMulti() ----------|
+scores[0]:4.61589
+scores[1]:7.01587
+scores[2]:30.2058
+scores_min: 4.61589 found at 0
+|---------- SeamDetection::scoreCloudsMulti() ----------|
+scores[0]:7.52265
+scores[1]:6.47735
+scores_min: 6.47735 found at 1
 

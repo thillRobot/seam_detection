@@ -127,12 +127,12 @@ training_inliers_file: "bags/reconstruction/part1_x3_y9_theta0_5_inliers.pcd"
 #training_inliers_file: "bags/reconstruction/part1_x9_y2_theta90_inliers.pcd"
 
 
-seam_detection/test_file: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_5_merged.pcd"
+#seam_detection/test_file: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_5_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x3_y11_theta135_part2_clamp_glove_5_merged.pcd"
-#seam_detection/test_file: "bags/reconstruction/part1_x7_y5_theta45_part2_clamp_glove_5_merged.pcd"
+seam_detection/test_file: "bags/reconstruction/part1_x7_y5_theta45_part2_clamp_glove_5_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x7_y5_theta45_5_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x8_y6_theta30_part2_clamp_glove_5_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x9_y2_theta90_5_merged.pcd"
@@ -142,12 +142,12 @@ seam_detection/test_file: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_g
 
 
 
-seam_detection/output_file: "bags/reconstruction/part1_x4_y5_theta45_output.pcd"
+#seam_detection/output_file: "bags/reconstruction/part1_x4_y5_theta45_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x4_y9_theta0_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x5_y10_theta45_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x8_y6_theta30_5_output.pcd"
-#seam_detection/output_file: "bags/reconstruction/part1_x7_y5_theta45_5_output.pcd"
+seam_detection/output_file: "bags/reconstruction/part1_x7_y5_theta45_5_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x9_y2_theta90_5_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x5_y10_theta45_5_output.pcd"
 

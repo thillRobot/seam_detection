@@ -119,8 +119,8 @@ void analyze_results(tf::Transform &tf_measured, tf::Transform &tf_expected,  tf
   
   double diff_roll, diff_pitch, diff_yaw;
   diff_roll=measured_roll-expected_roll; 
-  diff_yaw=measured_pitch-expected_pitch;
-  diff_pitch=measured_yaw-expected_yaw;
+  diff_pitch=measured_pitch-expected_pitch;
+  diff_yaw=measured_yaw-expected_yaw;
 
   std::cout<<"Measured Axis Rotations: [ "<<measured_roll<<", "<<measured_pitch<<", "<<measured_yaw<<" ]"<<std::endl;
   std::cout<<"Expected Axis Rotations: [ "<<expected_roll<<", "<<expected_pitch<<", "<<expected_yaw<<" ]"<<std::endl;
@@ -137,7 +137,7 @@ void analyze_results(tf::Transform &tf_measured, tf::Transform &tf_expected,  tf
   std::cout<<"P_target_source: ["<<P_target_source.x()<<","<<P_target_source.y()<<","<<P_target_source.z()<<"]"<<std::endl;
   
   std::cout<<"P_expected_source: ["<<P_expected_source.x()<<","<<P_expected_source.y()<<","<<P_expected_source.z()<<"]"<<std::endl; 
-  std::cout<<"P_target_expected_source: ["<<P_target_source.x()<<","<<P_target_source.y()<<","<<P_target_source.z()<<"]"<<std::endl;
+  std::cout<<"P_target_expected_source: ["<<P_target_expected_source.x()<<","<<P_target_expected_source.y()<<","<<P_target_expected_source.z()<<"]"<<std::endl;
 
   std::cout<<"P_diff: ["<<P_diff.x()<<","<<P_diff.y()<<","<<P_diff.z()<<"]"<<std::endl<<std::endl;
   /*
