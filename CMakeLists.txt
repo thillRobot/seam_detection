@@ -452,6 +452,9 @@ target_link_libraries(teach_points ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # register_target_source - Registration and task execution with aubo arm
 add_executable(register_target_source src/register_target_source.cpp)
 target_link_libraries(register_target_source
+  cloudutils
+  cloudregistration
+  cloudfilter
   ${catkin_LIBRARIES} 
   ${PCL_LIBRARIES} 
   Eigen3::Eigen 

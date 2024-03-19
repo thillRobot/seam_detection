@@ -69,10 +69,17 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 
-#include <cloudutils.h>
-#include <cloudregistration.h>
-#include <cloudfilter.h>
+#include <teaser/ply_io.h>
+#include <teaser/registration.h>
+#include <teaser/matcher.h>
+//#include <teaser/point_cloud.h>
+//#include <teaser/features.h>
 
+
+
+
+typedef pcl::PointXYZ PointT;
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
@@ -118,6 +125,120 @@ void filter_source_state_callback(const std_msgs::Bool::ConstPtr& msg)
     filter_source_complete=1;
   }
 }
+
+// This function REGISTER_CLOUD_ICP finds the transform between two pointclouds using PCL::IterativeClosestPoint
+double register_cloud_icp(PointCloud &source, PointCloud &target, tf::StampedTransform &T_AB, tf::StampedTransform &T_BA, geometry_msgs::TransformStamped &msg_AB, geometry_msgs::TransformStamped &msg_BA, double max_corr_dist, double max_iter, double trns_epsl, double ecld_fitn_epsl, double ran_rej_thrsh, double e_results[],double c_offset[])
+{
+ 
+  // get size of inputs clouds
+  int Ns = source.size();
+  int Nt = target.size();
+  std::cout<<"BEGINNING ICP REGISTRATION" << std::endl;
+  std::cout <<"Processing "<< Ns << " source points and " <<Nt<<" target points" << std::endl ;
+
+  std::cout<<"Using Search Parameters:"<< std::endl;
+  std::cout<<"Max Correspondence Distance = "<< max_corr_dist <<std::endl;
+  std::cout<<"Maximum Number of Iterations = "<< max_iter <<std::endl;
+  std::cout<<"Transformation Epsilon = "<< trns_epsl <<std::endl;
+  std::cout<<"Euclidean Distance Difference Epsilon = "<< ecld_fitn_epsl <<std::endl;
+
+  // perform ICP on the lidar and cad clouds
+  pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+  pcl::PointCloud<pcl::PointXYZ> Final;
+
+  Eigen::MatrixXf T_result, T_inverse;
+
+  // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
+  icp.setMaxCorrespondenceDistance (max_corr_dist);
+  // Set the maximum number of iterations (criterion 1)
+  icp.setMaximumIterations (max_iter);
+  // Set the transformation epsilon (criterion 2)
+  icp.setTransformationEpsilon (trns_epsl);
+  // Set the euclidean distance difference epsilon (criterion 3)
+
+  icp.setEuclideanFitnessEpsilon (ecld_fitn_epsl);
+  // Set the RANSAC Outlier Rejection Threshold
+  icp.setRANSACOutlierRejectionThreshold (ran_rej_thrsh);
+
+  // these copies seem like a waste to me, figure out how to cut these out
+  // make a copy of the LiDAR(source) cloud 
+  PointCloud::Ptr src (new PointCloud);       //use this as the working copy of the source cloud
+  pcl::copyPointCloud(source,*src);
+  // make a copy of the CAD(target) cloud 
+  PointCloud::Ptr tgt (new PointCloud);       //use this as the working copy of the target cloud
+  pcl::copyPointCloud(target,*tgt);
+ 
+  icp.setInputSource(src); // source (moved during ICP) cloud
+  icp.setInputTarget(tgt); // target (fixed) cloud
+  icp.align(Final); // perform ICP registration
+
+  T_result=icp.getFinalTransformation(); // get the resutls of ICP
+  T_inverse=T_result.inverse();          // also store the inverse transformation
+  
+  double fit_score;
+  fit_score=icp.getFitnessScore(); // record fitness score
+  //std::cout << "ICP completed with fitness score: " << fit_score << std::endl;
+  //std::cout << "ICP COMPLETED" << std::endl;
+  //std::cout << "max iterations:" << icp.getMaximumIterations() << std::endl;
+  std::cout << "ICP has converged:" << icp.hasConverged() << ", score: " << icp.getFitnessScore() << std::endl;
+  std::cout << "transformation: " << std::endl<< T_result << std::endl;
+  std::cout << "inverse: "<< std::endl << T_inverse << std::endl;
+  //std::cout << "ICP Algorithm Information: " << std::endl;
+  //std::cout <<  icp.getSearchMethodTarget() << std::endl;
+
+  // This part below seems very over bloated !!! 
+  // I feel like this is done in a method somewhere - manually converting from TF to EIGEN
+  // the benefit is that the transformation matrix or quaternion is available as TF
+
+  tf::Quaternion q_result;
+  tf2::Quaternion *q_result_tf2 (new tf2::Quaternion);
+
+  tf::Quaternion q_inverse;
+  tf2::Quaternion *q_inverse_tf2 (new tf2::Quaternion);
+  // instantiate a 3x3 rotation matrix from the transformation matrix // I feel like this is done in a method somewhere
+
+  tf::Matrix3x3 R_result( T_result(0,0),T_result(0,1),T_result(0,2),
+                          T_result(1,0),T_result(1,1),T_result(1,2),
+                          T_result(2,0),T_result(2,1),T_result(2,2));
+  tf2::Matrix3x3 R_result_tf2(T_result(0,0),T_result(0,1),T_result(0,2),
+                              T_result(1,0),T_result(1,1),T_result(1,2),
+                              T_result(2,0),T_result(2,1),T_result(2,2));
+
+  tf::Matrix3x3 R_inverse(T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),
+                          T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),
+                          T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
+  tf2::Matrix3x3 R_inverse_tf2( T_inverse(0,0),T_inverse(0,1),T_inverse(0,2),
+                                T_inverse(1,0),T_inverse(1,1),T_inverse(1,2),
+                                T_inverse(2,0),T_inverse(2,1),T_inverse(2,2));
+
+  // copy tf::quaternion from R_result to q_result
+  R_result.getRotation(q_result);
+  R_result_tf2.getRotation(*q_result_tf2);
+
+  q_result_tf2->normalize(); // normalize the Quaternion 
+
+  q_result_tf2->normalize(); // normalize the Quaternion (this is done twice for no reason)
+
+  // copy tf::quaternion from R_result to q_result
+  R_inverse.getRotation(q_inverse);
+  R_inverse_tf2.getRotation(*q_inverse_tf2);
+  q_inverse_tf2->normalize(); // normalize the Quaternion
+
+  // set set rotation and origin of a quaternion for the tf transform object
+  T_AB.setRotation(q_result);
+  T_AB.setOrigin(tf::Vector3(T_result(0,3),T_result(1,3),T_result(2,3)));
+
+  // set set rotation and origin of a quaternion for the tf transform object
+  T_BA.setRotation(q_inverse);
+  T_BA.setOrigin(tf::Vector3(T_inverse(0,3),T_inverse(1,3),T_inverse(2,3)));
+
+  tf::transformStampedTFToMsg(T_AB,msg_AB);
+  tf::transformStampedTFToMsg(T_BA,msg_BA);
+
+  std::cout << "END OF REGISTER_CLOUD_ICP FUNCTION" << std::endl;
+  return fit_score;
+}
+
 
 // this function calculates a difference detween the measured and expected transformation and prints the info to the console
 void analyze_results(tf::Transform &tf_in,double e_results[])
@@ -245,13 +366,13 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<endl<<endl;
 
   // instantiate cloud objects
-  PointCloud::Ptr source_cloud (new PointCloud);  // source cloud
-  PointCloud::Ptr source_cloud_intr (new PointCloud);  // intermediate source cloud
-  PointCloud::Ptr source_cloud_intr_min (new PointCloud);  // min fscore intermediate source cloud
-  PointCloud::Ptr target_cloud (new PointCloud);  // target cloud
-  PointCloud::Ptr corrs_cloud (new PointCloud);  // correspondence cloud   
-  PointCloud::Ptr aligned_source_T10 (new PointCloud);  // alinged source cloud (using registration results)
-  PointCloud::Ptr aligned_source_T01 (new PointCloud);  // alinged source cloud (using registration inverse results)
+  PointCloud::Ptr source_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // source cloud
+  PointCloud::Ptr source_cloud_intr (new pcl::PointCloud<pcl::PointXYZ>);  // intermediate source cloud
+  PointCloud::Ptr source_cloud_intr_min (new pcl::PointCloud<pcl::PointXYZ>);  // min fscore intermediate source cloud
+  PointCloud::Ptr target_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // target cloud
+  PointCloud::Ptr corrs_cloud (new pcl::PointCloud<pcl::PointXYZ>);  // correspondence cloud   
+  PointCloud::Ptr aligned_source_T10 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration results)
+  PointCloud::Ptr aligned_source_T01 (new pcl::PointCloud<pcl::PointXYZ>);  // alinged source cloud (using registration inverse results)
 
   // wait for pointclouds from filter_cloud
   while(!filter_source_complete){
@@ -265,7 +386,7 @@ int main(int argc, char** argv)
     // load the source cloud from PCD file, files generated with src/cad_cloud.cpp
     ROS_INFO("stuck in file loading loop");
     try{
-      if (pcl::io::loadPCDFile<PointT> (source_cloud_path, *source_cloud) == -1)
+      if (pcl::io::loadPCDFile<pcl::PointXYZ> (source_cloud_path, *source_cloud) == -1)
       {
         std::cout<<"Couldn't read image file:"<<source_cloud_path<<std::endl;
       }else if (!source_loaded){
@@ -273,7 +394,7 @@ int main(int argc, char** argv)
         source_loaded=1;  
       }
       // load the target cloud from PCD file
-      if (pcl::io::loadPCDFile<PointT> (target_cloud_path, *target_cloud) == -1)
+      if (pcl::io::loadPCDFile<pcl::PointXYZ> (target_cloud_path, *target_cloud) == -1)
       {
         std::cout<<"Couldn't read image file:"<<target_cloud_path<<std::endl;
       }else if(!target_loaded){
@@ -374,20 +495,10 @@ int main(int argc, char** argv)
 
     // perform registration starting from intermediate starting position
     // ICP Cloud Registration 
-    //fscore=register_cloud_icp(*source_cloud_intr,*target_cloud,*T_10_intr, *T_01_intr, *T_10_intr_msg, *T_01_intr_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results, calibration_offset);
-    //std::cout << "ICP completed with fitness score: " << fscore << std::endl;
-  
-    CloudRegistration reg;
-    // perform registration starting from intermediate starting position
-    
-    
-    // Perform ICP Cloud Registration using CloudRegistration library from this package
-    reg.loadConfig(reg.getConfig()); // use values in default config, this is goofy fix this     
-    std::cout<<"CloudRegistration config: "<<reg.getConfig()<<std::endl;
-    std::cout<<"CloudRegistration icp_max_corr_dist: "<<reg.icp_max_corr_dist<<std::endl;
-    fscore=reg.registerCloudICP(*source_cloud_intr, *target_cloud, *T_10_intr, *T_01_intr, *T_10_intr_msg, *T_01_intr_msg);
+    fscore=register_cloud_icp(*source_cloud_intr,*target_cloud,*T_10_intr, *T_01_intr, *T_10_intr_msg, *T_01_intr_msg, icp_max_corr_dist, icp_max_iter, icp_trns_epsl, icp_ecld_fitn_epsl, icp_ran_rej_thrsh, expected_results, calibration_offset);
     std::cout << "ICP completed with fitness score: " << fscore << std::endl;
-
+  
+    
     // backout intermediate starting point transformation here, revisit this soon, or let sz do it...
 
     // find intermediate starting position which gives lowest registration score

@@ -13,6 +13,13 @@
 #include <std_msgs/Int8.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseArray.h>
+#include <eigen_conversions/eigen_msg.h>
+
+#include <tf_conversions/tf_eigen.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
@@ -55,6 +62,77 @@ void teach_pose_callback(const std_msgs::Int8::ConstPtr& msg)
 }
 
 
+void getPose(std::string frame){
+
+  //tf::TransformListener listener;
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tfListener(tfBuffer);
+
+  std::string base="world";
+
+  geometry_msgs::TransformStamped tf_frame_base;
+  Eigen::Vector3d frame_base_translation;
+  Eigen::Quaterniond frame_base_rotation;
+
+  int k=0;
+  while (k<5){ // try 5 times
+
+    try{
+      
+      
+      // lookup a transform
+      tf_frame_base = tfBuffer.lookupTransform(base, frame, ros::Time(0)); 
+   
+      // convert tranform components to eigen objects to be used in pointcloud transformation 
+      tf::vectorMsgToEigen(tf_frame_base.transform.translation, frame_base_translation);
+      tf::quaternionMsgToEigen(tf_frame_base.transform.rotation, frame_base_rotation); 
+    
+    }
+    catch (tf2::TransformException &ex) {
+      ROS_WARN("%s",ex.what());
+      ros::Duration(0.1).sleep();
+      //continue;
+    }  
+
+    k++;
+  } 
+
+  current_pose.position.x=tf_frame_base.transform.translation.x;
+  current_pose.position.y=tf_frame_base.transform.translation.y;
+  current_pose.position.z=tf_frame_base.transform.translation.z;
+
+  current_pose.orientation.x=tf_frame_base.transform.rotation.x;
+  current_pose.orientation.y=tf_frame_base.transform.rotation.y;
+  current_pose.orientation.z=tf_frame_base.transform.rotation.z;
+  current_pose.orientation.w=tf_frame_base.transform.rotation.w;
+
+  teach_poses.poses.push_back(current_pose);
+
+  idx++;
+  if (idx==num_points){
+    teach_points_state=1; 
+  }
+
+  std::cout<<"idx: "<<idx<<", teach_points_state: "<<teach_points_state<<std::endl;
+
+  std::cout<<"frame position:[ "<< current_pose.position.x <<","
+                                << current_pose.position.y <<","
+                                << current_pose.position.z <<"]"<< std::endl; 
+  std::cout<<"frame orientation:[ "<< current_pose.orientation.x <<","
+                                   << current_pose.orientation.y <<","
+                                   << current_pose.orientation.z <<","
+                                   << current_pose.orientation.w <<"]"<< std::endl; 
+
+}
+
+// callback for io/add_move
+void add_move_callback(const std_msgs::Bool::ConstPtr& msg)
+{
+
+  getPose("T7");
+
+}
+
 int main(int argc, char** argv)
 {
 
@@ -65,6 +143,8 @@ int main(int argc, char** argv)
   ros::Subscriber current_pose_sub = node.subscribe("/aubo_robot/current_pose_tool0_basic",10, current_pose_callback);
   ros::Subscriber teach_pose_sub = node.subscribe("/cr_weld/teach_pose",10, teach_pose_callback);
   
+  ros::Subscriber add_move_sub = node.subscribe("/io/add_move",10, add_move_callback);
+
   ros::Publisher teach_points_state_pub = node.advertise<std_msgs::Bool> ("/teach_points/teach_points_state", 1);
   ros::Publisher teach_points_pub = node.advertise<geometry_msgs::PoseArray> ("/teach_points/teach_points_poses", 1);
   ros::Publisher free_drive_pub = node.advertise<std_msgs::Bool> ("/cr_weld/free_drive", 1);
@@ -94,23 +174,30 @@ int main(int argc, char** argv)
   // get parameters from config file
   node.getParam("teach_points/num_points", num_points);
 
+
   std::cout<<"teach_points: preparing to teach "<<num_points<<" num_points"<<std::endl;
 
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"                     teach_points: setup complete                   "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
 
+ 
 
-  if (teach_points_state){
-    std::cout<<"teach_points: poses taught "<<std::endl;
-    for(int i=0; i<num_points; i++){
-      std::cout<<"pose"<<i<<": ["<<teach_poses.poses[i].position.x<<","<<teach_poses.poses[i].position.y<<","<<teach_poses.poses[i].position.z<<"]"<<std::endl;
-    }
-  }
-
+  bool points_printed;
+ 
   //publish forever
   while(ros::ok())
   {
+
+    if (teach_points_state && !points_printed){
+      std::cout<<"teach_points: poses taught "<<std::endl;
+      for(int i=0; i<num_points; i++){
+        std::cout<<"pose"<<i<<": ["<<teach_poses.poses[i].position.x<<","
+                                   <<teach_poses.poses[i].position.y<<","
+                                   <<teach_poses.poses[i].position.z<<"]"<<std::endl;
+      }
+      points_printed=1;
+    }
 
     if (!teach_points_state){
       free_drive=1; // turn on free drive until teaching points is complete

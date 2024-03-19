@@ -9,14 +9,12 @@
   <rosparam file="$(find seam_detection)/config/$(arg config).yaml" /> 
  
   <!-- setup the transformations and frames for the system-->
-  
   <node
     pkg="seam_detection"
     name="seam_detection_tf"
     type="seam_detection_tf"
     output="screen">
   </node>
-  
 
   <!-- start the teach_points node to get reference for target" -->
   <node
@@ -25,8 +23,8 @@
     type="teach_points"
     output="screen">
   </node>
-  
     
+
   <!-- start the scan by publishing to the aubo robot arm -->
   <!--
   <remap from="target_gcode" to="android_gui/gcode_cmd"  />
@@ -37,10 +35,8 @@
     output="screen">
   </node>
   -->
-
-  
+  <--
   <!-- save the target cloud published by the aubo robot arm -->
-  <!--
   <node                   
     pkg="seam_detection"          
     type="get_target"
@@ -49,8 +45,8 @@
   </node>
   -->
 
+  <--
   <!-- filter the target cloud saved by get_cloud --> 
-  <!--
   <node                   
     pkg="seam_detection"          
     type="filter_target"
@@ -58,7 +54,6 @@
     output="screen">
   </node>
   -->
-
 
   <!-- start RVIZ --> 
   <node 
