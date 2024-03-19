@@ -86,35 +86,78 @@ bool registration_complete=0;
 
 
 // function calculates a difference detween the measured and expected transformation and prints the info to the console
-void analyze_results(tf::Transform &tf_in,double e_results[])
+void analyze_results(tf::Transform &tf_measured, tf::Transform &tf_expected,  tf::Vector3 P_target, tf::Vector3 P_source, tf::Vector3 P_expected_source, int tgt_idx, int src_idx)
 {
   
+  std::cout<<"|---------- target: "<<tgt_idx+1<<", source: "<<src_idx<<" ----------|"<<std::endl;
+
   std::cout<<"Measured Rotation Matrix:"<<std::endl;  
-  std::cout<<"["<<tf_in.getBasis()[0][0]<<","<<tf_in.getBasis()[0][1]<<","<<tf_in.getBasis()[0][2]<<","<<std::endl;
-  std::cout     <<tf_in.getBasis()[1][0]<<","<<tf_in.getBasis()[1][1]<<","<<tf_in.getBasis()[1][2]<<","<<std::endl;
-  std::cout     <<tf_in.getBasis()[2][0]<<","<<tf_in.getBasis()[2][1]<<","<<tf_in.getBasis()[2][2]<<"]"<<std::endl;
+  std::cout<<"["<<tf_measured.getBasis()[0][0]<<","<<tf_measured.getBasis()[0][1]<<","<<tf_measured.getBasis()[0][2]<<","<<std::endl;
+  std::cout     <<tf_measured.getBasis()[1][0]<<","<<tf_measured.getBasis()[1][1]<<","<<tf_measured.getBasis()[1][2]<<","<<std::endl;
+  std::cout     <<tf_measured.getBasis()[2][0]<<","<<tf_measured.getBasis()[2][1]<<","<<tf_measured.getBasis()[2][2]<<"]"<<std::endl;
 
-  std::cout<<"Expected,Translation: ["<<e_results[0]<<","
-                                      <<e_results[1]<<","
-                                      <<e_results[2]<<"]"<<std::endl;
-  std::cout<<"Measured Translation: ["<<tf_in.getOrigin().getX()<<","
-                                      <<tf_in.getOrigin().getY()<<","
-                                      <<tf_in.getOrigin().getZ()<<"]"<<std::endl;
-  std::cout<<"Difference Translation: ["<<e_results[0]-tf_in.getOrigin().getX()<<","
-                                      <<e_results[1]-tf_in.getOrigin().getY()<<","
-                                      <<e_results[2]-tf_in.getOrigin().getZ()<<"]"<<std::endl;
+  //std::cout<<"Measured Translation: ["<<tf_in.getOrigin().getX()<<","
+  //                                    <<tf_in.getOrigin().getY()<<","
+  //                                    <<tf_in.getOrigin().getZ()<<"]"<<std::endl<<std::endl;
+ 
+  std::cout<<"Expected Rotation Matrix:"<<std::endl;
+  std::cout<<"["<<tf_expected.getBasis()[0][0]<<","<<tf_expected.getBasis()[0][1]<<","<<tf_expected.getBasis()[0][2]<<","<<std::endl;
+  std::cout     <<tf_expected.getBasis()[1][0]<<","<<tf_expected.getBasis()[1][1]<<","<<tf_expected.getBasis()[1][2]<<","<<std::endl;
+  std::cout     <<tf_expected.getBasis()[2][0]<<","<<tf_expected.getBasis()[2][1]<<","<<tf_expected.getBasis()[2][2]<<"]"<<std::endl;
 
-  std::cout<<"Expected Rotation: [" <<e_results[3]<<","
-                                    <<e_results[4]<<","
-                                    <<e_results[5]<<"]"<<std::endl;
+  //std::cout<<"Expected Translation: ["<<tf_expected.getOrigin().getX()<<","
+  //                                  <<tf_expected.getOrigin().getY()<<","
+  //                                  <<tf_expected.getOrigin().getZ()<<"]"<<std::endl;
+
+  tf::Matrix3x3 R_measured(tf_measured.getRotation());
+  double measured_roll, measured_pitch, measured_yaw;
+  R_measured.getRPY(measured_roll, measured_pitch, measured_yaw);
+  
+  tf::Matrix3x3 R_expected(tf_expected.getRotation());
+  double expected_roll, expected_pitch, expected_yaw;
+  R_expected.getRPY(expected_roll, expected_pitch, expected_yaw);
+  
+  double diff_roll, diff_pitch, diff_yaw;
+  diff_roll=measured_roll-expected_roll; 
+  diff_pitch=measured_pitch-expected_pitch;
+  diff_yaw=measured_yaw-expected_yaw;
+
+  std::cout<<"Measured Axis Rotations: [ "<<measured_roll<<", "<<measured_pitch<<", "<<measured_yaw<<" ]"<<std::endl;
+  std::cout<<"Expected Axis Rotations: [ "<<expected_roll<<", "<<expected_pitch<<", "<<expected_yaw<<" ]"<<std::endl;
+  std::cout<<"Difference Axis Rotations: [ "<<diff_roll<<", "<<diff_pitch<<", "<<diff_yaw<<" ]"<<std::endl;
+
+  tf::Vector3 P_target_source, P_target_expected_source, P_diff;
+  P_target_source=P_target-P_source; 
+  P_target_expected_source=P_target-P_expected_source;
+  
+  P_diff=P_target_source-P_target_expected_source; 
+
+  std::cout<<"P_target: ["<<P_target.x()<<","<<P_target.y()<<","<<P_target.z()<<"]"<<std::endl;
+  std::cout<<"P_source: ["<<P_source.x()<<","<<P_source.y()<<","<<P_source.z()<<"]"<<std::endl; 
+  std::cout<<"P_target_source: ["<<P_target_source.x()<<","<<P_target_source.y()<<","<<P_target_source.z()<<"]"<<std::endl;
+  
+  std::cout<<"P_expected_source: ["<<P_expected_source.x()<<","<<P_expected_source.y()<<","<<P_expected_source.z()<<"]"<<std::endl; 
+  std::cout<<"P_target_expected_source: ["<<P_target_expected_source.x()<<","<<P_target_expected_source.y()<<","<<P_target_expected_source.z()<<"]"<<std::endl;
+
+  std::cout<<"P_diff: ["<<P_diff.x()<<","<<P_diff.y()<<","<<P_diff.z()<<"]"<<std::endl<<std::endl;
+  /*
+  std::cout<<"Expected,Translation: ["<<tf_expected[0]<<","
+                                      <<tf_expected[1]<<","
+                                      <<tf_expected[2]<<"]"<<std::endl;
+  std::cout<<"Difference Translation: ["<tf_expected[0]-tf_in.getOrigin().getX()<<","
+                                      <<tf_expected[1]-tf_in.getOrigin().getY()<<","
+                                      <<tf_expected[2]-tf_in.getOrigin().getZ()<<"]"<<std::endl;
+
   std::cout<<"Measured Rotation: [" <<tf_in.getRotation().getAxis().getX()
                                     <<","<<tf_in.getRotation().getAxis().getY()
                                     <<","<<tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
-  std::cout<<"Difference Rotation: [" <<e_results[3]-tf_in.getRotation().getAxis().getX()
-                                    <<","<<e_results[4]-tf_in.getRotation().getAxis().getY()
-                                    <<","<<e_results[5]-tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
-
-  //std::cout<<"W:"<<tf_in.getRotation().getW()<<std::endl;
+  std::cout<<"Expected Rotation: [" <<tf_expected[3]<<","
+                                    <<tf_expected[4]<<","
+                                    <<tf_expected[5]<<"]"<<std::endl;
+  std::cout<<"Difference Rotation: [" <<tf_expected[3]-tf_in.getRotation().getAxis().getX()
+                                    <<","<<tf_expected[4]-tf_in.getRotation().getAxis().getY()
+                                    <<","<<tf_expected[5]-tf_in.getRotation().getAxis().getZ()<<"]"<<std::endl; 
+*/  
 
 }
 
@@ -148,7 +191,10 @@ int main(int argc, char** argv)
   node.getParam("use_teaser", use_teaser);
   node.getParam("use_teaser_fpfh", use_teaser_fpfh);
   node.getParam("save_aligned", save_aligned);
-
+  
+  int tgt_idx, src_idx;
+  node.getParam("register_clouds/tgt_idx", tgt_idx);
+  node.getParam("register_clouds/src_idx", src_idx);
   // parameters that contain strings  
   std::string source_cloud_path, target_cloud_path, aligned_cloud_path, 
               source_cloud_file, target_cloud_file, aligned_cloud_file;
@@ -264,6 +310,8 @@ int main(int argc, char** argv)
   // 2) '<name>_tf2' (tf2::transform) // not used
   // 3) '<name>_msg' (geometry_msgs)  // needed for bradcasting frames
 
+  tf::Transform *T_src_tgt (new tf::Transform);  
+
   tf::StampedTransform *T_01 (new tf::StampedTransform);    // these are from the old 'TF'
   tf::StampedTransform *T_10 (new tf::StampedTransform);    // they are stil used for pcl_ros::transformPointCloud
   tf::StampedTransform *T_01_min (new tf::StampedTransform);    
@@ -294,12 +342,26 @@ int main(int argc, char** argv)
   geometry_msgs::TransformStamped *T_10_intr_msg (new geometry_msgs::TransformStamped);
   T_10_intr_msg->header.frame_id = "base_link"; T_10_intr_msg->child_frame_id = "T_10_intr";
 
-   geometry_msgs::TransformStamped *T_01_intr_min_msg (new geometry_msgs::TransformStamped);  
+  geometry_msgs::TransformStamped *T_01_intr_min_msg (new geometry_msgs::TransformStamped);  
   T_01_intr_min_msg->header.frame_id = "base_link"; T_01_intr_min_msg->child_frame_id = "T_01_intr_min";
   geometry_msgs::TransformStamped *T_10_intr_min_msg (new geometry_msgs::TransformStamped);
   T_10_intr_min_msg->header.frame_id = "base_link"; T_10_intr_min_msg->child_frame_id = "T_10_intr_min";
 
+  geometry_msgs::TransformStamped *T_target_base_msg (new geometry_msgs::TransformStamped);
+  T_target_base_msg->header.frame_id = "base_link"; T_target_base_msg->child_frame_id = "target";
+  
+  geometry_msgs::TransformStamped *T_source_base_msg (new geometry_msgs::TransformStamped);
+  T_source_base_msg->header.frame_id = "base_link"; T_source_base_msg->child_frame_id = "source";
+  
+  geometry_msgs::TransformStamped *T_source_target_msg (new geometry_msgs::TransformStamped);
+  T_source_target_msg->header.frame_id = "target"; T_source_target_msg->child_frame_id = "source";
+  
+  geometry_msgs::TransformStamped *T_target_source_msg (new geometry_msgs::TransformStamped);
+  T_target_source_msg->header.frame_id = "source"; T_target_source_msg->child_frame_id = "target";
 
+  //geometry_msgs::TransformStamped *T_false_target_msg (new geometry_msgs::TransformStamped);
+  //T_false_target_msg->header.frame_id = "s"; T_target_source_msg->child_frame_id = "target";
+  
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: processing pointcloud data     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
@@ -314,7 +376,7 @@ int main(int argc, char** argv)
   // smooth the clouds with normal smoothing
   filter.smoothCloud(*target_cloud, *target_cloud); 
   filter.smoothCloud(*source_cloud, *source_cloud);
-
+  
   int N_cor=100;
   EigenCor cor_src_pts, cor_tgt_pts;
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
@@ -322,11 +384,11 @@ int main(int argc, char** argv)
   double fscore; // fitness score (lower is better)
   double fscore_min=1000;
 
-  double alphas[1]={0}; // array of starting angles
-  int N=1;  
+  //double alphas[1]={0}; // array of starting angles
+  //int N=1;  
 
-  //double alphas[4]={0, 90, 180, 270}; // array of starting angles
-  //int N=4; // number of starting positions
+  double alphas[4]={0, 90, 180, 270}; // array of starting angles
+  int N=4; // number of starting positions
 
   // set rotation and origin of a quaternion for the tf transform object
   double al, bt, gm, dtr, intm; // alpha beta gamma for short
@@ -353,12 +415,13 @@ int main(int argc, char** argv)
     T_intr->setRotation(q_intr);
     T_intr->setOrigin(tf::Vector3(0, 0, 0)); // no translation component of the transformation (is 0,0,0 default?)
                                              // need to normalize quaternion here?
-
-    T_intr_inv->setData(T_intr->inverse()); // get the inverse intermediate transformation, use setData() to copy from pointer to pointer
+    // get the inverse intermediate transformation, use setData() to copy from pointer to pointer
+    T_intr_inv->setData(T_intr->inverse()); 
 
     // transform source cloud to ith intermediate starting position 
     pcl_ros::transformPointCloud(*source_cloud, *source_cloud_intr, *T_intr);
 
+   
     CloudRegistration reg;
     // perform registration starting from intermediate starting position
     
@@ -398,7 +461,7 @@ int main(int argc, char** argv)
 
       // align the source cloud using the resulting transformation only if fscore has improved
       pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_cloud_T01, *T_01_intr);
-      pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_cloud_T10, *T_10_intr); // this works with 'pcl::PointCloud<pcl::PointXYZ>' and 'tf::Transform'
+      pcl_ros::transformPointCloud(*source_cloud_intr, *aligned_cloud_T10, *T_10_intr); 
       pcl_ros::transformPointCloud(*source_cloud, *source_cloud_intr_min, *T_intr);
 
       // align weld seam points using transformation
@@ -416,7 +479,7 @@ int main(int argc, char** argv)
       //tf::Vector3 P1_target_inches(0, 2, 4.5-6);
       //tf::Vector3 P2_target_inches(12.5, 2, 4.5-6);
 
-      // points for shape2
+      // points for shape2 (i think shape2 and shape2 names are now swapped)
       tf::Vector3 P0_target_inches(0, 0, 0-9);   // weld points in inches
       tf::Vector3 P1_target_inches(0, 0, 2-9);
       tf::Vector3 P2_target_inches(14, 0, 2-9);
@@ -425,6 +488,8 @@ int main(int argc, char** argv)
       P1_target=P1_target_inches*intm;
       P2_target=P2_target_inches*intm;
 
+      *T_src_tgt=T_intr->inverse()*T_01_intr_tmp; // record the total transformation including the intermediate step
+      
       P0_source=T_intr_tmp.inverse()*T_01_intr_tmp*P0_target;
       P1_source=T_intr_tmp.inverse()*T_01_intr_tmp*P1_target;
       P2_source=T_intr_tmp.inverse()*T_01_intr_tmp*P2_target;
@@ -461,6 +526,7 @@ int main(int argc, char** argv)
       // update the messages to be published after updating transforms upon finding minimum
       //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
       tf::transformStampedTFToMsg(*T_intr_inv, *T_intr_min_msg);
+      
       tf::transformStampedTFToMsg(*T_01_intr, *T_01_intr_min_msg);
       tf::transformStampedTFToMsg(*T_10_intr, *T_10_intr_min_msg);
 
@@ -473,16 +539,110 @@ int main(int argc, char** argv)
     }
   }
 
-  // update the messages to be published after updating transforms
-  //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
-  //tf::transformStampedTFToMsg(*T_intr_min, *T_intr_min_msg);
-  //tf::transformStampedTFToMsg(*T_01_intr_min, *T_01_intr_min_msg);
-  //tf::transformStampedTFToMsg(*T_10_intr_min, *T_10_intr_min_msg);
-  //tf::transformStampedTFToMsg(*T_01_intr, *T_01_intr_msg);
-  //tf::transformStampedTFToMsg(*T_10_intr, *T_10_intr_msg);
-
   std::cout << "Cloud aligned from starting position "<< i_min << " using best registration results" << std::endl;
    
+  
+  // hardcode ground truth points for each dataset, replace hardcoded points with ref from centroid
+  int ksize=9;
+  Eigen::MatrixXf known_poses_in(ksize,4);
+  Eigen::MatrixXf known_poses_mm(ksize,4);
+
+  float mmtom=1/1000;
+  float mmtoin=1/25.4;
+  float degtorad=M_PI/180.0;
+  float intom=0.0254;
+
+  // recorded by SC on table
+  known_poses_in << 0.5, -19.5-2.0, 2.0, 0.0,         // x3_y9_theta0// first (adjusted -2.0 in y)
+                    6.5, -21.0, 2.0, 45.0,       // x7_y5_theta45 //second
+                    -0.787402, -29.1339, 2,-45.0, // x3_y11_theta135 
+                    -10.0, -30.0,  2.0,  -135.0,    // x4_y5_theta45
+                    -2.0+0.5, -36.0+0.25, 2.0,  90.0,      // x9_y2_theta90   
+                    -3.0, -24.0, 2.0, 150.0,       // x8_y6_theta30
+                     5.0, -21.5, 2, 0,      // x4_y9_theta0  // this set recorded in prev session    
+                     2.55906, -11.811, 2, 90,     // x9_y7_theta90  
+                     2.0, -30.5118, 2, -45;    // x5_y10_theta4
+   
+   // recorded by TH in rviz
+   known_poses_mm <<  20.0, -540.0, 50.8, 0.0,      // x3_y9_theta0
+                    165.0, -530.0, 50.8, 45.0,    // x7_y5_theta45
+                    -20.0, -740.0, 50.8, 135.0,   // x3_y11_theta135
+                    -235.0,-765.0, 50.8, 45.0,    // x4_y5_theta45   
+                   -30.0, -900.0, 50.8,  90.0,    // x9_y2_theta90
+                    -40.0, -610.0, 50.8,  30.0,   // x8_y6_theta30
+                    125.0, -500.0, 50.8,  0.0,   // x4_y9_theta0  // this set recorded in prev session
+                    65.0, -300.0, 50.8,  90.0,  // x9_y7_theta90   
+                    85.0, -775.0, 50.8,  45.0;  // x5_y10_theta45
+
+
+  std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
+  for (int k=0; k<ksize; k++){
+    std::cout << k <<", "<< known_poses_in(k,0)/mmtoin << ", " 
+                         << known_poses_in(k,1)/mmtoin << ", " 
+                         << known_poses_in(k,2)/mmtoin << ", " 
+                         << known_poses_in(k,3) << std::endl;
+  }
+  
+  std::cout <<"known poses (idx,in,in,in,deg): "<<std::endl;
+  for (int k=0; k<ksize; k++){
+    std::cout << k <<", "<< known_poses_mm(k,0)*mmtoin << ", " 
+                         << known_poses_mm(k,1)*mmtoin << ", " 
+                         << known_poses_mm(k,2)*mmtoin << ", " 
+                         << known_poses_mm(k,3) << std::endl;
+  }
+  
+   
+  // create a transform to a point in the list
+  //tf::Vector3 source_p0, target_p0;
+   
+  //target_p0[0]=known_poses_in(0,0)*intom; 
+  //target_p0[1]=known_poses_in(0,1)*intom; 
+  //target_p0[2]=known_poses_in(0,2)*intom; 
+  tf::StampedTransform T_target_base;
+  tf::StampedTransform T_source_base;
+  tf::StampedTransform T_source_target;
+  tf::StampedTransform T_expected;
+   
+  // create a transform to a point in the list
+  tf::Vector3 source_p0, target_p0, source_target_p0, expected_p0, expected_source_p0;
+  
+  // index set in config file
+  target_p0[0]=known_poses_in(tgt_idx,0)*intom; 
+  target_p0[1]=known_poses_in(tgt_idx,1)*intom; 
+  target_p0[2]=known_poses_in(tgt_idx,2)*intom; 
+  
+  T_target_base.setOrigin(target_p0);  
+
+  tf::Quaternion target_q0, source_q0, source_target_q0, expected_q0;
+  //target_q0.setRPY(0.0, 0.0, known_poses_in(tgt_idx,3)*degtorad);  
+  target_q0.setRPY(0.0, 0.0, 0.0);  
+  T_target_base.setRotation(target_q0);
+  
+  source_p0=*T_src_tgt*target_p0;
+  
+  T_source_base.setOrigin(source_p0);  
+  T_source_base.setRotation(T_src_tgt->getRotation());
+
+  source_target_p0=source_p0-target_p0;
+  T_source_target.setOrigin(source_target_p0); 
+  T_source_target.setRotation(T_src_tgt->getRotation());
+
+
+  // index set in config file
+  expected_source_p0[0]=known_poses_in(src_idx,0)*intom; 
+  expected_source_p0[1]=known_poses_in(src_idx,1)*intom; 
+  expected_source_p0[2]=known_poses_in(src_idx,2)*intom; 
+  
+  expected_p0=expected_source_p0-target_p0;
+  expected_q0.setRPY(0.0, 0.0, (known_poses_in(tgt_idx,3)+known_poses_in(src_idx,3))*degtorad);  
+  //expected_q0.setRPY(0.0, 0.0, 45.0*degtorad);  
+  T_expected.setRotation(expected_q0);
+  T_expected.setOrigin(expected_p0); 
+  
+  tf::transformStampedTFToMsg(T_target_base, *T_target_base_msg);
+  //tf::transformStampedTFToMsg(T_source_base, *T_source_base_msg);
+  tf::transformStampedTFToMsg(T_source_target, *T_source_target_msg);
+    
   // set relative frame references (this seems like it is repeated, check on this)
   
   T_01_msg->header.frame_id = "T_intr_min"; T_01_msg->child_frame_id = "T_01"; // frames with parent frame base_link
@@ -499,9 +659,13 @@ int main(int argc, char** argv)
 
   T_01_intr_min_msg->header.frame_id = "base_link"; T_01_intr_min_msg->child_frame_id = "T_01_intr_min";
   T_10_intr_min_msg->header.frame_id = "base_link"; T_10_intr_min_msg->child_frame_id = "T_10_intr_min";
-
-
   
+  //T_source_base_msg->header.frame_id = "base_link"; T_source_base_msg->child_frame_id = "source"; 
+  T_target_base_msg->header.frame_id = "base_link"; T_target_base_msg->child_frame_id = "target"; 
+  
+  T_source_target_msg->header.frame_id = "target"; T_source_target_msg->child_frame_id = "source";
+  //T_target_source_msg->header.frame_id = "source"; T_target_source_msg->child_frame_id = "target";
+
   // save aligned cloud in PCD file (alignment still needs some work, revisit next!)
   if(save_aligned){
     std::cout<<"Writing aligned cloud to:"<< aligned_cloud_path <<std::endl;
@@ -514,8 +678,7 @@ int main(int argc, char** argv)
   std::cout<<"                    register_clouds: analyzing results              "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
-  analyze_results(*T_10, expected_results);
-  analyze_results(*T_01, expected_results);
+  analyze_results(*T_src_tgt, T_expected, target_p0, source_p0, expected_source_p0, tgt_idx, src_idx);
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: preparing visualization        "<<endl;
@@ -612,7 +775,14 @@ int main(int argc, char** argv)
 
       T_01_intr_min_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_01_intr_min_msg);
       T_10_intr_min_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_10_intr_min_msg);
-      
+    
+        
+   //   T_false_target_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_false_target_msg);
+      T_target_base_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_target_base_msg);
+   //   T_source_base_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_source_base_msg);
+      T_source_target_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_source_target_msg);
+      //T_target_source_msg->header.stamp = ros::Time::now(); static_broadcaster.sendTransform(*T_target_source_msg);
+
       source_pub.publish(source_cloud);
       source_intr_min_pub.publish(source_cloud_intr_min);
       

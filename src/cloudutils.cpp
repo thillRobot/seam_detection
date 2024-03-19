@@ -19,6 +19,7 @@
 #include <pcl/common/transforms.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl_ros/point_cloud.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -589,4 +590,64 @@ void CloudUtils::trimCloud(pcl::PointCloud<point_t> &input, pcl::PointCloud<poin
 
 template void CloudUtils::trimCloud<pcl::PointXYZRGB>
               (pcl::PointCloud<pcl::PointXYZRGB> &input, pcl::PointCloud<pcl::PointXYZRGB> &output, int output_size);
+
+
+template<typename point_t>
+// function to find the minimum oriented bounding box of a cloud using principle component analysis
+void CloudUtils::getPCABox(pcl::PointCloud<point_t> &input, 
+                           Eigen::Quaternionf& rotation, 
+                           Eigen::Vector3f& translation, 
+                           Eigen::Vector3f& dimension){
+
+  typename pcl::PointCloud<point_t>::Ptr cloud (new pcl::PointCloud<point_t>); //allocate memory 
+  pcl::copyPointCloud(input,*cloud);      //and make working copy of the input cloud 
+
+  // Compute principal directions
+  Eigen::Vector4f centroid;
+  pcl::compute3DCentroid(*cloud, centroid);
+  Eigen::Matrix3f covariance;
+  computeCovarianceMatrixNormalized(*cloud, centroid, covariance);
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
+  Eigen::Matrix3f eigen_vectors = eigen_solver.eigenvectors();
+  eigen_vectors.col(2) = eigen_vectors.col(0).cross(eigen_vectors.col(1));
+
+  // Transform the original cloud to the origin where the principal components correspond to the axes.
+  Eigen::Matrix4f projection_transform(Eigen::Matrix4f::Identity());
+  projection_transform.block<3,3>(0,0) = eigen_vectors.transpose();
+  projection_transform.block<3,1>(0,3) = -1.f * (projection_transform.block<3,3>(0,0) * centroid.head<3>());
+  typename pcl::PointCloud<point_t>::Ptr projected_cloud (new pcl::PointCloud<point_t>);
+
+  pcl::transformPointCloud(*cloud, *projected_cloud, projection_transform);
+  // Get the minimum and maximum points of the transformed cloud.
+  point_t min_point, max_point;
+  pcl::getMinMax3D(*projected_cloud, min_point, max_point);
+  const Eigen::Vector3f mean_diagonal = 0.5f*(max_point.getVector3fMap() + min_point.getVector3fMap());
+
+  // Final transform
+  const Eigen::Quaternionf box_rotation(eigen_vectors);
+  const Eigen::Vector3f box_translation = eigen_vectors * mean_diagonal + centroid.head<3>();
+
+  dimension[0]=max_point.x-min_point.x; // store the x,y,z lengths of the bounding box
+  dimension[1]=max_point.y-min_point.y;
+  dimension[2]=max_point.z-min_point.z;
+
+  double volume, aspect_ratio;
+  volume=dimension[0]*dimension[1]*dimension[2]; // calculate volume as product of dimensions
+  aspect_ratio=dimension.maxCoeff()/dimension.minCoeff(); // calculate aspect ratio as max dimension / min dimension
+
+  rotation=box_rotation;    // copy to the output variables, these lines crash now that I am passing in a vector ...
+  translation=box_translation;
+
+}
  
+template void CloudUtils::getPCABox<pcl::PointXYZRGB>
+                                   (pcl::PointCloud<pcl::PointXYZRGB> &input, 
+                                    Eigen::Quaternionf& rotation, 
+                                    Eigen::Vector3f& translation, 
+                                    Eigen::Vector3f& dimension);
+
+template void CloudUtils::getPCABox<pcl::PointXYZRGBNormal>
+                                   (pcl::PointCloud<pcl::PointXYZRGBNormal> &input, 
+                                    Eigen::Quaternionf& rotation, 
+                                    Eigen::Vector3f& translation, 
+                                    Eigen::Vector3f& dimension);

@@ -1,9 +1,10 @@
 ---
-input_bag: "bags/reconstruction/part1_x7_y5_theta45_cpos4_.bag"
-output_bag_dir: "bags/reconstruction/part1_x7_y5_theta45_cpos4_"
 
-input_dir: "bags/reconstruction/part1_x7_y5_theta45_cpos4_"
-output_dir: "bags/reconstruction/part1_x7_y5_theta45_cpos4_/filtered"
+input_bag: "bags/reconstruction/part1_x4_y9_theta0_cpos4_.bag"
+output_bag_dir: "bags/reconstruction/part1_x4_y9_theta0_cpos4_"
+
+input_dir: "bags/reconstruction/part1_x4_y9_theta0_cpos4_"
+output_dir: "bags/reconstruction/part1_x4_y9_theta0_cpos4_/filtered"
 
 camera_roll: 0.0
 camera_pitch: 0.0
