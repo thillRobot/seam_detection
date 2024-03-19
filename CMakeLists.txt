@@ -391,8 +391,8 @@ target_link_libraries(aubo_cmd ${catkin_LIBRARIES})
 #target_link_libraries(filter_source ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # teach_points
-#add_executable(teach_points src/teach_points.cpp)
-#target_link_libraries(teach_points ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(teach_points src/teach_points.cpp)
+target_link_libraries(teach_points ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # register_target_source - Registration and task execution with aubo arm
 add_executable(register_target_source src/register_target_source.cpp)
