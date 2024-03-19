@@ -445,6 +445,11 @@ target_link_libraries(aubo_cmd
 #add_executable(filter_source src/filter_source.cpp)
 #target_link_libraries(filter_source ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+# save_rgbcloud
+add_executable(save_rgbcloud src/save_rgbcloud.cpp)
+target_link_libraries(save_rgbcloud 
+                      cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 # teach_points
 add_executable(teach_points src/teach_points.cpp)
 target_link_libraries(teach_points ${catkin_LIBRARIES} ${PCL_LIBRARIES})

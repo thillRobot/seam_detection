@@ -50,8 +50,11 @@
   <!--
   <node pkg="pcl_ros" type="pointcloud_to_pcd" name="pointcloud_to_pcd" output="screen" args="_prefix:=$(find seam_detection)/pcd_images/$(arg filename)_ input:=/camera/depth/color/points fixed_frame:=camera_link" /> 
   -->
-
   
+
+  <!--node pkg="seam_detection" type="save_rgbcloud" name="save_rgbcloud" output="screen" args="camera/depth/color/points output.pcd"/>
+  -->
+
   <node pkg="rosbag" type="record" name="record" args="tf camera/depth/color/points -O $(find seam_detection)/bags/$(arg filename)_ -b 2048" />
  
 

@@ -76,7 +76,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 
 typedef Eigen::Matrix<double, 3, Eigen::Dynamic> EigenCor;
 
-bool filter_source_complete=0;
+bool filter_source_complete=1;
 bool registration_complete=0;
 
 // points from teach pose in meters
@@ -89,9 +89,9 @@ void teach_points_poses_callback(const geometry_msgs::PoseArray::ConstPtr& msg)
   //ROS_INFO("register target source: I heard : [%d]", msg->poses);
     //source_saved=msg->data;
   //ROS_INFO("teaching point: %i", idx);
-  ROS_INFO("teach points pose x: %f", msg->poses[0].position.x);
-  ROS_INFO("teach points pose y: %f", msg->poses[0].position.y);
-  ROS_INFO("teach points pose z: %f", msg->poses[0].position.z);
+  //ROS_INFO("teach points pose x: %f", msg->poses[0].position.x);
+  //ROS_INFO("teach points pose y: %f", msg->poses[0].position.y);
+  //ROS_INFO("teach points pose z: %f", msg->poses[0].position.z);
 
   P0_target.setX(msg->poses[0].position.x);
   P0_target.setY(msg->poses[0].position.y); 
@@ -531,6 +531,8 @@ int main(int argc, char** argv)
     pcl::io::savePCDFileASCII (aligned_source_path, *aligned_source_T10);
     std::cout<<"Aligned cloud written to:"<< aligned_source_path <<std::endl;
   }
+
+  std::cout<<"P0 source:" <<P0_source_inches[0]<<std::endl;
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_target_ source: analyzing results              "<<endl;

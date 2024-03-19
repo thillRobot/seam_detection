@@ -1,10 +1,10 @@
 ---
 
-input_bag: "bags/reconstruction/part1_x4_y9_theta0_cpos4_.bag"
-output_bag_dir: "bags/reconstruction/part1_x4_y9_theta0_cpos4_"
+input_bag: "bags/reconstruction/demo_part1_clutter_cpos4_.bag"
+output_bag_dir: "bags/reconstruction/demo_part1_clutter_cpos4_"
 
-input_dir: "bags/reconstruction/part1_x4_y9_theta0_cpos4_"
-output_dir: "bags/reconstruction/part1_x4_y9_theta0_cpos4_/filtered"
+input_dir: "bags/reconstruction/demo_part1_clutter_cpos4_"
+output_dir: "bags/reconstruction/demo_part1_clutter_cpos4_/filtered"
 
 camera_roll: 0.0
 camera_pitch: 0.0
@@ -46,7 +46,7 @@ camera_mount_z: 8.5
 # tripod_y: 0.0
 # tripod_z: 65.25
 
-num_bag_clouds: 10
+num_bag_clouds: 3
 save_bag_clouds: true
 save_dir_clouds: true
 
