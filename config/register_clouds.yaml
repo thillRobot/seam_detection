@@ -10,7 +10,7 @@ scene_name: "register_clouds" # change this to config_name ?
 #register_clouds/target_file: "bags/reconstruction/part1_x3_y9_theta0_5_output.pcd"
 register_clouds/target_file: "bags/reconstruction/demo_part1_2_output.pcd"
 
-register_clouds/tgt_idx: 0
+register_clouds/tgt_idx: 9
 #register_clouds/target_file: "bags/reconstruction/part1_x9_y2_theta90_5_output.pcd"
 #register_clouds/tgt_idx: 4
 

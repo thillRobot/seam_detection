@@ -102,6 +102,8 @@ void teach_points_poses_callback(const geometry_msgs::PoseArray::ConstPtr& msg)
   P2_target.setX(msg->poses[2].position.x);
   P2_target.setY(msg->poses[2].position.y); 
   P2_target.setZ(msg->poses[2].position.z);
+
+
   //P1_target_inches=[msg->poses[1].position.x, msg->poses[1].position.y, msg->poses[1].position.z]
   //P2_target_inches=[msg->poses[2].position.x, msg->poses[2].position.y, msg->poses[2].position.z]
    
@@ -336,6 +338,18 @@ int main(int argc, char** argv)
   Eigen::Matrix<double, 6, Eigen::Dynamic> corrs;
 
 
+  P0_target.setX(0.070626);
+  P0_target.setY(-0.634679); 
+  P0_target.setZ(0.043339);
+
+  P1_target.setX( -0.232871);
+  P1_target.setY(-0.645303); 
+  P1_target.setZ(0.0501908);
+
+  P2_target.setX(-0.234004);
+  P2_target.setY(-0.681027); 
+  P2_target.setZ(0.0443729);
+
   double fscore; // fitness score (lower is better)
   double fscore_min=1000;
 
@@ -472,12 +486,16 @@ int main(int argc, char** argv)
       outfile.close();
 
       //std::stringstream gcode;
+      //gcode.str(""); // clear the buffer
+      //gcode <<"G1 X"<<P0_source_inches.x()<<" Y"<<P0_source_inches.y()<<" Z"<<P0_source_inches.z()<<" A60 B10 C175 F200";
+      //gcode <<"G4 P0.2";
+      //gcode <<"G1 X"<<P1_source_inches.x()<<" Y"<<P1_source_inches.y()<<" Z"<<P1_source_inches.z()<<" A60 B10 C175 F150";
+      //gcode <<"G4 P0.2";
+      //gcode <<"G1 X"<<P2_source_inches.x()<<" Y"<<P2_source_inches.y()<<" Z"<<P2_source_inches.z()<<" A60 B10 C175 F150";
+
+      //std::stringstream gcode;
       gcode.str(""); // clear the buffer
-      gcode <<"G1 X"<<P0_source_inches.x()<<" Y"<<P0_source_inches.y()<<" Z"<<P0_source_inches.z()<<" A60 B10 C175 F200";
-      gcode <<"G4 P0.2";
-      gcode <<"G1 X"<<P1_source_inches.x()<<" Y"<<P1_source_inches.y()<<" Z"<<P1_source_inches.z()<<" A60 B10 C175 F150";
-      gcode <<"G4 P0.2";
-      gcode <<"G1 X"<<P2_source_inches.x()<<" Y"<<P2_source_inches.y()<<" Z"<<P2_source_inches.z()<<" A60 B10 C175 F150";
+      gcode <<"G1 X"<<P0_source_inches.x()<<" Y"<<P0_source_inches.y()<<" Z"<<P0_source_inches.z()<<" A0 B0 C-145 F200";
 
 
       // update the messages to be published after updating transforms upon finding minimum
@@ -532,7 +550,7 @@ int main(int argc, char** argv)
     std::cout<<"Aligned cloud written to:"<< aligned_source_path <<std::endl;
   }
 
-  std::cout<<"P0 source:" <<P0_source_inches[0]<<std::endl;
+  
 
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_target_ source: analyzing results              "<<endl;
@@ -637,8 +655,8 @@ int main(int argc, char** argv)
       source_markers_pub.publish(source_markers);
       target_markers_pub.publish(target_markers);
 
-      //gcode_msg.data=gcode.str();
-      //gcode_pub.publish(gcode_msg);
+      gcode_msg.data=gcode.str();
+      gcode_pub.publish(gcode_msg);
 
       ros::spinOnce();
       loop_rate.sleep();

@@ -46,7 +46,7 @@ camera_mount_z: 8.5
 # tripod_y: 0.0
 # tripod_z: 65.25
 
-num_bag_clouds: 3
+num_bag_clouds: 10
 save_bag_clouds: true
 save_dir_clouds: true
 

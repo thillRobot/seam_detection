@@ -77,15 +77,23 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"                    aubo_cmd v1.9                                   "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
+  
+  double intm=0.0254;
+  double mtin=1/0.0254;
 
-  P0_inches << 0, -28, 6;
-  P1_inches << 2, -20, 10;
-  P2_inches << 4, -20, 10;
+  P0<<0.241742, -0.657364, 0.0447408;
+  P0_inches=P0*mtin;
 
-  double intm=.0254;
-  P0=P0_inches*intm;
+  //P0_inches << 0, -28, 6;
+  //P1_inches << 2, -20, 10;
+  //P2_inches << 4, -20, 10;
+
+
+  //P0=P0_inches*intm;
   P1=P1_inches*intm;
   P2=P2_inches*intm;
+
+
 
   std::cout<<"P0: ["<<P0.x()<<","<<P0.y()<<","<<P0.z()<<"]"<<std::endl;
   std::cout<<"P1: ["<<P1.x()<<","<<P1.y()<<","<<P1.z()<<"]"<<std::endl;

@@ -6,14 +6,13 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /TF1/Status1
         - /TF1/Frames1
         - /DepthCloud1
         - /DepthCloud1/Auto Size1
         - /DepthCloud2
         - /RobotModel1
       Splitter Ratio: 0.6870078444480896
-    Tree Height: 810
+    Tree Height: 443
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -354,7 +353,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.57442569732666
+      Distance: 2.2654945850372314
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -362,17 +361,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.5239607095718384
-        Y: -0.637022852897644
-        Z: 0.06085968017578125
+        X: 0.22406715154647827
+        Y: -0.3782220184803009
+        Z: 0.2562134861946106
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.39520350098609924
+      Pitch: 0.3102034330368042
       Target Frame: <Fixed Frame>
-      Yaw: 2.6367757320404053
+      Yaw: 3.771775484085083
     Saved: ~
 Window Geometry:
   Displays:

@@ -152,7 +152,8 @@ training_inliers_file: "bags/reconstruction/demo_part1_2_inliers.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x3_y9_theta0_5_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x4_y9_theta0_5_merged.pcd"
 #seam_detection/test_file: "bags/reconstruction/part1_x5_y10_theta45_5_merged.pcd"
-seam_detection/test_file: "bags/reconstruction/demo_part1_clutter_2_merged.pcd"
+seam_detection/test_file: "bags/reconstruction/demo_part1_2_merged.pcd"
+#seam_detection/test_file: "bags/reconstruction/demo_part1_clutter_2_merged.pcd"
 
 
 
@@ -161,7 +162,8 @@ seam_detection/test_file: "bags/reconstruction/demo_part1_clutter_2_merged.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x5_y10_theta45_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x8_y6_theta30_5_output.pcd"
-seam_detection/output_file: "bags/reconstruction/demo_part1_clutter_2_output.pcd"
+seam_detection/output_file: "bags/reconstruction/demo_part1_2_output.pcd"
+#seam_detection/output_file: "bags/reconstruction/demo_part1_clutter_2_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x9_y2_theta90_5_output.pcd"
 #seam_detection/output_file: "bags/reconstruction/part1_x5_y10_theta45_5_output.pcd"
 

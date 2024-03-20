@@ -1,0 +1,54 @@
+
+teachpoints_take1
+
+[ WARN] [1710903323.840452359]: "world" passed to lookupTransform argument target_frame does not exist. 
+[ WARN] [1710903323.943815693]: "world" passed to lookupTransform argument target_frame does not exist. 
+[ WARN] [1710903324.043980227]: "T7" passed to lookupTransform argument source_frame does not exist. 
+idx: 1, teach_points_state: 0
+frame position:[ 0.070626,-0.634679,0.043339]
+frame orientation:[ -0.770496,-0.315332,0.136844,0.53682]
+[ WARN] [1710903341.640981458]: "world" passed to lookupTransform argument target_frame does not exist. 
+[ WARN] [1710903341.741131281]: "world" passed to lookupTransform argument target_frame does not exist. 
+idx: 2, teach_points_state: 0
+frame position:[ -0.232871,-0.645303,0.0501908]
+frame orientation:[ 0.811767,0.292999,-0.130195,-0.488093]
+[ WARN] [1710903361.439094231]: "world" passed to lookupTransform argument target_frame does not exist. 
+[ WARN] [1710903361.539315530]: "world" passed to lookupTransform argument target_frame does not exist. 
+[ WARN] [1710903361.639514893]: "T7" passed to lookupTransform argument source_frame does not exist. 
+idx: 3, teach_points_state: 1
+frame position:[ -0.234004,-0.681027,0.0443729]
+frame orientation:[ 0.799489,0.389271,-0.161744,-0.427929]
+teach_points: poses taught 
+pose0: [0.070626,-0.634679,0.043339]
+pose1: [-0.232871,-0.645303,0.0501908]
+pose2: [-0.234004,-0.681027,0.0443729]
+^C[rviz-3] killing on exit
+[teach_points-2] killing on exit
+[seam_detection_tf-1] killing on exit
+
+
+teachpoints_take2
+
+idx: 1, teach_points_state: 0
+frame position:[ 0.0697375,-0.632695,0.0413878]
+frame orientation:[ 0.792129,0.336342,-0.138023,-0.49026]
+[ WARN] [1710903748.237914256]: "world" passed to lookupTransform argument target_frame does not exist. 
+[ WARN] [1710903748.338072705]: "world" passed to lookupTransform argument target_frame does not exist. 
+[ WARN] [1710903748.438257584]: "T7" passed to lookupTransform argument source_frame does not exist. 
+[ WARN] [1710903748.538423741]: "T7" passed to lookupTransform argument source_frame does not exist. 
+idx: 2, teach_points_state: 0
+frame position:[ -0.234628,-0.641406,0.0443591]
+frame orientation:[ 0.809427,0.291213,-0.161957,-0.483521]
+[ WARN] [1710903755.475385896]: "world" passed to lookupTransform argument target_frame does not exist. 
+[ WARN] [1710903755.575571425]: "world" passed to lookupTransform argument target_frame does not exist. 
+[ WARN] [1710903755.675760176]: "T7" passed to lookupTransform argument source_frame does not exist. 
+idx: 3, teach_points_state: 1
+frame position:[ -0.233718,-0.682961,0.0440619]
+frame orientation:[ 0.81373,0.31671,-0.183059,-0.451694]
+teach_points: poses taught 
+pose0: [0.0697375,-0.632695,0.0413878]
+pose1: [-0.234628,-0.641406,0.0443591]
+pose2: [-0.233718,-0.682961,0.0440619]
+^C[rviz-3] killing on exit
+[teach_points-2] killing on exit
+[seam_detection_tf-1] killing on exit

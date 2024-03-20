@@ -53,6 +53,7 @@ see README.md or https://github.com/thillRobot/seam_detection for documentation
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/String.h>
 
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
@@ -180,6 +181,8 @@ int main(int argc, char** argv)
   std::cout<<"===================================================================="<<endl;
   std::cout<<"                    register_clouds: loading configuration file     "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
+
+  std::stringstream gcode; 
 
   // find the path to the this package (seam_detection)
   std::string packagepath = ros::package::getPath("seam_detection");
@@ -523,6 +526,10 @@ int main(int argc, char** argv)
               <<" A60 B10 C175 F150"<<std::endl;
       outfile.close();
 
+      //std::stringstream gcode;
+      gcode.str(""); // clear the buffer
+      gcode <<"G1 X"<<P0_source_inches.x()<<" Y"<<P0_source_inches.y()<<" Z"<<P0_source_inches.z()<<" A0 B0 C-145 F200";
+
       // update the messages to be published after updating transforms upon finding minimum
       //tf::transformStampedTFToMsg(*T_intr, *T_intr_msg);
       tf::transformStampedTFToMsg(*T_intr_inv, *T_intr_min_msg);
@@ -543,7 +550,7 @@ int main(int argc, char** argv)
    
   
   // hardcode ground truth points for each dataset, replace hardcoded points with ref from centroid
-  int ksize=9;
+  int ksize=11;
   Eigen::MatrixXf known_poses_in(ksize,4);
   Eigen::MatrixXf known_poses_mm(ksize,4);
 
@@ -561,7 +568,9 @@ int main(int argc, char** argv)
                     -3.0, -24.0, 2.0, 150.0,       // x8_y6_theta30
                      5.0, -21.5, 2, 0,      // x4_y9_theta0  // this set recorded in prev session    
                      2.55906, -11.811, 2, 90,     // x9_y7_theta90  
-                     2.0, -30.5118, 2, -45;    // x5_y10_theta4
+                     2.0, -30.5118, 2, -45,    // x5_y10_theta4
+                     2.5, -24.8, 2, 0.0,
+                     9.0, -26.0, 2, 45.0; 
    
    // recorded by TH in rviz
    known_poses_mm <<  20.0, -540.0, 50.8, 0.0,      // x3_y9_theta0
@@ -572,7 +581,9 @@ int main(int argc, char** argv)
                     -40.0, -610.0, 50.8,  30.0,   // x8_y6_theta30
                     125.0, -500.0, 50.8,  0.0,   // x4_y9_theta0  // this set recorded in prev session
                     65.0, -300.0, 50.8,  90.0,  // x9_y7_theta90   
-                    85.0, -775.0, 50.8,  45.0;  // x5_y10_theta45
+                    85.0, -775.0, 50.8,  45.0,  // x5_y10_theta45
+                    6.5, 63.0, 0, 0,
+                    0.0, 0.0, 0, 0;
 
 
   std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
@@ -684,6 +695,9 @@ int main(int argc, char** argv)
   std::cout<<"                    register_clouds: preparing visualization        "<<endl;
   std::cout<<"===================================================================="<<endl<<endl;
 
+  ros::Publisher gcode_pub = node.advertise<std_msgs::String> ("/motion/move_cmd", 1,true);
+  std_msgs::String gcode_msg;
+
   ros::Publisher source_pub = node.advertise<PointCloud> ("/source_cloud", 1);
   ros::Publisher source_intr_min_pub = node.advertise<PointCloud> ("/source_cloud_intr_min", 1);
   ros::Publisher target_pub = node.advertise<PointCloud> ("/target_cloud", 1);
@@ -792,6 +806,10 @@ int main(int argc, char** argv)
 
       source_markers_pub.publish(source_markers);
       target_markers_pub.publish(target_markers);
+
+
+      gcode_msg.data=gcode.str();
+      gcode_pub.publish(gcode_msg);
 
       ros::spinOnce();
       loop_rate.sleep();
