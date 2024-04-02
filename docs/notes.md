@@ -158,6 +158,19 @@ Many algorithms and examples exist for 3D image analysis that use neural network
 
 - Shape Retrieval
 
+Concept: Transfer Learning 
+Transfer learning with respect to Convolutional Neural Networks (CNNs) is a technique where a pre-trained model, which has been trained on a large dataset for a particular task, is adapted for a related task or dataset.
+
+In CNNs, the lower layers of the network typically learn to extract low-level features such as edges and textures, while the higher layers learn to extract more abstract features relevant to the specific task the network was trained on. Transfer learning leverages these learned features by reusing a pre-trained model's architecture and weights and fine-tuning them on a new dataset or task.
+
+There are typically two main approaches to transfer learning in CNNs:
+
+   1) Feature Extraction: In this approach, you take a pre-trained CNN model and remove the fully connected layers at the top of the network. Then, you replace these layers with new ones that are appropriate for your new task. The weights of the pre-trained layers are frozen, meaning they are not updated during training, and only the weights of the new layers are learned from scratch using the new dataset.
+
+   2) Fine-tuning: In this approach, you not only replace the fully connected layers at the top of the network but also fine-tune some of the pre-trained layers by unfreezing them and allowing their weights to be updated during training on the new dataset. This is particularly useful when the new dataset is significantly different from the original dataset used to train the pre-trained model.
+
+Transfer learning is widely used in practice, especially in scenarios where there is limited availability of labeled data for training deep learning models from scratch. It allows leveraging the knowledge gained from large datasets and applying it to new, related tasks, often leading to improved performance and faster convergence.
+
 
 ### Object Detection Algorithms/Models
 
