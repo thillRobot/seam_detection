@@ -55,25 +55,10 @@
 Many algorithms and examples exist for 3D image analysis that use neural networks.
 
 
-### General Problems/Applications
-
-- Classification
-
-- Segmentation
-
-- Detection 
-
-- Reconstruction 
-
-- Completion
-
-- Model Alignment
-
-- Surface Correspondence
-
-
 
 ### Datasets
+
+
 
 - ModelNet40 - Princeton - (https://modelnet.cs.princeton.edu/)
  - ModelNet10 - aligned subset 
@@ -84,10 +69,14 @@ Many algorithms and examples exist for 3D image analysis that use neural network
 - ShapeNet - Princeton, Stanford, TTIC - (https://shapenet.org/)
  - ShapeNetCore - Single Clean 3D models, category and alignment annotations, 55 categories
  - ShapeNetSem - category and alignment labels, dimensions, material, volume, weight, 270 categories
- - PartNet - Hierarchical part annotations from ShapeNet
+ - PartNet - Hierarchical part annotations from ShapeNet, instance segmenation
  - Use with PyTorch3d (https://github.com/facebookresearch/pytorch3d)
 
+- Pix3D
 
+- Pascal 3D+, 12 categories, pose annotations, images in the wild
+
+- ObjectNet3D - Stanford, Chris Choy
 
 - 3DMatch - Princeton
   - Keypoint Matching, 3D Reconstruction, Geometric Registration
@@ -97,8 +86,122 @@ Many algorithms and examples exist for 3D image analysis that use neural network
  - stereo vision, optical flow, visual odometry, 3D object detection, 3D tracking
 
 
+### Libraries/Frameworks
+
+- PyTorch3D (, updated 2024) 
+
+- Torch-Points3D (https://github.com/torch-points3d/torch-points3d, updated 2021)
+
+- OpenPCDet (https://github.com/open-mmlab/OpenPCDet, updated 2023)
+
+- Minkowski Engine (https://github.com/NVIDIA/MinkowskiEngine/tree/master, updated 2021)
+  - auto-differentiation library for sparse tensors. It supports all standard neural network layers, NVIDIA  
+
+- Detectron2 - library for detection and segmentation algorithms (https://github.com/facebookresearch/detectron2?tab=readme-ov-file), facebook 
+  - contains implementations of Faster and Mesh R-CNN
 
 
+
+### Algorithms/Tasks/Methods
+
+- Classification
+  "supervised learning task where the goal is to categorize input data into one of several predefined classes or categories. It involves training a model to learn the relationship between input features and their corresponding class labels" - chatgpt3.5
+
+- Regression
+  "supervised learning task where the goal is to predict continuous numerical values rather than discrete class labels. In other words, regression models learn to map input data to a continuous output space." - chatgpt3.5
+
+- Segmentation 
+
+  - Semantic Segmentation
+    "the goal is to categorize each pixel in an image into a class or object. The goal is to produce a dense pixel-wise segmentation map of an image, where each pixel is assigned to a specific class or object. " (https://paperswithcode.com/task/semantic-segmentation)
+
+    "classify each pixel in an image into a specific class or category, without distinguishing between different instances of the same class."
+
+    - semantic segmentation process 
+
+    1) Input Image: The input to a semantic segmentation model is typically a single image.
+
+    2) Pixel-Level Classification: Semantic segmentation algorithms analyze the entire image and classify each pixel into predefined classes or categories. These classes could include objects such as people, cars, buildings, roads, trees, etc.
+
+    3) Output Map: The output of semantic segmentation is a labeled image where each pixel is assigned a color or a numerical value corresponding to the class it belongs to. This output is often referred to as a segmentation mask or semantic map.
+
+    - chatgpt3.5
+
+  - Instance Segmentation - identifying and separating individual objects within an image (https://paperswithcode.com/task/instance-segmentation) 
+  - "identifying and delineating individual objects within an image while also distinguishing between different object instances of the same class"
+
+    - instance segmentation process:
+
+    1) Object Detection: Instance segmentation often begins with object detection, where the goal is to identify and localize objects within an image. This step typically involves using techniques such as region proposal networks or anchor-based methods to generate candidate object bounding boxes.
+
+    2) Segmentation: After detecting objects, the next step is to segment each object instance from the background and from other objects in the image. Unlike semantic segmentation, which groups pixels into classes without distinguishing between instances, instance segmentation aims to assign a unique label to each individual object instance.
+
+    3) Mask Generation: In instance segmentation, each detected object is associated with a binary mask that precisely outlines its boundaries. These masks indicate which pixels in the image belong to the object and which belong to the background.
+
+    4) Object Classification: In addition to segmenting objects, instance segmentation may also involve classifying each object instance into specific categories or classes. This step helps in understanding not just where objects are in the image but also what they are.
+
+    - chatgpt3.5
+
+
+
+- Detection 
+  - 2D
+  - 3D 
+
+- Reconstruction 
+
+- Completion
+
+- Model Alignment
+
+- Surface Correspondence
+
+- Shape Retrieval
+
+
+### Object Detection Algorithms/Models
+
+- Region-based Convolutional Neural Network 
+  - R-CNN 
+    1) Region Proposal: The first step of the R-CNN pipeline is to generate region proposals, which are candidate bounding boxes that might contain objects. Initially, a region proposal method such as Selective Search is used to generate a set of potential object bounding boxes in the image. These candidate regions are then passed through the subsequent stages for further processing.
+
+    2) Feature Extraction: Each proposed region is warped to a fixed size and fed into a pre-trained convolutional neural network (CNN), typically models like AlexNet, VGGNet, or ResNet. The CNN extracts a fixed-length feature vector from each region, encoding information about the region's content.
+
+    3) Classification and Localization: The feature vectors extracted from the proposed regions are then used as input to two separate fully connected layers: one for object classification and one for bounding box regression. The classification layer predicts the probability of each region containing an object of interest, while the regression layer refines the coordinates of the bounding box enclosing the object if one is present.
+
+    4) Non-Maximum Suppression (NMS): After classification and regression, a post-processing step called non-maximum suppression is applied to remove duplicate detections and refine the final bounding boxes. NMS ensures that only the most confident and non-overlapping bounding boxes are retained as the output.
+
+  - Note: R-CNN uses combintation of classification and regression to identify and locate the object  
+
+  - Faster R-CNN
+  - Fast R-CNN
+
+  - PointRCNN - first two-stage 3D object detector for 3D object detection by using only the raw point cloud as input. 
+  
+  - Mesh R-CNN 
+  
+  - wikipedia (https://en.wikipedia.org/wiki/Region_Based_Convolutional_Neural_Networks) 
+    " take an input image and produce a set of bounding boxes as output, where each bounding box contains an object and also the category (e.g. car or pedestrian) of the object "
+  - benchmark leaders in object detection 
+
+- combined 3D and 2D (YOLOv3 + Frustrum PointNet)
+
+- 3DETR (https://github.com/facebookresearch/3detr)
+  - 3D DEtection TRansformer (3D detection with transformers)
+
+  - " a simpler alternative to complex hand-crafted 3D detection pipelines "
+
+- VoteNet (https://github.com/facebookresearch/votenet, https://github.com/qq456cvb/VoteNet)
+  - end to end NN based on hough voting
+
+- PointNet - Stanford - (https://github.com/charlesq34/pointnet)
+  - Neural network architechture designed for direct use with pointclouds
+  - 2016-2017
+
+- Frustrum PointNet (uses TensorFLow)
+
+- PIXOR 
+  - oriented 3D object estimates, autonomous driving context
 
 
 
