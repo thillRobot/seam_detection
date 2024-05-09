@@ -58,8 +58,6 @@ Many algorithms and examples exist for 3D image analysis that use neural network
 
 ### Datasets
 
-
-
 - ModelNet40 - Princeton - (https://modelnet.cs.princeton.edu/)
  - ModelNet10 - aligned subset 
 
@@ -71,8 +69,10 @@ Many algorithms and examples exist for 3D image analysis that use neural network
  - ShapeNetSem - category and alignment labels, dimensions, material, volume, weight, 270 categories
  - PartNet - Hierarchical part annotations from ShapeNet, instance segmenation
  - Use with PyTorch3d (https://github.com/facebookresearch/pytorch3d)
+ - Not for commercial use, agreement required to download core dataset, requires multiple approvals
 
-- Pix3D
+- Pix3D - data set for generating 3D images from 2D images
+  - used in mesh-rcnn demo 
 
 - Pascal 3D+, 12 categories, pose annotations, images in the wild
 
@@ -88,7 +88,8 @@ Many algorithms and examples exist for 3D image analysis that use neural network
 
 ### Libraries/Frameworks
 
-- PyTorch3D (, updated 2024) 
+- PyTorch3D (https://github.com/facebookresearch/pytorch3d, updated 2024) 
+  - tested by TH, required for mesh-rcnn
 
 - Torch-Points3D (https://github.com/torch-points3d/torch-points3d, updated 2021)
 
@@ -96,9 +97,12 @@ Many algorithms and examples exist for 3D image analysis that use neural network
 
 - Minkowski Engine (https://github.com/NVIDIA/MinkowskiEngine/tree/master, updated 2021)
   - auto-differentiation library for sparse tensors. It supports all standard neural network layers, NVIDIA  
+  - tested by TH
+  - TH wrote basic 3D pixel classifier based on Chris Choys examples and scannet
 
 - Detectron2 - library for detection and segmentation algorithms (https://github.com/facebookresearch/detectron2?tab=readme-ov-file), facebook 
   - contains implementations of Faster and Mesh R-CNN
+  - tested by TH
 
 
 
@@ -142,11 +146,12 @@ Many algorithms and examples exist for 3D image analysis that use neural network
 
     - chatgpt3.5
 
+  - Panoptic Segmentation - combination of semantic and instance segmentation
 
 
 - Detection 
-  - 2D
-  - 3D 
+  - 2D - lots of examples
+  - 3D - very few examples 
 
 - Reconstruction 
 
@@ -191,7 +196,7 @@ Transfer learning is widely used in practice, especially in scenarios where ther
 
   - PointRCNN - first two-stage 3D object detector for 3D object detection by using only the raw point cloud as input. 
   
-  - Mesh R-CNN 
+  - Mesh R-CNN -  objects in real-world images (2D) and produces a triangle mesh giving the full 3D shape of each detected object - tested, uses detectron2 and pytorch3d
   
   - wikipedia (https://en.wikipedia.org/wiki/Region_Based_Convolutional_Neural_Networks) 
     " take an input image and produce a set of bounding boxes as output, where each bounding box contains an object and also the category (e.g. car or pedestrian) of the object "
@@ -218,3 +223,9 @@ Transfer learning is widely used in practice, especially in scenarios where ther
 
 
 
+### Image Reconstruction
+
+- 3D-R2R2: 3D Recurrent Reconstruction Neural Network (http://3d-r2n2.stanford.edu/, https://github.com/chrischoy/3D-R2N2/)
+  - given one or multiple views of an object, the network generates voxlized reconstruction of the object in 3D
+  - uses ShapeNet dataset
+  - from Chris Choy, Stanford, Nvidia  
