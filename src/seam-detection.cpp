@@ -128,7 +128,7 @@ class SeamDetection {
       node.getParam("training_view3_file", training_view3_file);
       node.getParam("training_view4_file", training_view4_file);
       node.getParam("training_merged_file", training_merged_file);
-      node.getParam("training_inliers_file", training_inliers_file);
+      node.getParam("seam_detection/training_inliers_file", training_inliers_file);
       node.getParam("training_merged_file", training_merged_file);
       
       node.getParam("test_view1_file", test_view1_file);
@@ -136,7 +136,7 @@ class SeamDetection {
       node.getParam("test_view3_file", test_view3_file);
       node.getParam("test_view4_file", test_view4_file);
       node.getParam("test_merged_file", test_merged_file);
-      node.getParam("test_inliers_file", test_inliers_file);
+      node.getParam("seam_detection/test_inliers_file", test_inliers_file);
       node.getParam("test_merged_file", test_merged_file);
 
       // generate absolute file paths to inputs (does this belong here?)
@@ -1495,6 +1495,9 @@ int main(int argc, char** argv)
   util.publishCloud(*test_transformed, "/test_transformed", "base_link"); 
   util.publishCloud(*test_bounded, "/test_bounded", "base_link");
   util.publishCloud(*test_inliers, "/test_inliers", "base_link");
+
+  // save resulting filtered test images to pcd file
+  util.saveCloud(*test_inliers, sd.test_inliers_file);
 
   std::cout<<"|----------- Step 5 Complete ----------|"<<std::endl;  
  

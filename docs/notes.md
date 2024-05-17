@@ -59,17 +59,19 @@ Many algorithms and examples exist for 3D image analysis that use neural network
 ### Datasets
 
 - ModelNet40 - Princeton - (https://modelnet.cs.princeton.edu/)
- - ModelNet10 - aligned subset 
+ - ModelNet10 - aligned subset 1
+ - not clear if available for commericial use
 
 - ScanNet - Stanford, Princeton, Tech. Univ. Munich - (http://www.scan-net.org/)
   - 20 classes from hotel room
+  - non-commercial use only
 
 - ShapeNet - Princeton, Stanford, TTIC - (https://shapenet.org/)
  - ShapeNetCore - Single Clean 3D models, category and alignment annotations, 55 categories
  - ShapeNetSem - category and alignment labels, dimensions, material, volume, weight, 270 categories
  - PartNet - Hierarchical part annotations from ShapeNet, instance segmenation
  - Use with PyTorch3d (https://github.com/facebookresearch/pytorch3d)
- - Not for commercial use, agreement required to download core dataset, requires multiple approvals
+ - non-commercial use only
 
 - Pix3D - data set for generating 3D images from 2D images
   - used in mesh-rcnn demo 
@@ -85,6 +87,8 @@ Many algorithms and examples exist for 3D image analysis that use neural network
  - vision for autonomous vehicles
  - stereo vision, optical flow, visual odometry, 3D object detection, 3D tracking
 
+- COCO - needs invesigating 
+
 
 ### Libraries/Frameworks
 
@@ -94,11 +98,15 @@ Many algorithms and examples exist for 3D image analysis that use neural network
 - Torch-Points3D (https://github.com/torch-points3d/torch-points3d, updated 2021)
 
 - OpenPCDet (https://github.com/open-mmlab/OpenPCDet, updated 2023)
+  - currently testing, possibly useful, designed for autonomous vehicles, consider implementing on Rover demo
+  - possibly just a time sink and bad fit for this project
+  - documentation is limited
 
 - Minkowski Engine (https://github.com/NVIDIA/MinkowskiEngine/tree/master, updated 2021)
   - auto-differentiation library for sparse tensors. It supports all standard neural network layers, NVIDIA  
   - tested by TH
   - TH wrote basic 3D pixel classifier based on Chris Choys examples and scannet
+  - consider re-visiting thisa, at least dusting off example from Dec 2023
 
 - Detectron2 - library for detection and segmentation algorithms (https://github.com/facebookresearch/detectron2?tab=readme-ov-file), facebook 
   - contains implementations of Faster and Mesh R-CNN
@@ -229,3 +237,7 @@ Transfer learning is widely used in practice, especially in scenarios where ther
   - given one or multiple views of an object, the network generates voxlized reconstruction of the object in 3D
   - uses ShapeNet dataset
   - from Chris Choy, Stanford, Nvidia  
+
+
+
+
