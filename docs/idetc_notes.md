@@ -3,31 +3,39 @@
 
 ##### Datasets
 
-  - [x] `part1_x4_y9_theta0` 
-  - [x] `part1_x4_y9_theta0_part2_clamp_glove`
+  - [x,x,] `part1_x4_y9_theta0` 
+  - [x,x,] `part1_x4_y9_theta0_part2_clamp_glove`
 
-  - [x] `part1_x5_y10_theta45`  
-  - [x] `part1_x5_y10_theta45_part2_clamp_glove`
+  - [x,x,] `part1_x5_y10_theta45`  
+  - [x,x,] `part1_x5_y10_theta45_part2_clamp_glove`
 
-  - [x] `part1_x9_y7_theta90`
-  - [x] `part1_x9_y7_theta90_part2_clamp_glove`
+  - [x,x,] `part1_x9_y7_theta90`
+  - [x,x,] `part1_x9_y7_theta90_part2_clamp_glove`
 
-  - [x] `part1_x5_y6_theta45`  
-  - [x] `part1_x5_y6_theta45_part2_clamp_glove`
+  - [x,x,] `part1_x5_y6_theta45`  
+  - [x,x,] `part1_x5_y6_theta45_part2_clamp_glove`
 
-  - [x] `part1_x3_y9_theta0`
-  - [x] `part1_x3_y9_theta0_part2_clamp_glove`
+  - [x,x,] `part1_x3_y9_theta0`
+  - [x,x,] `part1_x3_y9_theta0_part2_clamp_glove`
+ 
+  - [x,x,] `part1_x4_y8_theta0`
+  - [x,x,] `part1_x4_y8_theta0_part2_clamp_glove`
+
+  - [x,x,] `part1_x2_y4_theta0`
+
+  - [x,x,] `part1_x9_y2_theta90`
+
+  - [x,x,] `part1_x7_y5_theta45_part2_clamp_glove`
   
-  - [x] `part1_x7_y5_theta45_part2_clamp_glove`
-  
-  - [x] `part1_x3_y11_theta135_part2_clamp_glove`
+  - [x,x,] `part1_x3_y11_theta135_part2_clamp_glove`
 
-  - [?] `part1_x4_y5_theta45_part2` (note: _cpitch.bag filename might be error)
-  - [x] `part1_x4_y5_theta45_part2_clamp_glove`
+  - [x,x,] `part1_x4_y5_theta45_part2_clamp_glove`
 
-  - [x] `part1_x9_y2_theta90`
+  - [x,x,] `part1_x8_y6_theta30_part2_clamp_glove`
 
-  - [x] `part1_x8_y6_theta30_part2_clamp_glove`
+##### garage scans, do not use
+
+  - [?] `part1_x4_y5_theta45_part2...` 
 
 
 ##### Datasets to use in IDETC2024

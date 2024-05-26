@@ -1,10 +1,10 @@
 ---
 
-input_bag: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_cpos4_.bag"
-output_bag_dir: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_cpos4_"
+input_bag: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_cpos4_.bag"
+output_bag_dir: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_cpos4_"
 
-input_dir: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_cpos4_"
-output_dir: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_cpos4_/filtered"
+input_dir: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_cpos4_"
+output_dir: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_cpos4_/filtered"
 
 camera_roll: 0.0
 camera_pitch: 0.0
@@ -71,5 +71,5 @@ downsample_dir_clouds: true
 #pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
 auto_bounds: false
 
-bounding_box: [-1.0, 1.0, -0.9, -0.25, 0.005, 0.5] # bounding box limits
+bounding_box: [-1.0, 1.0, -0.9, -0.15, 0.004, 0.5] # bounding box limits
 voxel_size: 0.001
