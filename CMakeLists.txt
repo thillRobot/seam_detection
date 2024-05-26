@@ -276,9 +276,9 @@ target_link_libraries(cloudregistration
 ## primary nodes for the SEAM_DETECTION package ##
 ##################################################
 
-# seam-detection (class approach)
-add_executable(seam-detection src/seam-detection.cpp)
-target_link_libraries(seam-detection 
+# segment_clouds (class approach)
+add_executable(segment_clouds src/segment_clouds.cpp)
+target_link_libraries(segment_clouds 
   cloudfilter 
   cloudutils 
   ${catkin_LIBRARIES} 

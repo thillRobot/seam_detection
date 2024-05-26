@@ -3,6 +3,7 @@ segment_clouds.cpp (previously named seam-detection.cpp but this is confusing)
 
 This program segments RGBD pointclouds based on euclidean distance and color 
 Eulclidean cluster extraction and color based region growing clustering are used
+Multi-view reconstruction merge is also contained in this script, this might not be the best place
 
 Created on 12/31/2023, Next year the project will be more organized!
 
@@ -97,7 +98,7 @@ class SeamDetection {
     SeamDetection(): rate(5), pub_idx(0) { // ROS::Rate rate(5) is in intializer list
       
       std::cout<<"|----------------------------------------|"<<std::endl;
-      std::cout<<"|---------- SeamDetection v1.9 ----------|"<<std::endl;
+      std::cout<<"|---------- segmentclouds v1.9 ----------|"<<std::endl;
       std::cout<<"|----------------------------------------|"<<std::endl;
       std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
  
@@ -121,9 +122,9 @@ class SeamDetection {
       node.getParam("transform_input", transform_input);
 
       // get input file paths 
-      node.getParam("seam_detection/training_file", training_file);
-      node.getParam("seam_detection/test_file", test_file);    
-      node.getParam("seam_detection/output_file", output_file);
+      node.getParam("training_file", training_file);
+      node.getParam("test_file", test_file);    
+      node.getParam("output_file", output_file);
 
       // file paths for multiview reconstruction
       node.getParam("training_view1_file", training_view1_file);
@@ -131,7 +132,7 @@ class SeamDetection {
       node.getParam("training_view3_file", training_view3_file);
       node.getParam("training_view4_file", training_view4_file);
       node.getParam("training_merged_file", training_merged_file);
-      node.getParam("seam_detection/training_inliers_file", training_inliers_file);
+      node.getParam("training_inliers_file", training_inliers_file);
       node.getParam("training_merged_file", training_merged_file);
       
       node.getParam("test_view1_file", test_view1_file);
@@ -139,7 +140,7 @@ class SeamDetection {
       node.getParam("test_view3_file", test_view3_file);
       node.getParam("test_view4_file", test_view4_file);
       node.getParam("test_merged_file", test_merged_file);
-      node.getParam("seam_detection/test_inliers_file", test_inliers_file);
+      node.getParam("test_inliers_file", test_inliers_file);
       node.getParam("test_merged_file", test_merged_file);
 
       // generate absolute file paths to inputs (does this belong here?)
@@ -148,14 +149,14 @@ class SeamDetection {
       output_path=package_path+'/'+output_file;
       
       // get parameters that contain doubles 
-      node.getParam("seam_detection/voxel_size", voxel_size);
+      node.getParam("voxel_size", voxel_size);
 
       // parameters that contain vectors of doubles
-      node.getParam("seam_detection/bounding_box",  bounding_box);
+      node.getParam("bounding_box",  bounding_box);
 
       // rotation and translation parameters from camera to fixed frame  
-      node.getParam("seam_detection/pre_rotation",  pre_rotation);
-      node.getParam("seam_detection/pre_translation",  pre_translation);
+      node.getParam("pre_rotation",  pre_rotation);
+      node.getParam("pre_translation",  pre_translation);
 
       // euclidean cluster extraction parameters
       node.getParam("euclidean_thresh", euclidean_thresh);
