@@ -33,6 +33,11 @@
 
   - [x,x,] `part1_x8_y6_theta30_part2_clamp_glove` (10, 11, 12)
 
+  - [] `part1_x5_y5_theta0`
+  - [] `part1_x10_y2_theta45_part2_clamp_glove`
+
+
+
 ##### garage scans, do not use
 
   - [?] `part1_x4_y5_theta45_part2...` 

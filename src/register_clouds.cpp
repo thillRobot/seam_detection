@@ -566,7 +566,7 @@ int main(int argc, char** argv)
                     6.5, -21.0, 2.0, 45.0,            // x7_y5_theta45 
                     -0.787402, -29.1339, 2,-45.0,     // x3_y11_theta135 
                     -10.0, -30.0,  2.0,  -135.0,      // x4_y5_theta45
-                    -2.0+0.5, -36.0+0.25, 2.0,  90.0, // x9_y2_theta90   
+                    -2.0+0.5, -36.0+0.25, 2.0,  -90.0, // x9_y2_theta90   
                     -3.0, -24.0, 2.0, 150.0,          // x8_y6_theta30
                      5.0, -21.5, 2, 0,                // x4_y9_theta0  // this set recorded in prev session    
                      2.55906, -11.811, 2, 90,         // x9_y7_theta90  
@@ -581,7 +581,7 @@ int main(int argc, char** argv)
                     165.0, -530.0, 50.8, 45.0,        // x7_y5_theta45
                     -20.0, -740.0, 50.8, 135.0,       // x3_y11_theta135
                     -235.0,-765.0, 50.8, 45.0,        // x4_y5_theta45   
-                   -30.0, -900.0, 50.8,  90.0,        // x9_y2_theta90
+                   -30.0, -900.0, 50.8,  -90.0,        // x9_y2_theta90
                     -40.0, -610.0, 50.8,  30.0,       // x8_y6_theta30
                     125.0, -500.0, 50.8,  0.0,        // x4_y9_theta0  // this set recorded in prev session
                     65.0, -300.0, 50.8,  90.0,        // x9_y7_theta90   
@@ -631,8 +631,8 @@ int main(int argc, char** argv)
   T_target_base.setOrigin(target_p0);  
 
   tf::Quaternion target_q0, source_q0, source_target_q0, expected_q0;
-  //target_q0.setRPY(0.0, 0.0, known_poses_in(tgt_idx,3)*degtorad);  
-  target_q0.setRPY(0.0, 0.0, 0.0);  
+  //target_q0.setRPY(0.0, 0.0, known_poses_in(tgt_idx,3)*degtorad);
+  target_q0.setRPY(0.0, 0.0, 0.0*degtorad);  
   T_target_base.setRotation(target_q0);
   
   source_p0=*T_src_tgt*target_p0;
