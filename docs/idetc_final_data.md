@@ -1,5 +1,7 @@
 idetc final data
 
+## set 1 starts here (7 runs)
+
 (tgt_idx 0, src_idx 1)
 |---------- target: 1, source: 1 ----------|
 Measured Rotation Matrix:
@@ -147,7 +149,7 @@ P_target_expected_source: [-0.2159,0.1143,0]
 P_diff: [-0.00312664,-0.00196038,-0.00381148]
 
 
-## second set starts here
+## second set starts here (6 runs)
 
 (tgt_idx 4, src_idx 1)
 |---------- target: 5, source: 1 ----------|
@@ -275,7 +277,7 @@ P_target_expected_source: [-0.0889,-0.13305,0]
 P_diff: [0.00125372,0.00965978,-0.0050306]
 
 
-### set 3 starts here
+### set 3 starts here (5 runs)
 
 (tgt_idx 7, src_idx 1)
 |---------- target: 8, source: 1 ----------|
