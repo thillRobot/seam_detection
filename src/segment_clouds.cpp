@@ -124,7 +124,7 @@ class SeamDetection {
       // get input file paths 
       node.getParam("training_file", training_file);
       node.getParam("test_file", test_file);    
-      node.getParam("output_file", output_file);
+      //node.getParam("output_file", output_file);
 
       // file paths for multiview reconstruction
       node.getParam("training_view1_file", training_view1_file);
@@ -133,7 +133,7 @@ class SeamDetection {
       node.getParam("training_view4_file", training_view4_file);
       node.getParam("training_merged_file", training_merged_file);
       node.getParam("training_inliers_file", training_inliers_file);
-      node.getParam("training_merged_file", training_merged_file);
+      node.getParam("training_output_file", training_output_file);
       
       node.getParam("test_view1_file", test_view1_file);
       node.getParam("test_view2_file", test_view2_file);
@@ -141,12 +141,12 @@ class SeamDetection {
       node.getParam("test_view4_file", test_view4_file);
       node.getParam("test_merged_file", test_merged_file);
       node.getParam("test_inliers_file", test_inliers_file);
-      node.getParam("test_merged_file", test_merged_file);
+      node.getParam("test_output_file", test_output_file);
 
       // generate absolute file paths to inputs (does this belong here?)
       training_path=package_path+'/'+training_file; // i dont think so
       test_path=package_path+'/'+test_file;
-      output_path=package_path+'/'+output_file;
+      //output_path=package_path+'/'+output_file;
       
       // get parameters that contain doubles 
       node.getParam("voxel_size", voxel_size);
@@ -1251,11 +1251,11 @@ class SeamDetection {
     // other parameters from the config file (these do not need to public)
     bool auto_bounds=0;
     bool save_output, translate_output, automatic_bounds, use_clustering, new_scan, transform_input;
-    std::string package_path, training_path, test_path, output_path, training_file, test_file, output_file,
+    std::string package_path, training_path, test_path, output_path, training_file, test_file,
                 training_view1_file, training_view2_file, training_view3_file, training_view4_file, 
-                training_merged_file, training_inliers_file,  
+                training_merged_file, training_inliers_file, training_output_file,  
                 test_view1_file, test_view2_file, test_view3_file, test_view4_file, 
-                test_merged_file, test_inliers_file; 
+                test_merged_file, test_inliers_file, test_output_file;
 
     std::vector<double> bounding_box, pre_rotation, pre_translation;
     double voxel_size;
@@ -1469,6 +1469,9 @@ int main(int argc, char** argv)
   util.publishCloud(*training_intersection, "/training_intersection", "base_link"); // show in rviz
   util.publishCloud(*training_union, "/training_union", "base_link"); // show in rviz
 
+  // save final training union to pcd file, this will be used for registration
+  util.saveCloud(*training_union, sd.training_output_file);
+
   std::cout<<"|----------- Step 3 Complete ----------|"<<std::endl;  
    
   // [Steps 4-7] - use 'test' image of target object on cluttered table
@@ -1524,7 +1527,7 @@ int main(int argc, char** argv)
   // Step 7 - correlate test euclidean clusters to test color clusters, use multi objective function 
   // this should be wrapped up in a function to clean things up
   PointCloudVec test_matches;
-  centroid_wt=2;
+  centroid_wt=4;
   test_matches=sd.matchClustersMulti(test_euclidean_clusters, test_color_clusters, debug_level, centroid_wt); 
   // show the matched clusters in rviz
   util.publishClusters(test_matches, "/test_match");
@@ -1562,13 +1565,13 @@ int main(int argc, char** argv)
   std::cout<<"final_union has "<<final_union->size()<<" points"<<std::endl;
   util.publishCloud(*final_union, "/final_union", "base_link"); 
  
- 
   std::cout<<"|----------- Step 8 Complete ----------|"<<std::endl;  
-    
-  // save resulting filtered image to pcd file
-  util.saveCloud(*final_union, sd.output_file); 
+ 
 
-  std::cout<<"|----------- seam_detection complete ----------|"<<std::endl;  
+  // save resulting filtered image to pcd file, final test union is output
+  util.saveCloud(*final_union, sd.test_output_file); 
+
+  std::cout<<"|----------- segment_clouds complete ----------|"<<std::endl;  
   ros::spin();
 
   return 0;
