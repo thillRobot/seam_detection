@@ -7,22 +7,25 @@ scene_name: "register_clouds" # change this to config_name ?
 
 ### IDETC 2024 datasets ###
 
-register_clouds/target_file: "bags/reconstruction/part1_x3_y9_theta0_15_output.pcd"
-register_clouds/tgt_idx: 0
+#register_clouds/target_file: "bags/reconstruction/part1_x3_y9_theta0_15_output.pcd"
+#register_clouds/tgt_idx: 0
 
-#register_clouds/target_file: "bags/reconstruction/part1_x7_y5_theta45_15_output.pcd"
-#register_clouds/tgt_idx: 1
+register_clouds/target_file: "bags/reconstruction/part1_x7_y5_theta45_15_output.pcd"
+register_clouds/tgt_idx: 1   # this one is very clean and complete
 
 #register_clouds/target_file: "bags/reconstruction/part1_x9_y2_theta90_15_output.pcd"
 #register_clouds/tgt_idx: 4
 
 #register_clouds/target_file: "bags/reconstruction/demo_part1_2_output.pcd"
-#register_clouds/tgt_idx: 9
+#register_clouds/tgt_idx: 9  # 
 
 
 
-register_clouds/source_file: "bags/reconstruction/part1_x3_y11_theta135_15_output.pcd"
-register_clouds/src_idx: 2
+#register_clouds/source_file: "bags/reconstruction/part1_x7_y5_theta45_15_output.pcd"
+#register_clouds/src_idx: 1
+
+#register_clouds/source_file: "bags/reconstruction/part1_x3_y11_theta135_15_output.pcd"
+#register_clouds/src_idx: 2
 
 #register_clouds/source_file: "bags/reconstruction/part1_x4_y5_theta45_15_output.pcd"
 #register_clouds/src_idx: 3
@@ -31,7 +34,7 @@ register_clouds/src_idx: 2
 #register_clouds/src_idx: 5
 
 #register_clouds/source_file: "bags/reconstruction/part1_x4_y9_theta0_15_output.pcd"
-#register_clouds/src_idx: 6
+#register_clouds/src_idx: 6   # this one has problem in segmentation
 
 #register_clouds/source_file: "bags/reconstruction/part1_x9_y7_theta90_15_output.pcd"
 #register_clouds/src_idx: 7
@@ -40,16 +43,25 @@ register_clouds/src_idx: 2
 #register_clouds/src_idx: 8
 
 #register_clouds/source_file: "bags/reconstruction/demo_part1_clutter_2_output.pcd"
-#register_clouds/src_idx: 10 
+#register_clouds/src_idx: 10  # this should be renamed ...
+
+#register_clouds/source_file: "bags/reconstruction/part1_x5_y6_theta45_15_output.pcd"
+#register_clouds/src_idx: 11   # registers but poorly
+
+register_clouds/source_file: "bags/reconstruction/part1_x4_y8_theta0_15_output.pcd"
+register_clouds/src_idx: 12   # this one is pretty nice too
 
 
-register_clouds/aligned_file: "bags/reconstruction/part1_x3_y11_theta135_15_aligned.pcd"
+
+#register_clouds/aligned_file: "bags/reconstruction/part1_x3_y11_theta135_15_aligned.pcd"
 #register_clouds/aligned_file: "bags/reconstruction/part1_x4_y5_theta45_15_aligned.pcd`"
 #register_clouds/aligned_file: "bags/reconstruction/part1_x8_y6_theta30_15_aligned.pcd"
 #register_clouds/aligned_file: "bags/reconstruction/part1_x4_y9_theta0_15_aligned.pcd"
 #register_clouds/aligned_file: "bags/reconstruction/part1_x9_y7_theta90_15_aligned.pcd"
 #register_clouds/aligned_file: "bags/reconstruction/part1_x5_y10_theta45_14_aligned.pcd"
 #register_clouds/aligned_file: "bags/reconstruction/demo_part1_clutter_2_aligned.pcd"
+#register_clouds/aligned_file: "bags/reconstruction/part1_x5_y6_theta45_14_aligned.pcd"
+register_clouds/aligned_file: "bags/reconstruction/part1_x4_y8_theta0_14_aligned.pcd"
 
 ### end of IDETC 2024 datasets ###
 

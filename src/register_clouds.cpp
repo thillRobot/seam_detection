@@ -552,7 +552,7 @@ int main(int argc, char** argv)
    
   
   // hardcode ground truth points for each dataset, replace hardcoded points with ref from centroid
-  int ksize=11;
+  int ksize=13;
   Eigen::MatrixXf known_poses_in(ksize,4);
   Eigen::MatrixXf known_poses_mm(ksize,4);
 
@@ -571,8 +571,10 @@ int main(int argc, char** argv)
                      5.0, -21.5, 2, 0,                // x4_y9_theta0  // this set recorded in prev session    
                      2.55906, -11.811, 2, 90,         // x9_y7_theta90  
                      2.0, -30.5118, 2, -45,           // x5_y10_theta4
-                     2.5, -24.8, 2, 0.0,              
-                     9.0, -26.0, 2, 45.0;             // is this the demo run ?
+                     2.5, -24.8, 2, 0.0,              // is this the demo run, it matches
+                     9.0, -26.0, 2, 45.0,             // is this the demo cluttered run, it matches
+                     0.0, 0.0, 0.0, 45.0,             // x5_y6_theta45
+                     0.0, 0.0, 0.0, 45.0;             // x4_y8_theta0
    
    // recorded by TH in rviz
    known_poses_mm <<  20.0, -540.0, 50.8, 0.0,        // x3_y9_theta0
@@ -585,7 +587,9 @@ int main(int argc, char** argv)
                     65.0, -300.0, 50.8,  90.0,        // x9_y7_theta90   
                     85.0, -775.0, 50.8,  45.0,        // x5_y10_theta45
                     63.5, -629.92, 50.8, 0,
-                    228.6, -660.4, 50.8, 45.0;
+                    228.6, -660.4, 50.8, 45.0,
+                    0.0, 0.0, 0.0, 45.0,              // x5_y6_theta45
+                    0.0, 0.0, 0.0, 45.0;              // x4_y8_theta0
 
 
   std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
