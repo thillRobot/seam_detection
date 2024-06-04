@@ -165,7 +165,7 @@ In CNNs, the lower layers of the network typically learn to extract low-level fe
 
 There are typically two main approaches to transfer learning in CNNs:
 
-   1) Feature Extraction: In this approach, you take a pre-trained CNN model and remove the fully connected layers at the top of the network. Then, you replace these layers with new ones that are appropriate for your new task. The weights of the pre-trained layers are frozen, meaning they are not updated during training, and only the weights of the new layers are learned from scratch using the new dataset.
+   1) Feature Extraction: In this approach, you take a pre-trained CNN model and remove the fully connected layers at the top of the network. Then, you replace these layers with new ones that are appropriate for your new task. The weights of the pre-trained layers are frozen, meaning they are not updated during training, and only the weights of the new layers are learned from scratch using the new dataset.*/7
 
    2) Fine-tuning: In this approach, you not only replace the fully connected layers at the top of the network but also fine-tune some of the pre-trained layers by unfreezing them and allowing their weights to be updated during training on the new dataset. This is particularly useful when the new dataset is significantly different from the original dataset used to train the pre-trained model.
 
