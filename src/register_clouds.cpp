@@ -6,6 +6,8 @@ Tristan Hill - Weld Seam Detection - Tennessee Technological University
 Robotics Research Group - Mechanical Engineering
 
 v1.0 - 2022-12-20 
+...
+v1.9 - 2024-05-26
 
 see README.md or https://github.com/thillRobot/seam_detection for documentation
 */
@@ -550,7 +552,7 @@ int main(int argc, char** argv)
    
   
   // hardcode ground truth points for each dataset, replace hardcoded points with ref from centroid
-  int ksize=11;
+  int ksize=13;
   Eigen::MatrixXf known_poses_in(ksize,4);
   Eigen::MatrixXf known_poses_mm(ksize,4);
 
@@ -560,30 +562,34 @@ int main(int argc, char** argv)
   float intom=0.0254;
 
   // recorded by SC on table
-  known_poses_in << 0.5, -19.5-2.0, 2.0, 0.0,         // x3_y9_theta0// first (adjusted -2.0 in y)
-                    6.5, -21.0, 2.0, 45.0,       // x7_y5_theta45 //second
-                    -0.787402, -29.1339, 2,-45.0, // x3_y11_theta135 
-                    -10.0, -30.0,  2.0,  -135.0,    // x4_y5_theta45
-                    -2.0+0.5, -36.0+0.25, 2.0,  90.0,      // x9_y2_theta90   
-                    -3.0, -24.0, 2.0, 150.0,       // x8_y6_theta30
-                     5.0, -21.5, 2, 0,      // x4_y9_theta0  // this set recorded in prev session    
-                     2.55906, -11.811, 2, 90,     // x9_y7_theta90  
-                     2.0, -30.5118, 2, -45,    // x5_y10_theta4
-                     2.5, -24.8, 2, 0.0,
-                     9.0, -26.0, 2, 45.0; 
+  known_poses_in << 0.5, -19.5-2.0, 2.0, 0.0,         // x3_y9_theta0  // (adjusted -2.0 in y)
+                    6.5, -21.0, 2.0, 45.0,            // x7_y5_theta45 
+                    -0.787402, -29.1339, 2,-45.0,     // x3_y11_theta135 
+                    -10.0, -30.0,  2.0,  -135.0,      // x4_y5_theta45
+                    -2.0+0.5, -36.0+0.25, 2.0,  -90.0, // x9_y2_theta90   
+                    -3.0, -24.0, 2.0, 150.0,          // x8_y6_theta30
+                     5.0, -21.5, 2, 0,                // x4_y9_theta0  // this set recorded in prev session    
+                     2.55906, -11.811, 2, 90,         // x9_y7_theta90  
+                     2.0, -30.5118, 2, -45,           // x5_y10_theta4
+                     2.5, -24.8, 2, 0.0,              // is this the demo run, it matches
+                     9.0, -26.0, 2, 45.0,             // is this the demo cluttered run, it matches
+                     0.0, 0.0, 0.0, 45.0,             // x5_y6_theta45
+                     0.0, 0.0, 0.0, 45.0;             // x4_y8_theta0
    
    // recorded by TH in rviz
-   known_poses_mm <<  20.0, -540.0, 50.8, 0.0,      // x3_y9_theta0
-                    165.0, -530.0, 50.8, 45.0,    // x7_y5_theta45
-                    -20.0, -740.0, 50.8, 135.0,   // x3_y11_theta135
-                    -235.0,-765.0, 50.8, 45.0,    // x4_y5_theta45   
-                   -30.0, -900.0, 50.8,  90.0,    // x9_y2_theta90
-                    -40.0, -610.0, 50.8,  30.0,   // x8_y6_theta30
-                    125.0, -500.0, 50.8,  0.0,   // x4_y9_theta0  // this set recorded in prev session
-                    65.0, -300.0, 50.8,  90.0,  // x9_y7_theta90   
-                    85.0, -775.0, 50.8,  45.0,  // x5_y10_theta45
-                    6.5, 63.0, 0, 0,
-                    0.0, 0.0, 0, 0;
+   known_poses_mm <<  20.0, -540.0, 50.8, 0.0,        // x3_y9_theta0
+                    165.0, -530.0, 50.8, 45.0,        // x7_y5_theta45
+                    -20.0, -740.0, 50.8, 135.0,       // x3_y11_theta135
+                    -235.0,-765.0, 50.8, 45.0,        // x4_y5_theta45   
+                   -30.0, -900.0, 50.8,  -90.0,        // x9_y2_theta90
+                    -40.0, -610.0, 50.8,  30.0,       // x8_y6_theta30
+                    125.0, -500.0, 50.8,  0.0,        // x4_y9_theta0  // this set recorded in prev session
+                    65.0, -300.0, 50.8,  90.0,        // x9_y7_theta90   
+                    85.0, -775.0, 50.8,  45.0,        // x5_y10_theta45
+                    63.5, -629.92, 50.8, 0,
+                    228.6, -660.4, 50.8, 45.0,
+                    0.0, 0.0, 0.0, 45.0,              // x5_y6_theta45
+                    0.0, 0.0, 0.0, 45.0;              // x4_y8_theta0
 
 
   std::cout <<"known poses (idx,mm,mm,mm,deg): "<<std::endl;
@@ -625,8 +631,8 @@ int main(int argc, char** argv)
   T_target_base.setOrigin(target_p0);  
 
   tf::Quaternion target_q0, source_q0, source_target_q0, expected_q0;
-  //target_q0.setRPY(0.0, 0.0, known_poses_in(tgt_idx,3)*degtorad);  
-  target_q0.setRPY(0.0, 0.0, 0.0);  
+  //target_q0.setRPY(0.0, 0.0, known_poses_in(tgt_idx,3)*degtorad);
+  target_q0.setRPY(0.0, 0.0, 0.0*degtorad);  
   T_target_base.setRotation(target_q0);
   
   source_p0=*T_src_tgt*target_p0;

@@ -9,6 +9,7 @@ services:
       - ~/.Xauthority:/root/.Xauthority
       - $ROS_WS/src:/home/seamdetection_ws/src
       - $ROS_WS/shared:/home/shared
+      - $DATA_DIR/seamdetection/reconstruction:/home/seamdetection_ws/src/seam_detection/bags/reconstruction
 
   seam-detection:
     build: .

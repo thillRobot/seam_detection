@@ -1,0 +1,296 @@
+---
+#scene_name: "seam-detection"
+# this needs to be done differently, I am embarrassed about this...
+
+#training_view1_file: "bags/reconstruction/part1_x4_y9_theta0_cpos1_/filtered/part1_x4_y9_theta0_cpos1_12_filtered.pcd"
+#training_view2_file: "bags/reconstruction/part1_x4_y9_theta0_cpos2_/filtered/part1_x4_y9_theta0_cpos2_12_filtered.pcd"
+#training_view3_file: "bags/reconstruction/part1_x4_y9_theta0_cpos3_/filtered/part1_x4_y9_theta0_cpos3_12_filtered.pcd"
+#training_view4_file: "bags/reconstruction/part1_x4_y9_theta0_cpos4_/filtered/part1_x4_y9_theta0_cpos4_12_filtered.pcd"
+#training_merged_file: "bags/reconstruction/part1_x4_y9_theta0_12_merged.pcd"
+
+# training_view1_file: "bags/reconstruction/part1_x5_y10_theta45_cpos1_/filtered/part1_x5_y10_theta45_cpos1_12_filtered.pcd"
+# training_view2_file: "bags/reconstruction/part1_x5_y10_theta45_cpos2_/filtered/part1_x5_y10_theta45_cpos2_12_filtered.pcd"
+# training_view3_file: "bags/reconstruction/part1_x5_y10_theta45_cpos3_/filtered/part1_x5_y10_theta45_cpos3_12_filtered.pcd"
+# training_view4_file: "bags/reconstruction/part1_x5_y10_theta45_cpos4_/filtered/part1_x5_y10_theta45_cpos4_12_filtered.pcd"
+# training_merged_file: "bags/reconstruction/part1_x5_y10_theta45_12_merged.pcd"
+
+training_view1_file: "bags/reconstruction/part1_x9_y7_theta90_cpos1_/filtered/part1_x9_y7_theta90_cpos1_12_filtered.pcd"
+training_view2_file: "bags/reconstruction/part1_x9_y7_theta90_cpos2_/filtered/part1_x9_y7_theta90_cpos2_12_filtered.pcd"
+training_view3_file: "bags/reconstruction/part1_x9_y7_theta90_cpos3_/filtered/part1_x9_y7_theta90_cpos3_12_filtered.pcd"
+training_view4_file: "bags/reconstruction/part1_x9_y7_theta90_cpos4_/filtered/part1_x9_y7_theta90_cpos4_12_filtered.pcd"
+training_merged_file: "bags/reconstruction/part1_x9_y7_theta90_12_merged.pcd"
+
+# training_view1_file: "bags/reconstruction/part1_x5_y6_theta45_cpos1_/filtered/part1_x5_y6_theta45_cpos1_12_filtered.pcd"
+# training_view2_file: "bags/reconstruction/part1_x5_y6_theta45_cpos2_/filtered/part1_x5_y6_theta45_cpos2_12_filtered.pcd"
+# training_view3_file: "bags/reconstruction/part1_x5_y6_theta45_cpos3_/filtered/part1_x5_y6_theta45_cpos3_12_filtered.pcd"
+# training_view4_file: "bags/reconstruction/part1_x5_y6_theta45_cpos4_/filtered/part1_x5_y6_theta45_cpos4_12_filtered.pcd"
+# training_merged_file: "bags/reconstruction/part1_x5_y6_theta45_12_merged.pcd"
+
+# training_view1_file: "bags/reconstruction/part1_x3_y9_theta0_cpos1_/filtered/part1_x3_y9_theta0_cpos1_12_filtered.pcd"
+# training_view2_file: "bags/reconstruction/part1_x3_y9_theta0_cpos2_/filtered/part1_x3_y9_theta0_cpos2_12_filtered.pcd"
+# training_view3_file: "bags/reconstruction/part1_x3_y9_theta0_cpos3_/filtered/part1_x3_y9_theta0_cpos3_12_filtered.pcd"
+# training_view4_file: "bags/reconstruction/part1_x3_y9_theta0_cpos4_/filtered/part1_x3_y9_theta0_cpos4_12_filtered.pcd"
+# training_merged_file: "bags/reconstruction/part1_x3_y9_theta0_12_merged.pcd"
+
+# training_view1_file: "bags/reconstruction/part1_x4_y8_theta0_cpos1_/filtered/part1_x4_y8_theta0_cpos1_12_filtered.pcd"
+# training_view2_file: "bags/reconstruction/part1_x4_y8_theta0_cpos2_/filtered/part1_x4_y8_theta0_cpos2_12_filtered.pcd"
+# training_view3_file: "bags/reconstruction/part1_x4_y8_theta0_cpos3_/filtered/part1_x4_y8_theta0_cpos3_12_filtered.pcd"
+# training_view4_file: "bags/reconstruction/part1_x4_y8_theta0_cpos4_/filtered/part1_x4_y8_theta0_cpos4_12_filtered.pcd"
+# training_merged_file: "bags/reconstruction/part1_x4_y8_theta0_12_merged.pcd"
+
+# training_view1_file: "bags/reconstruction/part1_x2_y4_theta0_cpos1_/filtered/part1_x2_y4_theta0_cpos1_12_filtered.pcd"
+# training_view2_file: "bags/reconstruction/part1_x2_y4_theta0_cpos2_/filtered/part1_x2_y4_theta0_cpos2_12_filtered.pcd"
+# training_view3_file: "bags/reconstruction/part1_x2_y4_theta0_cpos3_/filtered/part1_x2_y4_theta0_cpos3_12_filtered.pcd"
+# training_view4_file: "bags/reconstruction/part1_x2_y4_theta0_cpos4_/filtered/part1_x2_y4_theta0_cpos4_12_filtered.pcd"
+# training_merged_file: "bags/reconstruction/part1_x2_y4_theta0_12_merged.pcd"
+
+# training_view1_file: "bags/reconstruction/part1_x9_y2_theta90_cpos1_/filtered/part1_x9_y2_theta90_cpos1_12_filtered.pcd"
+# training_view2_file: "bags/reconstruction/part1_x9_y2_theta90_cpos2_/filtered/part1_x9_y2_theta90_cpos2_12_filtered.pcd"
+# training_view3_file: "bags/reconstruction/part1_x9_y2_theta90_cpos3_/filtered/part1_x9_y2_theta90_cpos3_12_filtered.pcd"
+# training_view4_file: "bags/reconstruction/part1_x9_y2_theta90_cpos4_/filtered/part1_x9_y2_theta90_cpos4_12_filtered.pcd"
+# training_merged_file: "bags/reconstruction/part1_x9_y2_theta90_12_merged.pcd"
+
+# training_view1_file: "bags/reconstruction/part1_x5_y5_theta0_cpos1_/filtered/part1_x5_y5_theta0_cpos1_12_filtered.pcd"
+# training_view2_file: "bags/reconstruction/part1_x5_y5_theta0_cpos2_/filtered/part1_x5_y5_theta0_cpos2_12_filtered.pcd"
+# training_view3_file: "bags/reconstruction/part1_x5_y5_theta0_cpos3_/filtered/part1_x5_y5_theta0_cpos3_12_filtered.pcd"
+# training_view4_file: "bags/reconstruction/part1_x5_y5_theta0_cpos4_/filtered/part1_x5_y5_theta0_cpos4_12_filtered.pcd"
+# training_merged_file: "bags/reconstruction/part1_x5_y5_theta0_12_merged.pcd"
+
+#training_view1_file: "bags/reconstruction/demo_part1_cpos1_/filtered/demo_part1_cpos1_12_filtered.pcd"
+#training_view2_file: "bags/reconstruction/demo_part1_cpos2_/filtered/demo_part1_cpos2_12_filtered.pcd"
+#training_view3_file: "bags/reconstruction/demo_part1_cpos3_/filtered/demo_part1_cpos3_12_filtered.pcd"
+#training_view4_file: "bags/reconstruction/demo_part1_cpos4_/filtered/demo_part1_cpos4_12_filtered.pcd"
+#training_merged_file: "bags/reconstruction/demo_part1_12_merged.pcd"
+
+
+#test_view1_file: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_cpos1_/filtered/part1_x5_y6_theta45_part2_clamp_glove_cpos1_12_filtered.pcd"
+#test_view2_file: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_cpos2_/filtered/part1_x5_y6_theta45_part2_clamp_glove_cpos2_12_filtered.pcd"
+#test_view3_file: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_cpos3_/filtered/part1_x5_y6_theta45_part2_clamp_glove_cpos3_12_filtered.pcd"
+#test_view4_file: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_cpos4_/filtered/part1_x5_y6_theta45_part2_clamp_glove_cpos4_12_filtered.pcd"
+#test_merged_file: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_12_merged.pcd"
+
+# cpos1 spoofed to fix error here
+#test_view1_file: "bags/reconstruction/part1_x3_y9_theta0_part2_clamp_glove_cpos2_/filtered/part1_x3_y9_theta0_part2_clamp_glove_cpos2_12_filtered.pcd" 
+#test_view2_file: "bags/reconstruction/part1_x3_y9_theta0_part2_clamp_glove_cpos2_/filtered/part1_x3_y9_theta0_part2_clamp_glove_cpos2_12_filtered.pcd"
+#test_view3_file: "bags/reconstruction/part1_x3_y9_theta0_part2_clamp_glove_cpos3_/filtered/part1_x3_y9_theta0_part2_clamp_glove_cpos3_12_filtered.pcd"
+#test_view4_file: "bags/reconstruction/part1_x3_y9_theta0_part2_clamp_glove_cpos4_/filtered/part1_x3_y9_theta0_part2_clamp_glove_cpos4_12_filtered.pcd"
+#test_merged_file: "bags/reconstruction/part1_x3_y9_theta0_part2_clamp_glove_12_merged.pcd"
+
+# test_view1_file: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_cpos1_/filtered/part1_x4_y8_theta0_part2_clamp_glove_cpos1_12_filtered.pcd"
+# test_view2_file: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_cpos2_/filtered/part1_x4_y8_theta0_part2_clamp_glove_cpos2_12_filtered.pcd"
+# test_view3_file: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_cpos3_/filtered/part1_x4_y8_theta0_part2_clamp_glove_cpos3_12_filtered.pcd"
+# test_view4_file: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_cpos4_/filtered/part1_x4_y8_theta0_part2_clamp_glove_cpos4_12_filtered.pcd"
+# test_merged_file: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_12_merged.pcd"
+
+# test_view1_file: "bags/reconstruction/part1_x7_y5_theta45_part2_clamp_glove_cpos1_/filtered/part1_x7_y5_theta45_part2_clamp_glove_cpos1_12_filtered.pcd"
+# test_view2_file: "bags/reconstruction/part1_x7_y5_theta45_part2_clamp_glove_cpos2_/filtered/part1_x7_y5_theta45_part2_clamp_glove_cpos2_12_filtered.pcd"
+# test_view3_file: "bags/reconstruction/part1_x7_y5_theta45_part2_clamp_glove_cpos3_/filtered/part1_x7_y5_theta45_part2_clamp_glove_cpos3_12_filtered.pcd"
+# test_view4_file: "bags/reconstruction/part1_x7_y5_theta45_part2_clamp_glove_cpos4_/filtered/part1_x7_y5_theta45_part2_clamp_glove_cpos4_12_filtered.pcd"
+# test_merged_file: "bags/reconstruction/part1_x7_y5_theta45_part2_clamp_glove_12_merged.pcd"
+
+# test_view1_file: "bags/reconstruction/part1_x3_y11_theta135_part2_clamp_glove_cpos1_/filtered/part1_x3_y11_theta135_part2_clamp_glove_cpos1_12_filtered.pcd"
+# test_view2_file: "bags/reconstruction/part1_x3_y11_theta135_part2_clamp_glove_cpos2_/filtered/part1_x3_y11_theta135_part2_clamp_glove_cpos2_12_filtered.pcd"
+# test_view3_file: "bags/reconstruction/part1_x3_y11_theta135_part2_clamp_glove_cpos3_/filtered/part1_x3_y11_theta135_part2_clamp_glove_cpos3_12_filtered.pcd"
+# test_view4_file: "bags/reconstruction/part1_x3_y11_theta135_part2_clamp_glove_cpos4_/filtered/part1_x3_y11_theta135_part2_clamp_glove_cpos4_12_filtered.pcd"
+# test_merged_file: "bags/reconstruction/part1_x3_y11_theta135_part2_clamp_glove_12_merged.pcd"
+
+# test_view1_file: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_cpos1_/filtered/part1_x4_y5_theta45_part2_clamp_glove_cpos1_12_filtered.pcd"
+# test_view2_file: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_cpos2_/filtered/part1_x4_y5_theta45_part2_clamp_glove_cpos2_12_filtered.pcd"
+# test_view3_file: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_cpos3_/filtered/part1_x4_y5_theta45_part2_clamp_glove_cpos3_12_filtered.pcd"
+# test_view4_file: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_cpos4_/filtered/part1_x4_y5_theta45_part2_clamp_glove_cpos4_12_filtered.pcd"
+# test_merged_file: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_12_merged.pcd"
+
+test_view1_file: "bags/reconstruction/part1_x8_y6_theta30_part2_clamp_glove_cpos1_/filtered/part1_x8_y6_theta30_part2_clamp_glove_cpos1_12_filtered.pcd"
+test_view2_file: "bags/reconstruction/part1_x8_y6_theta30_part2_clamp_glove_cpos2_/filtered/part1_x8_y6_theta30_part2_clamp_glove_cpos2_12_filtered.pcd"
+test_view3_file: "bags/reconstruction/part1_x8_y6_theta30_part2_clamp_glove_cpos3_/filtered/part1_x8_y6_theta30_part2_clamp_glove_cpos3_12_filtered.pcd"
+test_view4_file: "bags/reconstruction/part1_x8_y6_theta30_part2_clamp_glove_cpos4_/filtered/part1_x8_y6_theta30_part2_clamp_glove_cpos4_12_filtered.pcd"
+test_merged_file: "bags/reconstruction/part1_x8_y6_theta30_part2_clamp_glove_12_merged.pcd"
+
+#test_view1_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos1_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos1_12_filtered.pcd"
+#test_view2_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos2_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos2_12_filtered.pcd"
+#test_view3_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos3_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos3_12_filtered.pcd"
+#test_view4_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_cpos4_/filtered/part1_x4_y9_theta0_part2_clamp_glove_cpos4_12_filtered.pcd"
+#test_merged_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_12_merged.pcd"
+
+# test_view1_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_cpos1_/filtered/part1_x9_y7_theta90_part2_clamp_glove_cpos1_12_filtered.pcd"
+# test_view2_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_cpos2_/filtered/part1_x9_y7_theta90_part2_clamp_glove_cpos2_12_filtered.pcd"
+# test_view3_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_cpos3_/filtered/part1_x9_y7_theta90_part2_clamp_glove_cpos3_12_filtered.pcd"
+# test_view4_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_cpos4_/filtered/part1_x9_y7_theta90_part2_clamp_glove_cpos4_12_filtered.pcd"
+# test_merged_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_12_merged.pcd"
+
+# test_view1_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_cpos1_/filtered/part1_x5_y10_theta45_part2_clamp_glove_cpos1_12_filtered.pcd"
+# test_view2_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_cpos2_/filtered/part1_x5_y10_theta45_part2_clamp_glove_cpos2_12_filtered.pcd"
+# test_view3_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_cpos3_/filtered/part1_x5_y10_theta45_part2_clamp_glove_cpos3_12_filtered.pcd"
+# test_view4_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_cpos4_/filtered/part1_x5_y10_theta45_part2_clamp_glove_cpos4_12_filtered.pcd"
+# test_merged_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_12_merged.pcd"
+
+# test_view1_file: "bags/reconstruction/part1_x10_y2_theta45_part2_clamp_glove_cpos1_/filtered/part1_x10_y2_theta45_part2_clamp_glove_cpos1_12_filtered.pcd"
+# test_view2_file: "bags/reconstruction/part1_x10_y2_theta45_part2_clamp_glove_cpos2_/filtered/part1_x10_y2_theta45_part2_clamp_glove_cpos2_12_filtered.pcd"
+# test_view3_file: "bags/reconstruction/part1_x10_y2_theta45_part2_clamp_glove_cpos3_/filtered/part1_x10_y2_theta45_part2_clamp_glove_cpos3_12_filtered.pcd"
+# test_view4_file: "bags/reconstruction/part1_x10_y2_theta45_part2_clamp_glove_cpos4_/filtered/part1_x10_y2_theta45_part2_clamp_glove_cpos4_12_filtered.pcd"
+# test_merged_file: "bags/reconstruction/part1_x10_y2_theta45_part2_clamp_glove_12_merged.pcd"
+
+# test_view1_file: "bags/reconstruction/demo_part1_clutter_cpos1_/filtered/demo_part1_clutter_cpos1_12_filtered.pcd"
+# test_view2_file: "bags/reconstruction/demo_part1_clutter_cpos2_/filtered/demo_part1_clutter_cpos2_12_filtered.pcd"
+# test_view3_file: "bags/reconstruction/demo_part1_clutter_cpos3_/filtered/demo_part1_clutter_cpos3_12_filtered.pcd"
+# test_view4_file: "bags/reconstruction/demo_part1_clutter_cpos4_/filtered/demo_part1_clutter_cpos4_12_filtered.pcd"
+# test_merged_file: "bags/reconstruction/demo_part1_clutter_12_merged.pcd"
+
+
+
+
+#training_file: "bags/reconstruction/part1_x4_y9_theta0_12_merged.pcd"
+#training_file: "bags/reconstruction/part1_x5_y10_theta45_12_merged.pcd"
+training_file: "bags/reconstruction/part1_x9_y7_theta90_12_merged.pcd"
+#training_file: "bags/reconstruction/part1_x5_y6_theta45_12_merged.pcd"
+#training_file: "bags/reconstruction/part1_x3_y9_theta0_12_merged.pcd"
+#training_file: "bags/reconstruction/part1_x4_y8_theta0_12_merged.pcd"
+#training_file: "bags/reconstruction/part1_x2_y4_theta0_12_merged.pcd"
+#training_file: "bags/reconstruction/part1_x9_y2_theta90_12_merged.pcd"
+#training_file: "bags/reconstruction/part1_x5_y5_theta0_12_merged.pcd"
+#training_file: "bags/reconstruction/demo_part1_12_merged.pcd"
+
+#training_inliers_file: "bags/reconstruction/part1_x4_y9_theta0_12_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x5_y10_theta45_12_inliers.pcd"
+training_inliers_file: "bags/reconstruction/part1_x9_y7_theta90_12_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x5_y6_theta45_12_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x3_y9_theta0_12_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x4_y8_theta0_12_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x2_y4_theta0_12_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x9_y2_theta90_12_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/part1_x5_y5_theta0_12_inliers.pcd"
+#training_inliers_file: "bags/reconstruction/demo_part1_12_inliers.pcd"
+
+#training_output_file: "bags/reconstruction/part1_x4_y9_theta0_12_output.pcd"
+#training_output_file: "bags/reconstruction/part1_x5_y10_theta45_12_output.pcd"
+training_output_file: "bags/reconstruction/part1_x9_y7_theta90_12_output.pcd"
+#training_output_file: "bags/reconstruction/part1_x5_y6_theta45_12_output.pcd"
+#training_output_file: "bags/reconstruction/part1_x3_y9_theta0_12_output.pcd"
+#training_output_file: "bags/reconstruction/part1_x4_y8_theta0_12_output.pcd"
+#training_output_file: "bags/reconstruction/part1_x2_y4_theta0_12_output.pcd"
+#training_output_file: "bags/reconstruction/part1_x9_y2_theta90_12_output.pcd"
+#training_output_file: "bags/reconstruction/part1_x5_y5_theta0_12_output.pcd"
+#training_output_file: "bags/reconstruction/demo_part1_12_output.pcd"
+
+
+#test_file: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x3_y9_theta0_part2_clamp_glove_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x7_y5_theta45_part2_clamp_glove_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x3_y11_theta135_part2_clamp_glove_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_12_merged.pcd"
+test_file: "bags/reconstruction/part1_x8_y6_theta30_part2_clamp_glove_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x9_y2_theta90_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x3_y9_theta0_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x4_y9_theta0_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x5_y10_theta45_12_merged.pcd"
+#test_file: "bags/reconstruction/demo_part1_12_merged.pcd"
+#test_file: "bags/reconstruction/part1_x10_y2_theta45_part2_clamp_glove_12_merged.pcd"
+#test_file: "bags/reconstruction/demo_part1_clutter_12_merged.pcd"
+
+
+#test_inliers_file: "bags/reconstruction/part1_x5_y6_theta45_part2_clamp_glove_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x3_y9_theta0_part2_clamp_glove_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x4_y8_theta0_part2_clamp_glove_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x7_y5_theta45_part2_clamp_glove_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x3_y11_theta135_part2_clamp_glove_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x4_y5_theta45_part2_clamp_glove_12_inliers.pcd"
+test_inliers_file: "bags/reconstruction/part1_x8_y6_theta30_part2_clamp_glove_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x4_y9_theta0_part2_clamp_glove_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x9_y7_theta90_part2_clamp_glove_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x5_y10_theta45_part2_clamp_glove_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x9_y2_theta90_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x4_y9_theta0_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x5_y10_theta45_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/demo_part1_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/part1_x10_y2_theta45_part2_clamp_glove_12_inliers.pcd"
+#test_inliers_file: "bags/reconstruction/demo_part1_clutter_12_inliers.pcd"
+
+
+
+#test_output_file: "bags/reconstruction/part1_x5_y6_theta45_12_output.pcd"
+#test_output_file: "bags/reconstruction/part1_x3_y9_theta0_12_output.pcd"
+#test_output_file: "bags/reconstruction/part1_x4_y8_theta0_12_output.pcd"
+#test_output_file: "bags/reconstruction/part1_x7_y5_theta45_12_output.pcd"
+#test_output_file: "bags/reconstruction/part1_x3_y11_theta135_12_output.pcd"
+#test_output_file: "bags/reconstruction/part1_x4_y5_theta45_12_output.pcd"
+test_output_file: "bags/reconstruction/part1_x8_y6_theta30_12_output.pcd"
+#test_output_file: "bags/reconstruction/part1_x4_y9_theta0_12_output.pcd"
+#test_output_file: "bags/reconstruction/part1_x9_y7_theta90_12_output.pcd"
+#test_output_file: "bags/reconstruction/part1_x5_y10_theta45_12_output.pcd"
+#test_output_file: "bags/reconstruction/part1_x9_y2_theta90_12_output.pcd"
+#test_output_file: "bags/reconstruction/demo_part1_12_output.pcd"
+#test_output_file: "bags/reconstruction/part1_x10_y2_theta45_part2_clamp_glove_12_output.pcd"
+#test_output_file: "bags/reconstruction/demo_part1_clutter_12_output.pcd"
+
+
+
+save_output: true
+translate_output: false
+automatic_bounds: false
+use_clustering: true
+new_scan: false
+transform_input: true
+
+pre_rotation:    [0.0, 0.0, 0.0] # ds435i rgb camera 32inches from table surface pointing down
+pre_translation: [0.0, 0.0, 0.0] # 32.0*0.0254 
+
+bounding_box: [-1.0, 1.0, -1.0, 1.0, -1.0, 1.0] # bounding box limits
+voxel_size: 0.001  
+
+outliers_mean_k: 100 # parameters for statistical outliers removal filter
+outliers_stddev_mul_thresh: 0.25
+
+euclidean_thresh: 0.0025 # parameters for the Euclidean Cluster Extraction
+euclidean_min_size: 500 
+euclidean_max_size: 1000000
+euclidean_max_clusters: 5 
+
+color_min_size: 500 # parameters for the Color-Based Region-Growing Segmentation (aka color cluster extraction)
+color_distance_thresh: 10
+color_point_thresh: 5
+color_region_thresh: 5 
+color_max_clusters: 5
+
+
+
+# these sets were taken with the ds123 that seemed to have poor calibration
+# "bags/reconstruction/part1_x6_y4_theta33_cpitch0_/filtered/part1_x6_y4_theta33_cpitch0_12_filtered.pcd");
+# "bags/reconstruction/part1_x6_y4_theta33_cpitch10_/filtered/part1_x6_y4_theta33_cpitch10_12_filtered.pcd");
+# "bags/reconstruction/part1_x6_y4_theta33_cpitch20_/filtered/part1_x6_y4_theta33_cpitch20_12_filtered.pcd");
+# "bags/reconstruction/part1_x6_y4_theta33_cpitch30_/filtered/part1_x6_y4_theta33_cpitch30_12_filtered.pcd");
+
+#training_file: "pcd_images/ds435i_table_parts/training_01.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_03_1705436329142622.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_03_1705435453634201.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_05_1705439859938987.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_06_1705439878106249.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_07_1705439894755495.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_08_1705439916751924.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_12_1705440132530404.pcd"
+
+#training_file: "pcd_images/ds435i_table_parts/training_12_1705703988005435.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_12_1705704311402640.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_12_1705704418782593.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_12_1705704771628826.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_12_1705704966182887.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_12_1705705604495130.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_17_1705706009607119.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_18_1705706362941424.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_19_1705706426520077.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_20_1705706511970438.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_21_1705706602384186.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_22_1705707044040835.pcd"
+#training_file: "pcd_images/ds435i_table_parts/training_23_1705707968536234.pcd"
+
+#test_file: "pcd_images/ds435i_table_parts/test_01.pcd"
+#test_file: "pcd_images/ds435i_table_parts/test_03_1705435510575958.pcd"
+#test_file: "pcd_images/ds435i_table_parts/training_04_1705438639514498.pcd"
+#test_file: "pcd_images/ds435i_table_parts/training_05b_1705440053802620.pcd"
+#test_file: "pcd_images/ds435i_table_parts/training_06b_1705439997603622.pcd"
+#test_file: "pcd_images/ds435i_table_parts/training_07b_1705439980260987.pcd"
+#test_file: "pcd_images/ds435i_table_parts/training_08b_1705439964900832.pcd"
+#test_file: "pcd_images/ds435i_table_parts/training_10b_1705440114369514.pcd"

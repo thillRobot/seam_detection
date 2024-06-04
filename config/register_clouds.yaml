@@ -7,37 +7,68 @@ scene_name: "register_clouds" # change this to config_name ?
 
 ### IDETC 2024 datasets ###
 
-#register_clouds/target_file: "bags/reconstruction/part1_x3_y9_theta0_5_output.pcd"
-register_clouds/target_file: "bags/reconstruction/demo_part1_2_output.pcd"
+register_clouds/target_file: "bags/reconstruction/part1_x3_y9_theta0_15_output.pcd"
+register_clouds/tgt_idx: 0   # this is a nice target file, it works with most src
 
-register_clouds/tgt_idx: 9
-#register_clouds/target_file: "bags/reconstruction/part1_x9_y2_theta90_5_output.pcd"
-#register_clouds/tgt_idx: 4
+#register_clouds/target_file: "bags/reconstruction/part1_x9_y2_theta90_10_output.pcd"
+#register_clouds/tgt_idx: 4   # this one is a little messy, but it might work
+
+#register_clouds/target_file: "bags/reconstruction/part1_x9_y7_theta90_15_output.pcd"
+#register_clouds/tgt_idx: 7    # this one is messy and incomplete but it works 
+
+#register_clouds/target_file: "bags/reconstruction/demo_part1_2_output.pcd"
+#register_clouds/tgt_idx: 9  # this one is a 45 deg, dont use this one
+
+#register_clouds/target_file: "bags/reconstruction/part1_x4_y8_theta0_15_output.pcd"
+#register_clouds/tgt_idx: 12   # this one is pretty nice too, but the part is flipped over
 
 
-register_clouds/source_file: "bags/reconstruction/demo_part1_clutter_2_output.pcd"
-#register_clouds/source_file: "bags/reconstruction/part1_x3_y11_theta135_5_output.pcd"
-#register_clouds/source_file: "bags/reconstruction/part1_x4_y5_theta45_5_output.pcd"
-#register_clouds/source_file: "bags/reconstruction/part1_x4_y9_theta0_5_output.pcd"
-#register_clouds/source_file: "bags/reconstruction/part1_x8_y6_theta30_5_output.pcd"
-#register_clouds/source_file: "bags/reconstruction/part1_x5_y10_theta45_output.pcd"
-register_clouds/src_idx: 1
+
+#register_clouds/source_file: "bags/reconstruction/part1_x7_y5_theta45_15_output.pcd"
+#register_clouds/src_idx: 1
+
+#register_clouds/source_file: "bags/reconstruction/part1_x3_y11_theta135_12_output.pcd"
+#register_clouds/src_idx: 2
+
+#register_clouds/source_file: "bags/reconstruction/part1_x4_y5_theta45_15_output.pcd"
+#register_clouds/src_idx: 3
+
+register_clouds/source_file: "bags/reconstruction/part1_x8_y6_theta30_15_output.pcd"
+register_clouds/src_idx: 5
+
+#register_clouds/source_file: "bags/reconstruction/part1_x4_y9_theta0_15_output.pcd"
+#register_clouds/src_idx: 6   # this one has problem in segmentation # skip for now
+
+#register_clouds/source_file: "bags/reconstruction/part1_x9_y7_theta90_15_output.pcd"
+#register_clouds/src_idx: 7
+
+#register_clouds/source_file: "bags/reconstruction/part1_x5_y10_theta45_14_output.pcd"
+#register_clouds/src_idx: 8
+
+#register_clouds/source_file: "bags/reconstruction/demo_part1_clutter_12_output.pcd"
+#register_clouds/src_idx: 10  
+
+#register_clouds/source_file: "bags/reconstruction/part1_x5_y6_theta45_15_output.pcd"
+##register_clouds/src_idx: 11   # registers but poorly, skip for now
+
+#register_clouds/source_file: "bags/reconstruction/part1_x4_y8_theta0_15_output.pcd"
+#register_clouds/src_idx: 12   # this one is pretty nice too, but it is flipped over, skip this one
+
+
+
+#register_clouds/aligned_file: "bags/reconstruction/part1_x3_y11_theta135_15_aligned.pcd"
+#register_clouds/aligned_file: "bags/reconstruction/part1_x4_y5_theta45_15_aligned.pcd`"
+#register_clouds/aligned_file: "bags/reconstruction/part1_x8_y6_theta30_15_aligned.pcd"
+#register_clouds/aligned_file: "bags/reconstruction/part1_x4_y9_theta0_15_aligned.pcd"
+#register_clouds/aligned_file: "bags/reconstruction/part1_x9_y7_theta90_15_aligned.pcd"
+#register_clouds/aligned_file: "bags/reconstruction/part1_x5_y10_theta45_14_aligned.pcd"
+#register_clouds/aligned_file: "bags/reconstruction/demo_part1_clutter_2_aligned.pcd"
+#register_clouds/aligned_file: "bags/reconstruction/part1_x5_y6_theta45_14_aligned.pcd"
+#register_clouds/aligned_file: "bags/reconstruction/part1_x4_y8_theta0_14_aligned.pcd"
+register_clouds/aligned_file: "bags/reconstruction/part1_x7_y5_theta45_14_aligned.pcd"
 
 ### end of IDETC 2024 datasets ###
 
-
-
-#register_clouds/target_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
-#register_clouds/target_file: "bags/reconstruction/part1_x7_y5_theta45_5_output.pcd"
-#register_clouds/target_file: "bags/reconstruction/part1_x4_y9_theta0_5_output.pcd"
-#register_clouds/source_file: "bags/reconstruction/part1_x9_y7_theta90_output.pcd"
-#register_clouds/source_file: "bags/reconstruction/part1_x8_y6_theta30_5_output.pcd"
-#register_clouds/source_file: "bags/reconstruction/part1_x9_y2_theta90_5_output.pcd"
-#register_clouds/source_file: "bags/reconstruction/part1_x3_y9_theta0_5_output.pcd"
-
-
-
-register_clouds/aligned_file: "bags/reconstruction/demo_part1_aligned.pcd"
 
 part1_name: "shape1"
 part1_type: "square_tube"
