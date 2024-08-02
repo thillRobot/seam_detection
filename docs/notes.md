@@ -52,4 +52,3 @@
 ## Neural Network Approach
 
 Many algorithms and examples exist for 3D image analysis that use neural networks.
-see thillrobot/machine_vision repo for more details
