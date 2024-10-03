@@ -30,11 +30,11 @@ register_clouds/tgt_idx: 0   # this is a nice target file, it works with most sr
 #register_clouds/source_file: "bags/reconstruction/part1_x3_y11_theta135_12_output.pcd"
 #register_clouds/src_idx: 2
 
-#register_clouds/source_file: "bags/reconstruction/part1_x4_y5_theta45_15_output.pcd"
-#register_clouds/src_idx: 3
+register_clouds/source_file: "bags/reconstruction/part1_x4_y5_theta45_15_output.pcd"
+register_clouds/src_idx: 3
 
-register_clouds/source_file: "bags/reconstruction/part1_x8_y6_theta30_15_output.pcd"
-register_clouds/src_idx: 5
+#register_clouds/source_file: "bags/reconstruction/part1_x8_y6_theta30_15_output.pcd"
+#register_clouds/src_idx: 5
 
 #register_clouds/source_file: "bags/reconstruction/part1_x4_y9_theta0_15_output.pcd"
 #register_clouds/src_idx: 6   # this one has problem in segmentation # skip for now
