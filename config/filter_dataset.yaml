@@ -1,17 +1,75 @@
 ---
-input_dir: "pcd_images/PartNet/part1"
-output_dir: "pcd_images/PartNet/table_part1/filtered"
 
-save_output: true
-translate_output: false
-automatic_bounds: false
-use_clustering: true
-new_scan: false
-transform_input: true
+input_bag: "bags/reconstruction/part1_x5_y5_theta0_cpos1_.bag"
+output_bag_dir: "bags/reconstruction/part1_x5_y5_theta0_cpos1_"
 
-pre_rotation:    [-0.05, 3.17, 0.0] # ds435i rgb camera 32inches from table surface pointing down
-pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
+input_dir: "bags/reconstruction/part1_x5_y5_theta0_cpos1_"
+output_dir: "bags/reconstruction/part1_x5_y5_theta0_cpos1_/filtered"
 
-bounding_box: [-0.5, 0.5, -0.5, 0.5, -0.25, 0.1] # bounding box limits
-voxel_size: 0.002
+camera_roll: 0.0
+camera_pitch: 0.0
+camera_yaw: -90.0
 
+camera_x: 0.0
+camera_y: 0.0
+camera_z: 0.0
+
+camera_mount_roll: 51.0
+camera_mount_pitch: 0.0
+camera_mount_yaw: 0.0
+
+camera_mount_x: 1.5
+camera_mount_y: 3.75
+camera_mount_z: 8.5
+
+#  camera_roll: 0.0
+#  camera_pitch: 0.0
+#  camera_yaw: -90.0
+#
+#  camera_x: 0.0
+#  camera_y: 2.0
+#  camera_z: -1.0
+#
+#  camera_mount_roll: 51.5
+#  camera_mount_pitch: 0.0
+#  camera_mount_yaw: 0.0
+#
+#  camera_mount_x: 3.5
+#  camera_mount_y: 2.0
+#  camera_mount_z: 7.75
+
+# tripod_roll: 30.0
+# tripod_pitch: 0.0
+# tripod_yaw: 0.0
+
+# tripod_x: 0.0
+# tripod_y: 0.0
+# tripod_z: 65.25
+
+num_bag_clouds: 20
+save_bag_clouds: true
+save_dir_clouds: true
+
+publish_bag_clouds: true
+publish_dir_clouds: true
+
+use_bag_tfs: true
+broadcast_bag_tfs: false
+use_config_tfs: true
+
+transform_bag_clouds: true
+bound_bag_clouds: false
+smooth_bag_clouds: false
+downsample_bag_clouds: false
+
+transform_dir_clouds: false
+bound_dir_clouds: true
+smooth_dir_clouds: false
+downsample_dir_clouds: true
+
+#pre_rotation:    [-0.0 5, 3.17, 0.0] #
+#pre_translation: [0.0, 0.0, 0.8128] # 32.0*0.0254 
+auto_bounds: false
+
+bounding_box: [-1.0, 1.0, -0.9, -0.15, 0.004, 0.5] # bounding box limits
+voxel_size: 0.001

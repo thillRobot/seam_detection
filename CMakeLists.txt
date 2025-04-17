@@ -20,19 +20,14 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   sensor_msgs
   message_generation
+  eigen_conversions
+  dynamic_reconfigure
 )
 
 find_package(Eigen3 REQUIRED)
 find_package(teaserpp REQUIRED)
-#find_package(Boost 1.58 REQUIRED)
-#find_package(Boost 1.81 REQUIRED)
 find_package(Boost REQUIRED)
-#find_package(PCL 1.9 REQUIRED COMPONENTS common features kdtree)
-#find_package(PCL 1.10 REQUIRED) 
-#find_package(PCL 1.13 REQUIRED) 
-#find_package(PCL REQUIRED COMPONENTS common features kdtree)
 find_package(PCL REQUIRED)
-
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -105,10 +100,10 @@ generate_messages(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+  cfg/ReconfigureTF.cfg
+  # cfg/DynReconf2.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -120,10 +115,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES seam_detection
+  INCLUDE_DIRS include
+  #LIBRARIES seam_detection
   CATKIN_DEPENDS roscpp rospy std_msgs tf message_runtime
-#  DEPENDS system_lib
+  DEPENDS  #system_lib
 )
 
 ###########
@@ -133,13 +128,64 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
 
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/seam_detection.cpp
+# these should be modules of the same library maybe...
+add_library(cloudfilter
+  src/cloudfilter.cpp
+)
+
+add_library(cloudutils
+  src/cloudutils.cpp
+)
+target_link_libraries(cloudutils 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+  Eigen3::Eigen
+)
+
+add_library(cloudregistration
+  src/cloudregistration.cpp
+)
+target_link_libraries(cloudregistration 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+  Eigen3::Eigen
+  teaserpp::teaser_registration
+  teaserpp::teaser_io
+  teaserpp::teaser_features
+)
+
+# test nodes for the libraries defined above, leave disables for compile speed
+# # cloudutils_test (testing cloudutils.cpp/cloudutils.h)
+# add_executable(cloudutils_test src/test/cloudutils_test.cpp)
+# target_link_libraries(cloudutils_test 
+#   cloudutils 
+#   ${catkin_LIBRARIES} 
+#   ${PCL_LIBRARIES}
+# )
+
+# # cloudfilter_test (testing cloudfilter.cpp/cloudfilter.h)
+# add_executable(cloudfilter_test src/test/cloudfilter_test.cpp)
+# target_link_libraries(cloudfilter_test 
+#   cloudfilter 
+#   ${catkin_LIBRARIES} 
+#   ${PCL_LIBRARIES}
+# )
+
+# # cloudregisration_test (testing cloudregistration.cpp/cloudregistration.h)
+# add_executable(cloudregistration_test src/test/cloudregistration_test.cpp)
+# target_link_libraries(cloudregistration_test 
+#   cloudregistration 
+#   ${catkin_LIBRARIES} 
+#   ${PCL_LIBRARIES}
 # )
 
 ## Add cmake target dependencies of the library
@@ -222,68 +268,63 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-include_directories(${PCL_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
-
 ###########################################
 ## nodes to be compiled with catkin_make ##
 ###########################################
 
-###############################################
-## primary nodes for the SEAM_DETECTION package
-###############################################
+##################################################
+## primary nodes for the SEAM_DETECTION package ##
+##################################################
 
-# seam-detection (class approach)
-add_executable(seam-detection src/seam-detection.cpp)
-target_link_libraries(seam-detection
+# segment_clouds (class approach)
+add_executable(segment_clouds src/segment_clouds.cpp)
+target_link_libraries(segment_clouds 
+  cloudfilter 
+  cloudutils 
   ${catkin_LIBRARIES} 
   ${PCL_LIBRARIES} 
-  Eigen3::Eigen  
+  Eigen3::Eigen 
 )
 
 # filter_dataset (class approach)
 add_executable(filter_dataset src/filter_dataset.cpp)
-target_link_libraries(filter_dataset
+target_link_libraries(filter_dataset 
+  cloudfilter 
+  cloudutils 
   ${catkin_LIBRARIES} 
   ${PCL_LIBRARIES} 
-  Eigen3::Eigen  
+  Eigen3::Eigen 
+)
+
+## seam_detection
+#add_executable(seam_detection src/seam_detection.cpp)
+#target_link_libraries(seam_detection ${catkin_LIBRARIES} ${PCL_LIBRARIES} 
+#  Eigen3::Eigen 
+#  teaserpp::teaser_registration 
+#  teaserpp::teaser_io
+#  teaserpp::teaser_features
+#)
+
+# register_clouds - Registration Algorithm Testing Node(s) 
+add_executable(register_clouds src/register_clouds.cpp)
+target_link_libraries(register_clouds 
+  cloudregistration 
+  cloudfilter 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+  teaserpp::teaser_registration 
+  teaserpp::teaser_io
+  teaserpp::teaser_features
 )
 
 
-# seam_detection
-#add_executable(seam_detection src/seam_detection.cpp)
-#target_link_libraries(seam_detection
-#  ${catkin_LIBRARIES} 
-#  ${PCL_LIBRARIES} 
-#  Eigen3::Eigen 
-#  teaserpp::teaser_registration 
-#  teaserpp::teaser_io
-#  teaserpp::teaser_features
-#)
-
-# register_clouds - Registration Algorithm Testing Node(s) ##
-#add_executable(register_clouds src/register_clouds.cpp)
-#target_link_libraries(register_clouds 
-#  ${catkin_LIBRARIES} 
-#  ${PCL_LIBRARIES} 
-#  Eigen3::Eigen 
-#  teaserpp::teaser_registration 
-#  teaserpp::teaser_io
-#  teaserpp::teaser_features
-#)
-
-# register_target_source - Registration Algorithm Testing Node(s) ##
-#add_executable(register_target_source src/register_target_source.cpp)
-#target_link_libraries(register_target_source
-#  ${catkin_LIBRARIES} 
-#  ${PCL_LIBRARIES} 
-#  Eigen3::Eigen 
-#)
-
 # seam_detection_RANSAC # this node needs updating
 add_executable(seam_detection_RANSAC src/seam_detection_RANSAC.cpp)
-target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(seam_detection_RANSAC 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+)
 
 ######################################################
 ## Supporting nodes for the SEAM_DETECTION package  ##
@@ -291,25 +332,66 @@ target_link_libraries(seam_detection_RANSAC ${catkin_LIBRARIES} ${PCL_LIBRARIES}
 ## uncomment to enable compile                      ##
 ######################################################
 
-# seam_detection_tf
-add_executable(seam_detection_tf src/seam_detection_tf.cpp)
-target_link_libraries(seam_detection_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
 # filter_cloud
 add_executable(filter_cloud src/filter_cloud.cpp)
-target_link_libraries(filter_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(filter_cloud 
+  cloudfilter 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+)
+
+# seam_detection_tf
+add_executable(seam_detection_tf src/seam_detection_tf.cpp)
+target_link_libraries(seam_detection_tf 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+)
 
 # filter_cloud_tf
 add_executable(filter_cloud_tf src/filter_cloud_tf.cpp)
-target_link_libraries(filter_cloud_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(filter_cloud_tf 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+)
+
+# realsense_tf
+#add_executable(realsense_tf src/realsense_tf.cpp)
+#target_link_libraries(realsense_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# reconfigure_server
+add_executable(reconfigure_server src/reconfigure_server.cpp)
+add_dependencies(reconfigure_server ${PROJECT_NAME}_gencfg)
+target_link_libraries(reconfigure_server 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+)
+
+# reconfigure_tf
+add_executable(reconfigure_tf src/reconfigure_tf.cpp)
+add_dependencies(reconfigure_tf ${PROJECT_NAME}_gencfg)
+target_link_libraries(reconfigure_tf 
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+)
+
+# realsense_playback_tf
+#add_executable(realsense_playback_tf src/realsense_playback_tf.cpp)
+#target_link_libraries(realsense_playback_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+# realsense_playback_tf2
+#add_executable(realsense_playback_tf2 src/realsense_playback_tf2.cpp)
+#target_link_libraries(realsense_playback_tf2 ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# rotate_cloud
+#add_executable(rotate_cloud src/rotate_cloud.cpp)
+#target_link_libraries(rotate_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # hue_segmentation
-add_executable(hue_segmentation src/hue_segmentation.cpp)
-target_link_libraries(hue_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#add_executable(hue_segmentation src/hue_segmentation.cpp)
+#target_link_libraries(hue_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# crg_segmentation - color based region growing segmentation
-add_executable(crg_segmentation src/crg_segmentation.cpp)
-target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# crg_segmentation 
+#add_executable(crg_segmentation src/crg_segmentation.cpp)
+#target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # cad_cloud
 # add_executable(cad_cloud src/cad_cloud.cpp)
@@ -319,20 +401,21 @@ target_link_libraries(crg_segmentation ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # add_executable(cad_cloud_bulk src/cad_cloud_bulk.cpp)
 # target_link_libraries(cad_cloud_bulk ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-
-# ds435i_tf
-add_executable(ds435i_tf src/ds435i_tf.cpp)
-target_link_libraries(ds435i_tf ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
 # save_rgbcloud
-add_executable(save_rgbcloud src/save_rgbcloud.cpp)
-target_link_libraries(save_rgbcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#add_executable(save_rgbcloud src/save_rgbcloud.cpp)
+#target_link_libraries(save_rgbcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 ###########################################################
 ## Aubo Robot system interface nodes                     ## 
 ## require aubo_description and aubo_control to compile  ##
 ## comment out these nodes if robot not present          ## 
 ###########################################################
+
+# aubo_cmd
+add_executable(aubo_cmd src/aubo_cmd.cpp)
+target_link_libraries(aubo_cmd 
+    ${catkin_LIBRARIES}
+)
 
 # get_cloud
 #add_executable(get_cloud src/get_cloud.cpp)
@@ -362,29 +445,25 @@ target_link_libraries(save_rgbcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 #add_executable(filter_source src/filter_source.cpp)
 #target_link_libraries(filter_source ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# rotate_cloud
-#add_executable(rotate_cloud src/rotate_cloud.cpp)
-#target_link_libraries(rotate_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# save_rgbcloud
+add_executable(save_rgbcloud src/save_rgbcloud.cpp)
+target_link_libraries(save_rgbcloud 
+                      cloudfilter ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # teach_points
-#add_executable(teach_points src/teach_points.cpp)
-#target_link_libraries(teach_points ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_executable(teach_points src/teach_points.cpp)
+target_link_libraries(teach_points ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
-# scan2cloud 
-#add_executable(scan2cloud src/scan2cloud.cpp)
-#add_dependencies(scan2cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) # from sz
-#target_link_libraries(scan2cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-#install(TARGETS scan2cloud RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})           # from SZ
-
-#add_executable(merge_cloud src/merge_cloud.cpp)
-#add_dependencies(merge_cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-#target_link_libraries(merge_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-#install(TARGETS merge_cloud RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})          # from SZ
-
-#add_executable(publish_pcd src/publish_pcd.cpp)
-#add_dependencies(publish_pcd ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) # from SZ
-#target_link_libraries(publish_pcd ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-
+# register_target_source - Registration and task execution with aubo arm
+add_executable(register_target_source src/register_target_source.cpp)
+target_link_libraries(register_target_source
+  cloudutils
+  cloudregistration
+  cloudfilter
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES} 
+  Eigen3::Eigen 
+)
 
 ################################################################
 ## Teaser Nodes
@@ -416,6 +495,21 @@ target_link_libraries(save_rgbcloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # un-comment if you need to compile archived nodes
 # these have not been compiled successfully since they have been moved into /archive
 # NOTE: move these back to src/ if they will not compile in src/archive
+
+# scan2cloud (from SZ)
+#add_executable(scan2cloud src/scan2cloud.cpp)
+#add_dependencies(scan2cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) # from sz
+#target_link_libraries(scan2cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#install(TARGETS scan2cloud RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})           # from SZ
+
+#add_executable(merge_cloud src/merge_cloud.cpp)
+#add_dependencies(merge_cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#target_link_libraries(merge_cloud ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+#install(TARGETS merge_cloud RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})          # from SZ
+
+#add_executable(publish_pcd src/publish_pcd.cpp)
+#add_dependencies(publish_pcd ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) # from SZ
+#target_link_libraries(publish_pcd ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 # import_seam
 # add_executable(import_seam src/archive/import_seam.cpp)

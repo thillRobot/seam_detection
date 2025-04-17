@@ -6,8 +6,7 @@
   Node: seam_detection_tf.cpp
   Package: seam_detection
 
-  Tristan Hill     - 02/23/2020
-  updated for v1.5 - 03/10/2021 
+  Tristan Hill    
 */
 
 #include <ros/ros.h>
@@ -35,15 +34,29 @@ int main(int argc, char** argv){
     geometry_msgs::TransformStamped *T_base_link_map (new geometry_msgs::TransformStamped); // from 'base_link' to 'map'
     geometry_msgs::TransformStamped *T_map_world (new geometry_msgs::TransformStamped); // from 'map' to 'world'
 
-    T_base_link_map->header.stamp = ros::Time::now();T_base_link_map->header.frame_id = "map";T_base_link_map->child_frame_id ="base_link";
-    T_base_link_map->transform.translation.x = 0; T_base_link_map->transform.translation.y = 0; T_base_link_map->transform.translation.z = 0;
-    T_base_link_map->transform.rotation.x = 0; T_base_link_map->transform.rotation.y = 0; T_base_link_map->transform.rotation.z = 0;T_base_link_map->transform.rotation.w = 1;
+    T_base_link_map->header.stamp = ros::Time::now();
+    T_base_link_map->header.frame_id = "map";
+    T_base_link_map->child_frame_id ="base_link";
+    T_base_link_map->transform.translation.x = 0; 
+    T_base_link_map->transform.translation.y = 0; 
+    T_base_link_map->transform.translation.z = 0;
+    T_base_link_map->transform.rotation.x = 0; 
+    T_base_link_map->transform.rotation.y = 0; 
+    T_base_link_map->transform.rotation.z = 0;
+    T_base_link_map->transform.rotation.w = 1;
 
-    T_map_world->header.stamp = ros::Time::now();T_map_world->header.frame_id = "world";T_map_world->child_frame_id ="map";
-    T_map_world->transform.translation.x = 0; T_map_world->transform.translation.y = 0; T_map_world->transform.translation.z = 0;
-    T_map_world->transform.rotation.x = 0; T_map_world->transform.rotation.y = 0; T_map_world->transform.rotation.z = 0;T_map_world->transform.rotation.w = 1;
+    T_map_world->header.stamp = ros::Time::now();
+    T_map_world->header.frame_id = "world";
+    T_map_world->child_frame_id ="map";
+    T_map_world->transform.translation.x = 0; 
+    T_map_world->transform.translation.y = 0; 
+    T_map_world->transform.translation.z = 0;
+    T_map_world->transform.rotation.x = 0; 
+    T_map_world->transform.rotation.y = 0; 
+    T_map_world->transform.rotation.z = 0;
+    T_map_world->transform.rotation.w = 1;
 
-    ros::spinOnce();
+    //ros::spinOnce();
 
     while(n.ok())
     {
@@ -54,8 +67,8 @@ int main(int argc, char** argv){
       T_map_world->header.stamp = ros::Time::now();
       static_broadcaster.sendTransform(*T_map_world);
  
-        r.sleep();
-        ros::spinOnce();
+      r.sleep();
+      ros::spinOnce();
     }
 
     ros::spin();

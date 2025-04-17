@@ -30,6 +30,9 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <std_msgs/Bool.h>
 
+//#include "cloudfilter.h"
+
+
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 typedef pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudPtr;
 typedef std::vector < PointCloudPtr, Eigen::aligned_allocator < PointCloudPtr > > PointCloudVec;

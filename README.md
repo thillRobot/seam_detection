@@ -1,6 +1,8 @@
 # seam_detection
 This is a ROS(1) package for weld seam detection from pointclouds using the point cloud library [PCL](https://pointclouds.org/).
 
+![seam_detection](png_images/seam_detection.png?raw=true "Title")
+
 ## Publications:
 ```
 Automated Weld Path Generation Using Random Sample Consensus and Iterative Closest Point Workpiece Localization
@@ -41,7 +43,7 @@ Add the workspace path to `/.bashrc` so that ros can find your packages
 echo "source ~/<workspace-name>/devel/setup.bash" >> ~/.bashrc
 ```
 
-To use a catkin workspace that is already setup, skip **Step 1** (the workspace must compile with `catkin_make`).
+To use a catkin workspace that is already setup, skip **Step 1** (the workspace can be compiled with `catkin_make` or `catkin build`).
 
 
 #### Step 2 - Download seam_detection Package
@@ -81,14 +83,16 @@ The workspace and package should compile without errors.
 
 #### Supporting Nodes    
 
- - `scan2cloud` - generate pointclouds from lidar scans and poses (node missing from repo, coming back soon)   
  - `cad_cloud` - convert .ply file into .pcd file using pcl
  - `cad_cloud_bulk` - convert directory of .ply files into .pcd files using pcl
- - `rotate_cloud` - apply homogenous transformation to pointcloud using pcl
-  
+ - `rotate_cloud` - apply homogenous transformation to pointcloud using pcl 
+ - `filter_cloud` - apply series of filters to point cloud, includes clustering and clutster matching  
+ - `scan2cloud` - generate pointclouds from lidar scans and poses (node missing from repo, coming back soon)   
+
 #### Development Nodes
 
- - `seam-detection` - implement this project with a c++ class - IN PROGRESS, see devel  
+ - `seam-detection` - implement this project with a c++ class - IN PROGRESS, see devel 
+ - `filter_dataset` - process pointclouds and tfs recorded as bag files or stored in pcd directories   
  - `register_clouds` - test different registration algorithms including icp and Teaser
  (Summer 2023 - present)  
  - `get_cloud` - get pointcloud from aubo robot system
@@ -353,7 +357,9 @@ PointCloud representing the planar component: 2993 data points.
 [pcl::SampleConsensusModel::getSamples] Can not select 0 unique points out of 0!
 [pcl::RandomSampleConsensus::computeModel] No samples could be selected!
 [pcl::SACSegmentationFromNormals::segment] Error segmenting the model! No solution found.
+
 ```
+
 
 
 ###### new test scenes - generated 06/21/2023 - rplidar a2 on aubo i10
@@ -381,61 +387,60 @@ NEW! test mode 2: LiDAR based taget cloud and different LiDAR scan based source 
 example:
 
 ```
-roslaunch seam_detection registration_examples.launch config:="scenes/shape2_45deg_60deg"
+roslaunch seam_detection register_clouds.launch config:="scenes/shape2_45deg_60deg"
 ```
 
 
 
-#### Notes about new tests
+### filter_cloud 
 
-- Being too 'far away' can cause ICP to fail. This may seem obvious, but I have not thought about the scale of initial translation until now. This is at least one thing I have  learned from the new shape1_shape2 dataset.
-
-- 8 new scans have been recorded and saved with the project. These have all been tested with ICP registration and TEASER_FPFH registration. 
-
-- registration using a CAD model based target cloud (fixed) and a LiDAR based source cloud (transformed) not always successful. Shape 1 is not successful in this mode, but shape 2 is successful with ICP in several examples.  Some examples have minor alignment error. TEASER and TEASER_FPFH are not successful in this mode.
-
-- shape 1 is not successful in the examples in which alignment requires more than 180 of z rotation. This may be because the alignment must pass through a local minimum where both planes are parallel but offset which occurs at a 180 offset because the object is rectangular. This is somewhat confirmed by the fact that registration is successful if the source orientation is within X degs of target - X needs to be determined 
-
-- Dr. Canfield suggested comparing LiDAR scan clouds to different LiDAR scan clouds. I do not know why we have not tried this yet. This mode seems to be more successful. Registration is successful using ICP and TEASER_FPFH (needs more testing) in several shape1 and shape2 examples. 
-
-- re-registration with ICP does not produce improved results - this is not suprising because iteration is built into the routine, max iterations is a parameter
+This routine is designed to automate the selection/identification of the source cloud to be used in registration 
 
 
+###### filtering process 
+the node `filter_cloud.cpp` containes bounding box, voxel, and cluster based filtering on a single pointcloud from pcd
 
-#### TEASER Notes
+```
+roslaunch seam_detection filter_cloud.launch
+```
 
-Teaser is running on the the current data sets, however the results are not correct or usable. 
+adjust values in `config/filter_cloud.yaml` or use a different  config file 
 
-The translation component of the solution is mostly correct. It appears that the algorithm is successfully locating the centroid of the workpiece based on the ROS  visualization.
+```
+roslaunch seam_detection filter_cloud.launch config:=filter_aubo_cloud
+```
 
-The rotation portion of the solution is not correct. It is off by 30+ deg. 
+### new test scenes from ds435i depth camera
+pcd files in `pcd_images/ds435i_table_parts/`
 
-##### BIG IDEA
-It appears that registration requires correspondence and/or overlapping point clouds. However, most sample code and algorithm testing is done on standard data sets, and the clouds in these sets have correspondance by nature of the test. For example, it is common to test registration on a cloud and a modified version of the same cloud. This test represents an ideal situation and best case inputs to the registration problem in which correspondence within a tolerance is expected. 
+```
+roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
+```
 
-The applied registration problem for workpiece localization provides no guarantee that of correpondence between cloud points can be found. Check for this idea in the literature.
+
+### new developement node - class approach 
+
+filtering process - run the following launch to process a bag file and or directory of pcd files
+
+```
+roslaunch seam_detection filter_dataset.launch
+```
+
+The parameters can be set in  `config/filter_dataset.yaml`, or a different config name can be passed to the launch command
+
+```
+roslaunch seam_detection filter_dataset.launch config:=<CONFIGNAME>
+``` 
 
 
-#### More TEASER Notes
+analyis and part identification - run the following to test the part identification process
+(This probably needs a new name for the script and the the rest... seam_detection is already used)
 
-If the number of source points (Ns) is less that the number of target points (Nt), seam_detection_teaser.cpp crashes during TEASER registration. This has been double checked, Ns > Nt or TEASER will crash.
+```
+roslaunch seam_detection seam-detection.launch
+```
 
-If the number of source points is close to the number of target points, the algorithm converges quickly. Currently testing will N = ~1000
-
-Some of the data sets we are testing are not good because they have low overlap. This is partially due to the segmentation process and partly due to the lidar shadow concept. Next, setup/find a ideal case for algorithm testing. I have a hunch that TEASER is working, but the data we are giving it is not great. CHECKTHISSOON!
-
-It seems that it is all about the input data, duh!
-
-it appears the python example may just be a wrapper on what we already have access to
-
-on the other hand it seems like the python_3dsmooth.py example is different, uses KNN 3DSmoothNet 
-
-3DsmoothNet seemed interesting and the demo results are compeling, the downside is that the example is outdated in python 3.5,3.6, this is not what we want but we could use docker to make an old environment just for the sake of testing, it would be worth it I think
-
-New Stuff! - While invesigating the 3DsmoothNet author Zan Gojcic(zgojcic@github) I found something very interesting! Guess what it also has a catchy name: OverlapPredator [prs-eth/OverlapPredator](https://github.com/prs-eth/OverlapPredator). It seems like the main idea is "Registration of 3D Point Clouds with Low Overlap". This may be what we need. Also, the tested example is for Python 3.8.5 which is much more acceptable than 3.5/3.6 as in previous example.
-
-Predator comes from the Photogrammetry and Remote Sensing Lab: https://github.com/prs-eth
-
+The parameters can be set in  `config/seam-detection.yaml`, or a different config name can be passed to the launch command
 
 #### Config Files
  
@@ -449,22 +454,22 @@ The launch arg has been renamed from `scene` to `config`, and the default config
 
 Stand up the entire application in a single line using docker and docker compose. This is not required, but allows for portable testing. 
 
-Create a source directory and set the environment variable $CATKIN_WS_PATH 
+Create a source directory and set the environment variable $ROS_WS (previously CATKIN_WS_PATH) 
 
 ```
 mkdir -p ~/catkin_ws/src
-export CATKIN_WS_PATH=~/catkin_ws
+export ROS_WS=~/catkin_ws
 ```
 
-Clone this repository into $CATKIN_WS_PATH/src
+Clone this repository into $ROS_WS/src
 
 ```
-cd $CATKIN_WS_PATH/src
+cd $ROS_WS/src
 git clone git@github.com:thillrobot/seam_detection
 ```
 
 
-Modify xauth access control 
+Modify xauth access control to allow display  
 ```
 xhost local:root
 ```
@@ -489,37 +494,6 @@ Note: if you want to generate files in the container, for example when using `ca
 chmod o+w seam_detection/<SUBDIR>
 ````
 
-### troubleshoot with auborobot
-
-To use this package with the aubo robot, uncomment and enable compiling of the aubo robot system node in `CMakeLists.txt`. These nodes will not compile by default to allow for use in docker and on other platforms. 
-
-
-#### issues
-i see the following error when i try to publish to andriod_gui/gcode_cmd
-```
-[ERROR] [1692989638.343471973]: Client [/rostopic_17739_1692988617268] wants topic /android_gui/gcode_cmd to have datatype/md5sum [aubo_control/gcodeAction/8261e41e53803494ec669905817b139c], but our version has [aubo_control/gcodeAction/a83a0e1a726f23e73947f0f4e478e627]. Dropping connection.
-```
-
-i think this is a noetic-kinetic version mismatch but I am not sure. The custom message compiles and published on the local machine fine, neither remote machine can see the msg from the other computer
-
-the published message (noetic side) looks just fine
-
-```
----
-header: 
-  seq: 304
-  stamp: 
-    secs: 0
-    nsecs:         0
-  frame_id: ''
-file_name: "scan_target"
-job_cycles: 0
-start_job: True
-loop: False
-start_atline: 0
----
-```
-
 we might have to make a patch on the kinetic side to fix this.
 
 ### new scenes and launch files from Aubo i10, Summer 2023 at RTT
@@ -534,25 +508,11 @@ launch files:
 The process from the summer 2023 season needs documentation!
 
 
-### filter_cloud 
-
-This routine is designed to automate the selection/identification of the source cloud to be used in registration 
-
-
-
-### new test scenes from ds435i depth camera
-pcd files in `pcd_images/ds435i_table_parts/`
-
-```
-roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
-```
-
-
 ### Changelog
 #### Tagged Versions
 - v1.0 (stable - tagged 12/07/2020)
 - v1.1 (stable - tagged 12/26/2020)
-  - added `round_tube` or `square_tube` segmentation option for part1
+  - added `round_tube` or `square_tube` segmentation option for part
   - added `part1_type` to `seam_detection.launch` args
   - removed `thresh` from `seam_detection.launch` args
 - v1.2 (stable - tagged 01/15/2021)
@@ -580,7 +540,7 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
   - successfully tested in `ros:noetic-robot-focal` container, first time successfully testing in 20.04
   - updated example launch commands in this README
   - testing TEASER++ registration, very sensitive to size of input data 
-- v1.7 (development - main/devel - tagged 06/22/2023)
+- v1.7 (stableish - main/devel - tagged 06/22/2023)
   - added new experimental test scans from RPLiDAR A2 + Aubo i10 - `shape1_shape2`
   - added separate source code for `filter_cloud()` and `registration_examples()` to simpify testing 
   - added functions: `register_cloud_icp()`, `register_cloud_teaser()`, `register_cloud_teaser_fpfh()` to simplify testing
@@ -590,26 +550,35 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
   - testing new registration mode: LiDAR scan to LiDAR scan - see `shape1_shape2` examples
   - added bounding box to config files to allow for hand cropping input data
   - create ideal data sets `rect_block_02_blndr` and `rect_block_02`  for testing different registration algorithms- needs better docs
+- v1.8 (stablish - main/devel - check dates)
+  - began reorganizing project with class based approach
+  - added functionality for pcl::PointCloud<pcl::PointXYZRGB>
+  - items may be missing from this list (added late)
+- v1.9 (development - main/devel - check dates)
+  - continued reorganizing project with class based approach, preparing to tag 2.0 when complete
+  - tested in docker with realsense and `thillrobot/robot_vision'
+  - added filter_dataset for processing bulk color pcd images
+  - tested euclidean clustering, color clustering, and cluster matching in filter_dataset
+  - added dynamic reconfigure and rqt functionality for tuning camera tf
+  - test docker container deploy with Miller/aubo robot using macvlan network 
+  - added CloudFilter class with header for shared functions and reduced bloat
+  - added, tested multiview reconstruction 
+  - added, testing 8 step process with test and training clouds for part selection, partially effective 
+  
+
+
   
 
 #### Things To Do (priority top to bottom):
 
+- [x] IN PROGRESS - test multiview part reconstructions (needs new name maybe, find standard name)
+
+- [ ] IN PROGRESS - use a .cpp class with header file to create sharable functions for project, see cloudfilter.cpp, cloudfilter.h
+                    trying hard to follow standard cpp class convention for usability
+
+- [ ] IN PROGRESS - use a .cpp class to improve RGB pointcloud filtering and file management, see `filter_dataset.cpp` 
+
 - [ ] IN PROGRESS - use a .cpp class to improve the implementation of seam_detection.cpp, clean up the code in general, it is overbloated! - see devel
-
-- [x] design and test process with multi computer cross version setup on robot with LiDAR and RGBD camera
-    -> pointcloud and tf published by arm computer, vision computer subscribes
-    -> registration result tf published by vision computer, arm computer subscribes   
-    [ ] document the process of interfacing with Aubo/RTT robot
-
-- [x] streamline filtering->clustering->registration for testing alongsisde robot
-    -> streamline might not be the best word for it, but this process has been tested 
-
-- [x] use PCL Euclidean cluster extraction to replace segmentation or manual bounding box preparation of lidar scans
-    -> proof of concept shown in `filter_cloud.cpp`, robot body is successfully separated from workpeice, clusters shown in rviz
-    -> this needs testing for robustness and documentation, 
-    -> volume + aspect ratio objective function used, improve this with weighted factors instead of summative
-
-- [x] test clustering with workpeice plus separated objects on table and consider a selection algorithm to determine which cluster is the correct workpeice, cluster size is not a robust metric for selection if the workpeice size varies. The workpeice size will vary.
 
 - [ ] test clustering with workpeice and clamps
     -> older scans 
@@ -621,16 +590,6 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
     -> synthetic data with clamps 
     -> to be collected new scans
 
-- [x] collect new scan data from auboi10 and rplidar and/or lightware 
-    -> with extra objects and without
-    -> [ ] with clamps and without
-    -> consider collection 3D camera data general purpose research
-    -> carefully consider design of experiments  
-
-- [x] test icp registration from several tracked starting locations to avoid getting stuck in local minimum, compare scores of each result and lowest should be correct
-    -> first pass at this seems to work, four positions were tested and the correct position can be identified with the fitness score 
-    -> code only works for ICP, not TEASER or TEASER_FPFH yet
-
 - [ ] test working data sets from recent scans with Overlap Predator, this is being tested in a different repo
 
     -> Overlap Predator demo was working fine at some point June 29, then the `sh scripts/download_data_weight.sh ` started failing to connect. I do not think this was on my end, but I an not sure. I can test that from the office if it still will not connect tomorrow. Hopefully, they did not kick me out. WOW! Just as I wrote this it finally started working so I guess it was magic or they are spying on me.
@@ -641,43 +600,20 @@ roslaunch seam_detection filter_cloud.launch config:="filter_cloud_ds435i"
 
     -> these tests are not documented well, and dockerfiles are not in repos so they will be hard to transfer across machines and there is no cloud backup. I would just put them in the forked repos, but .... wait why dont we do that??? why are they in the parent directory anyway? hmmm....
 
-
-- [x] test new LiDAR sensor from lightware, capture new 3D scans for comparison
-    -> test in progress
-
-- [x] update and document config file system to allow for iterative (cascaded) registration, this should be doable without major modifications to the source code
-    -> iteratiion is typically built into registration methods, also it does not seem to produce improved results when interation is performed manually
-
-- [x] test iterative registration on current and previous experimental data sets
-    -> no significant results shown, you have learned this once again so maybe this time you will remember it
-
-- [ ] implement `overlap_predator` registration on experimental data for performance comparision, this might solve orientation issues
-
-- [ ] add separate code for cloud_segmentation to complete separation of steps 
+- [x] test `overlap_predator` registration on experimental data for performance comparision, this might solve orientation issues
+    -> limited success with our data, needs to be revisited
 
 - [ ] re-visit data preparation with correspodence in mind, aim for equally dense target and source clouds  
 
-- [ ] continue investigating the affects of cloud density on the performance of ICP. It is apparant that this effects the proper convergence of ICP. 
-
-- [ ] investigate and demonstrate the affect of the voxel filter
-
-- [ ] investigate different segmentation models - progress made with multiple planes and `SAC_PERPENDICULAR_PLANE` 
+- [ ] investigate/document the affects of cloud density on the performance of ICP. It is apparant that this effects the proper convergence of ICP. 
 
 - [ ] develope processing multiple parts, two parts only for now
 
-- [ ] add description of the seam to the model - i have begun by creating seam *.pcd* files - lists for seam points are setup in the config file
-
-- [ ] calculate a *measure of accuracy* - i started this in `analyse_results` then moved this to `register_cloud_icp` in a hurry, needs to go back now
-
 - [ ] The tf migration is incomplete. Parts of both libraries are currently used. For example `tf::transform` is used for  `pcl_ros::transformPointCloud`. There is probably another way, but I have not figured it out yet.
-- [ ] Improve conversion from `ICP::` to `TF::` in REGISTER_CLOUD_ICP function in `seam_detection.cpp`. Currently it is clunky and overbloated, but it works.
-
-- [ ] improve efficiecy of `seam_detection.cpp` by redcucing the number of extra copies of cloud objects used in the main workflow. Many of these were only used for debugging purposes. 
-
-- [ ] document data collection and calibration process using 3D LiDAR system - update `scan2cloud` package and docs - TAKE NOTE NEXT TIME !
+- [ ] update `scan2cloud` package to work with seam_detection
 
 - [?] prepare a manuscript for ASME IDETC2024 or alternate venue
 
-- [ ] clean up README and test archived and older examples  - update old config files with new parameters lists, maybe we should wait until we finish changing lol
+- [ ] IN_PROGRESS  clean up README and test archived and older examples  - update old config files with new parameters lists, maybe we should wait until we finish changing lol
 
 - [ ] prune this list

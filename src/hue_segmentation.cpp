@@ -31,7 +31,7 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(2);
 
   std::cout<<"===================================================================="<<std::endl;
-  std::cout<<"                     hue_segmentation v1.8                             "<<std::endl;
+  std::cout<<"                     hue_segmentation v1.9                          "<<std::endl;
   std::cout<<"===================================================================="<<std::endl;
   std::cout<<"Using PCL version:"<< PCL_VERSION_PRETTY <<std::endl<<std::endl;
 
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
   shs.setClusterTolerance (tolerance); // cluster parameters set in config file
   shs.setSearchMethod (tree);
   shs.setInputCloud (cloud_input);
-  //shs.extract (cluster_indices);
+ // shs.extract (cluster_indices);
   shs.segment(*indices_in, *indices_out);
 
   // instatiate a std vector of pcl pointclouds with pcl PointXYZ points (see typedef above)

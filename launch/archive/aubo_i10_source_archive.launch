@@ -1,0 +1,45 @@
+<launch>
+  
+  <!-- launch file for processing pointclouds from aubo_control main_LIDAR.launch -->
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
+
+  <!-- read arg value load the parameters from 'main' config file-->
+  <arg name="config" default="aubo_i10_target_source" />
+  <param name="param" value="$(arg config)"/> 
+  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" /> 
+ 
+  <!-- start the scan by publishing to the aubo robot arm -->
+  <remap from="target_gcode" to="android_gui/gcode_cmd"  />
+  <node                   
+    pkg="seam_detection"          
+    type="start_source_scan"
+    name="start_source_scan"
+    output="screen">
+  </node>
+
+  <!-- save the target cloud published by the aubo robot arm -->
+  <node                   
+    pkg="seam_detection"          
+    type="get_source"
+    name="get_source"
+    output="screen">
+  </node>
+
+  <!-- filter the target cloud saved by get_cloud --> 
+  <node                   
+    pkg="seam_detection"          
+    type="filter_source"
+    name="filter_source"   
+    output="screen">
+  </node>
+
+  <!-- processing of lidar data for registration -->
+  <node
+    pkg="seam_detection"
+    name="register_target_source"
+    type="register_target_source"
+    output="screen">
+  </node>
+
+</launch>
+

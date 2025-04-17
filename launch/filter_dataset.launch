@@ -7,16 +7,27 @@
   <!-- read value of arg -->
   <param name="param" value="$(arg config)"/> 
 
+  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
+  
   <!-- setup the transformations and frames for the system-->
+ 
+  <!-- <rosparam param="use_sim_time">true</rosparam> -->
+  
+  <!--
   <node
     pkg="seam_detection"
-    name="seam_detection_tf"
-    type="seam_detection_tf"
+    name="realsense_tf"
+    type="realsense_tf"
     output="screen"
   />
+  -->
+    
+  <!-- setup dynamic reconfigure for TFs from robot to camera -->  
+  <node pkg="seam_detection" type="reconfigure_server" name="reconfigure_server" output="screen"/>
+  <node pkg="seam_detection" type="reconfigure_tf" name="reconfigure_tf" output="screen"/>
+  <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen"/>
+  
 
-  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
- 
   <!-- this node contains the primary processing of lidar data for seam detection -->
   <node
     pkg="seam_detection"
@@ -24,6 +35,7 @@
     type="filter_dataset"
     output="screen"
   />
+  
 
   <node name="rviz"
     pkg="rviz"

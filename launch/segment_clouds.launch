@@ -1,0 +1,34 @@
+<launch>
+  <!-- launch file for node SEGMENT_CLOUD -->
+  <env name="LIBGL_ALWAYS_SOFTWARE" value="1"/>
+
+  <arg name="config" default="segment_clouds" />
+
+  <!-- read value of arg -->
+  <param name="param" value="$(arg config)"/> 
+
+  <!-- setup the transformations and frames for the system-->
+  <node
+    pkg="seam_detection"
+    name="seam_detection_tf"
+    type="seam_detection_tf"
+    output="screen"
+  />
+
+  <rosparam file="$(find seam_detection)/config/$(arg config).yaml" />
+ 
+  <!-- this node contains the primary processing of lidar data for seam detection -->
+  <node
+    pkg="seam_detection"
+    name="seam_detection"
+    type="segment_clouds"
+    output="screen"
+  />
+
+  <node name="rviz"
+    pkg="rviz"
+    type="rviz"
+    args="-d $(find seam_detection)/rviz/segment_clouds.rviz">
+  </node>
+
+</launch>
