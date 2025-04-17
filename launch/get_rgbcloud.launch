@@ -26,6 +26,8 @@
 
   <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find seam_detection)/rviz/get_training.rviz" />  
 
-  <node pkg="pcl_ros" type="pointcloud_to_pcd" name="pointcloud_to_pcd" output="screen" args="_prefix:=$(find seam_detection)/pcd_images/ds435i_table_parts/$(arg filename)_ input:=/depth_registered/points fixed_frame:=map" />
+  <!-- <node pkg="pcl_ros" type="pointcloud_to_pcd" name="pointcloud_to_pcd" output="screen" args="_prefix:=$(find seam_detection)/pcd_images/ds435i_table_parts/$(arg filename)_ input:=/depth_registered/points fixed_frame:=map" /> -->
+
+  <node pkg="pcl_ros" type="pointcloud_to_pcd" name="pointcloud_to_pcd" output="screen" args="_prefix:=$(find seam_detection)/pcd_images/$(arg filename)_ input:=/depth_registered/points fixed_frame:=map" />
 
 </launch>
